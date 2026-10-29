@@ -31,7 +31,14 @@ export default async function CataPage({
     next: { revalidate: 60 }
   });
   
-  if (!res.ok) {
+  let punto: { id: string; nombre: string; tipo: string; ciudad: string | null; codigo_acceso?: string } | null = null;
+
+  if (res.ok) {
+    const json = await res.json().catch(() => null);
+    punto = json?.data?.punto ?? null;
+  }
+
+  if (!punto) {
     // Si no es un local B2B, verificar si es un código QR individual de envase (ej. OZ-2026-XXXXXX)
     const qrRes = await fetch(`${nucleoUrl}/api/trazabilidad/qr/${encodeURIComponent(codigo)}`, {
       next: { revalidate: 60 },
@@ -50,14 +57,18 @@ export default async function CataPage({
       redirect(`/qr-scan?code=${encodeURIComponent(codigo)}`);
     }
 
-    notFound();
-  }
-  
-  const json = await res.json();
-  const punto = json.data?.punto;
-  
-  if (!punto) {
-    notFound();
+    const normCode = codigo.toUpperCase();
+    if (normCode === 'FERIA' || normCode === 'STAND' || normCode === 'DEGUSTACION') {
+      punto = {
+        id: 'feria-canonica',
+        nombre: 'Estación de Degustación · Santiago',
+        tipo: 'feria_evento',
+        ciudad: 'Santiago',
+        codigo_acceso: normCode,
+      };
+    } else {
+      notFound();
+    }
   }
 
   // Fetch chips and active variants in parallel via Nucleo BFF ISR

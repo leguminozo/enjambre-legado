@@ -15,8 +15,12 @@ import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, ShoppingBag, User,
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
+  getComunasPorRegion,
   getCourier,
+  getRegionShippingEta,
+  isChileRegion,
   type CourierCode,
+  type ShippingRatesConfig,
 } from '@enjambre/logistica';
 import { HexagonLoader, Skeleton, formatCLP, friendlyError } from '@enjambre/ui';
 import {
@@ -42,6 +46,7 @@ import {
   PENDING_CHECKOUT_STORAGE_KEY,
   PROMO_DISCOUNT_CODE_KEY,
   PURCHASE_SNAPSHOT_STORAGE_KEY,
+  SHIPPING_REGION_STORAGE_KEY,
   readCommerceStorage,
   writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
@@ -272,7 +277,7 @@ function CheckoutPricingSkeleton() {
   );
 }
 
-export function CheckoutClient() {
+export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRatesConfig } = {}) {
   const { lines } = useCartLines();
   const { pricing, isLoading: pricingLoading, pricingError } = useCartPricing();
   const { isAuthenticated, user } = useAuth();
@@ -294,6 +299,14 @@ export function CheckoutClient() {
   const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
   const [codigoCreador, setCodigoCreador] = useState('');
   const [creadorAplicado, setCreadorAplicado] = useState<string | null>(null);
+
+  // Heredar región ya seleccionada en el carrito para evitar doble digitación
+  useEffect(() => {
+    const storedRegion = readCommerceStorage(SHIPPING_REGION_STORAGE_KEY)?.trim();
+    if (storedRegion && isChileRegion(storedRegion)) {
+      setShipping((prev) => (prev.region ? prev : { ...prev, region: storedRegion }));
+    }
+  }, []);
 
   // Prefill embajador ref capturado en catálogo (?ref= / ?codigo=) → canal de creador
   useEffect(() => {
@@ -833,7 +846,13 @@ export function CheckoutClient() {
 
   const updateField = (key: keyof ShippingForm, value: string) => {
     setShipping((prev) => ({ ...prev, [key]: value }));
+    if (key === 'region' && value.trim()) {
+      writeCommerceStorage(SHIPPING_REGION_STORAGE_KEY, value.trim());
+    }
   };
+
+  const comunasRegion = shipping.region ? getComunasPorRegion(shipping.region) : [];
+  const regionEta = shipping.region ? getRegionShippingEta(shipping.region, shippingRates) : '';
 
   const inputCls = (key: keyof ShippingForm) =>
     `w-full min-h-[44px] rounded-lg border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all ${
@@ -888,314 +907,6 @@ export function CheckoutClient() {
             </div>
           ) : (
             <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10 lg:items-start lg:space-y-0">
-              <aside className="min-w-0 lg:order-2 lg:sticky lg:top-24">
-                {/* Unified Cart Summary & Instant Pay Card */}
-                <section className="checkout-section rounded-2xl border border-accent/30 bg-card/60 p-5 space-y-4 shadow-sm backdrop-blur-sm" ref={summaryRef}>
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-accent" />
-                      Tu pedido
-                    </h2>
-                    <span className="text-xs text-muted-foreground">{pricing.line_items.length} {pricing.line_items.length === 1 ? 'producto' : 'productos'}</span>
-                  </div>
-
-                  <ul className="divide-y divide-border/40 max-h-44 overflow-y-auto pr-1">
-                    {pricing.line_items.map((line) => (
-                      <li key={line.product_id} className="flex justify-between gap-3 py-2 text-xs">
-                        <span className="text-foreground/90">
-                          <span className="font-medium">{line.name}</span>
-                          <span className="text-muted-foreground"> × {line.quantity}</span>
-                        </span>
-                        <span className="shrink-0 font-medium tabular-nums text-foreground">
-                          {formatCLP(line.line_total)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Entrada ágil de Códigos de Descuento y Embajadores */}
-                  <div className="pt-2 border-t border-border/40">
-                    <details className="group" open={Boolean(codigoAplicado || creadorAplicado)}>
-                      <summary className="flex cursor-pointer items-center justify-between text-xs text-accent-text hover:text-accent list-none py-1 [&::-webkit-details-marker]:hidden">
-                        <span className="flex items-center gap-1.5 font-medium">
-                          <Tag className="h-3.5 w-3.5 text-accent" />
-                          {codigoAplicado || creadorAplicado ? 'Código de beneficio activo' : '¿Tienes un código de descuento o creador?'}
-                        </span>
-                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-                      </summary>
-                      <div className="pt-2 space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={codigoDescuento}
-                            onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
-                            placeholder="Código promocional"
-                            className="flex-1 min-h-9 rounded-lg border border-border bg-secondary px-3 text-xs uppercase tracking-wider text-foreground focus:outline-none focus:border-accent/50 font-mono"
-                          />
-                          <button
-                            type="button"
-                            onClick={applyPromoCode}
-                            className="min-h-9 px-3 rounded-lg border border-accent/40 text-xs font-semibold text-accent-text hover:bg-accent/10 transition-colors"
-                          >
-                            Aplicar
-                          </button>
-                        </div>
-                        {codigoAplicado && (
-                          <div className="flex items-center justify-between text-[11px] text-accent-text bg-accent/10 px-2.5 py-1 rounded-md">
-                            <span>Promoción: {codigoAplicado}</span>
-                            <button
-                              type="button"
-                              className="underline hover:text-accent font-medium"
-                              onClick={() => {
-                                setCodigoAplicado(null);
-                                setCodigoDescuento('');
-                              }}
-                            >
-                              Quitar
-                            </button>
-                          </div>
-                        )}
-
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={codigoCreador}
-                            onChange={(e) => setCodigoCreador(e.target.value.toUpperCase())}
-                            placeholder="Código de embajador / creador"
-                            className="flex-1 min-h-9 rounded-lg border border-border bg-secondary px-3 text-xs uppercase tracking-wider text-foreground focus:outline-none focus:border-accent/50 font-mono"
-                          />
-                          <button
-                            type="button"
-                            onClick={applyCreadorCode}
-                            className="min-h-9 px-3 rounded-lg border border-accent/40 text-xs font-semibold text-accent-text hover:bg-accent/10 transition-colors"
-                          >
-                            Aplicar
-                          </button>
-                        </div>
-                        {creadorAplicado && (
-                          <div className="flex items-center justify-between text-[11px] text-accent-text bg-accent/10 px-2.5 py-1 rounded-md">
-                            <span>Creador: {creadorAplicado}</span>
-                            <button
-                              type="button"
-                              className="underline hover:text-accent font-medium"
-                              onClick={() => {
-                                setCreadorAplicado(null);
-                                setCodigoCreador('');
-                              }}
-                            >
-                              Quitar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </details>
-                  </div>
-
-                  <div className="pt-3 border-t border-border/60 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Subtotal</span>
-                      <span className="tabular-nums font-mono">{formatCLP(subtotalCompra)}</span>
-                    </div>
-                    {pricing.discount_amount > 0 && (
-                      <div className="flex justify-between text-accent-text">
-                        <span>Descuento Guardianía</span>
-                        <span className="tabular-nums font-mono">-{formatCLP(pricing.discount_amount)}</span>
-                      </div>
-                    )}
-                    {promoDiscount > 0 && (
-                      <div className="flex justify-between text-accent-text">
-                        <span>Código promocional</span>
-                        <span className="tabular-nums font-mono">-{formatCLP(promoDiscount)}</span>
-                      </div>
-                    )}
-                    {creadorDiscountClp > 0 && (
-                      <div className="flex justify-between text-accent-text">
-                        <span>Código de creador</span>
-                        <span className="tabular-nums font-mono">-{formatCLP(creadorDiscountClp)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Envío ({getCourier(courierCode).shortLabel})</span>
-                      <span className="tabular-nums font-mono">
-                        {quoteLoading && !quote
-                          ? '…'
-                          : !quote
-                            ? 'Por calcular'
-                            : shippingCost === 0
-                              ? 'Gratis'
-                              : formatCLP(shippingCost)}
-                      </span>
-                    </div>
-                    {!quote && !quoteLoading && !quoteError ? (
-                      <p className="text-[11px] text-muted-foreground/80">
-                        Se calcula al ingresar tu región de despacho.
-                      </p>
-                    ) : null}
-                    {usarPuntos && (quote?.loyaltyDiscountClp ?? descuentoPorPuntos) > 0 && (
-                      <div className="flex justify-between text-accent-text">
-                        <span>Puntos canjeados</span>
-                        <span className="tabular-nums font-mono">
-                          -{formatCLP(quote?.loyaltyDiscountClp ?? descuentoPorPuntos)}
-                        </span>
-                      </div>
-                    )}
-
-                    {tipoDte === 'factura' && totalCompra > 0 && (
-                      <div className="pt-2 border-t border-border/40 space-y-1 text-[11px] text-muted-foreground">
-                        <div className="flex justify-between">
-                          <span>Neto Facturable (19% IVA):</span>
-                          <span className="font-mono">{formatCLP(Math.round(totalCompra / 1.19))}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>IVA Débito Fiscal (19%):</span>
-                          <span className="font-mono">{formatCLP(totalCompra - Math.round(totalCompra / 1.19))}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Total Card */}
-                  <div className="pt-3 border-t border-accent/30 flex items-center justify-between">
-                    <div>
-                      <span className="font-display text-base font-semibold text-foreground block">
-                        {tipoDte === 'factura' ? 'Total Factura' : 'Total a pagar'}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {tipoDte === 'factura' ? 'IVA 19% Desglosado DTE 33' : 'Incluye IVA'}
-                        {!quote && !quoteLoading && !quoteError ? ' · Más envío' : ''}
-                      </span>
-                      {quoteError && (
-                        <span className="text-[11px] text-destructive block">{quoteError}</span>
-                      )}
-                    </div>
-                    <span
-                      data-testid="checkout-total"
-                      className="font-display text-2xl font-bold tabular-nums text-accent-text"
-                    >
-                      {quoteLoading && !quote ? '…' : formatCLP(totalCompra)}
-                    </span>
-                  </div>
-
-                  {/* Terms & Conditions */}
-                  <label className="flex items-start gap-2.5 pt-1 cursor-pointer text-[11px] text-muted-foreground leading-tight">
-                    <input
-                      type="checkbox"
-                      checked={terminosAceptados}
-                      onChange={(e) => setTerminosAceptados(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
-                    />
-                    <span>
-                      {checkout.terms_prefix}{' '}
-                      <Link
-                        href="/terminos"
-                        target="_blank"
-                        className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
-                      >
-                        Términos del Servicio, Retracto (10 días)
-                      </Link>{' '}
-                      y la{' '}
-                      <Link
-                        href="/privacidad"
-                        target="_blank"
-                        className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
-                      >
-                        Política de Privacidad
-                      </Link>
-                      .
-                    </span>
-                  </label>
-
-                  {/* Pay button — DIRECTLY UNDER TOTAL! */}
-                  <button
-                    ref={buttonRef}
-                    type="button"
-                    className="checkout-button w-full min-h-12 flex items-center justify-center rounded-full bg-primary py-3.5 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                    disabled={payDisabled}
-                    title={
-                      !shippingReady
-                        ? 'Completa los datos de envío'
-                        : paymentBlocked && quoteError
-                          ? quoteError
-                          : paymentBlocked && quoteLoading
-                            ? 'Calculando envío y descuentos…'
-                            : undefined
-                    }
-                    onClick={() => void startCheckout()}
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <HexagonLoader size="sm" className="text-primary-foreground" />
-                        Conectando con la pasarela…
-                      </span>
-                    ) : paymentBlocked && quoteLoading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <HexagonLoader size="sm" className="text-primary-foreground" />
-                        Calculando total…
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        <Lock className="h-4 w-4" />
-                        Pagar ahora — ${totalCompra.toLocaleString('es-CL')}
-                      </span>
-                    )}
-                  </button>
-
-                  {error ? (
-                    <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-xs text-destructive/90">
-                      {error}
-                    </p>
-                  ) : null}
-
-                  {priceConflicts && (
-                    <div className="rounded-lg border border-warning/50 bg-warning/10 px-3 py-2 text-xs text-warning">
-                      <p className="font-medium mb-1">Productos con cambios:</p>
-                      <ul className="list-disc pl-4">
-                        {priceConflicts.map((msg, i) => (
-                          <li key={i}>{msg}</li>
-                        ))}
-                      </ul>
-                      <p className="mt-1">Vuelve al catálogo para actualizar precios.</p>
-                    </div>
-                  )}
-                </section>
-
-                {/* Sellos de confianza y garantías — Debajo de la tarjeta Tu pedido */}
-                <div className="mt-4 space-y-3">
-                  {/* Trust badges */}
-                  <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/80">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Lock className="h-3.5 w-3.5 text-accent" aria-hidden />
-                      {checkout.secure_payment_text}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Shield className="h-3.5 w-3.5 text-accent" aria-hidden />
-                      {checkout.secure_transaction_text}
-                    </span>
-                  </div>
-
-                  {/* Garantía de transporte y estándar de origen */}
-                  <div className="rounded-2xl border border-border/70 bg-card/40 p-4 space-y-3 text-xs text-muted-foreground">
-                    <div className="flex items-start gap-2.5">
-                      <Truck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-foreground">Empaque térmico y seguro anti-quiebre</p>
-                        <p className="text-[11px] leading-relaxed">
-                          Frascos de vidrio protegidos con blindaje térmico para despachos a cualquier comuna de Chile.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2.5 pt-2.5 border-t border-border/50">
-                      <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-foreground">Garantía de reposición inmediata</p>
-                        <p className="text-[11px] leading-relaxed">
-                          Si tu pedido sufre cualquier percance durante el transporte, lo reponemos de inmediato sin costo.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </aside>
               <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
 
               {/* Paso 1: Tu compra (Identificación) */}
@@ -1324,13 +1035,14 @@ export function CheckoutClient() {
                             {checkout.buyer_legacy_label || 'Continuar mi legado'}
                           </p>
                         </div>
-                        <p className="text-xs text-accent-text font-medium mb-1.5 flex items-center gap-1.5">
-                          <Star className="h-3.5 w-3.5 text-accent" />
+                        <p className="text-xs text-accent-text font-medium mb-1.5">
                           Ganas +{Math.round(subtotalCompra / 100).toLocaleString('es-CL')} Puntos Legado con esta compra
                         </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          Acumula saldo en tu Billetera, accede a certificados de origen y despacha con direcciones guardadas.
-                        </p>
+                        {checkout.buyer_legacy_desc.trim() ? (
+                          <p className={`text-xs text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
+                            {checkout.buyer_legacy_desc}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="mt-4 pt-3 border-t border-border/50 flex items-center gap-3 text-xs">
                         <Link
@@ -1387,11 +1099,16 @@ export function CheckoutClient() {
                         Te avisaremos cuando tu pedido esté listo para retiro.
                       </p>
                     )}
-                    {getCourier(courierCode).integracionApi && (
+                    {Boolean(getCourier(courierCode).trackingUrl) && (
                       <p className="text-xs text-muted-foreground mt-1">
                         Seguimiento integrado con {getCourier(courierCode).shortLabel}.
                       </p>
                     )}
+                    {regionEta && courierCode !== 'retiro_tienda' ? (
+                      <p className="text-xs text-accent-text mt-1.5 font-medium">
+                        Plazo estimado ({shipping.region}): {regionEta}
+                      </p>
+                    ) : null}
                   </div>
                   
                   {savedAddresses.length > 0 && buyerMode === 'legado' && (
@@ -1506,19 +1223,20 @@ export function CheckoutClient() {
                       />
                       {validationErrors.telefono && <p className="text-xs text-destructive mt-1">{validationErrors.telefono}</p>}
                     </div>
-                    <div className="sm:col-span-2 form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">Dirección *</label>
-                      <input
-                        type="text"
-                        id="direccion"
-                        name="direccion"
-                        autoComplete="street-address"
-                        className={inputCls('direccion')}
-                        value={shipping.direccion}
-                        onChange={(e) => updateField('direccion', e.target.value)}
-                        placeholder="Calle, número, depto"
-                      />
-                      {validationErrors.direccion && <p className="text-xs text-destructive mt-1">{validationErrors.direccion}</p>}
+                    <div className="form-field">
+                      <label className="block text-xs text-muted-foreground mb-1">Región *</label>
+                      <select
+                        id="region"
+                        name="region"
+                        autoComplete="address-level1"
+                        className={inputCls('region')}
+                        value={shipping.region}
+                        onChange={(e) => updateField('region', e.target.value)}
+                      >
+                        <option value="">Seleccionar región</option>
+                        {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                      {validationErrors.region && <p className="text-xs text-destructive mt-1">{validationErrors.region}</p>}
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Comuna *</label>
@@ -1526,12 +1244,20 @@ export function CheckoutClient() {
                         type="text"
                         id="comuna"
                         name="comuna"
+                        list="checkout-comunas-list"
                         autoComplete="address-level2"
                         className={inputCls('comuna')}
                         value={shipping.comuna}
                         onChange={(e) => updateField('comuna', e.target.value)}
                         placeholder="Comuna"
                       />
+                      {comunasRegion.length > 0 ? (
+                        <datalist id="checkout-comunas-list">
+                          {comunasRegion.map((c) => (
+                            <option key={c} value={c} />
+                          ))}
+                        </datalist>
+                      ) : null}
                       {validationErrors.comuna && <p className="text-xs text-destructive mt-1">{validationErrors.comuna}</p>}
                     </div>
                     <div className="form-field">
@@ -1549,21 +1275,6 @@ export function CheckoutClient() {
                       {validationErrors.ciudad && <p className="text-xs text-destructive mt-1">{validationErrors.ciudad}</p>}
                     </div>
                     <div className="form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">Región *</label>
-                      <select
-                        id="region"
-                        name="region"
-                        autoComplete="address-level1"
-                        className={inputCls('region')}
-                        value={shipping.region}
-                        onChange={(e) => updateField('region', e.target.value)}
-                      >
-                        <option value="">Seleccionar región</option>
-                        {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                      {validationErrors.region && <p className="text-xs text-destructive mt-1">{validationErrors.region}</p>}
-                    </div>
-                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">{checkout.postal_label}</label>
                       <input
                         type="text"
@@ -1576,6 +1287,20 @@ export function CheckoutClient() {
                         onChange={(e) => updateField('codigoPostal', e.target.value)}
                         placeholder="Opcional"
                       />
+                    </div>
+                    <div className="sm:col-span-2 form-field">
+                      <label className="block text-xs text-muted-foreground mb-1">Dirección *</label>
+                      <input
+                        type="text"
+                        id="direccion"
+                        name="direccion"
+                        autoComplete="street-address"
+                        className={inputCls('direccion')}
+                        value={shipping.direccion}
+                        onChange={(e) => updateField('direccion', e.target.value)}
+                        placeholder="Calle, número, depto"
+                      />
+                      {validationErrors.direccion && <p className="text-xs text-destructive mt-1">{validationErrors.direccion}</p>}
                     </div>
                     <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Instrucciones de entrega</label>
@@ -1675,13 +1400,15 @@ export function CheckoutClient() {
                 )}
               </section>
 
-              {/* Paso 4: Economía Circular Austral (Devolución de envases de vidrio) */}
+              {/* Paso 4: Economía Circular Austral (Devolución de envases de vidrio, 100% CMS) */}
               <section className="checkout-section">
                 <div className="flex items-center gap-2 mb-4">
                   <RotateCcw className="h-5 w-5 text-accent" />
                   <div>
-                    <h2 className="font-display text-lg text-foreground">Economía Circular Austral</h2>
-                    <p className="text-xs text-muted-foreground">Devuelve tus envases de vidrio limpios al repartidor y acumula saldo en tu Billetera</p>
+                    <h2 className="font-display text-lg text-foreground">{checkout.circular_title}</h2>
+                    {checkout.circular_desc.trim() ? (
+                      <p className="text-xs text-muted-foreground">{checkout.circular_desc}</p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -1689,11 +1416,13 @@ export function CheckoutClient() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-foreground">
-                        ¿Tienes envases de vidrio vacíos de Enjambre Legado?
+                        {checkout.circular_question}
                       </p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Entrégalos limpios y con tapa original al repartidor al recibir tu pedido. Se acreditarán Puntos Legado en tu Billetera digital tras la recepción física conforme en taller.
-                      </p>
+                      {checkout.circular_instructions.trim() ? (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {checkout.circular_instructions}
+                        </p>
+                      ) : null}
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
                       <input
@@ -1784,6 +1513,335 @@ export function CheckoutClient() {
               </section>
 
               </div>
+
+              <aside className="min-w-0 lg:order-2 lg:sticky lg:top-24">
+                {/* Unified Cart Summary & Instant Pay Card */}
+                <section className="checkout-section rounded-2xl border border-accent/30 bg-card/60 p-5 space-y-4 shadow-sm backdrop-blur-sm" ref={summaryRef}>
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-accent" />
+                      Tu pedido
+                    </h2>
+                    <span className="text-xs text-muted-foreground">{pricing.line_items.length} {pricing.line_items.length === 1 ? 'producto' : 'productos'}</span>
+                  </div>
+
+                  <ul className="divide-y divide-border/40 max-h-44 overflow-y-auto pr-1">
+                    {pricing.line_items.map((line) => (
+                      <li key={line.product_id} className="flex justify-between gap-3 py-2 text-xs">
+                        <span className="text-foreground/90">
+                          <span className="font-medium">{line.name}</span>
+                          <span className="text-muted-foreground"> × {line.quantity}</span>
+                        </span>
+                        <span className="shrink-0 font-medium tabular-nums text-foreground">
+                          {formatCLP(line.line_total)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Entrada ágil de Códigos de Descuento y Embajadores */}
+                  <div className="pt-2 border-t border-border/40">
+                    <details className="group" open={Boolean(codigoAplicado || creadorAplicado)}>
+                      <summary className="flex cursor-pointer items-center justify-between text-xs text-accent-text hover:text-accent list-none py-1 [&::-webkit-details-marker]:hidden">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <Tag className="h-3.5 w-3.5 text-accent" />
+                          {codigoAplicado || creadorAplicado ? 'Código de beneficio activo' : '¿Tienes un código de descuento o creador?'}
+                        </span>
+                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                      </summary>
+                      <div className="pt-2 space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={codigoDescuento}
+                            onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
+                            placeholder="Código promocional"
+                            className="flex-1 min-h-9 rounded-lg border border-border bg-secondary px-3 text-xs uppercase tracking-wider text-foreground focus:outline-none focus:border-accent/50 font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={applyPromoCode}
+                            className="min-h-9 px-3 rounded-lg border border-accent/40 text-xs font-semibold text-accent-text hover:bg-accent/10 transition-colors"
+                          >
+                            Aplicar
+                          </button>
+                        </div>
+                        {codigoAplicado && (
+                          <div className="flex items-center justify-between text-[11px] text-accent-text bg-accent/10 px-2.5 py-1 rounded-md">
+                            <span>Promoción: {codigoAplicado}</span>
+                            <button
+                              type="button"
+                              className="underline hover:text-accent font-medium"
+                              onClick={() => {
+                                setCodigoAplicado(null);
+                                setCodigoDescuento('');
+                              }}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={codigoCreador}
+                            onChange={(e) => setCodigoCreador(e.target.value.toUpperCase())}
+                            placeholder="Código de embajador / creador"
+                            className="flex-1 min-h-9 rounded-lg border border-border bg-secondary px-3 text-xs uppercase tracking-wider text-foreground focus:outline-none focus:border-accent/50 font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={applyCreadorCode}
+                            className="min-h-9 px-3 rounded-lg border border-accent/40 text-xs font-semibold text-accent-text hover:bg-accent/10 transition-colors"
+                          >
+                            Aplicar
+                          </button>
+                        </div>
+                        {creadorAplicado && (
+                          <div className="flex items-center justify-between text-[11px] text-accent-text bg-accent/10 px-2.5 py-1 rounded-md">
+                            <span>Creador: {creadorAplicado}</span>
+                            <button
+                              type="button"
+                              className="underline hover:text-accent font-medium"
+                              onClick={() => {
+                                setCreadorAplicado(null);
+                                setCodigoCreador('');
+                              }}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  </div>
+
+                  <div className="pt-3 border-t border-border/60 space-y-1.5 text-xs">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Subtotal</span>
+                      <span className="tabular-nums font-mono">{formatCLP(subtotalCompra)}</span>
+                    </div>
+                    {pricing.discount_amount > 0 && (
+                      <div className="flex justify-between text-accent-text">
+                        <span>Descuento Guardianía</span>
+                        <span className="tabular-nums font-mono">-{formatCLP(pricing.discount_amount)}</span>
+                      </div>
+                    )}
+                    {promoDiscount > 0 && (
+                      <div className="flex justify-between text-accent-text">
+                        <span>Código promocional</span>
+                        <span className="tabular-nums font-mono">-{formatCLP(promoDiscount)}</span>
+                      </div>
+                    )}
+                    {creadorDiscountClp > 0 && (
+                      <div className="flex justify-between text-accent-text">
+                        <span>Código de creador</span>
+                        <span className="tabular-nums font-mono">-{formatCLP(creadorDiscountClp)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Envío ({getCourier(courierCode).shortLabel}{shipping.region ? ` · ${shipping.region}` : ''})</span>
+                      <span className="tabular-nums font-mono">
+                        {quoteLoading && !quote
+                          ? '…'
+                          : !quote
+                            ? 'Por calcular'
+                            : shippingCost === 0
+                              ? 'Gratis'
+                              : formatCLP(shippingCost)}
+                      </span>
+                    </div>
+                    {!quote && !quoteLoading && !quoteError ? (
+                      <p className="text-[11px] text-muted-foreground/80">
+                        Se calcula al ingresar tu región de despacho.
+                      </p>
+                    ) : regionEta && courierCode !== 'retiro_tienda' ? (
+                      <p className="text-[11px] text-muted-foreground/80">
+                        {regionEta}
+                      </p>
+                    ) : null}
+                    {usarPuntos && (quote?.loyaltyDiscountClp ?? descuentoPorPuntos) > 0 && (
+                      <div className="flex justify-between text-accent-text">
+                        <span>Puntos canjeados</span>
+                        <span className="tabular-nums font-mono">
+                          -{formatCLP(quote?.loyaltyDiscountClp ?? descuentoPorPuntos)}
+                        </span>
+                      </div>
+                    )}
+
+                    {tipoDte === 'factura' && totalCompra > 0 && (
+                      <div className="pt-2 border-t border-border/40 space-y-1 text-[11px] text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Neto Facturable (19% IVA):</span>
+                          <span className="font-mono">{formatCLP(Math.round(totalCompra / 1.19))}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>IVA Débito Fiscal (19%):</span>
+                          <span className="font-mono">{formatCLP(totalCompra - Math.round(totalCompra / 1.19))}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total Card */}
+                  <div className="pt-3 border-t border-accent/30 flex items-center justify-between">
+                    <div>
+                      <span className="font-display text-base font-semibold text-foreground block">
+                        {tipoDte === 'factura' ? 'Total Factura' : 'Total a pagar'}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {tipoDte === 'factura' ? 'IVA 19% Desglosado DTE 33' : 'Incluye IVA'}
+                        {!quote && !quoteLoading && !quoteError ? ' · Más envío' : ''}
+                      </span>
+                      {quoteError && (
+                        <span className="text-[11px] text-destructive block">{quoteError}</span>
+                      )}
+                    </div>
+                    <span
+                      data-testid="checkout-total"
+                      className="font-display text-2xl font-bold tabular-nums text-accent-text"
+                    >
+                      {quoteLoading && !quote ? '…' : formatCLP(totalCompra)}
+                    </span>
+                  </div>
+
+                  {/* Terms & Conditions */}
+                  <label className="flex items-start gap-2.5 pt-1 cursor-pointer text-[11px] text-muted-foreground leading-tight">
+                    <input
+                      type="checkbox"
+                      checked={terminosAceptados}
+                      onChange={(e) => setTerminosAceptados(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
+                    />
+                    <span>
+                      {checkout.terms_prefix}{' '}
+                      <Link
+                        href="/terminos"
+                        target="_blank"
+                        className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
+                      >
+                        Términos del Servicio, Retracto (10 días)
+                      </Link>{' '}
+                      y la{' '}
+                      <Link
+                        href="/privacidad"
+                        target="_blank"
+                        className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
+                      >
+                        Política de Privacidad
+                      </Link>
+                      .
+                    </span>
+                  </label>
+
+                  {/* Pay button — DIRECTLY UNDER TOTAL! */}
+                  <button
+                    ref={buttonRef}
+                    type="button"
+                    className="checkout-button w-full min-h-12 flex items-center justify-center rounded-full bg-primary py-3.5 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                    disabled={payDisabled}
+                    title={
+                      !shippingReady
+                        ? 'Completa los datos de envío'
+                        : paymentBlocked && quoteError
+                          ? quoteError
+                          : paymentBlocked && quoteLoading
+                            ? 'Calculando envío y descuentos…'
+                            : undefined
+                    }
+                    onClick={() => void startCheckout()}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <HexagonLoader size="sm" className="text-primary-foreground" />
+                        Conectando con la pasarela…
+                      </span>
+                    ) : paymentBlocked && quoteLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <HexagonLoader size="sm" className="text-primary-foreground" />
+                        Calculando total…
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <Lock className="h-4 w-4" />
+                        Pagar ahora — ${totalCompra.toLocaleString('es-CL')}
+                      </span>
+                    )}
+                  </button>
+
+                  {checkout.payment_methods_note.trim() ? (
+                    <p className="text-center text-[11px] text-muted-foreground">
+                      {checkout.payment_methods_note}
+                    </p>
+                  ) : null}
+
+                  {error ? (
+                    <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-xs text-destructive/90">
+                      {error}
+                    </p>
+                  ) : null}
+
+                  {priceConflicts && (
+                    <div className="rounded-lg border border-warning/50 bg-warning/10 px-3 py-2 text-xs text-warning">
+                      <p className="font-medium mb-1">Productos con cambios:</p>
+                      <ul className="list-disc pl-4">
+                        {priceConflicts.map((msg, i) => (
+                          <li key={i}>{msg}</li>
+                        ))}
+                      </ul>
+                      <p className="mt-1">Vuelve al catálogo para actualizar precios.</p>
+                    </div>
+                  )}
+                </section>
+
+                {/* Sellos de confianza y garantías (100% editable en CMS) */}
+                <div className="mt-4 space-y-3">
+                  {/* Trust badges */}
+                  <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/80">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Lock className="h-3.5 w-3.5 text-accent" aria-hidden />
+                      {checkout.secure_payment_text}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5 text-accent" aria-hidden />
+                      {checkout.secure_transaction_text}
+                    </span>
+                  </div>
+
+                  {/* Garantía de transporte y protección en papel burbuja (CMS) */}
+                  {(checkout.protection_title.trim() || checkout.guarantee_title.trim()) ? (
+                    <div className="rounded-2xl border border-border/70 bg-card/40 p-4 space-y-3 text-xs text-muted-foreground">
+                      {checkout.protection_title.trim() ? (
+                        <div className="flex items-start gap-2.5">
+                          <Truck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-foreground">{checkout.protection_title}</p>
+                            {checkout.protection_desc.trim() ? (
+                              <p className="text-[11px] leading-relaxed">
+                                {checkout.protection_desc}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                      {checkout.guarantee_title.trim() ? (
+                        <div className={`flex items-start gap-2.5 ${checkout.protection_title.trim() ? 'pt-2.5 border-t border-border/50' : ''}`}>
+                          <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-foreground">{checkout.guarantee_title}</p>
+                            {checkout.guarantee_desc.trim() ? (
+                              <p className="text-[11px] leading-relaxed">
+                                {checkout.guarantee_desc}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              </aside>
             </div>
           )}
         </div>

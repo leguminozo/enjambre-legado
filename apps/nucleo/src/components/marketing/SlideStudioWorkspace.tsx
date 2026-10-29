@@ -65,6 +65,7 @@ import {
   PRESET_ULMO_ESTACIONAL,
   PRESET_KIT_CAFETERIA,
   PRESET_CLUB_LEGADO,
+  PRESET_STAND_FERIA,
   ARSENAL_EDITORIAL,
   SLIDE_ACCENT_PALETTES,
   SLIDE_FONT_FAMILIES,
@@ -377,6 +378,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_CLUB_LEGADO, 'Club Legado del Bosque (3)')}>
                 <span className="font-mono text-xs">Club Legado (3)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_STAND_FERIA, 'Stand Feria: Degustación & Frío (3)')}>
+                <span className="font-mono text-xs text-primary font-medium">Stand Feria & Degustación (3)</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => setTemplateModalOpen(true)}>

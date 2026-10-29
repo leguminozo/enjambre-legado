@@ -25,19 +25,18 @@ Nuestras mieles y productos viajan desde Chiloé y otros territorios remotos par
 
 Los envíos son gestionados a través de Blue Express S.A. El transporte se rige por los Términos y Condiciones del Servicio de Blue Express, los cuales se resumen a continuación y están disponibles íntegramente en www.bluex.cl.
 
-<strong>2. Tiempos de despacho</strong>
+<strong>2. Tiempos de despacho desde Pureo, Chiloé</strong>
 
-Los pedidos se procesan en 24-48 horas hábiles. El tiempo de tránsito depende de tu ubicación:
+Cada frasco se embala individualmente con protección anti-quiebre con papel burbuja en nuestro taller de Pureo rural km 8560, Queilén, Archipiélago de Chiloé. Los pedidos se procesan en 24-72 horas hábiles para su salida insular. Una vez en ruta, el tiempo estimado de tránsito depende de tu región:
 
-- Región Metropolitana (servicio Priority): día siguiente antes de las 20:00 hrs.
-- Ciudades base entre Copiapó y Puerto Montt (servicio Express): 2 días hábiles antes de las 20:00 hrs.
-- Arica: 4 días hábiles.
-- Iquique, Calama y Antofagasta: 3 días hábiles hacia el Sur.
-- Coyhaique: 7 días hábiles.
-- Punta Arenas: 9 días hábiles.
-- Chiloé: Entrega local coordinada.
+- Los Lagos y Los Ríos: 3 a 5 días hábiles.
+- Región Metropolitana, O'Higgins, Maule, Ñuble, Biobío y La Araucanía: 4 a 6 días hábiles.
+- Valparaíso y Coquimbo: 5 a 7 días hábiles.
+- Norte Grande y Atacama (Arica y Parinacota, Tarapacá, Antofagasta, Atacama): 6 a 10 días hábiles.
+- Extremo Austral (Aysén y Magallanes): 8 a 12 días hábiles.
+- Archipiélago de Chiloé: Entrega local coordinada o despacho insular (2 a 4 días hábiles).
 
-Los plazos pueden variar por condiciones meteorológicas o de fuerza mayor (numeral 10, Términos Blue Express).
+Los plazos contemplan el cruce del Canal de Chacao y pueden variar por condiciones meteorológicas insulares o de fuerza mayor (numeral 10, Términos Blue Express).
 
 <strong>3. Costos de envío</strong>
 

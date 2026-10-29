@@ -1577,8 +1577,138 @@ export const PRESET_CLUB_LEGADO: SlideData[] = [
         subtitle: 'Escanea para unirte al club, programar tu reposición y recibir tus primeros sellos.',
       },
     ],
-    footerLeft: 'tienda.obrerayzangano.cl/club-legado-del-bosque',
+    footerLeft: 'obrerayzangano.cl/club-legado-del-bosque',
     footerRight: 'ACCESO',
+  },
+];
+
+export const PRESET_STAND_FERIA: SlideData[] = [
+  // --- LÁMINA 01: Tablero de Cata / Acrílico de Mesa (Stand & Degustación) ---
+  {
+    id: 'slide-feria-01',
+    kickerLeft: 'ESTACIÓN DE DEGUSTACIÓN',
+    kickerRight: 'CHILOÉ · 42°S',
+    badge: 'CATA LIBRE DE AUTOR · BOSQUE NATIVO',
+    title: 'Ritual de Cata en Vivo: Mieles Puras & Batidas en Frío.',
+    subtitle: 'Degusta libremente con tu revolvedor de bambú y descubre el bosque nativo de Pureo.',
+    theme: 'obsidiana',
+    accentColor: 'oro',
+    fontFamily: 'cormorant',
+    titleSize: 'normal',
+    blocks: [
+      {
+        id: 'b-feria-sensorial',
+        type: 'sensorial',
+        title: 'PERFIL DE CATA: CREMA CON AVELLANA CHILENA',
+        axisLabels: ['Dulzura Enzimática', 'Tensión Ácida', 'Flora Nativa', 'Persistencia / Untuosidad'],
+        sweetness: 4,
+        acidity: 3,
+        flora: 5,
+        body: 5,
+        crystallization: 'Microcristales sedosos · Batido en frío 48h',
+        pairingNote: 'Gevuina avellana silvestre tostada y molida. Armoniza con café de especialidad y masa madre.',
+      },
+      {
+        id: 'b-feria-qr',
+        type: 'qr_code',
+        destinationType: 'resena',
+        url: 'https://obrerayzangano.cl/cata/feria',
+        title: 'REGISTRO DE CATA & WALLET',
+        subtitle: 'Apunta tu cámara para votar en la Nebulosa Sensorial y guardar tu Pase del Bosque en Apple o Google Wallet.',
+      },
+    ],
+    footerLeft: 'obrerayzangano.cl/cata/feria',
+    footerRight: 'STAND SOBERANO',
+  },
+  // --- LÁMINA 02: Tarjeta Técnica de Cadena de Frío ---
+  {
+    id: 'slide-feria-02',
+    kickerLeft: 'PROTOCOLO BOTÁNICO',
+    kickerRight: 'CADENA DE FRÍO',
+    badge: 'ESTRUCTURA CRISTALINA VIVA',
+    title: 'Nuestras cremas de miel requieren refrigeración (<14°C).',
+    subtitle: 'Alimento vivo: el frío preserva la microestructura cristalina fina y la actividad enzimática.',
+    theme: 'selva',
+    accentColor: 'oro',
+    fontFamily: 'cormorant',
+    titleSize: 'normal',
+    blocks: [
+      {
+        id: 'b-feria-items-frio',
+        type: 'items',
+        items: [
+          {
+            title: 'BATIDO EN FRÍO 48H',
+            desc: 'Proceso mecánico continuo que guía la formación de microcristales sin calentar jamás el néctar.',
+          },
+          {
+            title: 'CERO JARABES NI ADITIVOS',
+            desc: '100% néctar silvestre de Chiloé y avellana chilena nativa (Gevuina avellana). Sin espesantes.',
+          },
+          {
+            title: 'INVERTASA & ENZIMAS VIVAS',
+            desc: 'Conserva el perfil biológico original del panal que la pasteurización comercial destruye.',
+          },
+        ],
+      },
+      {
+        id: 'b-feria-portal-frio',
+        type: 'portal',
+        url: 'obrerayzangano.cl/ciencia',
+        subtitle: 'Protocolo de estabilidad y análisis polínicos de laboratorio.',
+        bullets: [
+          'Mantener bajo 14°C para conservar su textura sedosa.',
+          'Consumir pura con cuchara o sobre preparaciones tibias.',
+          'Garantía de recolección en bosque templado lluvioso.',
+        ],
+        callNote: 'CONOCER EL RESPALDO CIENTÍFICO ->',
+      },
+    ],
+    footerLeft: 'obrerayzangano.cl/ciencia',
+    footerRight: 'CALIDAD CERTIFICADA',
+  },
+  // --- LÁMINA 03: Pase Digital Wallet & Fidelización ---
+  {
+    id: 'slide-feria-03',
+    kickerLeft: 'EL LEGADO DEL BOSQUE',
+    kickerRight: 'MEMBRESÍA DIGITAL',
+    badge: 'APPLE & GOOGLE WALLET · PASE DE GUARDIÁN',
+    title: 'Guarda tu Pase del Bosque en la pantalla de tu teléfono.',
+    subtitle: 'Conecta con la colmena de Pureo y acumula sellos de origen en cada visita o feria:',
+    theme: 'obsidiana',
+    accentColor: 'oro',
+    fontFamily: 'cormorant',
+    titleSize: 'normal',
+    blocks: [
+      {
+        id: 'b-feria-items-wallet',
+        type: 'items',
+        items: [
+          {
+            title: 'TIMBRES DE DEGUSTACIÓN',
+            desc: 'Cada evaluación en mesones o tiendas aliadas suma sellos de fidelidad a tu credencial.',
+          },
+          {
+            title: 'ACCESO RESERVADO A LOTES',
+            desc: 'Prioridad de reserva en recolecciones estacionales limitadas antes de su apertura general.',
+          },
+          {
+            title: 'TRAZABILIDAD EN TIEMPO REAL',
+            desc: 'Tu pase se actualiza dinámicamente con floraciones activas y coordenadas del colmenar.',
+          },
+        ],
+      },
+      {
+        id: 'b-feria-qr-wallet',
+        type: 'qr_code',
+        destinationType: 'club',
+        url: 'https://obrerayzangano.cl/club-legado-del-bosque',
+        title: 'INSTALAR PASE DIGITAL',
+        subtitle: 'Escanea para descargar tu tarjeta oficial de Guardián en Apple Wallet o Google Wallet.',
+      },
+    ],
+    footerLeft: 'obrerayzangano.cl/club-legado-del-bosque',
+    footerRight: 'PASE DIGITAL',
   },
 ];
 

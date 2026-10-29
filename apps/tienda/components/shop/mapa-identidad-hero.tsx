@@ -110,6 +110,14 @@ export function MapaIdentidadHero({
   const quote = resolveLocalized(mapSettings?.quote, mapSettings?.quote_en, locale);
   const ctaLabel = resolveLocalized(mapSettings?.cta_label, mapSettings?.cta_label_en, locale);
   const ctaHref = mapSettings?.cta_href?.trim() || '/nosotros';
+  const planisferioSrc =
+    mapSettings?.planisferio_image && mapSettings.planisferio_image.trim()
+      ? mapSettings.planisferio_image.trim()
+      : '/assets/editorial/mapa-planisferio-continentes.webp';
+  const chiloeSrc =
+    mapSettings?.chiloe_image && mapSettings.chiloe_image.trim()
+      ? mapSettings.chiloe_image.trim()
+      : '/assets/editorial/mapa-chiloe-silueta.webp';
 
   // Inicialización diferida (Lazy-load) de Leaflet solo cuando el usuario entra al modo satelital
   useEffect(() => {
@@ -293,7 +301,7 @@ export function MapaIdentidadHero({
               >
                 {/* Capa base de continentes: Completa (Groenlandia a Cabo de Hornos), limpia sin nombres ni fronteras */}
                 <image
-                  href="/assets/editorial/mapa-planisferio-continentes.webp"
+                  href={planisferioSrc}
                   x="0"
                   y="0"
                   width="1014"
@@ -314,30 +322,30 @@ export function MapaIdentidadHero({
 
                 {/* Arco conector punteado sutil que desciende hacia el recuadro inferior */}
                 <path
-                  d="M 269.4 536 C 269.4 560, 200 560, 160 560"
+                  d="M 267.3 536 C 267.3 560, 200 560, 160 560"
                   fill="none"
                   stroke="hsl(44 85% 46% / 0.3)"
                   strokeWidth="1"
                   strokeDasharray="3 3"
                 />
 
-                {/* Faro concéntrico con pulso oro miel sobre Chiloé (x=269.4, y=529) */}
+                {/* Faro concéntrico con pulso oro miel sobre Chiloé (x=267.3, y=528.9) */}
                 <g className="pointer-events-auto">
                   {/* Aro expansivo con pulso CSS */}
                   <circle
-                    cx="269.4"
-                    cy="529"
+                    cx="267.3"
+                    cy="528.9"
                     r="16"
                     fill="hsl(44 85% 46% / 0.2)"
                     stroke="hsl(44 85% 46% / 0.6)"
                     strokeWidth="1.2"
                     className="animate-ping"
-                    style={{ transformOrigin: '269.4px 529px', animationDuration: '2.8s' }}
+                    style={{ transformOrigin: '267.3px 528.9px', animationDuration: '2.8s' }}
                   />
                   {/* Halo medio */}
                   <circle
-                    cx="269.4"
-                    cy="529"
+                    cx="267.3"
+                    cy="528.9"
                     r="11"
                     fill="hsl(44 85% 46% / 0.3)"
                     stroke="hsl(44 85% 46% / 0.8)"
@@ -345,8 +353,8 @@ export function MapaIdentidadHero({
                   />
                   {/* Núcleo dorado oro miel */}
                   <circle
-                    cx="269.4"
-                    cy="529"
+                    cx="267.3"
+                    cy="528.9"
                     r="4.5"
                     fill="hsl(44 85% 46%)"
                     stroke="#ffffff"
@@ -354,7 +362,7 @@ export function MapaIdentidadHero({
                   />
                   {/* Rótulo superior sobre Chiloé */}
                   <text
-                    x="269.4"
+                    x="267.3"
                     y="508"
                     textAnchor="middle"
                     fill="#f5f0e8"
@@ -386,23 +394,23 @@ export function MapaIdentidadHero({
                 {/* Silueta limpia de Chiloé en marco único sin doble borde */}
                 <div className="relative w-full h-full overflow-hidden">
                   <Image
-                    src="/assets/editorial/mapa-chiloe-silueta.webp"
+                    src={chiloeSrc}
                     alt="Silueta geográfica de la Isla Grande de Chiloé"
                     fill
                     sizes="(max-width: 640px) 140px, 185px"
                     className="object-contain opacity-95 group-hover:opacity-100 transition-opacity"
                   />
-                  {/* Punto y pulso radiante en Pureo (Queilén: left 48.6%, top 56.7%) */}
+                  {/* Punto y pulso radiante en Pureo (Queilén: left 49.3%, top 56.5%) */}
                   <div
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                    style={{ left: '48.6%', top: '56.7%' }}
+                    style={{ left: '49.3%', top: '56.5%' }}
                   >
                     <span className="absolute -inset-2 rounded-full bg-primary/40 animate-ping" />
                     <span className="block w-2.5 h-2.5 rounded-full bg-primary border border-white shadow-[0_0_10px_rgba(212,160,23,1)]" />
                   </div>
                   <span
                     className="absolute text-[8.5px] sm:text-[9px] font-mono text-primary font-semibold drop-shadow-md whitespace-nowrap"
-                    style={{ left: '53%', top: '53%' }}
+                    style={{ left: '54%', top: '53%' }}
                   >
                     Pureo
                   </span>

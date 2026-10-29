@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { CheckCircle, Clock, Package, Truck, XCircle, FileText, ShieldCheck, Star, MessageCircle, ExternalLink } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
-import { getCourierLabel } from '@enjambre/logistica';
+import { buildCourierTrackingUrl, getCourierLabel } from '@enjambre/logistica';
 import { formatDate as formatDateBase, EmptyState, Button } from '@enjambre/ui';
 
 export type OrderTimelineItem = {
@@ -53,17 +53,19 @@ function formatTime(iso: string) {
 }
 
 function getTrackingUrl(courierCode?: string | null, via?: string | null, trackingCode?: string | null): string | null {
-  if (!trackingCode) return null;
+  const cleanTracking = trackingCode?.trim();
+  if (!cleanTracking || cleanTracking.toUpperCase().startsWith('OYZ-')) return null;
+
+  const direct = buildCourierTrackingUrl(courierCode ?? via, cleanTracking);
+  if (direct) return direct;
+
   const code = `${courierCode || ''} ${via || ''}`.toLowerCase();
-  if (code.includes('chilexpress')) {
-    return `https://www.chilexpress.cl/tracking/?numero=${encodeURIComponent(trackingCode)}`;
-  }
-  if (code.includes('blue') || code.includes('bx')) {
-    return `https://www.bluex.cl/seguimiento/?tracking=${encodeURIComponent(trackingCode)}`;
-  }
-  if (code.includes('starken')) {
-    return `https://www.starken.cl/seguimiento?codigo=${encodeURIComponent(trackingCode)}`;
-  }
+  if (code.includes('chilexpress')) return buildCourierTrackingUrl('chilexpress', cleanTracking);
+  if (code.includes('blue') || code.includes('bx')) return buildCourierTrackingUrl('bluex', cleanTracking);
+  if (code.includes('starken')) return buildCourierTrackingUrl('starken', cleanTracking);
+  if (code.includes('correos')) return buildCourierTrackingUrl('correos_chile', cleanTracking);
+  if (code.includes('dhl')) return buildCourierTrackingUrl('dhl', cleanTracking);
+  if (code.includes('fedex')) return buildCourierTrackingUrl('fedex', cleanTracking);
   return null;
 }
 

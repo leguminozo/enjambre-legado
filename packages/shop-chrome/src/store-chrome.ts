@@ -1868,6 +1868,15 @@ export type CheckoutSettings = {
   postal_label: string;
   secure_payment_text: string;
   secure_transaction_text: string;
+  payment_methods_note: string;
+  protection_title: string;
+  protection_desc: string;
+  guarantee_title: string;
+  guarantee_desc: string;
+  circular_title: string;
+  circular_desc: string;
+  circular_question: string;
+  circular_instructions: string;
   terms_prefix: string;
   secure_note: string;
   /** Alineación de los párrafos del checkout (control del editor). */
@@ -1886,6 +1895,12 @@ export type CartSettings = {
   free_shipping_threshold_clp: number;
   free_shipping_progress_text?: string;
   free_shipping_unlocked_text?: string;
+  protection_badge_title: string;
+  protection_badge_desc: string;
+  legal_warranty_title: string;
+  legal_warranty_desc: string;
+  retract_title: string;
+  retract_desc: string;
   /** Alineación de los párrafos del carrito (control del editor). */
   text_align?: TextAlign;
 };
@@ -2063,18 +2078,30 @@ export const SEO_DEFAULTS_TEMPLATE = { ...DEFAULT_SEO_DEFAULTS };
 export const DEFAULT_CHECKOUT_SETTINGS: CheckoutSettings = {
   title: 'Pago Seguro',
   subtitle:
-    'Tu pedido será procesado de forma segura. Cada compra mantiene la trazabilidad del bosque nativo de Chiloé.',
+    'Tu pedido será procesado de forma segura. Despacho directo desde nuestro enclave en Pureo, Chiloé.',
   buyer_private_label: 'Compra privada',
   buyer_private_desc: 'Entrega puntual sin cuenta. Tus datos no quedan en tu perfil.',
   buyer_legacy_label: 'Continuar mi legado',
-  buyer_legacy_desc: 'Guardamos tu historial, impacto y direcciones para futuras visitas.',
+  buyer_legacy_desc: 'Acumula saldo en tu Billetera, accede a certificados de origen y despacha con direcciones guardadas.',
   shipping_title: 'Despacho en Chile',
   courier_label: 'Método de despacho',
   shipping_note:
-    'Por defecto despachamos con BlueExpress. Si necesitas otro operador o modalidad, elígelo aquí o contáctanos para coordinar algo a medida.',
+    'Despachamos desde Pureo rural (Chiloé) con BlueExpress y seguimiento integrado. Si necesitas otro operador o retiro, selecciónalo aquí.',
   postal_label: 'Código postal',
   secure_payment_text: 'Pago encriptado',
   secure_transaction_text: 'Transacción segura',
+  payment_methods_note: 'Webpay / Flow · Débito Redcompra, Crédito y Prepago',
+  protection_title: 'Protección anti-quiebre con papel burbuja',
+  protection_desc:
+    'Frascos de vidrio grueso sellados y envueltos individualmente en papel burbuja de alta densidad para resistir el tránsito desde Chiloé a cualquier comuna de Chile.',
+  guarantee_title: 'Garantía de reposición inmediata',
+  guarantee_desc:
+    'Si tu pedido sufre cualquier percance durante el transporte, lo reponemos de inmediato sin costo.',
+  circular_title: 'Economía Circular Austral',
+  circular_desc: 'Devuelve tus envases de vidrio limpios al repartidor y acumula saldo en tu Billetera',
+  circular_question: '¿Tienes envases de vidrio vacíos de Enjambre Legado?',
+  circular_instructions:
+    'Entrégalos limpios y con tapa original al repartidor al recibir tu pedido. Se acreditarán Puntos Legado en tu Billetera digital tras la recepción física conforme en taller.',
   terms_prefix: 'Al completar tu compra, aceptas nuestros',
   secure_note: 'Tu pago está protegido con encriptación de grado bancario.',
 };
@@ -2084,12 +2111,21 @@ export const DEFAULT_CART_SETTINGS: CartSettings = {
   empty_desc: 'Agrega productos para comenzar',
   empty_cta: 'Seguir comprando',
   subtotal_label: 'Subtotal',
-  shipping_note: 'Envío calculado en checkout',
+  shipping_note: 'Despacho desde Pureo rural, Chiloé · Seguimiento incluido',
   cta_label: 'Finalizar compra',
   free_shipping_enabled: true,
   free_shipping_threshold_clp: 45000,
   free_shipping_progress_text: 'Te faltan {amount} para despacho gratis',
   free_shipping_unlocked_text: '✨ ¡Tienes despacho gratis incluido!',
+  protection_badge_title: 'Empaque anti-quiebre con papel burbuja',
+  protection_badge_desc:
+    'Frascos de vidrio protegidos con amortiguación de burbuja y reposición inmediata sin costo ante cualquier percance en ruta.',
+  legal_warranty_title: 'Garantía Legal de 6 meses',
+  legal_warranty_desc:
+    'Protección irrenunciable (Ley 19.496 / Ley 21.398). Opción de reparación, reemplazo o devolución ante cualquier defecto.',
+  retract_title: 'Derecho a retracto de 10 días',
+  retract_desc:
+    'En compras web con precinto de seguridad intacto (Art. 3 bis Ley 19.496 y DS 6/2021).',
 };
 
 export const CONTACT_SETTINGS_TEMPLATE = { ...DEFAULT_CONTACT_SETTINGS };
@@ -2221,6 +2257,15 @@ export function parseCheckoutSettings(
     postal_label: asString(raw.postal_label, d.postal_label),
     secure_payment_text: asString(raw.secure_payment_text, d.secure_payment_text),
     secure_transaction_text: asString(raw.secure_transaction_text, d.secure_transaction_text),
+    payment_methods_note: asString(raw.payment_methods_note, d.payment_methods_note),
+    protection_title: asString(raw.protection_title, d.protection_title),
+    protection_desc: asString(raw.protection_desc, d.protection_desc),
+    guarantee_title: asString(raw.guarantee_title, d.guarantee_title),
+    guarantee_desc: asString(raw.guarantee_desc, d.guarantee_desc),
+    circular_title: asString(raw.circular_title, d.circular_title),
+    circular_desc: asString(raw.circular_desc, d.circular_desc),
+    circular_question: asString(raw.circular_question, d.circular_question),
+    circular_instructions: asString(raw.circular_instructions, d.circular_instructions),
     terms_prefix: asString(raw.terms_prefix, d.terms_prefix),
     secure_note: asString(raw.secure_note, d.secure_note),
     text_align: parseTextAlign(raw.text_align),
@@ -2252,6 +2297,12 @@ export function parseCartSettings(raw: Record<string, unknown> | null | undefine
       raw.free_shipping_unlocked_text,
       d.free_shipping_unlocked_text || '',
     ),
+    protection_badge_title: asString(raw.protection_badge_title, d.protection_badge_title),
+    protection_badge_desc: asString(raw.protection_badge_desc, d.protection_badge_desc),
+    legal_warranty_title: asString(raw.legal_warranty_title, d.legal_warranty_title),
+    legal_warranty_desc: asString(raw.legal_warranty_desc, d.legal_warranty_desc),
+    retract_title: asString(raw.retract_title, d.retract_title),
+    retract_desc: asString(raw.retract_desc, d.retract_desc),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -2381,6 +2432,10 @@ export type MapSettings = {
   cta_href?: string;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
+  /** Imagen personalizada del planisferio / mapa del mundo (URL subida desde el CMS). */
+  planisferio_image?: string;
+  /** Silueta personalizada de la Isla Grande de Chiloé (URL subida desde el CMS). */
+  chiloe_image?: string;
 };
 
 export type ProductsSettings = {
@@ -2522,6 +2577,8 @@ export const DEFAULT_MAP_SETTINGS: MapSettings = {
   cta_label: 'Nuestra Historia',
   cta_label_en: 'Our Story',
   cta_href: '/nosotros',
+  planisferio_image: '',
+  chiloe_image: '',
 };
 
 export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
@@ -3532,6 +3589,8 @@ export function parseMapSettings(raw: Record<string, unknown> | null | undefined
     cta_label_en: en('cta_label_en', d.cta_label_en),
     cta_href: es('cta_href', d.cta_href ?? '/nosotros'),
     text_align: parseTextAlign(raw.text_align),
+    planisferio_image: typeof raw.planisferio_image === 'string' ? raw.planisferio_image.trim() : '',
+    chiloe_image: typeof raw.chiloe_image === 'string' ? raw.chiloe_image.trim() : '',
   };
 }
 

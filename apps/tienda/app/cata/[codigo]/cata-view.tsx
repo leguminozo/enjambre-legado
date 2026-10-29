@@ -13,10 +13,12 @@ import {
   ChevronRight,
   Compass,
   ShieldCheck,
+  Wallet,
 } from 'lucide-react';
 import { Button, Input, toast, friendlyError, Badge, HexagonLoader, cn } from '@enjambre/ui';
 import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import type { ShopProduct } from '@/lib/shop/products';
+import { WalletButtons } from '@/components/shop/wallet-buttons';
 
 import {
   PARES_SEMANTICOS_POR_CATEGORIA,
@@ -263,16 +265,38 @@ export function CataView({
             <Droplet className="w-8 h-8 text-primary" strokeWidth={1.75} />
           </div>
           <span className="block text-xs font-mono uppercase tracking-[0.2em] text-primary">
-            Experiencia Inmersiva
+            {punto.tipo === 'feria_evento'
+              ? 'Estación de Degustación en Vivo'
+              : punto.tipo === 'hotel'
+                ? 'Cortesía Botánica de Habitación'
+                : punto.tipo === 'tienda_gourmet'
+                  ? 'Vitrina de Pureza de Origen'
+                  : 'Experiencia Inmersiva'}
           </span>
           <h1 className="text-3xl sm:text-4xl font-display font-medium text-foreground tracking-tight">
-            Cata Sensorial
+            {punto.tipo === 'feria_evento'
+              ? 'Ritual de Cata en Vivo'
+              : punto.tipo === 'hotel'
+                ? 'Cata de Origen Austral'
+                : 'Cata Sensorial'}
           </h1>
           <p className="text-muted-foreground leading-relaxed text-pretty max-w-lg mx-auto">
-            Bienvenido al ritual de cata en{' '}
-            <strong className="text-foreground font-medium">{punto.nombre}</strong>. Evalúa la miel
-            que estás probando, acumula sellos de lealtad y crea tu propio{' '}
-            <strong className="text-foreground font-medium">Pasaporte Sensorial</strong> del bosque.
+            {punto.tipo === 'feria_evento' ? (
+              <>
+                Bienvenido a nuestro mesón en{' '}
+                <strong className="text-foreground font-medium">{punto.nombre}</strong>. Degusta
+                libremente con tu revolvedor de bambú, evalúa las notas sensoriales que percibes y activa
+                tu <strong className="text-foreground font-medium">Pase Digital del Bosque</strong> en
+                tu teléfono.
+              </>
+            ) : (
+              <>
+                Bienvenido al ritual de cata en{' '}
+                <strong className="text-foreground font-medium">{punto.nombre}</strong>. Evalúa la miel
+                que estás probando, acumula sellos de lealtad y crea tu propio{' '}
+                <strong className="text-foreground font-medium">Pasaporte Sensorial</strong> del bosque.
+              </>
+            )}
           </p>
           <Button
             variant="primary"
@@ -292,10 +316,14 @@ export function CataView({
               Paso 1 de 3
             </span>
             <h2 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
-              ¿Qué miel estás probando?
+              {punto.tipo === 'feria_evento'
+                ? '¿Qué variedad acabas de probar?'
+                : '¿Qué miel estás probando?'}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Selecciona el formato o infusión que tienes en mesa.
+              {punto.tipo === 'feria_evento'
+                ? 'Selecciona la miel que degustaste con tu revolvedor de bambú en el mesón.'
+                : 'Selecciona el formato o infusión que tienes en mesa.'}
             </p>
           </div>
 
@@ -763,6 +791,24 @@ export function CataView({
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Pase Digital Apple Wallet / Google Wallet */}
+          <div className="bg-card border border-primary/30 p-6 rounded-2xl text-center space-y-4 shadow-sm">
+            <div className="mx-auto w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Wallet className="w-5 h-5" strokeWidth={1.75} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
+                Instala tu Pase de Guardián en Wallet
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                Guarda tu credencial en Apple Wallet o Google Wallet para respaldar tus sellos de origen y recibir privilegios exclusivos en tu teléfono.
+              </p>
+            </div>
+            <div className="pt-2 flex justify-center">
+              <WalletButtons compact />
+            </div>
           </div>
 
           <div className="bg-surface-raised border border-border p-6 rounded-2xl text-center space-y-4">

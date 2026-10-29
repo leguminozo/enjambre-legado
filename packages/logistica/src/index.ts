@@ -15,6 +15,7 @@ export {
   computeShippingCost,
   computeShippingCostWithRates,
   getRegionShippingBase,
+  getRegionShippingEta,
   shippingRatesConfigFromRaw,
   DEFAULT_SHIPPING_RATES_CONFIG,
   FREE_SHIPPING_SUBTOTAL,

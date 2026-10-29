@@ -17,7 +17,7 @@ import {
 import { QRCode } from '@enjambre/ui';
 import { type SlideData, type SlideBlock } from './slide-studio-core';
 
-export type TabletopSegment = 'cafeterias' | 'hoteles' | 'tiendas-gourmet';
+export type TabletopSegment = 'cafeterias' | 'hoteles' | 'tiendas-gourmet' | 'ferias';
 
 export interface TabletopPrintModalProps {
   isOpen: boolean;
@@ -68,15 +68,17 @@ export function TabletopPrintModal({
     type: 'qr_code' as const,
     destinationType: 'resena' as const,
     url: partnerCode
-      ? `https://tienda.obrerayzangano.cl/cata/${partnerCode}`
-      : 'https://tienda.obrerayzangano.cl/resenas/nueva?origen=mesa',
+      ? `https://obrerayzangano.cl/cata/${partnerCode}`
+      : 'https://obrerayzangano.cl/cata/feria',
     title: 'CATA GUIADA EN MESA',
     subtitle: 'Escanea para evaluar el perfil botánico y activar tus beneficios.',
   };
 
   const targetQrUrl = partnerCode
-    ? `https://tienda.obrerayzangano.cl/cata/${partnerCode}`
-    : qrBlock.url;
+    ? `https://obrerayzangano.cl/cata/${partnerCode}`
+    : qrBlock.url.includes('tienda.obrerayzangano.cl')
+      ? qrBlock.url.replace('tienda.obrerayzangano.cl', 'obrerayzangano.cl')
+      : qrBlock.url || 'https://obrerayzangano.cl/cata/feria';
 
   if (!isOpen) return null;
 
@@ -159,7 +161,19 @@ export function TabletopPrintModal({
                   }`}
                 >
                   <Store size={12} />
-                  <span>Tienda Gourmet (Display)</span>
+                  <span>Tienda Gourmet</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSegmentMode('ferias')}
+                  className={`px-2.5 py-1 flex items-center gap-1.5 transition-colors ${
+                    segmentMode === 'ferias'
+                      ? 'bg-primary text-primary-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Sparkles size={12} />
+                  <span>Feria / Stand</span>
                 </button>
               </div>
             </div>
@@ -238,12 +252,16 @@ export function TabletopPrintModal({
                       ? `HOSPEDAJE // ${partnerName.toUpperCase()}`
                       : segmentMode === 'tiendas-gourmet'
                         ? `SELECCIÓN EXCLUSIVA // ${partnerName.toUpperCase()}`
-                        : `ALIANZA // ${partnerName.toUpperCase()}`
+                        : segmentMode === 'ferias'
+                          ? `ESTACIÓN DE DEGUSTACIÓN // ${partnerName.toUpperCase()}`
+                          : `ALIANZA // ${partnerName.toUpperCase()}`
                     : segmentMode === 'hoteles'
-                      ? 'PASAPORTE DE HABITACIÓN // HUESPED DISTINGUIDO'
+                      ? 'PASAPORTE DE HABITACIÓN // HUÉSPED DISTINGUIDO'
                       : segmentMode === 'tiendas-gourmet'
                         ? 'DISPLAY VITRINA // GARANTÍA BOTÁNICA'
-                        : 'DOCUMENTO DE MESA // BOSQUE NATIVO'}
+                        : segmentMode === 'ferias'
+                          ? 'ESTACIÓN DE DEGUSTACIÓN // STAND SOBERANO'
+                          : 'DOCUMENTO DE MESA // BOSQUE NATIVO'}
                 </span>
                 <h4 className="font-serif text-lg font-bold tracking-tight text-foreground leading-tight">
                   OBRERA Y ZÁNGANO
@@ -536,6 +554,93 @@ export function TabletopPrintModal({
                 {/* Footer */}
                 <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[8px] font-mono text-muted-foreground">
                   <span>PATRIMONIO BIOLÓGICO · RECOLECCIÓN SOBERANA</span>
+                  <span>obrerayzangano.cl</span>
+                </div>
+              </>
+            )}
+
+            {/* SEGMENTO: FERIA & ENCUENTRO TERRITORIAL (Estación de Degustación / Stand) */}
+            {segmentMode === 'ferias' && (
+              <>
+                <div className="space-y-1 mb-3">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-primary">
+                    {activeSlide?.kickerLeft || 'ESTACIÓN DE DEGUSTACIÓN EN VIVO'}
+                  </span>
+                  <h3 className="font-serif text-base sm:text-lg font-semibold leading-snug text-foreground">
+                    {activeSlide?.title || 'Ritual de Cata de Bosque Nativo'}
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
+                    {activeSlide?.subtitle || 'Cremas batidas en frío y mieles puras de Chiloé. Degusta libremente con tu revolvedor de bambú.'}
+                  </p>
+                </div>
+
+                {/* Variedades de Degustación en Mesa */}
+                <div className="p-3 rounded-xl border border-border/70 bg-surface-sunken/40 space-y-1.5 mb-3 text-[10px] font-mono">
+                  <div className="flex justify-between items-center text-primary font-semibold text-[9px] border-b pb-1 border-border/60">
+                    <span>VARIEDAD EN DEGUSTACIÓN</span>
+                    <span>NOTAS DE ORIGEN</span>
+                  </div>
+                  <div className="space-y-1 text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span className="text-foreground font-semibold">🌰 Crema & Avellana Chilena</span>
+                      <span>Gevuina tostada · Untuosa</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-foreground font-semibold">🍫 Crema & Cacao Crudo</span>
+                      <span>Nibs de origen · Contrapunto</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-foreground font-semibold">🌼 Crema & Polen Silvestre</span>
+                      <span>Bouquet floral vivo</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-foreground font-semibold">🍯 Miel Virgen en Panal</span>
+                      <span>Opérculo crudo de Chiloé</span>
+                    </div>
+                  </div>
+                  <div className="pt-1.5 border-t border-border/60 text-[9px] text-muted-foreground">
+                    <span className="text-primary font-semibold">Protocolo: </span>
+                    Batido en frío 48h · Conservar en refrigeración (&lt;14°C).
+                  </div>
+                </div>
+
+                {/* Protocolo QR en Feria */}
+                <div className="p-3 rounded-xl border border-border/80 bg-surface-raised space-y-2 mb-3">
+                  <div className="flex items-start gap-3">
+                    <QRCode
+                      value={targetQrUrl}
+                      size={68}
+                      bgColor="#FFFFFF"
+                      fgColor="#000000"
+                      className="p-1 bg-background border border-border rounded-lg shrink-0 shadow-sm"
+                    />
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles size={11} className="text-primary shrink-0" />
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-primary font-bold block truncate">
+                          {partnerCode ? `CATA EN ${partnerName.toUpperCase()}` : 'REGISTRO DE CATA & WALLET'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-tight font-sans">
+                        Escanea para calificar lo que probaste en la Nebulosa y guardar tu Pase del Bosque en tu teléfono.
+                      </p>
+                      <div className="pt-1 border-t border-border/50 flex flex-col gap-0.5 text-[9px] font-mono text-foreground/90">
+                        <div className="flex items-center gap-1">
+                          <CheckCircle2 size={10} className="text-primary shrink-0" />
+                          <span>Voto sensorial comunitario en 1 tap</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Award size={10} className="text-primary shrink-0" />
+                          <span>+25 puntos en Club Legado y Pase Wallet</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[8px] font-mono text-muted-foreground">
+                  <span>BATIDO EN FRÍO 48H · SIN ULTRAFILTRADO</span>
                   <span>obrerayzangano.cl</span>
                 </div>
               </>

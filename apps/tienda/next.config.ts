@@ -198,6 +198,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: '/feria',
+        destination: '/cata/feria',
+      },
+      {
+        source: '/stand',
+        destination: '/cata/feria',
+      },
+      {
         source: '/q/:slug',
         destination: '/producto/:slug?origen=qr',
       },

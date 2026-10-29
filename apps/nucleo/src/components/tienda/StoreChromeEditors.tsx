@@ -4270,6 +4270,54 @@ export function CheckoutSettingsEditor({ content, onSave }: SettingsEditorProps)
         onChange={(v) => patch('secure_transaction_text', v)}
       />
       <TextField
+        label="Medios de pago — Nota bajo el botón"
+        value={local.payment_methods_note}
+        onChange={(v) => patch('payment_methods_note', v)}
+      />
+      <TextField
+        label="Protección de envase — Título"
+        value={local.protection_title}
+        onChange={(v) => patch('protection_title', v)}
+      />
+      <TextField
+        label="Protección de envase — Descripción"
+        value={local.protection_desc}
+        onChange={(v) => patch('protection_desc', v)}
+        multiline
+      />
+      <TextField
+        label="Garantía de transporte — Título"
+        value={local.guarantee_title}
+        onChange={(v) => patch('guarantee_title', v)}
+      />
+      <TextField
+        label="Garantía de transporte — Descripción"
+        value={local.guarantee_desc}
+        onChange={(v) => patch('guarantee_desc', v)}
+        multiline
+      />
+      <TextField
+        label="Economía Circular — Título"
+        value={local.circular_title}
+        onChange={(v) => patch('circular_title', v)}
+      />
+      <TextField
+        label="Economía Circular — Subtítulo"
+        value={local.circular_desc}
+        onChange={(v) => patch('circular_desc', v)}
+      />
+      <TextField
+        label="Economía Circular — Pregunta del switch"
+        value={local.circular_question}
+        onChange={(v) => patch('circular_question', v)}
+      />
+      <TextField
+        label="Economía Circular — Instrucciones"
+        value={local.circular_instructions}
+        onChange={(v) => patch('circular_instructions', v)}
+        multiline
+      />
+      <TextField
         label="Términos — Prefijo (antes del link)"
         value={local.terms_prefix}
         onChange={(v) => patch('terms_prefix', v)}
@@ -4354,7 +4402,7 @@ export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
         onChange={(v) => patch('subtotal_label', v)}
       />
       <TextField
-        label="Envío — Nota (calculado en checkout)"
+        label="Envío — Nota en resumen"
         value={local.shipping_note}
         onChange={(v) => patch('shipping_note', v)}
       />
@@ -4362,6 +4410,39 @@ export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
         label="CTA — Finalizar compra"
         value={local.cta_label}
         onChange={(v) => patch('cta_label', v)}
+      />
+      <TextField
+        label="Protección de envase — Título"
+        value={local.protection_badge_title}
+        onChange={(v) => patch('protection_badge_title', v)}
+      />
+      <TextField
+        label="Protección de envase — Descripción"
+        value={local.protection_badge_desc}
+        onChange={(v) => patch('protection_badge_desc', v)}
+        multiline
+      />
+      <TextField
+        label="Garantía legal — Título"
+        value={local.legal_warranty_title}
+        onChange={(v) => patch('legal_warranty_title', v)}
+      />
+      <TextField
+        label="Garantía legal — Descripción"
+        value={local.legal_warranty_desc}
+        onChange={(v) => patch('legal_warranty_desc', v)}
+        multiline
+      />
+      <TextField
+        label="Derecho a retracto — Título"
+        value={local.retract_title}
+        onChange={(v) => patch('retract_title', v)}
+      />
+      <TextField
+        label="Derecho a retracto — Descripción"
+        value={local.retract_desc}
+        onChange={(v) => patch('retract_desc', v)}
+        multiline
       />
       <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
     </div>
@@ -4382,6 +4463,13 @@ export function ShippingSettingsEditor({ content, onSave }: SettingsEditorProps)
     }));
   };
 
+  const patchRegionEta = (region: string, etaLabel: string) => {
+    setLocal((prev) => ({
+      ...prev,
+      regionRates: prev.regionRates.map((r) => (r.region === region ? { ...r, etaLabel } : r)),
+    }));
+  };
+
   const patchCourierMultiplier = (code: string, multiplier: number) => {
     setLocal((prev) => ({
       ...prev,
@@ -4399,13 +4487,13 @@ export function ShippingSettingsEditor({ content, onSave }: SettingsEditorProps)
   return (
     <div className="space-y-5 pb-8">
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Tarifas de despacho aplicadas en carrito y checkout. Se publican al instante; un valor
+        Tarifas y plazos estimados de despacho aplicados en carrito y checkout. Se publican al instante; un valor
         vacío o inválido cae al valor base del sistema y nunca rompe el cobro.
       </p>
 
       <div className="rounded-xl border border-border bg-card/40 p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-accent">Tarifa base por región (CLP)</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-accent">Tarifa y plazo por región</span>
           <button
             type="button"
             onClick={() => setLocal(shippingRatesConfigFromRaw(null))}
@@ -4415,15 +4503,21 @@ export function ShippingSettingsEditor({ content, onSave }: SettingsEditorProps)
             Restaurar valores base
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 pt-1 border-t border-border/50">
+        <div className="space-y-3 pt-1 border-t border-border/50">
           {local.regionRates.map((r) => (
-            <NumberField
-              key={r.region}
-              label={r.region}
-              value={r.baseClp}
-              step="100"
-              onChange={(v) => patchRegionRate(r.region, Number.isFinite(v) ? Math.max(0, Math.round(v)) : 0)}
-            />
+            <div key={r.region} className="grid grid-cols-1 sm:grid-cols-[150px_1fr] gap-2.5 items-end pb-2.5 border-b border-border/30 last:border-b-0 last:pb-0">
+              <NumberField
+                label={`${r.region} (CLP)`}
+                value={r.baseClp}
+                step="100"
+                onChange={(v) => patchRegionRate(r.region, Number.isFinite(v) ? Math.max(0, Math.round(v)) : 0)}
+              />
+              <TextField
+                label={`Plazo estimado (${r.region})`}
+                value={r.etaLabel || ''}
+                onChange={(v) => patchRegionEta(r.region, v)}
+              />
+            </div>
           ))}
         </div>
         <NumberField

@@ -55,7 +55,26 @@ b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
     .select("id, nombre, tipo, ciudad, codigo_acceso")
     .eq("codigo_acceso", codigo)
     .maybeSingle();
-  if (!punto || !punto.id) return c.json({ code: "not_found", message: "Local no encontrado" }, 404);
+
+  if (!punto || !punto.id) {
+    if (codigo === "FERIA" || codigo === "STAND" || codigo === "DEGUSTACION") {
+      const fallbackPunto = {
+        id: "feria-canonica",
+        nombre: "Estación de Degustación · Santiago",
+        tipo: "feria_evento",
+        ciudad: "Santiago",
+        codigo_acceso: codigo,
+      };
+      return c.json({
+        data: {
+          punto: fallbackPunto,
+          sets: [],
+          programa: null,
+        },
+      });
+    }
+    return c.json({ code: "not_found", message: "Local no encontrado" }, 404);
+  }
 
   const [sets, programa] = await Promise.all([
     supabase

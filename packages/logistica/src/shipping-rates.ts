@@ -20,6 +20,31 @@ const REGION_BASE_RATES: Record<string, number> = {
   Magallanes: 13500,
 };
 
+/**
+ * Plazos estimados de tránsito saliendo desde Pureo rural (Queilén, Chiloé).
+ * Contempla salida insular + cruce del canal de Chacao + tránsito nacional.
+ */
+const REGION_BASE_ETA: Record<string, string> = {
+  'Los Lagos': '3 a 5 días hábiles · Salida desde Pureo, Chiloé',
+  'Los Ríos': '4 a 6 días hábiles · Salida desde Pureo, Chiloé',
+  'La Araucanía': '4 a 6 días hábiles · Salida desde Pureo, Chiloé',
+  Biobío: '4 a 6 días hábiles · Salida desde Pureo, Chiloé',
+  Ñuble: '4 a 6 días hábiles · Salida desde Pureo, Chiloé',
+  Maule: '5 a 7 días hábiles · Salida desde Pureo, Chiloé',
+  "O'Higgins": '5 a 7 días hábiles · Salida desde Pureo, Chiloé',
+  Metropolitana: '4 a 6 días hábiles · Salida desde Pureo, Chiloé',
+  Valparaíso: '5 a 7 días hábiles · Salida desde Pureo, Chiloé',
+  Coquimbo: '6 a 8 días hábiles · Salida desde Pureo, Chiloé',
+  Atacama: '6 a 9 días hábiles · Salida desde Pureo, Chiloé',
+  Antofagasta: '6 a 9 días hábiles · Salida desde Pureo, Chiloé',
+  Tarapacá: '7 a 10 días hábiles · Salida desde Pureo, Chiloé',
+  'Arica y Parinacota': '7 a 10 días hábiles · Salida desde Pureo, Chiloé',
+  Aysén: '8 a 11 días hábiles · Salida desde Pureo, Chiloé',
+  Magallanes: '9 a 12 días hábiles · Salida desde Pureo, Chiloé',
+};
+
+const DEFAULT_REGION_ETA = '5 a 8 días hábiles · Salida desde Pureo, Chiloé';
+
 export const CHILE_REGIONES = [
   'Arica y Parinacota',
   'Tarapacá',
@@ -94,6 +119,8 @@ export function getWeightMultiplier(weightGrams: number): number {
 export type ShippingRegionRate = {
   region: string;
   baseClp: number;
+  /** Plazo estimado de entrega desde Pureo, Chiloé (editable en CMS). */
+  etaLabel?: string;
 };
 
 export type ShippingWeightTier = {
@@ -116,6 +143,7 @@ export const DEFAULT_SHIPPING_RATES_CONFIG: ShippingRatesConfig = {
   regionRates: CHILE_REGIONES.map((region) => ({
     region,
     baseClp: REGION_BASE_RATES[region] ?? DEFAULT_REGION_RATE,
+    etaLabel: REGION_BASE_ETA[region] ?? DEFAULT_REGION_ETA,
   })),
   defaultRegionRateClp: DEFAULT_REGION_RATE,
   courierMultipliers: { ...COURIER_MULTIPLIER },
@@ -127,6 +155,16 @@ export const DEFAULT_SHIPPING_RATES_CONFIG: ShippingRatesConfig = {
     multiplier: t.multiplier,
   })),
 };
+
+export function getRegionShippingEta(
+  region: string,
+  config: ShippingRatesConfig = DEFAULT_SHIPPING_RATES_CONFIG,
+): string {
+  const trimmed = region.trim();
+  const match = config.regionRates.find((r) => r.region === trimmed);
+  if (match?.etaLabel && match.etaLabel.trim()) return match.etaLabel.trim();
+  return REGION_BASE_ETA[trimmed] ?? DEFAULT_REGION_ETA;
+}
 
 function isNonNegativeNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
@@ -144,19 +182,27 @@ export function shippingRatesConfigFromRaw(
   const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
 
   const defaultsByRegion = new Map(d.regionRates.map((r) => [r.region, r.baseClp]));
+  const defaultEtasByRegion = new Map(d.regionRates.map((r) => [r.region, r.etaLabel ?? DEFAULT_REGION_ETA]));
   const providedRates = new Map<string, number>();
+  const providedEtas = new Map<string, string>();
   if (Array.isArray(src.regionRates)) {
     for (const item of src.regionRates) {
       if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
       const obj = item as Record<string, unknown>;
       const region = typeof obj.region === 'string' ? obj.region.trim() : '';
-      if (!region || !isNonNegativeNumber(obj.baseClp)) continue;
-      providedRates.set(region, Math.round(obj.baseClp));
+      if (!region) continue;
+      if (isNonNegativeNumber(obj.baseClp)) {
+        providedRates.set(region, Math.round(obj.baseClp));
+      }
+      if (typeof obj.etaLabel === 'string' && obj.etaLabel.trim().length > 0) {
+        providedEtas.set(region, obj.etaLabel.trim());
+      }
     }
   }
   const regionRates = d.regionRates.map((r) => ({
     region: r.region,
     baseClp: providedRates.get(r.region) ?? defaultsByRegion.get(r.region) ?? d.defaultRegionRateClp,
+    etaLabel: providedEtas.get(r.region) ?? defaultEtasByRegion.get(r.region) ?? DEFAULT_REGION_ETA,
   }));
 
   const courierMultipliers: Record<string, number> = { ...d.courierMultipliers };

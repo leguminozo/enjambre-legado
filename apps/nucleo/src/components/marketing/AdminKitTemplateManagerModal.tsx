@@ -29,6 +29,7 @@ import {
   PRESET_ULMO_ESTACIONAL,
   PRESET_KIT_CAFETERIA,
   PRESET_CLUB_LEGADO,
+  PRESET_STAND_FERIA,
 } from './slide-studio-core';
 import { type UserTemplate, type TemplateCategory } from './use-slide-studio';
 
@@ -349,7 +350,18 @@ export function AdminKitTemplateManagerModal({
                 <span className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground block">
                   Kits Fundacionales del Sistema (Listos para usar o clonar)
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onLoadTemplate(PRESET_STAND_FERIA, 'Stand Feria: Degustación & Frío (3)');
+                      onClose();
+                    }}
+                    className="p-2.5 rounded-lg border border-primary/50 bg-primary/5 hover:border-primary text-left transition-colors"
+                  >
+                    <p className="text-[11px] font-semibold text-primary truncate">Stand Feria (3)</p>
+                    <p className="text-[9px] font-mono text-muted-foreground">Degustación & Frío</p>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
