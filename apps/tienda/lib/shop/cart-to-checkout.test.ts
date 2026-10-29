@@ -206,12 +206,21 @@ describe('Puente Carrito ↔ Pago Seguro (Integración y Casos de Error)', () =>
   });
 
   describe('5. Sincronización y Fusión de Carrito (Merge sin pérdida de productos)', () => {
-    it('funde productos duplicados sumando sus cantidades sin superar 99', () => {
+    it('funde productos duplicados usando la cantidad máxima para evitar duplicaciones por recarga', () => {
       const merged = mergeCartQuantities(
         [{ product_id: 'prod-miel-1', quantity: 2 }],
         [{ product_id: 'prod-miel-1', quantity: 1 }],
       );
-      expect(merged).toEqual([{ product_id: 'prod-miel-1', quantity: 3 }]);
+      expect(merged).toEqual([{ product_id: 'prod-miel-1', quantity: 2 }]);
+    });
+
+    it('es idempotente ante recargas sucesivas de la página', () => {
+      const local = [{ product_id: 'prod-miel-1', quantity: 1 }];
+      const remote = [{ product_id: 'prod-miel-1', quantity: 1 }];
+      const step1 = mergeCartQuantities(local, remote);
+      const step2 = mergeCartQuantities(step1, remote);
+      expect(step1).toEqual([{ product_id: 'prod-miel-1', quantity: 1 }]);
+      expect(step2).toEqual([{ product_id: 'prod-miel-1', quantity: 1 }]);
     });
 
     it('mantiene productos distintos de ambos carritos (local + remoto)', () => {

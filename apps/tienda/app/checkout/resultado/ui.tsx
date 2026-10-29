@@ -17,7 +17,9 @@ import { WalletButtons } from '@/components/shop/wallet-buttons';
 import { useAuth } from '@/components/providers/auth-context';
 import {
   CHECKOUT_SUCCESS_META_KEY,
+  CREATOR_REF_CODE_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
+  PROMO_DISCOUNT_CODE_KEY,
   PURCHASE_SNAPSHOT_STORAGE_KEY,
   clearCommerceStorage,
   readCommerceStorage,
@@ -147,6 +149,8 @@ export function CheckoutResultClient() {
       }
 
       clearCommerceStorage(PENDING_CHECKOUT_STORAGE_KEY);
+      clearCommerceStorage(PROMO_DISCOUNT_CODE_KEY);
+      clearCommerceStorage(CREATOR_REF_CODE_KEY);
       try {
         const raw = readCommerceStorage(CHECKOUT_SUCCESS_META_KEY);
         if (raw) {

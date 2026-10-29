@@ -41,6 +41,7 @@ export type CartNotificationItem = {
 export { CART_STORAGE_KEY };
 const REMOTE_SYNC_DEBOUNCE_MS = 500;
 const REALTIME_RELOAD_DEBOUNCE_MS = 300;
+const MERGED_USER_SESSION_KEY = 'oyz_cart_merged_user';
 
 type CartLinesApi = {
   lines: CartLine[];
@@ -112,6 +113,10 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     setLines(stored.lines);
     setHydrated(true);
 
+    try {
+      mergedUserRef.current = sessionStorage.getItem(MERGED_USER_SESSION_KEY);
+    } catch {}
+
     const missingImageIds = stored.lines.filter((l) => !l.imageUrl).map((l) => l.productId);
     if (missingImageIds.length > 0) {
       const supabase = createClient();
@@ -166,6 +171,9 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
 
     if (!userId) {
       mergedUserRef.current = null;
+      try {
+        sessionStorage.removeItem(MERGED_USER_SESSION_KEY);
+      } catch {}
       setRemoteReady(true);
       return;
     }
@@ -185,6 +193,9 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
       .then(({ lines: merged }) => {
         if (cancelled) return;
         mergedUserRef.current = userId;
+        try {
+          sessionStorage.setItem(MERGED_USER_SESSION_KEY, userId);
+        } catch {}
         setLines(merged);
         setRemoteReady(true);
       })
@@ -194,6 +205,9 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
           console.warn('[cart] merge on login failed — usando carrito local');
         }
         mergedUserRef.current = userId;
+        try {
+          sessionStorage.setItem(MERGED_USER_SESSION_KEY, userId);
+        } catch {}
         setRemoteReady(true);
       });
 

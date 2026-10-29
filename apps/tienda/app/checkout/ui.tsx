@@ -48,6 +48,7 @@ import {
   PROMO_DISCOUNT_CODE_KEY,
   PURCHASE_SNAPSHOT_STORAGE_KEY,
   SHIPPING_REGION_STORAGE_KEY,
+  clearCommerceStorage,
   readCommerceStorage,
   writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
@@ -329,14 +330,14 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         searchParams.get('promo')
       )?.trim();
       const stored = queryPromo || readCommerceStorage(PROMO_DISCOUNT_CODE_KEY)?.trim();
-      if (stored && stored.length >= 2 && !codigoAplicado) {
+      if (stored && stored.length >= 2) {
         setCodigoDescuento(stored);
         setCodigoAplicado(stored.toUpperCase());
       }
     } catch {
       // ignore
     }
-  }, [codigoAplicado]);
+  }, []);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<ClienteDireccion[]>([]);
@@ -710,10 +711,15 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     return () => window.clearTimeout(timer);
   }, [loading]);
 
+  const isStartingRef = useRef(false);
+
   const startCheckout = async () => {
+    if (isStartingRef.current || loading || payDisabled) return;
+    isStartingRef.current = true;
     setTouched(true);
     const ve = fieldError(shipping);
     if (Object.keys(ve).length > 0) {
+      isStartingRef.current = false;
       setError('Completa todos los campos de envío requeridos.');
       const firstKey = Object.keys(ve)[0];
       const el = document.getElementById(firstKey);
@@ -740,6 +746,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     if (tipoDte === 'factura') {
       const cleanRut = facturaData.rut.trim();
       if (!cleanRut || !validarRUT(cleanRut)) {
+        isStartingRef.current = false;
         setError('Por favor ingresa un RUT de empresa válido con dígito verificador (ej. 76.350.040-3).');
         const el = document.getElementById('factura-rut');
         if (el) {
@@ -750,6 +757,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         return;
       }
       if (!facturaData.razonSocial.trim() || facturaData.razonSocial.trim().length < 2) {
+        isStartingRef.current = false;
         setError('Por favor ingresa la Razón Social de la empresa para la Factura Electrónica.');
         const el = document.getElementById('factura-razonSocial');
         if (el) {
@@ -780,6 +788,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     });
 
     if (!result.ok) {
+      isStartingRef.current = false;
       if (result.priceConflict) {
         setPriceConflicts(result.priceConflict.details);
       }
@@ -1660,6 +1669,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                               onClick={() => {
                                 setCodigoAplicado(null);
                                 setCodigoDescuento('');
+                                clearCommerceStorage(PROMO_DISCOUNT_CODE_KEY);
                               }}
                             >
                               Quitar
@@ -1692,6 +1702,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                               onClick={() => {
                                 setCreadorAplicado(null);
                                 setCodigoCreador('');
+                                clearCommerceStorage(CREATOR_REF_CODE_KEY);
                               }}
                             >
                               Quitar
