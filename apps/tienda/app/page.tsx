@@ -107,12 +107,28 @@ export default async function TiendaPage({
         'products_settings',
         'experiencias_home_settings',
         'alianzas_home_settings',
+        'galeria',
       ],
       { draft },
     ),
     getEcosystemMetrics(),
     fetchRatingAggregatesByProduct(products.map((p) => p.id)),
   ]);
+
+  const galeriaData = cmsBatch.galeria ?? [];
+  const galeriaItems = galeriaData
+    .map((row) => {
+      const c = (row.content as Record<string, unknown>) ?? {};
+      return {
+        id: row.id,
+        titulo: String(c.titulo ?? ''),
+        descripcion: String(c.descripcion ?? ''),
+        url: typeof c.url === 'string' ? c.url : '',
+        orden: typeof c.orden === 'number' ? c.orden : 0,
+      };
+    })
+    .filter((img) => Boolean(img.url))
+    .sort((a, b) => a.orden - b.orden);
 
   const coleccionesData = cmsBatch.colecciones ?? [];
   const coleccionesCms = coleccionesData.map((row) =>
@@ -192,6 +208,7 @@ export default async function TiendaPage({
       mapSettings={mapSettings}
       productsSettings={productsSettings}
       ecosystemMetrics={ecosystemMetrics}
+      galeriaItems={galeriaItems}
     />
   );
 }

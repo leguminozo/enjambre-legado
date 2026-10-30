@@ -101,12 +101,12 @@ describe('CMS Extended Pages - Parsers and Fallbacks', () => {
     it('parses custom floraciones experience settings', () => {
       const custom = {
         title: 'Cata Maestra de Floraciones Nativas',
-        bio_name: 'Cristina Miranda Bahamonde',
+        bio_name: 'Cristina Miranda Rojas',
         bio_trajectory_years: 20,
       };
       const parsed = parseFloracionesExperienceSettings(custom);
       expect(parsed.title).toBe('Cata Maestra de Floraciones Nativas');
-      expect(parsed.bio_name).toBe('Cristina Miranda Bahamonde');
+      expect(parsed.bio_name).toBe('Cristina Miranda Rojas');
       expect(parsed.bio_trajectory_years).toBe(20);
       expect(parsed.kicker).toBe(DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS.kicker);
     });

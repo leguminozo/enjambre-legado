@@ -11,7 +11,6 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { EditorialHero } from '@/components/shop/editorial-hero';
 import { breadcrumbJsonLd, faqJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { getSiteContent } from '@/lib/cms';
@@ -147,22 +146,53 @@ export default async function ParaSegmentoPage({
         data-cms-section={sectionKey}
         className="min-h-[var(--vh-full)] bg-background"
       >
-        {/* ── Hero Cinemático B2B ── */}
-        <EditorialHero
-          sectionKey={sectionKey}
-          kicker={content.kicker}
-          title={content.headline}
-          subtitle={content.subheadline}
-          imageUrl={content.hero_image}
-          imageOpacity={85}
-          align={content.text_align}
-          ctaLabel={content.cta_text || 'Acceder al Catálogo'}
-          ctaHref="#registro"
-          secondaryCtaLabel="Ver Kits Planificados"
-          secondaryCtaHref="#kits-planificados"
-          preferAnchor
-          scrollCueLabel="Explorar propuesta de valor"
-        />
+        {/* ── Hero ── */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0">
+            <Image
+              src={content.hero_image}
+              alt={content.headline}
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background" />
+          </div>
+
+          <div className="relative px-4 text-center pt-[max(8rem,calc(env(safe-area-inset-top)+6.5rem))] pb-20 md:pb-28">
+            <div className="max-w-5xl xl:max-w-6xl mx-auto">
+              {content.kicker?.trim() ? (
+                <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-8">
+                  {content.kicker}
+                </span>
+              ) : null}
+              <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.75rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08] tracking-tight">
+                {content.headline}
+              </h1>
+              {content.subheadline?.trim() ? (
+                <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty mb-10 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
+                  {content.subheadline}
+                </p>
+              ) : null}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a
+                  href="#registro"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-8 py-3 text-[0.65rem] uppercase tracking-[0.3em] font-medium text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                >
+                  {content.cta_text || 'Acceder al Catálogo'}
+                </a>
+                <a
+                  href="#kits-planificados"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full border border-border/80 px-7 py-3 text-[0.65rem] uppercase tracking-[0.3em] font-medium text-foreground hover:border-primary transition-colors"
+                >
+                  Ver Kits Planificados
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── Value Props ── */}
         <section className="py-20 md:py-28 px-4 border-t border-border/20">

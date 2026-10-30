@@ -73,7 +73,7 @@ Prioriza **lecturas ultra-baratas en caché (ISR y Storage CDN)** y delega todas
    - `/ciencia`: Catálogo de afirmaciones científicas botánicas trianguladas (`@enjambre/ciencia`).
    - `/origen`: Narrativa territorial de las colmenas en los bosques nativos de Chiloé.
    - `/experiencias`: Reserva de visitas guiadas, talleres y encuentros en el bosque.
-   - `/alianzas/[segmento]` y `/mayorista`: Portales B2B para cafeterías, hoteles y tiendas gourmet.
+   - `/alianzas` y `/alianzas/[segmento]`: Portales B2B para cafeterías, hoteles y tiendas gourmet.
 
 ---
 

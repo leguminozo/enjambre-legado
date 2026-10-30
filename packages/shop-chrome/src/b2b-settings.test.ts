@@ -345,6 +345,19 @@ describe('B2B Hub Settings — Garantías del Canal Directo', () => {
     expect(s.form_title_en).toBe('Contact us today');
     expect(s.seo_title).toBe('Alianzas B2B Exclusivas');
   });
+
+  it('soporta hero_image_opacity en los 5 segmentos B2B con default 35', () => {
+    for (const slug of B2B_SEGMENT_SLUGS) {
+      const parsedDefault = parseB2BSegmentContent(null, slug);
+      expect(parsedDefault.hero_image_opacity).toBe(35);
+
+      const parsedCustom = parseB2BSegmentContent({ hero_image_opacity: 70 }, slug);
+      expect(parsedCustom.hero_image_opacity).toBe(70);
+
+      const parsedZero = parseB2BSegmentContent({ hero_image_opacity: 0 }, slug);
+      expect(parsedZero.hero_image_opacity).toBe(0);
+    }
+  });
 });
 
 

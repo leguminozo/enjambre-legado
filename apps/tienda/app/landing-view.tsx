@@ -139,6 +139,7 @@ interface TiendaLandingProps {
   /** Base URL de Núcleo para mapa territorial público. */
   nucleoMapUrl?: string | null;
   locale: string;
+  galeriaItems?: { id: string; titulo: string; descripcion: string; url: string }[];
 }
 
 const COLLECTION_IMAGES = {
@@ -193,6 +194,7 @@ export function TiendaLandingView({
   ecosystemMetrics,
   nucleoMapUrl,
   locale,
+  galeriaItems,
 }: TiendaLandingProps) {
   const t = useTranslations();
   const tHero = useTranslations('hero');
@@ -212,6 +214,45 @@ export function TiendaLandingView({
     desc: resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale),
     align: productsSettings?.text_align,
   };
+  const defaultPostales = [
+    {
+      id: 'post-1',
+      tag: currentLocale === 'en' ? 'Canopy Bloom' : 'Dosel en Flor',
+      titulo: currentLocale === 'en' ? 'Ulmo Blossom' : 'Flor de Ulmo',
+      url: '/assets/editorial/hero-bosque-tronco.jpg',
+    },
+    {
+      id: 'post-2',
+      tag: currentLocale === 'en' ? 'Apiary' : 'Apiario Austral',
+      titulo: currentLocale === 'en' ? 'Living Hives' : 'Colmenas en Pureo',
+      url: '/assets/editorial/hero-bosque-apertura.jpg',
+    },
+    {
+      id: 'post-3',
+      tag: currentLocale === 'en' ? 'Landscape' : 'Maritorio',
+      titulo: currentLocale === 'en' ? 'Compu Fjord' : 'Fiordo de Compu',
+      url: '/assets/editorial/experiencias.jpg',
+    },
+    {
+      id: 'post-4',
+      tag: currentLocale === 'en' ? 'Heritage' : 'Origen',
+      titulo: currentLocale === 'en' ? 'Living Raw Honey' : 'Miel Cruda de Guarda',
+      url: '/assets/editorial/honey-jar.png',
+    },
+  ];
+
+  const postales = useMemo(() => {
+    if (galeriaItems && galeriaItems.length >= 4) {
+      return galeriaItems.slice(0, 4).map((g, i) => ({
+        id: g.id || `g-${i}`,
+        tag: currentLocale === 'en' ? 'Visual Archive' : 'Archivo Visual',
+        titulo: g.titulo || (currentLocale === 'en' ? 'Postcard from Pureo' : 'Postal de Pureo'),
+        url: g.url,
+      }));
+    }
+    return defaultPostales;
+  }, [galeriaItems, currentLocale]);
+
   // Destacados (featured_ids del CMS) primero; el resto mantiene su orden.
   const orderedProducts = useMemo(() => {
     const featured = productsSettings?.featured_ids ?? [];
@@ -725,6 +766,67 @@ export function TiendaLandingView({
             imageFit={productsSettings?.image_fit}
           />
         </Suspense>
+
+        {/* ── Franja Editorial: Postales de Pureo · Archivo Visual ── */}
+        <section
+          key="postales-pureo"
+          data-cms-section="galeria"
+          className="border-t border-border/20 bg-surface-sunken/40 py-20 md:py-28 px-4 sm:px-6"
+        >
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div>
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2 font-medium">
+                  {currentLocale === 'en' ? 'Visual Archive · Pureo, Chiloé' : 'Archivo Visual · Pureo, Chiloé'}
+                </span>
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
+                  {currentLocale === 'en' ? 'Postcards from the Rainforest' : 'Postales de Pureo'}
+                </h2>
+                <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl text-pretty">
+                  {currentLocale === 'en'
+                    ? 'Living atmosphere from our sanctuary: wild canopy blooms, the Compu fjord, and the slow rhythm of the living hive.'
+                    : 'Atmósfera viva del sur: floraciones salvajes, el fiordo de Compu y la cadencia de la colmena en el bosque templado lluvioso.'}
+                </p>
+              </div>
+              <div className="shrink-0">
+                <Link
+                  href="/galeria"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border/60 bg-surface-raised/60 px-6 text-xs font-semibold uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-all"
+                >
+                  <span>{currentLocale === 'en' ? 'Explore Full Archive' : 'Explorar Archivo Completo'}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {postales.map((item, idx) => (
+                <Link
+                  key={item.id || idx}
+                  href="/galeria"
+                  className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-card border border-border/40 hover:border-accent/60 transition-all duration-300 hover:shadow-xl hover:shadow-black/40 flex flex-col justify-end"
+                >
+                  <Image
+                    src={item.url}
+                    alt={item.titulo || 'Postal de Pureo'}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/25 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
+                  <div className="relative z-10 p-4 sm:p-5">
+                    <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text font-medium mb-1">
+                      {item.tag || (currentLocale === 'en' ? 'Territory' : 'Territorio')}
+                    </span>
+                    <h3 className="font-display text-base sm:text-lg text-foreground font-light leading-snug group-hover:text-accent transition-colors">
+                      {item.titulo}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
           );
         }

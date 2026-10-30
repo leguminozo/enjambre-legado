@@ -3990,6 +3990,7 @@ export type B2BSegmentContentSettings = {
   subheadline: string;
   subheadline_en?: string;
   hero_image: string;
+  hero_image_opacity?: number;
   suggested_products_copy?: string;
   suggested_products_copy_en?: string;
   cta_text: string;
@@ -4303,6 +4304,7 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
   subheadline_en:
     'Four cold-churned raw honey creams harvested in the native forest of Chiloé (42°S), presented in 25 g individual table-service pieces and 150 g retail display jars. Analytical origin certification and 41% to 48% net margin for your coffee bar.',
   hero_image: B2B_STORAGE_IMAGES.cafeterias,
+  hero_image_opacity: 35,
   suggested_products_copy:
     'Disponibles en Pieza de Mesa (25 g) y Reserva de Vitrina (150 g). Cuatro expresiones botánicas diseñadas para armonizar con el método de extracción y perfil de tueste de tu barra.',
   suggested_products_copy_en:
@@ -4685,6 +4687,7 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
   subheadline_en:
     'Modular formats in 25 g for welcome amenities and breakfast tastings, and 150 g jars for front-desk retail and hotel boutique. Certified raw native honey turning courtesy into a travel memory.',
   hero_image: B2B_STORAGE_IMAGES.hoteles,
+  hero_image_opacity: 35,
   suggested_products_copy:
     'Disponibles en Formato 25 g (Amenidad & Desayuno) y Frasco 150 g (Boutique de Recepción). Cuatro variedades botánicas de Chiloé diseñadas para bienvenida en suite, mesa de desayuno y boutique.',
   suggested_products_copy_en:
@@ -5003,6 +5006,7 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
   subheadline_en:
     'Raw native honey with a full retail ecosystem: hive-to-table traceability, co-op marketing and digital customer loyalty.',
   hero_image: B2B_STORAGE_IMAGES['tiendas-gourmet'],
+  hero_image_opacity: 35,
   suggested_products_copy:
     'Para retail gourmet recomendamos el espectro completo: mini frascos de 25g para compra de impulso/regalos, y los formatos de 150g y 500g para los entusiastas de la gastronomía.',
   cta_text: 'Solicitar catálogo',
@@ -5200,6 +5204,7 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
   subheadline_en:
     'Ideal formats for direct and impulse sales: stand out with our 25g jars and unlock immediate restocking perks.',
   hero_image: B2B_STORAGE_IMAGES.ferias,
+  hero_image_opacity: 35,
   suggested_products_copy:
     'Para eventos sugerimos una fuerte presencia de mini frascos de 25g, son altamente atractivos y tienen excelente margen en formato de regalo.',
   cta_text: 'Pedir kit de feria',
@@ -5402,6 +5407,7 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
   subheadline_en:
     'Distribute premium raw honey within your network. Zero entry fees, digital selling tools, rapid restock bonuses, and automated customer loyalty.',
   hero_image: B2B_STORAGE_IMAGES.revendedores,
+  hero_image_opacity: 35,
   suggested_products_copy:
     'Para revendedores recomendamos iniciar con un mix de frascos de 150g y 500g, complementado con mini frascos de 25g ideales para dar a probar a nuevos clientes.',
   cta_text: 'Comenzar ahora',
@@ -5708,6 +5714,7 @@ export function parseB2BSegmentContent(
     subheadline: asString(raw.subheadline, d.subheadline).trim(),
     subheadline_en: typeof raw.subheadline_en === 'string' ? raw.subheadline_en.trim() : d.subheadline_en,
     hero_image: isLegacyOrCrossContaminatedHero ? d.hero_image : rawHero,
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 35, 0, 100),
     suggested_products_copy: asString(raw.suggested_products_copy, d.suggested_products_copy ?? '').trim(),
     suggested_products_copy_en:
       typeof raw.suggested_products_copy_en === 'string'
@@ -5770,17 +5777,49 @@ export type OrigenSettings = {
   description_en?: string;
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
+  badge1?: string;
+  badge1_en?: string;
+  badge2?: string;
+  badge2_en?: string;
+  badge3?: string;
+  badge3_en?: string;
+  manifiesto_kicker?: string;
+  manifiesto_kicker_en?: string;
+  manifiesto_title?: string;
+  manifiesto_title_en?: string;
+  manifiesto_text?: string;
+  manifiesto_text_en?: string;
+  manifiesto_cta_label?: string;
+  manifiesto_cta_label_en?: string;
+  manifiesto_cta_href?: string;
 };
 
 export const DEFAULT_ORIGEN_SETTINGS: OrigenSettings = {
-  kicker: 'Colección',
-  kicker_en: 'Collection',
+  kicker: 'Fenología Austral & Estándar de Origen',
+  kicker_en: 'Austral Phenology & Standard of Origin',
   title: 'Origen & Floraciones',
   title_en: 'Origin & Blooms',
   description:
     'Explora nuestra biblioteca de monografías botánicas. Un estudio profundo y documentado sobre las especies nectaríferas que sostienen la biodiversidad del bosque valdiviano y dan origen a nuestras creaciones.',
   description_en:
     'Explore our botanical monograph library. An in-depth and documented study of nectariferous species that sustain Valdivian rainforest biodiversity and give origin to our creations.',
+  badge1: 'Predio Pureo, Queilén',
+  badge1_en: 'Pureo Estate, Queilén',
+  badge2: 'Sin Trashumancia',
+  badge2_en: 'No Transhumance',
+  badge3: 'Centrifugado en Frío',
+  badge3_en: 'Cold Extracted',
+  manifiesto_kicker: 'Pureza sin compromiso',
+  manifiesto_kicker_en: 'Uncompromising Purity',
+  manifiesto_title: 'Por qué nuestras colmenas nunca viajan',
+  manifiesto_title_en: 'Why Our Hives Never Travel',
+  manifiesto_text:
+    'La apicultura industrial traslada abejas miles de kilómetros para polinizar monocultivos de palta o almendro, sometiéndolas a estrés y pesticidas. En Enjambre Legado, nuestras colmenas permanecen fijas en el santuario de bosque nativo de Chiloé todo el año. Su única fuente de néctar son las flores silvestres del bosque austral.',
+  manifiesto_text_en:
+    'Industrial beekeeping transports bees thousands of miles to pollinate industrial monocultures, exposing them to stress and synthetic chemicals. At Enjambre Legado, our hives remain fixed in the native Chiloé forest sanctuary year-round. Their sole source of nectar is the wild flowers of the southern forest.',
+  manifiesto_cta_label: 'Explorar Colección de Origen',
+  manifiesto_cta_label_en: 'Explore Origin Collection',
+  manifiesto_cta_href: '/catalogo',
 };
 
 export function parseOrigenSettings(
@@ -5796,6 +5835,25 @@ export function parseOrigenSettings(
     description: asString(raw.description, d.description).trim(),
     description_en: typeof raw.description_en === 'string' ? raw.description_en.trim() : d.description_en,
     text_align: parseTextAlign(raw.text_align),
+    badge1: asString(raw.badge1, d.badge1 ?? '').trim(),
+    badge1_en: typeof raw.badge1_en === 'string' ? raw.badge1_en.trim() : d.badge1_en,
+    badge2: asString(raw.badge2, d.badge2 ?? '').trim(),
+    badge2_en: typeof raw.badge2_en === 'string' ? raw.badge2_en.trim() : d.badge2_en,
+    badge3: asString(raw.badge3, d.badge3 ?? '').trim(),
+    badge3_en: typeof raw.badge3_en === 'string' ? raw.badge3_en.trim() : d.badge3_en,
+    manifiesto_kicker: asString(raw.manifiesto_kicker, d.manifiesto_kicker ?? '').trim(),
+    manifiesto_kicker_en:
+      typeof raw.manifiesto_kicker_en === 'string' ? raw.manifiesto_kicker_en.trim() : d.manifiesto_kicker_en,
+    manifiesto_title: asString(raw.manifiesto_title, d.manifiesto_title ?? '').trim(),
+    manifiesto_title_en:
+      typeof raw.manifiesto_title_en === 'string' ? raw.manifiesto_title_en.trim() : d.manifiesto_title_en,
+    manifiesto_text: asString(raw.manifiesto_text, d.manifiesto_text ?? '').trim(),
+    manifiesto_text_en:
+      typeof raw.manifiesto_text_en === 'string' ? raw.manifiesto_text_en.trim() : d.manifiesto_text_en,
+    manifiesto_cta_label: asString(raw.manifiesto_cta_label, d.manifiesto_cta_label ?? '').trim(),
+    manifiesto_cta_label_en:
+      typeof raw.manifiesto_cta_label_en === 'string' ? raw.manifiesto_cta_label_en.trim() : d.manifiesto_cta_label_en,
+    manifiesto_cta_href: sanitizeStoreHref(raw.manifiesto_cta_href, d.manifiesto_cta_href) ?? d.manifiesto_cta_href,
   };
 }
 

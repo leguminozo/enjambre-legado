@@ -2,19 +2,13 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
-  MapPin,
   Users,
   Clock,
   ArrowRight,
-  ShieldCheck,
-  Compass,
   Home,
   BookOpen,
-  Waves,
   Calendar,
   Layers,
-  FileText,
-  CheckCircle2,
 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -35,13 +29,6 @@ export async function generateMetadata(): Promise<Metadata> {
       'Inmersión territorial en Chiloé, catas de mieles de Chile y talleres de técnica apícola. Sesiones a puerta cerrada conducidas por Cristina Miranda.',
   });
 }
-
-type TallerCmsItem = {
-  date?: string;
-  title?: string;
-  desc?: string;
-  action?: string;
-};
 
 function renderSpecText(value: string | undefined, defaultPrefix: string): string {
   if (!value) return '';
@@ -68,16 +55,11 @@ export default async function ExperienciasPage({
   const resolvedParams = searchParams ? await searchParams : {};
   const draft = resolvedParams.cms_preview === '1';
 
-  const [talleresRows, expRows, locale] = await Promise.all([
-    getSiteContent('talleres', { draft }),
+  const [expRows, locale] = await Promise.all([
     getSiteContent('experiencias_settings', { draft }),
     getLocale(),
   ]);
   const isEn = locale === 'en';
-
-  const cmsTalleres: TallerCmsItem[] = talleresRows
-    .map((r) => (r.content as TallerCmsItem) ?? {})
-    .filter((t) => Boolean(t?.title?.trim() || t?.desc?.trim()));
 
   const expSettings = parseExperienciasSettings(
     (expRows?.[0]?.content as Record<string, unknown>) ?? null,
@@ -116,14 +98,6 @@ export default async function ExperienciasPage({
   const flagshipHref = expSettings.flagship_href || '/experiencias/degustaciones';
   const flagshipImage = expSettings.flagship_image || '/assets/editorial/honey-jar.png';
   const showFlagshipCard = expSettings.show_flagship_card !== false;
-
-  // Agenda talleres
-  const talleresKicker =
-    resolveLocalized(expSettings.talleres_kicker, expSettings.talleres_kicker_en, locale);
-  const talleresTitle =
-    resolveLocalized(expSettings.talleres_title, expSettings.talleres_title_en, locale);
-  const talleresSubtitle =
-    resolveLocalized(expSettings.talleres_subtitle, expSettings.talleres_subtitle_en, locale);
 
   // Badges hero
   const specsBadge1Label = resolveLocalized(expSettings.specs_badge1_label, expSettings.specs_badge1_label_en, locale);
@@ -418,236 +392,6 @@ export default async function ExperienciasPage({
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ── Showcase Editorial: El Kit en Mesa & El Protocolo Sensorial ── */}
-        <section className="py-20 md:py-28 px-4 sm:px-6 border-b border-border/20 bg-background">
-          <div className="max-w-5xl mx-auto">
-            <div className="rounded-3xl border border-border/40 bg-surface-raised/30 p-8 sm:p-12 lg:p-16 relative overflow-hidden">
-              <div className="grid lg:grid-cols-12 gap-10 items-center">
-                <div className="lg:col-span-7 space-y-6">
-                  <div>
-                    <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                      El Estándar de Degustación
-                    </span>
-                    <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground leading-tight">
-                      Lo que llega a la mesa en cada sesión
-                    </h2>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    Nuestras sesiones no son charlas teóricas: son ceremonias sensoriales estructuradas con un kit físico de alta precisión que permanece en manos de los asistentes.
-                  </p>
-
-                  <div className="grid sm:grid-cols-2 gap-4 pt-2">
-                    <div className="flex items-start gap-3 rounded-2xl border border-border/30 bg-background/50 p-4">
-                      <CheckCircle2 className="w-4 h-4 text-accent-text shrink-0 mt-0.5" />
-                      <div>
-                        <div className="text-xs font-medium text-foreground">4 a 6 Mieles de Contraste</div>
-                        <div className="text-[0.7rem] text-muted-foreground mt-0.5">Desde Atacama hasta la estepa de Aysén.</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-2xl border border-border/30 bg-background/50 p-4">
-                      <CheckCircle2 className="w-4 h-4 text-accent-text shrink-0 mt-0.5" />
-                      <div>
-                        <div className="text-xs font-medium text-foreground">Rueda Sensorial Impresa</div>
-                        <div className="text-[0.7rem] text-muted-foreground mt-0.5">Papel de alto gramaje para mapeo de notas botánicas.</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-2xl border border-border/30 bg-background/50 p-4">
-                      <CheckCircle2 className="w-4 h-4 text-accent-text shrink-0 mt-0.5" />
-                      <div>
-                        <div className="text-xs font-medium text-foreground">Maridaje de Contrapunto</div>
-                        <div className="text-[0.7rem] text-muted-foreground mt-0.5">Queso de guarda, masa madre y cacao de origen 85%.</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-2xl border border-border/30 bg-background/50 p-4">
-                      <CheckCircle2 className="w-4 h-4 text-accent-text shrink-0 mt-0.5" />
-                      <div>
-                        <div className="text-xs font-medium text-foreground">Cierre Diferido (48–72h)</div>
-                        <div className="text-[0.7rem] text-muted-foreground mt-0.5">Sin venta de productos en sala: resguardo del rigor.</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex flex-wrap gap-4 items-center">
-                    <Link
-                      href="/experiencias/degustaciones"
-                      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-6 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
-                    >
-                      <span>Ver experiencia de cata</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                    <a
-                      href="#solicitud"
-                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border/60 bg-surface-raised/60 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
-                    >
-                      Cotizar fecha privada
-                    </a>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-5 relative">
-                  <div className="relative rounded-2xl border border-border/30 bg-background/80 p-6 sm:p-8 space-y-5 backdrop-blur-md">
-                    <span className="font-mono text-[0.65rem] uppercase tracking-widest text-accent-text">
-                      Protocolo de 4 Movimientos
-                    </span>
-                    <ul className="space-y-4 text-xs">
-                      <li className="flex items-start gap-3">
-                        <span className="font-mono text-accent-text font-bold text-sm">I.</span>
-                        <div>
-                          <div className="font-medium text-foreground">Reconocimiento Óptico & Textura</div>
-                          <div className="text-muted-foreground text-[0.7rem]">Densidad, cristalización natural y coloración en luz rasante.</div>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <span className="font-mono text-accent-text font-bold text-sm">II.</span>
-                        <div>
-                          <div className="font-medium text-foreground">Perfil Olfativo Directo</div>
-                          <div className="text-muted-foreground text-[0.7rem]">Apertura de aromas, terpenos y notas florales del bosque nativo.</div>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <span className="font-mono text-accent-text font-bold text-sm">III.</span>
-                        <div>
-                          <div className="font-medium text-foreground">Ataque en Boca & Acidez</div>
-                          <div className="text-muted-foreground text-[0.7rem]">Despliegue palatino, evolución del dulzor y persistencia retronasal.</div>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <span className="font-mono text-accent-text font-bold text-sm">IV.</span>
-                        <div>
-                          <div className="font-medium text-foreground">Contrapunto & Maridaje</div>
-                          <div className="text-muted-foreground text-[0.7rem]">Diálogo con fermentos vivos, salinidad y limpieza de receptores.</div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Calendario de Sesiones / Talleres CMS ── */}
-        <section
-          data-cms-section="talleres"
-          className="py-20 md:py-24 px-4 sm:px-6 border-b border-border/20 bg-surface-raised/20"
-        >
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-12 text-center">
-              {talleresKicker ? (
-                <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                  {talleresKicker}
-                </span>
-              ) : null}
-              {talleresTitle ? (
-                <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
-                  {talleresTitle}
-                </h2>
-              ) : null}
-              {talleresSubtitle ? (
-                <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
-                  {talleresSubtitle}
-                </p>
-              ) : null}
-            </div>
-
-            {cmsTalleres.length > 0 ? (
-              <div className="grid sm:grid-cols-2 gap-6">
-                {cmsTalleres.map((taller, idx) => {
-                  const hasLink = taller.action && (taller.action.startsWith('/') || taller.action.startsWith('http'));
-                  return (
-                    <div key={idx} className="rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/40 transition-colors">
-                      <div>
-                        {taller.date && (
-                          <span className="inline-block rounded-full bg-accent/10 border border-accent/20 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium mb-3">
-                            {taller.date}
-                          </span>
-                        )}
-                        <h3 className="font-display text-xl font-light text-foreground mb-2">
-                          {taller.title}
-                        </h3>
-                        {taller.desc && (
-                          <p className="text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">
-                            {taller.desc}
-                          </p>
-                        )}
-                      </div>
-                      {taller.action && (
-                        <div className="pt-2 border-t border-border/20">
-                          {hasLink ? (
-                            <Link
-                              href={taller.action}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline"
-                            >
-                              <span>Más información</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
-                          ) : (
-                            <a
-                              href="#solicitud"
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline"
-                            >
-                              <span>{taller.action}</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between">
-                  <div>
-                    <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-mono">
-                      Chiloé · Temporada estival
-                    </span>
-                    <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
-                      Inmersión Territorial en Pureo
-                    </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                      Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios en producción y kayak en esteros protegidos.
-                    </p>
-                  </div>
-                  <Link
-                    href="/experiencias/territorio"
-                    className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline pt-2"
-                  >
-                    <span>Conocer estancia en Chiloé</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-
-                <div className="rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between">
-                  <div>
-                    <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-mono">
-                      Gastronomía & Hotelería
-                    </span>
-                    <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
-                      Colaboraciones & Honey Pairing
-                    </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                      Desarrollo de experiencias sensoriales a medida para restaurantes de alta cocina, hoteles boutique y coctelería de autor.
-                    </p>
-                  </div>
-                  <Link
-                    href="/alianzas/hoteles"
-                    className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline pt-2"
-                  >
-                    <span>Alianzas para hoteles y gastronomía</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            )}
           </div>
         </section>
 

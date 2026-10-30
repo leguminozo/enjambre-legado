@@ -10,6 +10,7 @@ import {
   SCHEMA_SECTION_TEMPLATES,
   SECTION_SCHEMA_BY_KEY,
   SETTINGS_SECTION_KEYS,
+  TALLERES_SCHEMA,
 } from '@/lib/editor-tienda-schema';
 
 describe('registro de schemas del editor', () => {
@@ -93,6 +94,32 @@ describe('registro de schemas del editor', () => {
         true,
       );
       expect(SECTION_SCHEMA_BY_KEY[key].fields.some((f) => 'id' in f && f.id === 'slug')).toBe(false);
+      expect(SECTION_SCHEMA_BY_KEY[key].fields.some((f) => 'id' in f && f.id === 'hero_image_opacity')).toBe(true);
+    }
+  });
+
+  it('todos los schemas de Experiencias y Alianzas con hero_image declaran hero_image_opacity', () => {
+    const heroSections = [
+      'experiencias_settings',
+      'experiencias_pureo_settings',
+      'floraciones_experience_settings',
+      'experiencias_talleres_settings',
+      'b2b_hub_settings',
+      'b2b_cafeterias',
+      'b2b_hoteles',
+      'b2b_tiendas_gourmet',
+      'b2b_ferias',
+      'b2b_revendedores',
+    ] as const;
+
+    for (const key of heroSections) {
+      const schema = SECTION_SCHEMA_BY_KEY[key];
+      expect(schema, `schema ${key}`).toBeDefined();
+      const hasHeroImage = schema.fields.some((f) => 'id' in f && f.id === 'hero_image');
+      expect(hasHeroImage, `${key} debe tener hero_image`).toBe(true);
+      const opacityField = schema.fields.find((f) => 'id' in f && f.id === 'hero_image_opacity');
+      expect(opacityField, `${key} debe tener hero_image_opacity`).toBeDefined();
+      expect(opacityField?.type).toBe('range');
     }
   });
 
@@ -182,16 +209,12 @@ describe('registro de schemas del editor', () => {
     const flagshipFormat = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'flagship_format');
     const flagshipCapacity = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'flagship_capacity');
     const flagshipDuration = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'flagship_duration');
+    const card3CtaHref = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'card3_cta_href');
     expect(flagshipFormat).toBeDefined();
     expect(flagshipCapacity).toBeDefined();
     expect(flagshipDuration).toBeDefined();
-
-    const talleresKicker = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'talleres_kicker');
-    const talleresTitle = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'talleres_title');
-    const talleresSubtitle = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'talleres_subtitle');
-    expect(talleresKicker).toBeDefined();
-    expect(talleresTitle).toBeDefined();
-    expect(talleresSubtitle).toBeDefined();
+    expect(card3CtaHref).toBeDefined();
+    expect(TALLERES_SCHEMA.previewPath).toBe('/experiencias/talleres');
   });
 
   it('Experiencias Pureo permite editar pilares, distintivos y formulario de solicitud', () => {

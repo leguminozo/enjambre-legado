@@ -181,7 +181,7 @@ export default async function ClubCosechaPage() {
                 sizes="100vw"
                 priority
                 className="object-cover scale-[1.02]"
-                style={{ opacity: Math.max(heroOpacity, 0.75) }}
+                style={{ opacity: heroOpacity }}
               />
             )}
             <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-background/95 via-background/40 to-transparent" />
