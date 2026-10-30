@@ -122,4 +122,4 @@ export function getClaim(id: string): ClaimCiencia | undefined {
 
 /** Contexto legal estándar para bloques de ciencia en la tienda. */
 export const DISCLAIMER_LEY_20606 =
-  'Contexto bibliográfico y de composición. No es indicación terapéutica ni rotulado MINSAL (Ley 20.606). El alimento se presenta por origen y oficio.';
+  'Contexto bibliográfico y de composición. No es indicación terapéutica ni rotulado MINSAL (Ley 20.606). El alimento se presenta por origen y técnica apícola.';

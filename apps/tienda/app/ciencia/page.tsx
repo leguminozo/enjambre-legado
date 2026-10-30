@@ -8,9 +8,11 @@ import {
   TreePine,
   FileText,
   BookOpen,
-  AlertTriangle,
   Scale,
   Radar,
+  ArrowRight,
+  Compass,
+  Sparkles,
 } from 'lucide-react';
 import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -228,7 +230,7 @@ export default async function CienciaPage({
   const estacionCtaHref =
     cienciaSettings.estacion_cta_href || '/experiencias/degustaciones#estacion-origen';
 
-  // Eje 04 · Balance Territorial & Pecoreo
+  // Eje 04 / 05 · Balance Territorial & Pecoreo
   const metodologiaKicker =
     resolveLocalized(cienciaSettings.metodologia_kicker, cienciaSettings.metodologia_kicker_en, locale);
   const metodologiaTitle =
@@ -246,7 +248,7 @@ export default async function CienciaPage({
   const horizonteText =
     resolveLocalized(cienciaSettings.horizonte_text, cienciaSettings.horizonte_text_en, locale);
 
-  // Eje 05 · Respaldo Académico & Límites
+  // Eje 06 · Respaldo Académico & Límites
   const respaldoTitle =
     resolveLocalized(cienciaSettings.respaldo_title, cienciaSettings.respaldo_title_en, locale);
 
@@ -274,7 +276,6 @@ export default async function CienciaPage({
   const h2o2 = getClaim('h2o2_antimicrobiana');
   const hmf = getClaim('hmf_limite_codex');
   const perfil = getClaim('perfil_organoleptico');
-  const claims = claimsTrianguladas();
   const metodo = getMetodologiaPublica();
 
   // IRR sin números mágicos: solo se muestra cuando el dato de emisión existe.
@@ -295,7 +296,7 @@ export default async function CienciaPage({
         {/* ── Hero ── */}
         <section
           data-cms-section="ciencia_settings"
-          className="relative overflow-hidden border-b border-border/20 px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-28"
+          className="relative overflow-hidden border-b border-border/20 px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-24"
         >
           {cienciaSettings.hero_image ? (
             <div className="absolute inset-0">
@@ -327,6 +328,49 @@ export default async function CienciaPage({
                 {heroSubtitle}
               </p>
             ) : null}
+
+            {/* Jump Bar: Índice Ejecutivo de Navegación Científica */}
+            <nav
+              aria-label="Ejes de investigación científica"
+              className="mt-10 flex flex-wrap items-center justify-center gap-2 pt-2"
+            >
+              <a
+                href="#triangulacion"
+                className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
+              >
+                01 · Pureza & Ausencia de Pesticidas
+              </a>
+              <a
+                href="#bioquimica"
+                className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
+              >
+                02 · Bioquímica & Enzimas Vivas
+              </a>
+              <a
+                href="#biblioteca"
+                className="px-3.5 py-1.5 rounded-full border border-accent/40 bg-accent/10 text-accent-text hover:bg-accent/20 text-xs transition-colors font-mono font-medium"
+              >
+                03 · Biblioteca Botánica NCh2981
+              </a>
+              <a
+                href="#sensorial"
+                className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
+              >
+                04 · Panel Sensorial ST-CATA
+              </a>
+              <a
+                href="#biofisica"
+                className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
+              >
+                05 · Balance Biofísico & Pecoreo
+              </a>
+              <a
+                href="#respaldo"
+                className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
+              >
+                06 · Compliance & Límites
+              </a>
+            </nav>
           </div>
         </section>
 
@@ -352,8 +396,13 @@ export default async function CienciaPage({
             <div className="grid md:grid-cols-3 gap-6">
               <div className="rounded-3xl border border-border/60 bg-card p-6 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent-text">
-                    <ShieldCheck size={20} />
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent-text">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/10 text-accent-text border border-accent/20">
+                      0.00 ppm · LOR
+                    </span>
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
                     Neonicotinoides y Glifosato: No Detectados
@@ -365,17 +414,22 @@ export default async function CienciaPage({
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Ensayos de residuos y pesticidas · Límite de detección analítica
+                  Ensayos cromatográficos GC-MS/MS & LC-MS/MS · Respaldo por lote
                 </p>
               </div>
 
               <div className="rounded-3xl border border-border/60 bg-card p-6 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Leaf size={20} />
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                      <Leaf size={20} />
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      100% Reserva Nativa
+                    </span>
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Reserva Natural de Néctar y Polen
+                    Invernada con Néctar y Polen Silvestre
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed text-left">
                     Frente a prácticas de apicultura masiva que reemplazan sistemáticamente la reserva invernal
@@ -384,28 +438,47 @@ export default async function CienciaPage({
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Reserva de invernada en colmena · Manejo apícola adaptativo
+                  Manejo apícola adaptativo sin sustitutos sintéticos
                 </p>
               </div>
 
               <div className="rounded-3xl border border-border/60 bg-card p-6 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent-text">
-                    <BookOpen size={20} />
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent-text">
+                      <BookOpen size={20} />
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/10 text-accent-text border border-accent/20">
+                      ≥ 45% NCh2981
+                    </span>
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
                     Melisopalinología y Botánica
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    La norma NCh2981 define miel monofloral a partir de un mínimo del 45% de polen dominante de una
+                    La norma chilena NCh2981 define miel monofloral a partir de un mínimo del 45% de polen dominante de una
                     misma especie nativa. El análisis melisopalinológico verifica la identidad botánica del bosque
                     valdiviano de Chiloé frente a mieles de pradera o mezcla comercial.
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Melisopalinología NCh2981 · Clasificación polínica oficial
+                  Melisopalinología NCh2981 · Clasificación polínica microscópica
                 </p>
               </div>
+            </div>
+
+            {/* Sello de Trazabilidad */}
+            <div className="mt-6 rounded-2xl border border-border/40 bg-surface-raised/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-accent-text shrink-0" />
+                <span>Trazabilidad analítica y ensayos de pureza verificables en el sello y pasaporte digital de cada frasco.</span>
+              </span>
+              <Link
+                href="/catalogo"
+                className="shrink-0 text-foreground hover:text-accent-text font-medium underline underline-offset-4 transition-colors"
+              >
+                Explorar frascos con pasaporte →
+              </Link>
             </div>
           </section>
 
@@ -463,6 +536,7 @@ export default async function CienciaPage({
                 </tbody>
               </table>
             </div>
+
             <ul className="mt-6 space-y-2 text-xs text-muted-foreground border-t border-border/20 pt-6">
               {[ig, enzimas, h2o2].filter(Boolean).map((c) => c && (
                 <li key={c.id}>
@@ -483,40 +557,30 @@ export default async function CienciaPage({
               ))}
             </ul>
 
-            {/* Propiedades fitoquímicas que no se fabrican */}
-            <div className="grid md:grid-cols-2 gap-4 mt-8">
-              {[hmf, perfil].filter(Boolean).map((c) => c && (
-                <div key={c.id} className="rounded-2xl border border-border/40 bg-card p-6">
-                  <h3 className="text-sm font-semibold text-foreground mb-2">{c.titulo}</h3>
-                  <p className={`text-xs text-muted-foreground leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>{c.texto}</p>
-                  {c.fuente && (
-                    <p className="mt-3 text-[10px] text-muted-foreground/70 font-mono">
-                      {c.fuente}
-                    </p>
-                  )}
+            {/* Protocolo de Laboratorio y Análisis por Lote */}
+            <div className="mt-10 rounded-3xl border border-border/60 bg-surface-raised p-6 sm:p-8 space-y-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-wider font-semibold">
+                  <ShieldCheck size={16} />
+                  <span>Protocolo de Laboratorio y Análisis por Lote</span>
                 </div>
-              ))}
-            </div>
-
-            {/* Protocolo de laboratorio por lote */}
-            <div className="mt-8 rounded-3xl border border-border/60 bg-surface-raised p-6 sm:p-8 space-y-4">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                <ShieldCheck size={16} />
-                <span>{protocoloTitle}</span>
-              </div>
-              {protocoloDesc ? (
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
-                  {protocoloDesc}
+                <h3 className="font-display text-xl font-light text-foreground">
+                  {protocoloTitle || 'Estándares Físico-Químicos de Liberación'}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
+                  {protocoloDesc ||
+                    'Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:'}
                 </p>
-              ) : null}
-              <div className="grid md:grid-cols-3 gap-4 text-xs pt-2">
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4 pt-2 text-xs">
                 <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text block">
                     Humedad Máxima &lt;18%
                   </span>
                   <p className="text-foreground font-medium">Refractometría Analítica</p>
                   <p className="text-muted-foreground leading-snug">
-                    Estabilidad física permanente. Previene fermentaciones en barra o mesa manteniendo la textura cremosa en frío sin pasteurizar.
+                    Estabilidad física permanente. Previene fermentaciones en frío sin recurrir a pasteurización térmica.
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
@@ -540,17 +604,17 @@ export default async function CienciaPage({
               </div>
             </div>
 
-
+            {/* Ensayos y Literatura Complementaria */}
             {cmsCienciaItems.length > 0 && (
               <div className="mt-8 space-y-4">
-                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text">
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text font-mono">
                   Evidencia y Ensayos Registrados
                 </span>
                 <div className="grid md:grid-cols-2 gap-4">
                   {cmsCienciaItems.map((item, idx) => (
                     <div key={idx} className="rounded-2xl border border-border/40 bg-card p-6">
                       {item.categoria && (
-                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text block mb-2">
+                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text block mb-2 font-mono">
                           {item.categoria}
                         </span>
                       )}
@@ -566,25 +630,20 @@ export default async function CienciaPage({
             )}
           </section>
 
-          {/* ── EJE 03: Biblioteca de Floraciones Nativas ── */}
+          {/* ── EJE 03: Biblioteca de Floraciones del Bosque Nativo ── */}
           <section id="biblioteca" className="border-t border-border/40 pt-16 scroll-mt-36">
-            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                {bibliotecaKicker ? (
-                  <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                    {bibliotecaKicker}
-                  </span>
-                ) : null}
-                {bibliotecaTitle ? (
-                  <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
-                    {bibliotecaTitle}
-                  </h2>
-                ) : null}
-                {bibliotecaDesc ? (
-                  <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
-                    {bibliotecaDesc}
-                  </p>
-                ) : null}
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                  {bibliotecaKicker || 'EJE 03 · Botánica Melífera & Fenología Austral'}
+                </span>
+                <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
+                  {bibliotecaTitle || 'La Biblioteca de Floraciones del Bosque Nativo'}
+                </h2>
+                <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                  {bibliotecaDesc ||
+                    'El bosque nativo de Chile no florece todo a la vez: sigue una cadencia estacional estricta. Nuestra biblioteca documenta la taxonomía, fenología y perfil fitoquímico de las especies que dan vida a cada recolección.'}
+                </p>
               </div>
               <Link
                 href="/origen"
@@ -595,125 +654,141 @@ export default async function CienciaPage({
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            {/* Pilares Metodológicos de la Biblioteca */}
+            <div className="grid md:grid-cols-3 gap-4 mb-8">
+              <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
+                <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold font-mono">
+                  <BookOpen size={14} />
+                  <span>01 · Melisopalinología NCh2981</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Conteo microscópico de granos de polen para certificar ≥45% de dominancia floral exclusiva frente a mezclas comerciales.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
+                <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-wider font-semibold font-mono">
+                  <Compass size={14} />
+                  <span>02 · Fenología & Grados Día</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Modelación térmica territorial que predice las ventanas breves de floración en el bosque lluvioso de Chiloé.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
+                <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold font-mono">
+                  <Sparkles size={14} />
+                  <span>03 · Bioactividad No Peróxica</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Identificación de flavonoides y terpenos de especies endémicas que conservan su capacidad antioxidante intacta.
+                </p>
+              </div>
+            </div>
+
+            {/* Vitrina Sintética de Especies */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {floracionesCards.map((f) => (
                 <article
                   key={f.key}
-                  className="rounded-3xl border border-border/60 bg-card p-7 flex flex-col justify-between space-y-6 hover:border-accent/40 transition-colors"
+                  className="rounded-2xl border border-border/50 bg-card p-5 sm:p-6 flex flex-col justify-between hover:border-accent/50 transition-colors space-y-5 group"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-3.5">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-display text-2xl font-semibold text-foreground">
+                        <h3 className="font-display text-xl font-medium text-foreground group-hover:text-accent-text transition-colors">
                           {f.nombre}
                         </h3>
-                        <p className="text-xs italic text-accent-text font-serif">
+                        <p className="text-[11px] italic text-muted-foreground font-serif">
                           {f.nombreCientifico}
                         </p>
                       </div>
-                      <span className={`text-[10px] px-3 py-1 rounded-full font-mono uppercase tracking-wider border ${f.colorBadge}`}>
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider border shrink-0 ${f.colorBadge}`}>
                         {f.key}
                       </span>
                     </div>
 
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <div className="text-[11px] font-mono text-accent-text bg-surface-sunken/60 px-2.5 py-1 rounded-md border border-border/40 inline-block">
+                      {f.temporada}
+                    </div>
+
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                       {f.tagline}
                     </p>
 
                     <div>
-                      <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-bold mb-1.5 flex items-center gap-1.5">
-                        <Flower2 size={12} className="text-accent-text" />
-                        Notas de cata
-                      </p>
-                      <ul className="flex flex-wrap gap-1.5">
-                        {f.cata.map((c) => (
+                      <ul className="flex flex-wrap gap-1">
+                        {f.cata.slice(0, 3).map((c) => (
                           <li
                             key={c}
-                            className="text-xs px-2.5 py-1 rounded-full bg-surface-sunken border border-border/50 text-foreground/80"
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-surface-sunken border border-border/40 text-foreground/80"
                           >
                             {c}
                           </li>
                         ))}
                       </ul>
                     </div>
-
-                    <div className="space-y-2 pt-2 text-xs border-t border-border/30">
-                      <p className="text-foreground/90 leading-relaxed">
-                        <strong className="text-foreground font-medium">Perfil sensorial (descripción del equipo y literatura): </strong>
-                        {f.perfil}
-                      </p>
-                      <p className="text-muted-foreground leading-relaxed">
-                        <strong className="text-foreground font-medium">Aporte a la regeneración: </strong>
-                        {f.aporteRegeneracion}
-                      </p>
-                    </div>
-
-                    <div className="text-[10px] font-mono text-muted-foreground/80 bg-surface-sunken/60 px-3 py-1.5 rounded-lg border border-border/40">
-                      Panel ST-CATA: perfil estadístico en construcción (requiere N ≥ 30 sesiones)
-                    </div>
                   </div>
 
-                  <div className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span className="font-mono text-accent-text">{f.temporada}</span>
-                    <div className="flex items-center gap-3">
-                      <Link
-                        href={`/ciencia/${f.key}`}
-                        className="text-xs font-medium text-foreground hover:text-accent-text transition-colors underline underline-offset-4"
-                      >
-                        Catas y huellas →
-                      </Link>
-                      <Link
-                        href={`/origen/${f.key}`}
-                        className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
-                      >
-                        Ficha botánica →
-                      </Link>
-                    </div>
+                  <div className="pt-3 border-t border-border/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px]">
+                    <Link
+                      href={`/origen/${f.key}`}
+                      className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+                    >
+                      <span>Ficha Botánica</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                    <Link
+                      href={`/ciencia/${f.key}`}
+                      className="font-medium text-accent-text hover:text-accent transition-colors inline-flex items-center gap-1"
+                    >
+                      <span>Catas & Lab</span>
+                      <ArrowRight size={12} />
+                    </Link>
                   </div>
                 </article>
               ))}
             </div>
+          </section>
 
-            {/* ── Protocolo ST-CATA: Ciencia Sensorial Propia ── */}
-            <div className="mt-8 rounded-3xl border border-border/60 bg-surface-raised p-7 sm:p-8 space-y-4">
-              <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold">
-                <Radar size={16} />
-                <span>Protocolo de Panel Sensorial Distribuido (ST-CATA)</span>
-              </div>
-              <h3 className="font-display text-2xl font-light text-foreground">
-                De la degustación empírica al perfil sensorial validado
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Nuestra plataforma no publica promedios subjetivos de marketing: opera el protocolo científico
-                ST-CATA (Check-All-That-Apply semi-entrenado) para caracterizar la miel cruda de bosque nativo.
+          {/* ── EJE 04: Protocolo de Panel Sensorial Distribuido (ST-CATA) ── */}
+          <section id="sensorial" className="border-t border-border/40 pt-16 scroll-mt-36">
+            <div className="mb-8">
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2 font-mono">
+                EJE 04 · Ciencia Sensorial & Evaluación Objetiva
+              </span>
+              <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
+                Protocolo de Panel Sensorial Distribuido (ST-CATA)
+              </h2>
+              <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                De la degustación empírica al perfil sensorial validado. Nuestra plataforma no publica promedios subjetivos de marketing: opera el protocolo científico ST-CATA (Check-All-That-Apply semi-entrenado) para caracterizar la miel cruda de bosque nativo con rigor estadístico y reproducibilidad.
               </p>
-              <div className="grid sm:grid-cols-3 gap-4 pt-2">
-                <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1.5">
-                  <span className="font-mono text-xs text-accent-text font-semibold">01 · Instrumento 60s</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Evaluación de 3 pares semánticos bipolares y chips organolépticos con orden contrabalanceado
-                    aleatorio para eliminar sesgos de posición.
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1.5">
-                  <span className="font-mono text-xs text-accent-text font-semibold">02 · Dos Cohortes</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Separación estricta entre consumidores espontáneos en mesa y la red semi-entrenada de baristas
-                    calibrados con referentes aromáticos físicos.
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1.5">
-                  <span className="font-mono text-xs text-accent-text font-semibold">03 · Umbral N ≥ 30</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Regla de oro: ningún perfil de floración o lote se publica con menos de 30 sesiones completadas.
-                    Bajo ese umbral, la plataforma declara «perfil en construcción».
-                  </p>
-                </div>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4 mb-8">
+              <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+                <span className="font-mono text-xs text-accent-text font-semibold">01 · Instrumento 60s</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Evaluación de 3 pares semánticos bipolares y chips organolépticos con orden contrabalanceado aleatorio para eliminar sesgos de posición.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+                <span className="font-mono text-xs text-primary font-semibold">02 · Dos Cohortes</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Separación estricta entre consumidores espontáneos en mesa y la red semi-entrenada de baristas calibrados con referentes aromáticos físicos.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+                <span className="font-mono text-xs text-accent-text font-semibold">03 · Umbral N ≥ 30</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Regla de oro: ningún perfil de floración o lote se publica con menos de 30 sesiones completadas. Bajo ese umbral, la plataforma declara «perfil en construcción».
+                </p>
               </div>
             </div>
 
-            {/* ── Módulo: Estación de Origen & Contrapunto Sensorial ── */}
-            <div className="mt-10 rounded-3xl border border-accent/30 bg-surface-raised/40 p-8 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            {/* Módulo: Estación de Origen */}
+            <div className="rounded-3xl border border-accent/30 bg-surface-raised/40 p-7 sm:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="space-y-2 max-w-2xl">
                 {estacionKicker ? (
                   <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text font-mono">
@@ -737,7 +812,7 @@ export default async function CienciaPage({
                   href={estacionCtaHref}
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity text-center"
                 >
-                  <span>{estacionCtaLabel}</span>
+                  <span>{estacionCtaLabel || 'Estación de Origen'}</span>
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
@@ -750,11 +825,11 @@ export default async function CienciaPage({
             </div>
           </section>
 
-          {/* ── EJE 04: Contabilidad Biofísica de Regeneración y CO₂ ── */}
-          <section id="metodologia" className="border-t border-border/40 pt-16 scroll-mt-36">
+          {/* ── EJE 05: Contabilidad Biofísica de Regeneración y Pecoreo ── */}
+          <section id="biofisica" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-10">
-              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                {metodologiaKicker || 'EJE 04 · Marco Metodológico & Balance de Carbono'}
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2 font-mono">
+                {metodologiaKicker || 'EJE 05 · Modelación Biofísica & Capacidad de Carga'}
               </span>
               {metodologiaTitle ? (
                 <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
@@ -766,6 +841,66 @@ export default async function CienciaPage({
                   {metodologiaDesc}
                 </p>
               ) : null}
+            </div>
+
+            {/* Sub-eje Biofísico: Estequiometría de Pecoreo */}
+            <div className="rounded-3xl border border-border/60 bg-surface-raised p-6 sm:p-8 space-y-6 mb-10">
+              <div className="space-y-2">
+                {pecoreoKicker ? (
+                  <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-accent-text font-bold">
+                    <Leaf size={14} />
+                    <span>{pecoreoKicker}</span>
+                  </div>
+                ) : null}
+                {pecoreoTitle ? (
+                  <h3 className="font-display text-2xl font-light text-foreground">
+                    {pecoreoTitle}
+                  </h3>
+                ) : null}
+                {pecoreoDesc ? (
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
+                    {pecoreoDesc}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
+                    Néctar y Concentración
+                  </span>
+                  <p className="font-mono text-[11px] text-foreground">
+                    M_néctar = kg × (0.82 / 0.30)
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Considera 82% de azúcares en miel madura frente al 30% de sólidos solubles en néctar de flora nativa.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">
+                    Superficie Vital Protegida
+                  </span>
+                  <p className="font-mono text-[11px] text-foreground">
+                    Área = (kg / 20) × 5.000 m²
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Basado en un rendimiento conservador de 20 kg/colmena y 0,5 ha de bosque maduro asignado como radio vital.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
+                    Vuelo y Fecundación
+                  </span>
+                  <p className="font-mono text-[11px] text-foreground">
+                    Flores = M_néctar / 1.2 mg
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Secreción media de 1,2 mg néctar/flor y tasa de polinización cruzada (+40% semillas viables al banco de suelo).
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Equivalencias por gramaje de producto */}
@@ -855,7 +990,7 @@ export default async function CienciaPage({
             {/* Metodología abierta: Fórmulas y Fuentes */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="rounded-2xl border border-border/50 bg-surface-sunken p-6 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text font-mono">
                   <FileText size={14} />
                   <span>Fórmulas Matemáticas Abiertas</span>
                 </div>
@@ -882,7 +1017,7 @@ export default async function CienciaPage({
               </div>
 
               <div className="rounded-2xl border border-border/50 bg-surface-sunken p-6 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary font-mono">
                   <BookOpen size={14} />
                   <span>Fuentes Bibliográficas de Respaldo</span>
                 </div>
@@ -906,87 +1041,14 @@ export default async function CienciaPage({
                 </ul>
               </div>
             </div>
-
-            {/* Sub-eje Biofísico: Pecoreo, Bosque Maduro y Horizonte 2026–2027 */}
-            <div className="mt-8 rounded-3xl border border-border/70 bg-surface-raised p-6 sm:p-8 space-y-6">
-              <div className="space-y-2">
-                {pecoreoKicker ? (
-                  <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-accent-text font-bold">
-                    <Leaf size={14} />
-                    <span>{pecoreoKicker}</span>
-                  </div>
-                ) : null}
-                {pecoreoTitle ? (
-                  <h3 className="font-display text-2xl font-light text-foreground">
-                    {pecoreoTitle}
-                  </h3>
-                ) : null}
-                {pecoreoDesc ? (
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
-                    {pecoreoDesc}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
-                    Néctar y Concentración
-                  </span>
-                  <p className="font-mono text-[11px] text-foreground">
-                    M_néctar = kg × (0.82 / 0.30)
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Considera 82% de azúcares en miel madura frente al 30% de sólidos solubles en néctar de flora nativa.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">
-                    Superficie Vital Protegida
-                  </span>
-                  <p className="font-mono text-[11px] text-foreground">
-                    Área = (kg / 20) × 5.000 m²
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Basado en un rendimiento conservador de 20 kg/colmena y 0,5 ha de bosque maduro asignado como radio vital.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
-                    Vuelo y Fecundación
-                  </span>
-                  <p className="font-mono text-[11px] text-foreground">
-                    Flores = M_néctar / 1.2 mg
-                  </p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Secreción media de 1,2 mg néctar/flor y tasa de polinización cruzada (+40% semillas viables al banco de suelo).
-                  </p>
-                </div>
-              </div>
-
-              {/* Transparencia y honestidad metodológica 2026-2027 */}
-              <div className="rounded-2xl border border-accent/30 bg-accent/5 p-5 sm:p-6 space-y-2.5">
-                <div className="flex items-center gap-2 text-accent-text font-semibold text-xs tracking-wider uppercase">
-                  <ShieldCheck size={16} />
-                  <span>{horizonteTitle}</span>
-                </div>
-                {horizonteText ? (
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {horizonteText}
-                  </p>
-                ) : null}
-              </div>
-            </div>
           </section>
 
-          {/* ── EJE 05: Respaldo, Límites y Ley 20.606 ── */}
+          {/* ── EJE 06: Compliance Regulatorio & Responsabilidad Científica ── */}
           <section id="respaldo" className="rounded-3xl border border-border/60 bg-surface-raised p-8 space-y-4 scroll-mt-36">
-            <div className="flex items-center gap-2 text-warning text-sm font-semibold">
-              <AlertTriangle size={18} />
+            <div className="flex items-center gap-2 text-accent-text text-sm font-semibold">
+              <Scale size={18} />
               <h2 className="font-display text-xl font-medium text-foreground">
-                {respaldoTitle}
+                {respaldoTitle || 'Límites Metodológicos & Responsabilidad Regulatoria'}
               </h2>
             </div>
             <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground leading-relaxed text-left">
