@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
   revalidateTag('site_content', 'default');
   revalidateTag('store_chrome', 'default');
   revalidateTag('header_menu', 'default');
+  revalidateTag('integrations', 'default');
   revalidateTag('ecosystem_metrics', 'default');
 
   return NextResponse.json({

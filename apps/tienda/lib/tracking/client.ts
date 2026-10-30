@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { useConsent } from '@/components/shop/consent/consent-provider';
+import { useAdsConfig } from '@/components/shop/ads-config-provider';
 import { fireGoogleAdsEvent, getGoogleAdsId } from '@/lib/tracking/google/gtag';
 import { fireMetaPixelEvent, getMetaPixelId } from '@/lib/tracking/meta/pixel';
 import type { MetaTrackPayload } from '@/lib/tracking/types';
@@ -72,8 +73,12 @@ function buildCapiBody(payload: TrackInput, eventId: string): Record<string, unk
 
 export function useMetaTracking() {
   const { marketingConsented } = useConsent();
-  const pixelId = getMetaPixelId();
-  const adsId = getGoogleAdsId();
+  const adsConfig = useAdsConfig();
+  const pixelId = adsConfig?.metaAds?.pixelId || getMetaPixelId();
+  const adsId = adsConfig?.googleAds?.adsId || getGoogleAdsId();
+  const metaEnabled = adsConfig?.metaAds?.enabled ?? Boolean(pixelId);
+  const googleEnabled = adsConfig?.googleAds?.enabled ?? Boolean(adsId);
+  const defaultTestCode = adsConfig?.metaAds?.testEventCode;
 
   return useCallback(
     (payload: TrackInput) => {
@@ -81,11 +86,11 @@ export function useMetaTracking() {
 
       const eventId = crypto.randomUUID();
 
-      if (pixelId) {
+      if (metaEnabled && pixelId) {
         fireMetaPixelEvent(payload.eventName, eventId, buildPixelData(payload));
       }
 
-      if (adsId) {
+      if (googleEnabled && adsId) {
         fireGoogleAdsEvent({
           eventName: payload.eventName,
           value: payload.value,
@@ -96,19 +101,25 @@ export function useMetaTracking() {
         });
       }
 
-      void fetch('/api/tracking/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildCapiBody(payload, eventId)),
-        keepalive: true,
-        credentials: 'include',
-      }).catch((err: unknown) => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('[tracking] fallo CAPI', err);
-        }
-      });
+      if (metaEnabled) {
+        const enrichedPayload: TrackInput = {
+          ...payload,
+          testEventCode: payload.testEventCode || defaultTestCode,
+        };
+        void fetch('/api/tracking/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildCapiBody(enrichedPayload, eventId)),
+          keepalive: true,
+          credentials: 'include',
+        }).catch((err: unknown) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('[tracking] fallo CAPI', err);
+          }
+        });
+      }
     },
-    [marketingConsented, pixelId, adsId],
+    [marketingConsented, pixelId, adsId, metaEnabled, googleEnabled, defaultTestCode],
   );
 }
 

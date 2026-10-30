@@ -1678,6 +1678,30 @@ export const B2B_HUB_SETTINGS_SCHEMA = {
     { type: 'text', id: 'seg_revendedores_h3', label: 'Viñeta 3', bilingual: true, default: '' },
     { type: 'image', id: 'seg_revendedores_image', label: 'Fotografía de tarjeta' },
 
+    { type: 'header', content: 'Condiciones Comerciales y Logística Mayorista' },
+    { type: 'text', id: 'condiciones_kicker', label: 'Kicker condiciones', bilingual: true, default: 'Términos Transparentes' },
+    { type: 'text', id: 'condiciones_title', label: 'Título condiciones', bilingual: true, default: 'Condiciones Comerciales y Logística Mayorista' },
+    { type: 'textarea', id: 'condiciones_subtitle', label: 'Bajada condiciones', bilingual: true, rows: 2, default: '' },
+
+    { type: 'header', content: 'Término 1 — Pedido Mínimo (MOQ)' },
+    { type: 'text', id: 'moq_title', label: 'Título MOQ', bilingual: true, default: 'Pedido Mínimo (MOQ)' },
+    { type: 'textarea', id: 'moq_description', label: 'Detalle MOQ general', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'moq_highlight', label: 'Excepción / Nota destacada (Sets de Entrada)', bilingual: true, rows: 2, default: '' },
+
+    { type: 'header', content: 'Término 2 — Despacho & Cobertura' },
+    { type: 'text', id: 'despacho_title', label: 'Título Despacho', bilingual: true, default: 'Despacho & Cobertura' },
+    { type: 'textarea', id: 'despacho_description', label: 'Detalle despacho gratuito', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'despacho_nota', label: 'Nota cobertura y transporte seguro', bilingual: true, rows: 2, default: '' },
+
+    { type: 'header', content: 'Término 3 — Escala de Descuentos' },
+    { type: 'text', id: 'descuentos_title', label: 'Título Descuentos', bilingual: true, default: 'Escala de Descuentos' },
+    { type: 'textarea', id: 'descuentos_items', label: 'Tramos de descuento y facturación (uno por línea)', bilingual: true, rows: 3, default: '' },
+
+    { type: 'header', content: 'Término 4 — Respaldo & Garantía Técnica' },
+    { type: 'text', id: 'garantia_title', label: 'Título Respaldo y Garantía', bilingual: true, default: 'Respaldo & Garantía Técnica' },
+    { type: 'textarea', id: 'garantia_description', label: 'Detalle ventana de reclamo o reposición', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'garantia_nota', label: 'Nota conservación y temperatura recomendada', bilingual: true, rows: 2, default: '' },
+
     { type: 'header', content: 'Garantías del Canal Directo' },
     { type: 'checkbox', id: 'show_garantias', label: 'Mostrar bloque de garantías', default: true },
     { type: 'text', id: 'garantias_kicker', label: 'Kicker garantías', bilingual: true, default: '' },

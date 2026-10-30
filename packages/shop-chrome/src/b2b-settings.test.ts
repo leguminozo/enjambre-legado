@@ -244,6 +244,16 @@ describe('B2B Hub Settings — Garantías del Canal Directo', () => {
     expect(s.garantia4_title_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_title_en);
     expect(s.garantia4_desc).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_desc);
     expect(s.garantia4_desc_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_desc_en);
+
+    // Condiciones comerciales y logística mayorista
+    expect(s.condiciones_title).toBe(DEFAULT_B2B_HUB_SETTINGS.condiciones_title);
+    expect(s.condiciones_title_en).toBe(DEFAULT_B2B_HUB_SETTINGS.condiciones_title_en);
+    expect(s.moq_title).toBe(DEFAULT_B2B_HUB_SETTINGS.moq_title);
+    expect(s.moq_description).toBe(DEFAULT_B2B_HUB_SETTINGS.moq_description);
+    expect(s.moq_highlight).toBe(DEFAULT_B2B_HUB_SETTINGS.moq_highlight);
+    expect(s.despacho_title).toBe(DEFAULT_B2B_HUB_SETTINGS.despacho_title);
+    expect(s.descuentos_title).toBe(DEFAULT_B2B_HUB_SETTINGS.descuentos_title);
+    expect(s.garantia_title).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia_title);
   });
 
   it('permite personalizar y traducir los 4 bloques de garantías', () => {

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useConsent } from '@/components/shop/consent/consent-provider';
+import { useAdsConfig } from '@/components/shop/ads-config-provider';
 import {
   fireMetaPageView,
   getMetaPixelId,
@@ -10,25 +11,28 @@ import {
 } from '@/lib/tracking/meta/pixel';
 
 /**
- * Carga el Meta Pixel solo con consentimiento de marketing y dispara
- * PageView en cada ruta (SPA). Sin consentimiento: no inyecta nada.
+ * Carga el Meta Pixel solo con consentimiento de marketing y cuando la integración
+ * está habilitada. Dispara PageView en cada cambio de ruta SPA.
  */
 export function MetaPixelLoader() {
   const { marketingConsented } = useConsent();
+  const { metaAds } = useAdsConfig();
   const pathname = usePathname();
-  const pixelId = getMetaPixelId();
+
+  const pixelId = metaAds.pixelId || getMetaPixelId();
+  const isEnabled = metaAds.enabled ?? Boolean(pixelId);
 
   useEffect(() => {
-    if (marketingConsented && pixelId) {
+    if (marketingConsented && isEnabled && pixelId) {
       loadMetaPixel(pixelId);
     }
-  }, [marketingConsented, pixelId]);
+  }, [marketingConsented, isEnabled, pixelId]);
 
   useEffect(() => {
-    if (marketingConsented && pixelId) {
+    if (marketingConsented && isEnabled && pixelId) {
       fireMetaPageView();
     }
-  }, [pathname, marketingConsented, pixelId]);
+  }, [pathname, marketingConsented, isEnabled, pixelId]);
 
   return null;
 }

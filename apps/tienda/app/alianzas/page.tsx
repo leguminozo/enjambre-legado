@@ -287,6 +287,53 @@ export default async function ParaHubPage({
     resolveLocalized(content.garantia4_desc, content.garantia4_desc_en, locale) ||
     'Fichas botánicas de floración, descriptores organolépticos y material de apoyo de uso libre para tu equipo, sin subordinación operativa.';
 
+  // Condiciones Comerciales y Logística Mayorista
+  const condicionesKicker =
+    resolveLocalized(content.condiciones_kicker, content.condiciones_kicker_en, locale) ||
+    'Términos Transparentes';
+  const condicionesTitle =
+    resolveLocalized(content.condiciones_title, content.condiciones_title_en, locale) ||
+    'Condiciones Comerciales y Logística Mayorista';
+  const condicionesSubtitle =
+    resolveLocalized(content.condiciones_subtitle, content.condiciones_subtitle_en, locale) ||
+    'Parámetros operativos claros para compras institucionales, distribución y hostelería.';
+
+  const moqTitle =
+    resolveLocalized(content.moq_title, content.moq_title_en, locale) || 'Pedido Mínimo (MOQ)';
+  const moqDescription =
+    resolveLocalized(content.moq_description, content.moq_description_en, locale) ||
+    '120 frascos surtidos para pedidos mayoristas regulares de reposición.';
+  const moqHighlight =
+    resolveLocalized(content.moq_highlight, content.moq_highlight_en, locale) ||
+    'Excepción: Los Sets de Entrada para cafeterías, hoteles, tiendas gourmet y revendedores (desde $78.400 neto) no exigen el mínimo de 120 unidades, facilitando la primera degustación en barra o vitrina.';
+
+  const despachoTitle =
+    resolveLocalized(content.despacho_title, content.despacho_title_en, locale) ||
+    'Despacho & Cobertura';
+  const despachoDescription =
+    resolveLocalized(content.despacho_description, content.despacho_description_en, locale) ||
+    'Despacho gratuito en la Región Metropolitana en compras netas a partir de $900.000.';
+  const despachoNota =
+    resolveLocalized(content.despacho_nota, content.despacho_nota_en, locale) ||
+    'Envíos a todo Chile vía courier prioritario con embalaje técnico de alta protección y reposición inmediata por rotura en transporte.';
+
+  const descuentosTitle =
+    resolveLocalized(content.descuentos_title, content.descuentos_title_en, locale) ||
+    'Escala de Descuentos';
+  const descuentosItems =
+    resolveLocalized(content.descuentos_items, content.descuentos_items_en, locale) ||
+    '• 5% de descuento adicional en compras sobre $500.000 neto.\n• 10% de descuento adicional en compras sobre $1.000.000 neto.\n• Facturación formal inmediata con RUT empresa (afecta o exenta según ítem).';
+
+  const garantiaTitle =
+    resolveLocalized(content.garantia_title, content.garantia_title_en, locale) ||
+    'Respaldo & Garantía Técnica';
+  const garantiaDescription =
+    resolveLocalized(content.garantia_description, content.garantia_description_en, locale) ||
+    'Ventana de 30 días corridos desde la recepción para cualquier reclamo técnico o ajuste de lote.';
+  const garantiaNota =
+    resolveLocalized(content.garantia_nota, content.garantia_nota_en, locale) ||
+    'Conservación recomendada: almacenar entre 15 °C y 25 °C en ambiente seco y protegido de la luz solar directa para mantener intacta la actividad enzimática.';
+
   // Formulario de Registro / Solicitud
   const formKicker =
     resolveLocalized(content.form_kicker, content.form_kicker_en, locale) || 'Registro de Alianzas';
@@ -331,27 +378,27 @@ export default async function ParaHubPage({
           {/* Tres pilares operativos tangibles para el comprador */}
           {content.show_hero_pills !== false ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-4xl lg:max-w-5xl mx-auto text-left">
-              <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
+              <div className="rounded-xl border border-border/60 bg-surface-raised/85 backdrop-blur-md p-3.5 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
                 <ShieldCheck className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
                   <div className="text-xs font-semibold text-foreground">{pill1Title}</div>
-                  <div className="text-[11px] text-muted-foreground">{pill1Subtitle}</div>
+                  <div className="text-[11px] text-foreground/80">{pill1Subtitle}</div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
+              <div className="rounded-xl border border-border/60 bg-surface-raised/85 backdrop-blur-md p-3.5 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
                 <Truck className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
                   <div className="text-xs font-semibold text-foreground">{pill2Title}</div>
-                  <div className="text-[11px] text-muted-foreground">{pill2Subtitle}</div>
+                  <div className="text-[11px] text-foreground/80">{pill2Subtitle}</div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
+              <div className="rounded-xl border border-border/60 bg-surface-raised/85 backdrop-blur-md p-3.5 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
                 <FileText className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
                   <div className="text-xs font-semibold text-foreground">{pill3Title}</div>
-                  <div className="text-[11px] text-muted-foreground">{pill3Subtitle}</div>
+                  <div className="text-[11px] text-foreground/80">{pill3Subtitle}</div>
                 </div>
               </div>
             </div>
@@ -461,13 +508,13 @@ export default async function ParaHubPage({
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <span className="block text-[0.65rem] tracking-[0.3em] uppercase text-accent-text mb-2">
-                Términos Transparentes
+                {condicionesKicker}
               </span>
               <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-light text-foreground">
-                Condiciones Comerciales y Logística Mayorista
+                {condicionesTitle}
               </h2>
               <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                Parámetros operativos claros para compras institucionales, distribución y hostelería.
+                {condicionesSubtitle}
               </p>
             </div>
 
@@ -475,52 +522,56 @@ export default async function ParaHubPage({
               <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">1</span>
-                  <h3 className="font-display text-lg font-medium text-foreground">Pedido Mínimo (MOQ)</h3>
+                  <h3 className="font-display text-lg font-medium text-foreground">{moqTitle}</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>120 frascos surtidos</strong> para pedidos mayoristas regulares de reposición.
+                  {moqDescription}
                 </p>
-                <div className="rounded-xl border border-border/30 bg-background/60 p-3 text-[11px] text-accent-text">
-                  <strong>Excepción:</strong> Los Sets de Entrada para cafeterías, hoteles y tiendas (desde <strong>$78.400 neto</strong>) no exigen el mínimo de 120 unidades, facilitando la primera degustación en barra o vitrina.
-                </div>
+                {moqHighlight && (
+                  <div className="rounded-xl border border-border/30 bg-background/60 p-3 text-[11px] text-accent-text">
+                    {moqHighlight}
+                  </div>
+                )}
               </div>
 
               <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">2</span>
-                  <h3 className="font-display text-lg font-medium text-foreground">Despacho & Cobertura</h3>
+                  <h3 className="font-display text-lg font-medium text-foreground">{despachoTitle}</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>Despacho gratuito en la Región Metropolitana</strong> en compras netas a partir de <strong>$900.000</strong>.
+                  {despachoDescription}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Envíos a todo Chile vía courier prioritario con embalaje técnico de alta protección y reposición inmediata por rotura en transporte.
-                </p>
+                {despachoNota && (
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {despachoNota}
+                  </p>
+                )}
               </div>
 
               <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">3</span>
-                  <h3 className="font-display text-lg font-medium text-foreground">Escala de Descuentos</h3>
+                  <h3 className="font-display text-lg font-medium text-foreground">{descuentosTitle}</h3>
                 </div>
-                <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-                  <li>• <strong>5% de descuento adicional</strong> en compras sobre $500.000 neto.</li>
-                  <li>• <strong>10% de descuento adicional</strong> en compras sobre $1.000.000 neto.</li>
-                  <li>• Facturación formal inmediata con RUT empresa (afecta o exenta según ítem).</li>
-                </ul>
+                <div className="text-xs text-muted-foreground space-y-1.5 leading-relaxed whitespace-pre-line">
+                  {descuentosItems}
+                </div>
               </div>
 
               <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">4</span>
-                  <h3 className="font-display text-lg font-medium text-foreground">Respaldo & Garantía Técnica</h3>
+                  <h3 className="font-display text-lg font-medium text-foreground">{garantiaTitle}</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Ventana de <strong>30 días corridos</strong> desde la recepción para cualquier reclamo técnico o ajuste de lote.
+                  {garantiaDescription}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Conservación recomendada: almacenar entre <strong>15 °C y 25 °C</strong> en ambiente seco y protegido de la luz solar directa para mantener intacta la actividad enzimática.
-                </p>
+                {garantiaNota && (
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {garantiaNota}
+                  </p>
+                )}
               </div>
             </div>
           </div>

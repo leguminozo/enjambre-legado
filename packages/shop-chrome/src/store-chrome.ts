@@ -7459,6 +7459,40 @@ export type B2BHubSettings = {
   seg_revendedores_h3_en?: string;
   seg_revendedores_image: string;
 
+  // Condiciones Comerciales y Logística Mayorista
+  condiciones_kicker: string;
+  condiciones_kicker_en?: string;
+  condiciones_title: string;
+  condiciones_title_en?: string;
+  condiciones_subtitle: string;
+  condiciones_subtitle_en?: string;
+
+  moq_title: string;
+  moq_title_en?: string;
+  moq_description: string;
+  moq_description_en?: string;
+  moq_highlight: string;
+  moq_highlight_en?: string;
+
+  despacho_title: string;
+  despacho_title_en?: string;
+  despacho_description: string;
+  despacho_description_en?: string;
+  despacho_nota: string;
+  despacho_nota_en?: string;
+
+  descuentos_title: string;
+  descuentos_title_en?: string;
+  descuentos_items: string;
+  descuentos_items_en?: string;
+
+  garantia_title: string;
+  garantia_title_en?: string;
+  garantia_description: string;
+  garantia_description_en?: string;
+  garantia_nota: string;
+  garantia_nota_en?: string;
+
   // Formulario de Registro / Solicitud
   form_kicker: string;
   form_kicker_en?: string;
@@ -7601,6 +7635,53 @@ export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
   seg_revendedores_h3: 'Capacitación en producto y origen',
   seg_revendedores_h3_en: 'Product and origin training',
   seg_revendedores_image: B2B_STORAGE_IMAGES.revendedores,
+
+  condiciones_kicker: 'Términos Transparentes',
+  condiciones_kicker_en: 'Transparent Commercial Terms',
+  condiciones_title: 'Condiciones Comerciales y Logística Mayorista',
+  condiciones_title_en: 'Commercial Conditions & Wholesale Logistics',
+  condiciones_subtitle:
+    'Parámetros operativos claros para compras institucionales, distribución y hostelería.',
+  condiciones_subtitle_en:
+    'Clear operational parameters for institutional purchasing, distribution, and hospitality.',
+
+  moq_title: 'Pedido Mínimo (MOQ)',
+  moq_title_en: 'Minimum Order Quantity (MOQ)',
+  moq_description: '120 frascos surtidos para pedidos mayoristas regulares de reposición.',
+  moq_description_en: '120 assorted jars for regular wholesale replenishment orders.',
+  moq_highlight:
+    'Excepción: Los Sets de Entrada para cafeterías, hoteles, tiendas gourmet y revendedores (desde $78.400 neto) no exigen el mínimo de 120 unidades, facilitando la primera degustación en barra o vitrina.',
+  moq_highlight_en:
+    'Exception: Starter Sets for coffee shops, hotels, gourmet stores, and brand ambassadors (from $78,400 net) do not require the 120-unit minimum, facilitating initial tasting service or display.',
+
+  despacho_title: 'Despacho & Cobertura',
+  despacho_title_en: 'Shipping & Coverage',
+  despacho_description:
+    'Despacho gratuito en la Región Metropolitana en compras netas a partir de $900.000.',
+  despacho_description_en:
+    'Complimentary shipping in the Metropolitan Region on net purchases from $900,000.',
+  despacho_nota:
+    'Envíos a todo Chile vía courier prioritario con embalaje técnico de alta protección y reposición inmediata por rotura en transporte.',
+  despacho_nota_en:
+    'Priority nationwide shipping across Chile with high-protection technical packaging and immediate replacement in case of transport damage.',
+
+  descuentos_title: 'Escala de Descuentos',
+  descuentos_title_en: 'Volume Discount Schedule',
+  descuentos_items:
+    '• 5% de descuento adicional en compras sobre $500.000 neto.\n• 10% de descuento adicional en compras sobre $1.000.000 neto.\n• Facturación formal inmediata con RUT empresa (afecta o exenta según ítem).',
+  descuentos_items_en:
+    '• 5% additional discount on net orders over $500,000.\n• 10% additional discount on net orders over $1,000,000.\n• Instant electronic tax invoicing with company tax ID (SII DTE).',
+
+  garantia_title: 'Respaldo & Garantía Técnica',
+  garantia_title_en: 'Quality Assurance & Technical Guarantee',
+  garantia_description:
+    'Ventana de 30 días corridos desde la recepción para cualquier reclamo técnico o ajuste de lote.',
+  garantia_description_en:
+    '30-day window upon delivery for any technical claim or batch adjustment.',
+  garantia_nota:
+    'Conservación recomendada: almacenar entre 15 °C y 25 °C en ambiente seco y protegido de la luz solar directa para mantener intacta la actividad enzimática.',
+  garantia_nota_en:
+    'Recommended storage: keep between 15 °C and 25 °C in a dry place shielded from direct sunlight to preserve enzymatic activity intact.',
 
   garantias_kicker: 'Garantías del Canal Directo',
   garantias_kicker_en: 'Direct Channel Assurances',
@@ -7773,6 +7854,39 @@ export function parseB2BHubSettings(
     seg_revendedores_h3: asString(raw.seg_revendedores_h3, d.seg_revendedores_h3).trim(),
     seg_revendedores_h3_en: typeof raw.seg_revendedores_h3_en === 'string' ? raw.seg_revendedores_h3_en.trim() : d.seg_revendedores_h3_en,
     seg_revendedores_image: resolveB2BImage(raw.seg_revendedores_image, d.seg_revendedores_image),
+
+    condiciones_kicker: asString(raw.condiciones_kicker, d.condiciones_kicker).trim(),
+    condiciones_kicker_en: typeof raw.condiciones_kicker_en === 'string' ? raw.condiciones_kicker_en.trim() : d.condiciones_kicker_en,
+    condiciones_title: asString(raw.condiciones_title, d.condiciones_title).trim(),
+    condiciones_title_en: typeof raw.condiciones_title_en === 'string' ? raw.condiciones_title_en.trim() : d.condiciones_title_en,
+    condiciones_subtitle: asString(raw.condiciones_subtitle, d.condiciones_subtitle).trim(),
+    condiciones_subtitle_en: typeof raw.condiciones_subtitle_en === 'string' ? raw.condiciones_subtitle_en.trim() : d.condiciones_subtitle_en,
+
+    moq_title: asString(raw.moq_title, d.moq_title).trim(),
+    moq_title_en: typeof raw.moq_title_en === 'string' ? raw.moq_title_en.trim() : d.moq_title_en,
+    moq_description: asString(raw.moq_description, d.moq_description).trim(),
+    moq_description_en: typeof raw.moq_description_en === 'string' ? raw.moq_description_en.trim() : d.moq_description_en,
+    moq_highlight: asString(raw.moq_highlight, d.moq_highlight).trim(),
+    moq_highlight_en: typeof raw.moq_highlight_en === 'string' ? raw.moq_highlight_en.trim() : d.moq_highlight_en,
+
+    despacho_title: asString(raw.despacho_title, d.despacho_title).trim(),
+    despacho_title_en: typeof raw.despacho_title_en === 'string' ? raw.despacho_title_en.trim() : d.despacho_title_en,
+    despacho_description: asString(raw.despacho_description, d.despacho_description).trim(),
+    despacho_description_en: typeof raw.despacho_description_en === 'string' ? raw.despacho_description_en.trim() : d.despacho_description_en,
+    despacho_nota: asString(raw.despacho_nota, d.despacho_nota).trim(),
+    despacho_nota_en: typeof raw.despacho_nota_en === 'string' ? raw.despacho_nota_en.trim() : d.despacho_nota_en,
+
+    descuentos_title: asString(raw.descuentos_title, d.descuentos_title).trim(),
+    descuentos_title_en: typeof raw.descuentos_title_en === 'string' ? raw.descuentos_title_en.trim() : d.descuentos_title_en,
+    descuentos_items: asString(raw.descuentos_items, d.descuentos_items).trim(),
+    descuentos_items_en: typeof raw.descuentos_items_en === 'string' ? raw.descuentos_items_en.trim() : d.descuentos_items_en,
+
+    garantia_title: asString(raw.garantia_title, d.garantia_title).trim(),
+    garantia_title_en: typeof raw.garantia_title_en === 'string' ? raw.garantia_title_en.trim() : d.garantia_title_en,
+    garantia_description: asString(raw.garantia_description, d.garantia_description).trim(),
+    garantia_description_en: typeof raw.garantia_description_en === 'string' ? raw.garantia_description_en.trim() : d.garantia_description_en,
+    garantia_nota: asString(raw.garantia_nota, d.garantia_nota).trim(),
+    garantia_nota_en: typeof raw.garantia_nota_en === 'string' ? raw.garantia_nota_en.trim() : d.garantia_nota_en,
 
     garantias_kicker: asString(raw.garantias_kicker, d.garantias_kicker).trim(),
     garantias_kicker_en: typeof raw.garantias_kicker_en === 'string' ? raw.garantias_kicker_en.trim() : d.garantias_kicker_en,

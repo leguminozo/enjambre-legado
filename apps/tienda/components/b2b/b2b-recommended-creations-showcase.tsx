@@ -170,18 +170,26 @@ export function B2BRecommendedCreationsShowcase({
                   Material de Sala & Mesón
                 </span>
                 <h3 className="font-display text-3xl font-light text-foreground">
-                  {segmentSlug === 'ferias'
-                    ? 'Trazabilidad en Mostrador de Feria sin Fricción'
-                    : segmentSlug === 'revendedores'
-                      ? 'Trazabilidad Oficial de Lote en Mano'
-                      : 'Trazabilidad en Cada Mesa sin Fricción'}
+                  {segmentSlug === 'hoteles'
+                    ? 'Trazabilidad Discreta en el Propio Envase'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Degustación en Mostrador & Reseña en Trípode'
+                      : segmentSlug === 'ferias'
+                        ? 'Cata Rápida en Mesón & Reseña Sensorial'
+                        : segmentSlug === 'revendedores'
+                          ? 'Peana de Demostración & Testimonio de Lote'
+                          : 'Cata Sensorial en Cada Mesa sobre Trípode'}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {segmentSlug === 'ferias'
-                    ? 'Tus clientes de stand solo apuntan su cámara al código QR para verificar la floración del lote, la humedad controlada y el origen en el bosque nativo de Chiloé. Permite además pago móvil ágil en segundos sin filas.'
-                    : segmentSlug === 'revendedores'
-                      ? 'Tus compradores escanean el código para certificar la autenticidad botánica, el lote y los análisis de laboratorio, respaldando cada venta con total transparencia.'
-                      : 'Tus comensales solo apuntan su cámara para conocer la floración del lote, la humedad certificada y el origen en el bosque nativo de Chiloé. No requieren instalar aplicaciones ni crear contraseñas.'}
+                  {segmentSlug === 'hoteles'
+                    ? 'En hospitalidad de lujo evitamos trípodes invasivos en mesas. Cada huésped escanea directamente el código QR impreso en el etiquetado del frasco individual de 25 g para acceder a su pasaporte de bienvenida y origen botánico.'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Tus clientes de emporio prueban la textura cremada con la microespátula y escanean el QR montado sobre el trípode del mostrador para registrar su valoración sensorial y certificar la pureza botánica.'
+                      : segmentSlug === 'ferias'
+                        ? 'Tus clientes de stand solo apuntan su cámara al código QR sobre el trípode para evaluar la cata, certificar la floración del lote y pagar de inmediato sin filas.'
+                        : segmentSlug === 'revendedores'
+                          ? 'Tus compradores escanean el QR en tu peana de demostración tras degustar con la microespátula, dejando su testimonio sensorial y validando la autenticidad botánica del lote.'
+                          : 'Tus comensales apuntan su cámara al trípode de mesa tras degustar con la microespátula: evalúan notas aromáticas, registran su reseña de cata y descubren el bosque nativo de Chiloé sin instalar aplicaciones.'}
                 </p>
               </div>
 
@@ -189,19 +197,27 @@ export function B2BRecommendedCreationsShowcase({
                 <div className="flex items-center gap-2 text-foreground font-medium text-xs">
                   <CheckCircle2 size={16} className="text-primary" />
                   <span>
-                    {segmentSlug === 'ferias'
-                      ? 'Código QR de Stand con Atribución de Ventas'
-                      : segmentSlug === 'revendedores'
-                        ? 'Código Oficial de Aliado Comercial'
-                        : 'Código de Establecimiento Asociado'}
+                    {segmentSlug === 'hoteles'
+                      ? 'Código QR de Origen en Etiquetado de Envase'
+                      : segmentSlug === 'tiendas-gourmet'
+                        ? 'Peana de Mostrador con QR de Cata y Reseña'
+                        : segmentSlug === 'ferias'
+                          ? 'Código QR de Stand con Atribución de Ventas y Cata'
+                          : segmentSlug === 'revendedores'
+                            ? 'Código Oficial de Aliado Comercial & Reseña'
+                            : 'Tarjeta de Mesa sobre Trípode con QR de Cata'}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  {segmentSlug === 'ferias'
-                    ? 'Al registrar tu kit, el QR vincula a tu stand: tus compradores pueden pagar directamente y cada compra online futura que hagan genera una comisión automática en tu billetera de reposición.'
-                    : segmentSlug === 'revendedores'
-                      ? 'Tu código de aliado te permite atribuir ventas digitales recurrentes y respaldar pedidos con Factura Electrónica y despacho preferente.'
-                      : 'Al completar tu registro de aliado, el código QR se asocia automáticamente a tu establecimiento, permitiendo vincular tu carta con la trazabilidad oficial de la marca.'}
+                  {segmentSlug === 'hoteles'
+                    ? 'Cada frasco de cortesía y vitrina incluye el sello digital de trazabilidad que garantiza origen botánico y pureza sin alterar el silencio del espacio.'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Al registrar tu kit, la peana de degustación vincula a tu local: cada reseña sensorial valida la calidad de tu vitrina y fideliza al comprador de autor.'
+                      : segmentSlug === 'ferias'
+                        ? 'Al registrar tu kit, el QR vincula a tu stand: tus compradores pueden pagar directamente, dejar su reseña y generar comisiones en tu cuenta.'
+                        : segmentSlug === 'revendedores'
+                          ? 'Tu código de aliado te permite atribuir ventas digitales recurrentes, capturar opiniones de cata y respaldar pedidos con Factura Electrónica y despacho preferente.'
+                          : 'Al completar tu registro de aliado, el código QR se asocia automáticamente a tu establecimiento, permitiendo vincular tu carta con la trazabilidad oficial y la captura de reseñas de tus comensales.'}
                 </p>
                 <div className="pt-2">
                   <button
@@ -211,11 +227,15 @@ export function B2BRecommendedCreationsShowcase({
                   >
                     <Printer size={16} />
                     <span>
-                      {segmentSlug === 'ferias'
-                        ? 'Imprimir Tarjeta de Mesón A6'
-                        : segmentSlug === 'revendedores'
-                          ? 'Descargar Ficha de Aliado'
-                          : 'Imprimir Tarjeta de Mesa'}
+                      {segmentSlug === 'hoteles'
+                        ? 'Descargar Ficha de Servicio A6'
+                        : segmentSlug === 'tiendas-gourmet'
+                          ? 'Imprimir Peana de Mostrador A6'
+                          : segmentSlug === 'ferias'
+                            ? 'Imprimir Tarjeta de Mesón A6'
+                            : segmentSlug === 'revendedores'
+                              ? 'Descargar Ficha de Aliado'
+                              : 'Imprimir Tarjeta de Mesa'}
                     </span>
                   </button>
                 </div>
@@ -306,10 +326,16 @@ export function B2BRecommendedCreationsShowcase({
                     ? 'Módulo compacto en madera nativa (35 × 30 cm) diseñado para mesones compartidos de ferias. Aloja testers de cata al frente, frascos de 150 g al centro y reserva de 900 g arriba, maximizando el retorno por cm².'
                     : segmentSlug === 'revendedores'
                       ? 'Pieza compacta de madera para exhibición portátil en comercios aliados o visitas de demostración comercial directa.'
-                      : 'Pieza compacta de madera tratada para exhibir los frascos de vitrina de 150 g en el punto de pago o recepción. Diseñada para activar la compra por impulso al momento de pagar.'}
+                      : segmentSlug === 'tiendas-gourmet'
+                        ? 'Pieza compacta de madera nativa para vitrina o mesón de emporio. Diseñada para lucir frascos de 150 g y 500 g Reserva con iluminación cálida y rotación continua.'
+                        : 'Pieza compacta de madera tratada para exhibir los frascos de vitrina de 150 g en el punto de pago o recepción. Diseñada para activar la compra por impulso al momento de pagar.'}
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-primary font-semibold">
-                  {segmentSlug === 'ferias' ? 'Módulo 35 × 30 cm · Stand Express' : 'Capacidad: 8 a 12 frascos de 150 g'}
+                  {segmentSlug === 'ferias'
+                    ? 'Módulo 35 × 30 cm · Stand Express'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Capacidad: 10 a 16 frascos (150 g y 500 g)'
+                      : 'Capacidad: 8 a 12 frascos de 150 g'}
                 </div>
               </div>
 
@@ -325,10 +351,16 @@ export function B2BRecommendedCreationsShowcase({
                     ? 'Dotación masiva de espátulas biodegradables para degustación incondicional en 90 segundos. Gracias al batido mecánico en frío a 14 °C, la miel no gotea sobre la ropa ni el mesón.'
                     : segmentSlug === 'revendedores'
                       ? 'Espátulas higiénicas de bambú para demostraciones sensoriales inmediatas a clientes particulares y puntos de venta.'
-                      : 'Espátulas higiénicas biodegradables para acompañar el servicio de la pieza de 25 g en bandeja, permitiendo la cata individual sin alterar la bebida.'}
+                      : segmentSlug === 'tiendas-gourmet'
+                        ? 'Dotación de espátulas de bambú para cata guiada de clientes en mostrador, permitiendo apreciar la textura cremada en frío sin goteo.'
+                        : 'Espátulas higiénicas biodegradables para acompañar el servicio de la pieza de 25 g en bandeja, permitiendo la cata individual sin alterar la bebida.'}
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-primary font-semibold">
-                  {segmentSlug === 'ferias' ? '150 a 600 un. según kit' : '100 a 500 un. según kit'}
+                  {segmentSlug === 'ferias'
+                    ? '150 a 600 un. según kit'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? '150 a 400 un. según kit'
+                      : '100 a 500 un. según kit'}
                 </div>
               </div>
 
@@ -342,7 +374,9 @@ export function B2BRecommendedCreationsShowcase({
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   {segmentSlug === 'ferias'
                     ? 'Tarjetas de mesón A6 en papel de alto gramaje con soporte de madera. Exhiben precios transparentes de packs (Trilogía de Cata, Pasaporte de 25 g) y QR de lote para pago rápido.'
-                    : 'Láminas de mesa A6 en papel de alto gramaje con relato del bosque austral, descriptores organolépticos y código de trazabilidad para ubicar en mesas o vitrinas.'}
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Láminas A6 de cata y origen en papel de alto gramaje para ubicar junto a los frascos en vitrina con descriptores organolépticos de cada floración.'
+                      : 'Láminas de mesa A6 en papel de alto gramaje con relato del bosque austral, descriptores organolépticos y código de trazabilidad para ubicar en mesas o vitrinas.'}
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-primary font-semibold">
                   Impresión editorial resistente

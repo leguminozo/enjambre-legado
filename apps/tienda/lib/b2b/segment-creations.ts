@@ -28,8 +28,8 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
     subheadline:
       'Herramientas tangibles para la barra y mesas de tu cafetería. Explica el ritual Botanical Sidecar y la degustación en microespátula sin disolver en taza.',
     tabletopKit: {
-      title: 'Tarjeta de Mesa: Protocolo de Maridaje',
-      subtitle: 'Guía de cata en 3 tiempos para disfrutar tu café de especialidad con miel cruda.',
+      title: 'Tarjeta de Mesa en Trípode: Protocolo de Cata',
+      subtitle: 'Degustación sensorial con microespátula de bambú y maridaje con café de especialidad.',
       dimensions: [
         { label: 'HUMEDAD CERTIFICADA', value: '< 18% (Maduración Natural)' },
         { label: 'TEMPERATURA DE CATA', value: '< 40 °C (Fuera de la Taza)' },
@@ -37,9 +37,9 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
         { label: 'FLORACIÓN', value: 'Ulmo & Tiaca (Chiloé 42°S)' },
       ],
       instruction:
-        'Toma una pequeña porción con la microespátula, colócala en el paladar y luego bebe tu café para apreciar el contrapunto botánico sin intervenir la extracción.',
-      qrActionUrl: 'https://tienda.obrerayzangano.cl/trazabilidad?ref=tarjeta_mesa',
-      qrLabel: 'ORIGEN DEL LOTE & TRAZABILIDAD',
+        'Toma una muestra en la microespátula, degústala en paladar y escanea el código QR del trípode para registrar tu cata sensorial y evaluar las notas del bosque.',
+      qrActionUrl: 'https://obrerayzangano.cl/cata?ref=tarjeta_mesa',
+      qrLabel: 'CATA SENSORIAL & RESEÑA',
     },
     staffBriefing: {
       title: 'Guía Rápida para Baristas & Personal de Barra',
@@ -82,17 +82,18 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
     subheadline:
       'Papelería en papel algodón y guías para el servicio nocturno (turndown) y la mesa de desayuno.',
     tabletopKit: {
-      title: 'Tarjeta de Habitación & Desayuno',
-      subtitle: 'Bienvenido a un territorio vivo. Conoce el origen de la miel que acompaña tu estadía.',
+      title: 'Tarjeta de Habitación & Amenidad de Origen',
+      subtitle: 'Bienvenido a un territorio vivo. Conoce el origen botánico de la miel que acompaña tu estadía.',
       dimensions: [
         { label: 'ORIGEN APÍCOLA', value: 'Chiloé Insular (42°S)' },
         { label: 'CERTIFICACIÓN', value: 'Miel Cruda Pura' },
         { label: 'FLORACIÓN', value: 'Ulmo & Tiaca' },
         { label: 'HUMEDAD', value: '< 18% Controlada' },
       ],
-      instruction: 'Apunta la cámara para acceder al pasaporte botánico y certificar la cuenca de recolección.',
-      qrActionUrl: 'https://tienda.obrerayzangano.cl/trazabilidad?ref=amenity_hotel',
-      qrLabel: 'PASAPORTE DE BIENVENIDA',
+      instruction:
+        'Apunta la cámara directamente al código QR del etiquetado del envase individual de 25 g para certificar la cuenca de recolección en Chiloé.',
+      qrActionUrl: 'https://obrerayzangano.cl/trazabilidad?ref=amenity_hotel',
+      qrLabel: 'PASAPORTE DE BIENVENIDA (ENVASE)',
     },
     staffBriefing: {
       title: 'Protocolo de Servicio para Personal de Sala & Desayuno',
@@ -122,17 +123,18 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
     subheadline:
       'Material de comunicación visual para atraer al consumidor consciente y destacar el valor de la miel cruda de origen certificado.',
     tabletopKit: {
-      title: 'Expositor de Mostrador & Degustación',
-      subtitle: 'Miel cruda de bosque nativo. Prueba la textura con una cucharilla limpia.',
+      title: 'Peana de Mostrador: Cata & Reseña Sensorial',
+      subtitle: 'Estación de degustación con microespátula higiénica y valoración de textura cremada.',
       dimensions: [
         { label: 'PROCESO', value: 'Centrifugado en frío' },
         { label: 'PASTEURIZACIÓN', value: '0% (Miel cruda viva)' },
         { label: 'HUMEDAD', value: '16.8% (Alta densidad)' },
         { label: 'FLORACIÓN', value: 'Ulmo / Tiaca / Melí' },
       ],
-      instruction: 'Escanea el código para conocer los análisis de laboratorio de esta partida.',
-      qrActionUrl: 'https://tienda.obrerayzangano.cl/catalogo?ref=expositor_tienda',
-      qrLabel: 'ANALÍTICA DE LABORATORIO',
+      instruction:
+        'Invita a tus clientes a probar con la microespátula y escanear el QR del trípode para calificar las notas florales y acceder a la analítica de lote.',
+      qrActionUrl: 'https://obrerayzangano.cl/cata?ref=mostrador_gourmet',
+      qrLabel: 'CATA SENSORIAL & VALORACIÓN',
     },
     staffBriefing: {
       title: 'Argumentario de Venta para Vendedores de Tienda',
@@ -162,17 +164,18 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
     subheadline:
       'Piezas visuales de alto impacto para stands de diseño, encuentros campesinos y ferias gastronómicas.',
     tabletopKit: {
-      title: 'Cartel de Stand & Degustación Rápida',
-      subtitle: 'Prueba la miel cruda de Chiloé. Escanea para pagar rápido o inscribirte al Club.',
+      title: 'Trípode de Mesón: Degustación Rápida & Reseña',
+      subtitle: 'Prueba la miel virgen cremada en frío sin goteo y califica la floración de la temporada.',
       dimensions: [
         { label: 'RECOLECCIÓN', value: 'Temporada Actual' },
         { label: 'ORIGEN', value: 'Chiloé Insular' },
         { label: 'TRATAMIENTO', value: 'Sin Calor' },
         { label: 'ESTÁNDAR', value: 'Comercio Soberano' },
       ],
-      instruction: 'Apunta tu cámara para revisar el catálogo y pagar con Transbank o Flow al instante.',
-      qrActionUrl: 'https://tienda.obrerayzangano.cl/catalogo?ref=feria_stand',
-      qrLabel: 'CATÁLOGO & PAGO RÁPIDO',
+      instruction:
+        'Apunta la cámara al trípode para registrar tu reseña sensorial en 60 segundos o pagar tu selección de frascos sin filas.',
+      qrActionUrl: 'https://obrerayzangano.cl/cata?ref=feria_stand',
+      qrLabel: 'CATA EN STAND & VALORACIÓN',
     },
     staffBriefing: {
       title: 'Técnica de Atención en Mostrador de Feria',
@@ -198,17 +201,18 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
     subheadline:
       'Herramientas de venta, argumentarios y fichas para representantes comerciales y distribuidores independientes.',
     tabletopKit: {
-      title: 'Ficha de Presentación de Embajador',
-      subtitle: 'Representante oficial de La Obrera y el Zángano. Catálogo disponible.',
+      title: 'Peana de Demostración: Cata & Reseña en Ruta',
+      subtitle: 'Mesa de demostración directa con microespátula de bambú y captura de testimonios.',
       dimensions: [
         { label: 'ROL', value: 'Embajador Autorizado' },
         { label: 'STOCK', value: 'Partidas Frescas' },
         { label: 'FACTURA', value: 'Boleta o Factura' },
         { label: 'RESPALDO', value: 'Chiloé Nativo' },
       ],
-      instruction: 'Escanea el código para revisar el catálogo y coordinar tu pedido de reposición.',
-      qrActionUrl: 'https://tienda.obrerayzangano.cl/catalogo?ref=rep_oficial',
-      qrLabel: 'CATÁLOGO DE EMBAJADOR',
+      instruction:
+        'Ofrece una cata guiada a tu comprador e invítalo a escanear el QR del trípode para dejar su reseña de autenticidad y recibir beneficios de cliente.',
+      qrActionUrl: 'https://obrerayzangano.cl/cata?ref=rep_cata',
+      qrLabel: 'CATA SENSORIAL & TESTIMONIO',
     },
     staffBriefing: {
       title: 'Estrategia de Cierre y Reposición',

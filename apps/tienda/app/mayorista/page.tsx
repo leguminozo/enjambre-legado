@@ -54,12 +54,15 @@ export default async function MayoristaPage({ searchParams }: PageProps) {
   const heroSubtitle =
     resolveLocalized(settings.hero_subtitle, settings.hero_subtitle_en, locale) ||
     'Suministro exclusivo para restaurantes de alta cocina, hoteles boutique y emporios selectos. Lotes certificados de recolección estacional, sin pasteurizar y con factura electrónica formal.';
-  const garantiasKicker =
-    resolveLocalized(settings.garantias_kicker, settings.garantias_kicker_en, locale) ||
+  const segmentosKicker =
+    resolveLocalized(settings.segmentos_kicker, settings.segmentos_kicker_en, locale) ||
     'Entornos de Excelencia';
-  const garantiasTitle =
-    resolveLocalized(settings.garantias_title, settings.garantias_title_en, locale) ||
+  const segmentosTitle =
+    resolveLocalized(settings.segmentos_title, settings.segmentos_title_en, locale) ||
     'Diseñado para Quienes Valoran el Origen';
+  const moqBadge =
+    resolveLocalized(settings.moq_title, settings.moq_title_en, locale) ||
+    'Escala Mayorista Oficial';
 
   return (
     <StoreShell>
@@ -89,7 +92,7 @@ export default async function MayoristaPage({ searchParams }: PageProps) {
             </span>
             <span>·</span>
             <span className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-primary" /> Condiciones desde 12 Frascos
+              <Building2 className="w-4 h-4 text-primary" /> {moqBadge}
             </span>
           </div>
         </EditorialHero>
@@ -98,10 +101,10 @@ export default async function MayoristaPage({ searchParams }: PageProps) {
         <section className="py-16 px-4 max-w-6xl mx-auto">
           <div className="text-center mb-12 space-y-2">
             <span className="text-xs uppercase tracking-widest text-primary font-mono block">
-              {garantiasKicker}
+              {segmentosKicker}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl text-foreground">
-              {garantiasTitle}
+              {segmentosTitle}
             </h2>
           </div>
 

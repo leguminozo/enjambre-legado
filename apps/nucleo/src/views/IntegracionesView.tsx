@@ -9,8 +9,9 @@ import {
   Loader2,
   RefreshCw,
   Power,
+  Settings,
 } from 'lucide-react';
-import { toast, Badge, ViewLoading } from '@enjambre/ui';
+import { toast, Badge, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -21,8 +22,13 @@ interface IntegrationRow {
   enabled: boolean;
   configured: boolean;
   hasPixelId?: boolean;
+  hasCapiToken?: boolean;
+  pixelId?: string;
+  testEventCode?: string;
   hasAdsId?: boolean;
+  adsId?: string;
   hasPurchaseLabel?: boolean;
+  purchaseLabel?: string;
   mode?: 'live' | 'stub';
 }
 
@@ -33,6 +39,21 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
   const [purging, setPurging] = useState(false);
   const [togglingKey, setTogglingKey] = useState<string | null>(null);
 
+  // Modales de configuración
+  const [editingModal, setEditingModal] = useState<'meta_ads' | 'google_ads' | null>(null);
+  const [savingConfig, setSavingConfig] = useState(false);
+
+  // Formulario Meta Ads
+  const [metaEnabled, setMetaEnabled] = useState(false);
+  const [metaPixelId, setMetaPixelId] = useState('');
+  const [metaCapiToken, setMetaCapiToken] = useState('');
+  const [metaTestCode, setMetaTestCode] = useState('');
+
+  // Formulario Google Ads
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [googleAdsId, setGoogleAdsId] = useState('');
+  const [googlePurchaseLabel, setGooglePurchaseLabel] = useState('');
+
   const integrationsQuery = useQuery({
     queryKey: ['system', 'integrations'],
     queryFn: async (): Promise<IntegrationRow[]> => {
@@ -42,6 +63,61 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
       return data.integrations ?? [];
     },
   });
+
+  const handleOpenConfig = (row: IntegrationRow) => {
+    if (row.key === 'meta_ads') {
+      setMetaEnabled(row.enabled);
+      setMetaPixelId(row.pixelId ?? '');
+      setMetaCapiToken(''); // En blanco para mantener el existente si no se modifica
+      setMetaTestCode(row.testEventCode ?? '');
+      setEditingModal('meta_ads');
+    } else if (row.key === 'google_ads') {
+      setGoogleEnabled(row.enabled);
+      setGoogleAdsId(row.adsId ?? '');
+      setGooglePurchaseLabel(row.purchaseLabel ?? '');
+      setEditingModal('google_ads');
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    if (!editingModal) return;
+    setSavingConfig(true);
+    try {
+      const payload: { enabled: boolean; config: Record<string, unknown> } = {
+        enabled: editingModal === 'meta_ads' ? metaEnabled : googleEnabled,
+        config:
+          editingModal === 'meta_ads'
+            ? {
+                pixel_id: metaPixelId.trim(),
+                ...(metaCapiToken.trim() ? { capi_token: metaCapiToken.trim() } : {}),
+                test_event_code: metaTestCode.trim(),
+              }
+            : {
+                ads_id: googleAdsId.trim(),
+                purchase_label: googlePurchaseLabel.trim(),
+              },
+      };
+
+      const res = await apiFetch(`/api/admin-system/integrations/${editingModal}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Falló al guardar la configuración');
+      }
+
+      toast('Configuración guardada y sincronizada con la tienda', { type: 'success' });
+      setEditingModal(null);
+      await integrationsQuery.refetch();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Error guardando configuración', { type: 'error' });
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
   const handleToggleIntegration = async (row: IntegrationRow) => {
     setTogglingKey(row.key);
@@ -259,23 +335,33 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
                         </div>
                       </div>
                       {isAds && (
-                        <button
-                          type="button"
-                          onClick={() => handleToggleIntegration(row)}
-                          disabled={togglingKey === row.key}
-                          className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border cursor-pointer min-h-9 ${
-                            row.enabled
-                              ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/20'
-                              : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20'
-                          }`}
-                        >
-                          {togglingKey === row.key ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : (
-                            <Power size={13} />
-                          )}
-                          <span>{row.enabled ? 'Desactivar' : 'Activar'}</span>
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenConfig(row)}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-colors border border-border bg-surface-sunken hover:bg-muted text-foreground cursor-pointer min-h-9"
+                          >
+                            <Settings size={13} />
+                            <span>Configurar</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleIntegration(row)}
+                            disabled={togglingKey === row.key}
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border cursor-pointer min-h-9 ${
+                              row.enabled
+                                ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/20'
+                                : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20'
+                            }`}
+                          >
+                            {togglingKey === row.key ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Power size={13} />
+                            )}
+                            <span>{row.enabled ? 'Desactivar' : 'Activar'}</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   );
@@ -285,6 +371,182 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
           </section>
         </div>
       </div>
+
+      {/* Modal Configuración Meta Ads */}
+      <ImmersiveModal
+        open={editingModal === 'meta_ads'}
+        onClose={() => setEditingModal(null)}
+        title="Configuración de Meta Ads (Pixel + CAPI)"
+      >
+        <div className="py-4 space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Configura el seguimiento de Meta Ads para la tienda. Los eventos se emitirán desde el navegador (Pixel) y desde el servidor (Conversions API) con deduplicación y hashing seguro SHA-256.
+          </p>
+
+          <label className="flex items-center gap-3 p-3 bg-surface-sunken/60 rounded-xl border border-border cursor-pointer">
+            <input
+              type="checkbox"
+              checked={metaEnabled}
+              onChange={(e) => setMetaEnabled(e.target.checked)}
+              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+            />
+            <div>
+              <p className="text-sm font-medium text-foreground">Habilitar integración en la tienda</p>
+              <p className="text-xs text-muted-foreground">
+                Control maestro: si está inactivo, ningún pixel ni llamada CAPI será emitida hacia Meta.
+              </p>
+            </div>
+          </label>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Identificador del Pixel (Pixel ID)
+            </label>
+            <input
+              type="text"
+              value={metaPixelId}
+              onChange={(e) => setMetaPixelId(e.target.value)}
+              placeholder="ej. 1234567890123456"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Encuéntralo en Meta Business Suite → Administrador de Eventos → Orígenes de datos.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Token de Conversions API (CAPI)
+            </label>
+            <input
+              type="password"
+              value={metaCapiToken}
+              onChange={(e) => setMetaCapiToken(e.target.value)}
+              placeholder={integrationsQuery.data?.find((r) => r.key === 'meta_ads')?.hasCapiToken ? '•••••••••••••••• (dejar en blanco para conservar actual)' : 'EAAXXXXXXXX...'}
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Token del sistema generado en Administrador de Eventos → Configuración → API de conversiones.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Código de evento de prueba (Test Event Code - opcional)
+            </label>
+            <input
+              type="text"
+              value={metaTestCode}
+              onChange={(e) => setMetaTestCode(e.target.value)}
+              placeholder="ej. TEST12345"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Permite validar los eventos en tiempo real en la pestaña &quot;Probar eventos&quot; de Meta.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setEditingModal(null)}
+              disabled={savingConfig}
+              className="px-4 py-2 text-xs font-medium border border-border rounded-xl text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveConfig}
+              disabled={savingConfig}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {savingConfig && <Loader2 size={13} className="animate-spin" />}
+              <span>{savingConfig ? 'Guardando…' : 'Guardar y Sincronizar'}</span>
+            </button>
+          </div>
+        </div>
+      </ImmersiveModal>
+
+      {/* Modal Configuración Google Ads */}
+      <ImmersiveModal
+        open={editingModal === 'google_ads'}
+        onClose={() => setEditingModal(null)}
+        title="Configuración de Google Ads (gtag + Conversión)"
+      >
+        <div className="py-4 space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Configura el seguimiento de Google Ads para la tienda. Registra el tráfico y las conversiones de compra en pesos chilenos directamente en Google Ads.
+          </p>
+
+          <label className="flex items-center gap-3 p-3 bg-surface-sunken/60 rounded-xl border border-border cursor-pointer">
+            <input
+              type="checkbox"
+              checked={googleEnabled}
+              onChange={(e) => setGoogleEnabled(e.target.checked)}
+              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+            />
+            <div>
+              <p className="text-sm font-medium text-foreground">Habilitar integración en la tienda</p>
+              <p className="text-xs text-muted-foreground">
+                Control maestro: si está inactivo, no se inyectará gtag ni se enviarán conversiones a Google Ads.
+              </p>
+            </div>
+          </label>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Identificador de Google Ads (Conversion ID)
+            </label>
+            <input
+              type="text"
+              value={googleAdsId}
+              onChange={(e) => setGoogleAdsId(e.target.value)}
+              placeholder="ej. AW-1234567890 o 1234567890"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Tag global de Google Ads (prefijo AW- automático). Se encuentra en Herramientas → Conversiones.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Etiqueta de conversión de compra (Purchase Label)
+            </label>
+            <input
+              type="text"
+              value={googlePurchaseLabel}
+              onChange={(e) => setGooglePurchaseLabel(e.target.value)}
+              placeholder="ej. AbCDefGhiJK-lmN"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Identificador alfanumérico de la acción de conversión creada para compras en la tienda online.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setEditingModal(null)}
+              disabled={savingConfig}
+              className="px-4 py-2 text-xs font-medium border border-border rounded-xl text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveConfig}
+              disabled={savingConfig}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {savingConfig && <Loader2 size={13} className="animate-spin" />}
+              <span>{savingConfig ? 'Guardando…' : 'Guardar y Sincronizar'}</span>
+            </button>
+          </div>
+        </div>
+      </ImmersiveModal>
     </div>
   );
 }

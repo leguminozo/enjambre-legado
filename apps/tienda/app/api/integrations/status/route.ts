@@ -4,6 +4,7 @@ import { resolveGoogleAdsMode } from '@/lib/integrations/google-ads';
 import { resolveMetaAdsMode } from '@/lib/integrations/meta-ads';
 import { getGoogleAdsId, getGoogleAdsPurchaseLabel } from '@/lib/tracking/google/gtag';
 import { getMetaCapiConfig } from '@/lib/tracking/meta/capi';
+import { getPublicAdsConfig, getMetaCapiServerConfig } from '@/lib/integrations/ads-config';
 
 /**
  * GET /api/integrations/status — estado de integraciones para el dashboard de
@@ -45,19 +46,32 @@ export async function GET(req: NextRequest) {
   const presence = Object.fromEntries(
     INTEGRATION_KEYS.map((key) => [key, getSecretsPresenceForIntegrationKey(key)]),
   );
-  const metaCapi = getMetaCapiConfig();
+
+  const adsConfig = await getPublicAdsConfig();
+  const metaCapi = await getMetaCapiServerConfig();
+
+  const hasMetaPixel = Boolean(adsConfig.metaAds.pixelId || getMetaCapiConfig().pixelId);
+  const hasMetaToken = Boolean(metaCapi.token || getMetaCapiConfig().token);
+  const hasGoogleId = Boolean(adsConfig.googleAds.adsId || getGoogleAdsId());
+  const hasGoogleLabel = Boolean(adsConfig.googleAds.purchaseLabel || getGoogleAdsPurchaseLabel());
+
+  const effectivePresence = {
+    ...presence,
+    meta_ads: hasMetaPixel && hasMetaToken,
+    google_ads: hasGoogleId,
+  };
 
   return NextResponse.json({
     ok: true,
-    presence,
+    presence: effectivePresence,
     metaAds: {
-      hasPixelId: Boolean(metaCapi.pixelId),
-      mode: resolveMetaAdsMode(),
+      hasPixelId: hasMetaPixel,
+      mode: adsConfig.metaAds.enabled && hasMetaPixel && hasMetaToken ? 'live' : 'stub',
     },
     googleAds: {
-      hasAdsId: Boolean(getGoogleAdsId()),
-      hasPurchaseLabel: Boolean(getGoogleAdsPurchaseLabel()),
-      mode: resolveGoogleAdsMode(),
+      hasAdsId: hasGoogleId,
+      hasPurchaseLabel: hasGoogleLabel,
+      mode: adsConfig.googleAds.enabled && hasGoogleId ? 'live' : 'stub',
     },
   });
 }

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Json } from "@enjambre/database";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { revalidateTiendaLayout, revalidateTiendaCms } from "@/lib/revalidate-tienda";
@@ -42,7 +43,14 @@ adminSystemRoutes.post("/purge-cache", async (c) => {
 // los secretos viven en env de la tienda y nunca se exponen.
 // ---------------------------------------------------------------------------
 
-const IntegrationToggleSchema = z.object({ enabled: z.boolean() });
+const IntegrationUpdateSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    config: z.record(z.string(), z.unknown()).optional(),
+  })
+  .refine((data) => data.enabled !== undefined || data.config !== undefined, {
+    message: "Debe proveer enabled o config",
+  });
 
 function tiendaBaseUrl(): string {
   return (
@@ -91,7 +99,7 @@ adminSystemRoutes.get("/integrations", async (c) => {
 
   const { data: rows, error } = await supabase
     .from("integrations")
-    .select("key, name, enabled")
+    .select("key, name, enabled, config")
     .order("key");
 
   if (error) {
@@ -105,22 +113,51 @@ adminSystemRoutes.get("/integrations", async (c) => {
     integrations: (rows ?? []).map((row) => {
       const isMeta = row.key === "meta_ads";
       const isGoogle = row.key === "google_ads";
+      const rowCfg = (row.config as Record<string, unknown> | null) ?? {};
+
+      const dbPixelId = typeof rowCfg.pixel_id === "string" ? rowCfg.pixel_id.trim() : "";
+      const dbHasCapiToken = typeof rowCfg.capi_token === "string" && rowCfg.capi_token.trim().length > 0;
+      const dbTestEventCode = typeof rowCfg.test_event_code === "string" ? rowCfg.test_event_code.trim() : "";
+      const dbAdsId = typeof rowCfg.ads_id === "string" ? rowCfg.ads_id.trim() : "";
+      const dbPurchaseLabel = typeof rowCfg.purchase_label === "string" ? rowCfg.purchase_label.trim() : "";
+
+      const hasPixelId = Boolean(dbPixelId || tiendaStatus?.metaAds?.hasPixelId);
+      const hasCapiToken = Boolean(dbHasCapiToken || tiendaStatus?.presence?.meta_ads);
+      const hasAdsId = Boolean(dbAdsId || tiendaStatus?.googleAds?.hasAdsId);
+      const hasPurchaseLabel = Boolean(dbPurchaseLabel || tiendaStatus?.googleAds?.hasPurchaseLabel);
+
+      const isConfigured = isMeta
+        ? Boolean(hasPixelId && hasCapiToken)
+        : isGoogle
+          ? Boolean(hasAdsId)
+          : Boolean(tiendaStatus?.presence?.[row.key]);
+
+      const mode = isMeta
+        ? (row.enabled && hasPixelId && hasCapiToken ? "live" : "stub")
+        : isGoogle
+          ? (row.enabled && hasAdsId ? "live" : "stub")
+          : (tiendaStatus?.presence?.[row.key] ? "live" : "stub");
+
       return {
         key: row.key,
         name: row.name,
         enabled: row.enabled,
-        configured: Boolean(tiendaStatus?.presence?.[row.key]),
+        configured: isConfigured,
+        mode,
         ...(isMeta
           ? {
-              hasPixelId: Boolean(tiendaStatus?.metaAds?.hasPixelId),
-              mode: tiendaStatus?.metaAds?.mode ?? "stub",
+              pixelId: dbPixelId,
+              hasPixelId,
+              hasCapiToken,
+              testEventCode: dbTestEventCode,
             }
           : {}),
         ...(isGoogle
           ? {
-              hasAdsId: Boolean(tiendaStatus?.googleAds?.hasAdsId),
-              hasPurchaseLabel: Boolean(tiendaStatus?.googleAds?.hasPurchaseLabel),
-              mode: tiendaStatus?.googleAds?.mode ?? "stub",
+              adsId: dbAdsId,
+              hasAdsId,
+              purchaseLabel: dbPurchaseLabel,
+              hasPurchaseLabel,
             }
           : {}),
       };
@@ -129,7 +166,7 @@ adminSystemRoutes.get("/integrations", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// PATCH /api/admin-system/integrations/:key  — toggle `enabled` (kill-switch).
+// PATCH /api/admin-system/integrations/:key  — toggle `enabled` y configuración.
 // Upsert por key (RLS is_gerente/is_admin cubre insert/update).
 // ---------------------------------------------------------------------------
 
@@ -145,37 +182,82 @@ adminSystemRoutes.patch("/integrations/:key", async (c) => {
   } catch {
     return c.json({ error: "Invalid JSON" }, 400);
   }
-  const parsed = IntegrationToggleSchema.safeParse(body);
+  const parsed = IntegrationUpdateSchema.safeParse(body);
   if (!parsed.success) {
-    return c.json({ error: "Body debe ser { enabled: boolean }" }, 400);
+    return c.json({ error: "Payload inválido. Debe proveer enabled y/o config" }, 400);
   }
 
   const supabase = c.var.supabase;
   const { data: existing } = await supabase
     .from("integrations")
-    .select("key")
+    .select("key, name, enabled, config")
     .eq("key", key)
     .maybeSingle();
+
+  const existingConfig = (existing?.config as Record<string, unknown> | null) ?? {};
+  let nextConfig = { ...existingConfig };
+
+  if (parsed.data.config) {
+    if (key === "meta_ads") {
+      const p = parsed.data.config;
+      if (typeof p.pixel_id === "string") nextConfig.pixel_id = p.pixel_id.trim();
+      // Solo actualiza capi_token si viene provisto y no vacío; si viene vacío no sobreescribe
+      if (typeof p.capi_token === "string" && p.capi_token.trim().length > 0) {
+        nextConfig.capi_token = p.capi_token.trim();
+      }
+      if (typeof p.test_event_code === "string") {
+        nextConfig.test_event_code = p.test_event_code.trim();
+      }
+    } else if (key === "google_ads") {
+      const p = parsed.data.config;
+      if (typeof p.ads_id === "string") nextConfig.ads_id = p.ads_id.trim();
+      if (typeof p.purchase_label === "string") nextConfig.purchase_label = p.purchase_label.trim();
+    } else {
+      nextConfig = { ...nextConfig, ...parsed.data.config };
+    }
+  }
+
+  const nextEnabled = parsed.data.enabled !== undefined ? parsed.data.enabled : (existing?.enabled ?? false);
 
   if (existing) {
     const { error } = await supabase
       .from("integrations")
-      .update({ enabled: parsed.data.enabled, updated_at: new Date().toISOString() })
+      .update({
+        enabled: nextEnabled,
+        config: nextConfig as unknown as Json,
+        updated_at: new Date().toISOString(),
+      })
       .eq("key", key);
     if (error) {
       console.error("[admin-system] integrations update failed", error);
       return c.json({ error: "Failed to update integration" }, 500);
     }
   } else {
+    const defaultName = key === "meta_ads"
+      ? "Meta Ads (pixel + CAPI)"
+      : key === "google_ads"
+        ? "Google Ads (gtag + conversión)"
+        : key;
+
     const { error } = await supabase
       .from("integrations")
-      .insert({ key, name: key, enabled: parsed.data.enabled });
+      .insert({
+        key,
+        name: defaultName,
+        enabled: nextEnabled,
+        config: nextConfig as unknown as Json,
+      });
     if (error) {
       console.error("[admin-system] integrations insert failed", error);
       return c.json({ error: "Failed to create integration" }, 500);
     }
   }
 
-  return c.json({ ok: true, key, enabled: parsed.data.enabled });
+  // Notificar a la tienda para invalidar caché y recargar configuración
+  void revalidateTiendaLayout().catch((err) => {
+    console.warn("[admin-system] revalidateTiendaLayout failed after integration update", err);
+  });
+
+  return c.json({ ok: true, key, enabled: nextEnabled });
 });
 

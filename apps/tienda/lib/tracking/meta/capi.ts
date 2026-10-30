@@ -7,6 +7,7 @@
 
 import { createHash } from 'node:crypto';
 import type { MetaTrackBody } from './schema';
+import { getMetaCapiServerConfig } from '@/lib/integrations/ads-config';
 
 export const META_DEFAULT_GRAPH_VERSION = 'v21.0';
 export const META_SITE_URL =
@@ -70,12 +71,20 @@ function buildCustomData(input: MetaCapiEventInput): Record<string, unknown> {
 export async function dispatchMetaCapiEvent(
   input: MetaCapiEventInput,
 ): Promise<MetaCapiDispatchResult> {
-  const { pixelId, token, graphVersion } = getMetaCapiConfig();
-  if (!pixelId || !token) {
+  const serverConfig = await getMetaCapiServerConfig();
+  const syncEnv = getMetaCapiConfig();
+
+  const pixelId = serverConfig.pixelId || syncEnv.pixelId;
+  const token = serverConfig.token || syncEnv.token;
+  const graphVersion = serverConfig.graphVersion || syncEnv.graphVersion;
+  const isEnabled = serverConfig.enabled ?? Boolean(pixelId && token);
+  const effectiveTestCode = input.testEventCode || serverConfig.testEventCode;
+
+  if (!isEnabled || !pixelId || !token) {
     return {
       ok: false,
       mode: 'stub',
-      message: 'Meta Ads no configurado (NEXT_PUBLIC_META_PIXEL_ID / META_CAPI_TOKEN)',
+      message: 'Meta Ads no configurado o inactivo',
     };
   }
 
@@ -101,7 +110,7 @@ export async function dispatchMetaCapiEvent(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         data: [event],
-        ...(input.testEventCode ? { test_event_code: input.testEventCode } : {}),
+        ...(effectiveTestCode ? { test_event_code: effectiveTestCode } : {}),
       }),
       cache: 'no-store',
       signal: controller.signal,

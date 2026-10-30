@@ -14,12 +14,14 @@ import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
 import { ConsentProvider } from '@/components/shop/consent/consent-provider';
 import { ConsentBanner } from '@/components/shop/consent/consent-banner';
+import { AdsConfigProvider } from '@/components/shop/ads-config-provider';
 import { MetaPixelLoader } from '@/components/shop/meta-pixel';
 import { GoogleAdsLoader } from '@/components/shop/google-ads';
 import { TrafficAttributionCapture } from '@/components/shop/traffic-attribution-capture';
 import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
+import { getPublicAdsConfig } from '@/lib/integrations/ads-config';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
 import { headerSettingsToCssVars } from '@/lib/shop/header-menu';
 import { isCmsPreviewRequest } from '@/lib/cms';
@@ -94,9 +96,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = await getMessages();
   const isDraft = await isCmsPreviewRequest();
-  const [headerMenu, storeChrome] = await Promise.all([
+  const [headerMenu, storeChrome, adsConfig] = await Promise.all([
     loadHeaderMenu({ draft: isDraft }),
     loadStoreChrome({ draft: isDraft }),
+    getPublicAdsConfig(),
   ]);
   // Align with ThemeProvider storageKey + defaults (evita React #418 class mismatch)
   const forceDark = storeChrome.theme.force_dark_public;
@@ -146,19 +149,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <RegisterServiceWorker />
           {/* Consentimiento envuelve a toda la app: banner + pixel + facade de tracking */}
           <ConsentProvider>
-            <AppProviders
-              headerSettings={headerMenu.settings}
-              headerItems={headerMenu.items}
-              storeChrome={storeChrome}
-            >
-              {children}
-            </AppProviders>
-            <ConsentBanner />
-            <MetaPixelLoader />
-            <GoogleAdsLoader />
-            <Suspense fallback={null}>
-              <TrafficAttributionCapture />
-            </Suspense>
+            <AdsConfigProvider config={adsConfig}>
+              <AppProviders
+                headerSettings={headerMenu.settings}
+                headerItems={headerMenu.items}
+                storeChrome={storeChrome}
+              >
+                {children}
+              </AppProviders>
+              <ConsentBanner />
+              <MetaPixelLoader />
+              <GoogleAdsLoader />
+              <Suspense fallback={null}>
+                <TrafficAttributionCapture />
+              </Suspense>
+            </AdsConfigProvider>
           </ConsentProvider>
         </NextIntlClientProvider>
         <VercelInsights />
