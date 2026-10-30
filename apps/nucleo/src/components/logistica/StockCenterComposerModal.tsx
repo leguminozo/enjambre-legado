@@ -3,7 +3,27 @@
 import { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Warehouse, MapPin, UserCheck, ShieldCheck } from 'lucide-react';
 import { ImmersiveModal, toast } from '@enjambre/ui';
+import {
+  CHILE_COMUNAS_POR_REGION,
+  getRegionDeComuna,
+} from '@enjambre/logistica';
 import type { StockCenterTipo, StockCenter } from './types';
+
+const DESTINOS_FRECUENTES_STOCK = [
+  { label: 'Pureo (Queilén)', comuna: 'Queilén' },
+  { label: 'Castro', comuna: 'Castro' },
+  { label: 'Ancud', comuna: 'Ancud' },
+  { label: 'Dalcahue', comuna: 'Dalcahue' },
+  { label: 'Quellón', comuna: 'Quellón' },
+  { label: 'Puerto Varas', comuna: 'Puerto Varas' },
+  { label: 'Puerto Montt', comuna: 'Puerto Montt' },
+  { label: 'Santiago (Hub Central)', comuna: 'Santiago' },
+  { label: 'Providencia (RM)', comuna: 'Providencia' },
+] as const;
+
+const TODAS_LAS_COMUNAS_STOCK = Object.values(CHILE_COMUNAS_POR_REGION)
+  .flat()
+  .sort((a, b) => a.localeCompare(b, 'es'));
 
 export interface StockCenterFormState {
   name: string;
@@ -211,26 +231,57 @@ export function StockCenterComposerModal({
           </select>
         </div>
 
+        {/* Atajos de comunas frecuentes */}
+        <div className="space-y-1">
+          <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground flex items-center gap-1">
+            <MapPin size={11} className="text-accent" /> Ubicaciones frecuentes (1 clic)
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {DESTINOS_FRECUENTES_STOCK.map((dest) => (
+              <button
+                key={dest.label}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, comuna: dest.comuna }))}
+                className={`text-xs px-2.5 py-1 rounded-md border transition-all ${
+                  form.comuna.toLowerCase() === dest.comuna.toLowerCase()
+                    ? 'bg-accent/20 border-accent text-accent font-semibold shadow-sm'
+                    : 'border-border/80 bg-surface-sunken hover:border-accent/40 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {dest.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <label htmlFor="sc-comuna" className="text-xs font-medium text-foreground flex items-center gap-1">
               <MapPin size={12} className="text-muted-foreground" />
               <span>Comuna o Ciudad</span>
             </label>
-            <input
-              id="sc-comuna"
-              type="text"
-              placeholder="Ej: Castro, Ancud, Santiago..."
-              value={form.comuna}
-              onChange={(e) => setForm((prev) => ({ ...prev, comuna: e.target.value }))}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            />
+            <div className="relative">
+              <input
+                id="sc-comuna"
+                type="text"
+                list="stock-center-comunas-list"
+                placeholder="Ej: Castro, Ancud, Santiago..."
+                value={form.comuna}
+                onChange={(e) => setForm((prev) => ({ ...prev, comuna: e.target.value }))}
+                className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <datalist id="stock-center-comunas-list">
+                {TODAS_LAS_COMUNAS_STOCK.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <label htmlFor="sc-responsable" className="text-xs font-medium text-foreground flex items-center gap-1">
               <UserCheck size={12} className="text-muted-foreground" />
-              <span>Custodio / Responsable</span>
+              <span>Responsable o Encargado</span>
             </label>
             <input
               id="sc-responsable"

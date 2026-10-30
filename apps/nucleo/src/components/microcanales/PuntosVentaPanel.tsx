@@ -7,7 +7,7 @@ import { Plus, Pencil, QrCode, RefreshCw } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, QRCode, toast, type ColumnDef,
+  Select, Badge, SkeletonTable, QRCode, toast, type ColumnDef,
 } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,6 +18,7 @@ import {
   type PuntoVentaRow, type PuntoVentaFormValues,
 } from '@/lib/microcanales-types';
 import { getUrlTienda } from '@/lib/publicUrls';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 
 const DEFAULT_VALUES: PuntoVentaFormValues = {
   nombre: '', tipo: 'cafeteria', ciudad: undefined, contacto_nombre: undefined,
@@ -66,7 +67,14 @@ function PuntoVentaFormDialog({ open, onOpenChange, initial }: {
               <FieldLabel>Tipo *</FieldLabel>
               <Select value={watch('tipo')} onValueChange={(v) => setValue('tipo', v as PuntoVentaFormValues['tipo'])} options={PUNTO_VENTA_TIPO_OPTIONS} />
             </div>
-            <Input label="Ciudad" placeholder="Santiago…" {...register('ciudad')} />
+            <div>
+              <Input label="Ciudad" placeholder="Santiago, Puerto Varas, Castro…" list="ciudades-puntos-list" {...register('ciudad')} />
+              <datalist id="ciudades-puntos-list">
+                {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Contacto" placeholder="Nombre de la persona" {...register('contacto_nombre')} />
@@ -199,7 +207,21 @@ export function PuntosVentaPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Microcanales" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Puntos de venta</CardTitle>
+            <CardDescription>Cafeterías, tiendas, hoteles y ferias — con su código de acceso (QR del pendón) y origen de registro.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

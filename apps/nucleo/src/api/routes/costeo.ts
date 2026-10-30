@@ -172,10 +172,11 @@ async function syncInventarioToIngredients(supabase: AppVariables["supabase"], e
   try {
     await normalizeLegacyCosteoData(supabase, empresaId);
 
+    // 1. Sincronizar insumos, envases y destilación registrados en inventario_items
     const { data: invItems, error: invErr } = await fromLoose(supabase, "inventario_items")
       .select("id, nombre, unidad, costo_unitario, clase, ingredient_id")
       .eq("activo", true)
-      .eq("clase", "insumo");
+      .in("clase", ["insumo", "destilacion", "apicola"]);
 
     const activeInsumos = (invItems as Array<{
       id: string;
@@ -238,7 +239,7 @@ async function syncInventarioToIngredients(supabase: AppVariables["supabase"], e
             nombre: cleanName,
             unidad: unit,
             estado_default: "crudo",
-            categoria: "insumo",
+            categoria: inv.clase || "insumo",
             precio_ref: Number(inv.costo_unitario || 0),
           })
           .select("id")
@@ -258,7 +259,171 @@ async function syncInventarioToIngredients(supabase: AppVariables["supabase"], e
       }
     }
 
-    // Limpiar ingredientes huérfanos en `ingredients` que no existen en Inventario -> Insumos
+    // 2. Sincronizar miel a granel desde lotes de recolección apícola activos
+    try {
+      const { data: lotesMiel } = await fromLoose(supabase, "lotes")
+        .select("id, nombre_lote, variedad_floral, kg_total, estado")
+        .or("estado.eq.disponible,estado.is.null")
+        .gt("kg_total", 0);
+
+      for (const lote of lotesMiel ?? []) {
+        const loteLabel = lote.nombre_lote
+          ? `Miel ${lote.variedad_floral || 'Nativa'} (${lote.nombre_lote})`
+          : `Miel ${lote.variedad_floral || 'Nativa'} (Lote ${String(lote.id).slice(0, 8)})`;
+
+        const { data: match } = await supabase
+          .from("ingredients")
+          .select("id, precio_ref")
+          .eq("empresa_id", empresaId)
+          .ilike("nombre", loteLabel)
+          .maybeSingle();
+
+        let loteIngId = match?.id;
+        if (!loteIngId) {
+          const { data: newIng, error: newIngErr } = await supabase
+            .from("ingredients")
+            .insert({
+              empresa_id: empresaId,
+              nombre: loteLabel,
+              unidad: "kg",
+              estado_default: "crudo",
+              categoria: "miel",
+              precio_ref: 5000,
+            })
+            .select("id")
+            .single();
+
+          if (!newIngErr && newIng?.id) {
+            loteIngId = newIng.id;
+            count += 1;
+          }
+        }
+
+        if (loteIngId) {
+          activeIngredientIds.add(loteIngId);
+        }
+      }
+    } catch (e) {
+      console.error("Error sincronizando lotes de miel a ingredientes:", e);
+    }
+
+    // 3. Sincronizar hierbas e infusiones deshidratadas de recolección silvestre
+    try {
+      const { data: infusionMPs } = await fromLoose(supabase, "infusion_materias_primas")
+        .select("id, nombre, tipo, unidad_medida, ingredient_id")
+        .eq("activa", true);
+
+      const { data: costosInfusiones } = await fromLoose(supabase, "v_infusion_costos")
+        .select("materia_prima_id, costo_seco_kg_clp");
+
+      const costoMap = new Map<string, number>();
+      for (const ci of costosInfusiones ?? []) {
+        if (ci.materia_prima_id && ci.costo_seco_kg_clp) {
+          costoMap.set(ci.materia_prima_id, Number(ci.costo_seco_kg_clp));
+        }
+      }
+
+      for (const mp of infusionMPs ?? []) {
+        if (!mp.nombre) continue;
+        const mpName = `${mp.nombre.trim()} (Hierba Seca)`;
+        let ingId = mp.ingredient_id;
+        const refPrice = costoMap.get(mp.id) || 12000;
+
+        if (!ingId) {
+          const { data: match } = await supabase
+            .from("ingredients")
+            .select("id")
+            .eq("empresa_id", empresaId)
+            .ilike("nombre", mpName)
+            .maybeSingle();
+
+          if (match?.id) {
+            ingId = match.id;
+            await fromLoose(supabase, "infusion_materias_primas")
+              .update({ ingredient_id: ingId })
+              .eq("id", mp.id);
+          } else {
+            const { data: newIng, error: newErr } = await supabase
+              .from("ingredients")
+              .insert({
+                empresa_id: empresaId,
+                nombre: mpName,
+                unidad: "kg",
+                estado_default: "seco",
+                categoria: "infusion",
+                precio_ref: refPrice,
+              })
+              .select("id")
+              .single();
+
+            if (!newErr && newIng?.id) {
+              ingId = newIng.id;
+              await fromLoose(supabase, "infusion_materias_primas")
+                .update({ ingredient_id: ingId })
+                .eq("id", mp.id);
+              count += 1;
+            }
+          }
+        }
+
+        if (ingId) {
+          activeIngredientIds.add(ingId);
+        }
+      }
+    } catch (e) {
+      console.error("Error sincronizando infusiones a ingredientes:", e);
+    }
+
+    // 4. Sincronizar hidrolatos y destilaciones territoriales
+    try {
+      const { data: prodsDestilacion } = await fromLoose(supabase, "productos_destilacion")
+        .select("id, tipo, volumen_ml, precio_sugerido_clp, destilaciones(codigo, plantas_destilacion(nombre_comun))");
+
+      for (const pd of prodsDestilacion ?? []) {
+        const dest = (Array.isArray(pd.destilaciones) ? pd.destilaciones[0] : pd.destilaciones) as unknown as Record<string, unknown> | null;
+        const planta = (Array.isArray(dest?.plantas_destilacion) ? dest.plantas_destilacion[0] : dest?.plantas_destilacion) as unknown as Record<string, unknown> | null;
+        const nombreComun = String(planta?.nombre_comun ?? pd.tipo ?? "Hidrolato");
+        const destName = `Hidrolato de ${nombreComun}`;
+
+        const { data: match } = await supabase
+          .from("ingredients")
+          .select("id")
+          .eq("empresa_id", empresaId)
+          .ilike("nombre", destName)
+          .maybeSingle();
+
+        let destIngId = match?.id;
+        if (!destIngId) {
+          const { data: newIng, error: newErr } = await supabase
+            .from("ingredients")
+            .insert({
+              empresa_id: empresaId,
+              nombre: destName,
+              unidad: "ml",
+              estado_default: "procesado",
+              categoria: "destilacion",
+              precio_ref: pd.precio_sugerido_clp
+                ? Math.round(Number(pd.precio_sugerido_clp) / Math.max(1, Number(pd.volumen_ml || 100)))
+                : 35,
+            })
+            .select("id")
+            .single();
+
+          if (!newErr && newIng?.id) {
+            destIngId = newIng.id;
+            count += 1;
+          }
+        }
+
+        if (destIngId) {
+          activeIngredientIds.add(destIngId);
+        }
+      }
+    } catch (e) {
+      console.error("Error sincronizando alambique a ingredientes:", e);
+    }
+
+    // Limpiar ingredientes huérfanos que no corresponden a ninguna fuente activa
     // (siempre que no estén siendo usados por alguna línea de receta activa)
     if (!invErr) {
       const { data: allIngs } = await supabase
@@ -288,7 +453,7 @@ async function syncInventarioToIngredients(supabase: AppVariables["supabase"], e
 
     return count;
   } catch (e) {
-    console.error("Error al sincronizar inventario a ingredientes:", e);
+    console.error("Error al sincronizar inventario y recolecciones a ingredientes:", e);
     return 0;
   }
 }
@@ -301,21 +466,165 @@ costeoRoutes.get("/inventario-insumos", async (c) => {
     await syncInventarioToIngredients(supabase, empresaId);
   }
 
-  const { data, error } = await fromLoose(supabase, "inventario_items")
+  // 1. Insumos y destilación en inventario operativo
+  const { data: invData, error } = await fromLoose(supabase, "inventario_items")
     .select("id, nombre, clase, unidad, stock, stock_minimo, costo_unitario, proveedor_nota, ingredient_id")
     .eq("activo", true)
-    .eq("clase", "insumo")
+    .in("clase", ["insumo", "destilacion", "apicola"])
     .order("nombre");
 
-  if (error) {
-    if (error.code === "42P01") return c.json({ data: [] });
+  if (error && error.code !== "42P01") {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
-  return c.json({ data: data ?? [] });
+  const items: Array<{
+    id: string;
+    ingredient_id: string;
+    nombre: string;
+    clase: string;
+    unidad: string;
+    stock: number;
+    stock_minimo?: number;
+    costo_unitario: number;
+    proveedor_nota?: string;
+    origen: string;
+    lote_id?: string;
+    materia_prima_id?: string;
+  }> = [];
+
+  for (const inv of invData ?? []) {
+    items.push({
+      id: inv.id,
+      ingredient_id: inv.ingredient_id || inv.id,
+      nombre: inv.nombre,
+      clase: inv.clase || "insumo",
+      unidad: inv.unidad || "unidad",
+      stock: Number(inv.stock ?? 0),
+      stock_minimo: Number(inv.stock_minimo ?? 0),
+      costo_unitario: Number(inv.costo_unitario ?? 0),
+      proveedor_nota: inv.proveedor_nota ?? "Bodega Operativa",
+      origen: "inventario",
+    });
+  }
+
+  // 2. Miel a granel (lotes de recolección apícola activos con stock)
+  try {
+    const { data: lotesMiel } = await fromLoose(supabase, "lotes")
+      .select("id, nombre_lote, variedad_floral, kg_total, estado")
+      .or("estado.eq.disponible,estado.is.null")
+      .gt("kg_total", 0);
+
+    if (lotesMiel && lotesMiel.length > 0) {
+      const { data: ings } = await supabase
+        .from("ingredients")
+        .select("id, nombre, precio_ref")
+        .eq("empresa_id", empresaId)
+        .eq("categoria", "miel");
+
+      const ingMap = new Map((ings ?? []).map((i) => [i.nombre.toLowerCase(), i]));
+
+      for (const lote of lotesMiel) {
+        const loteLabel = lote.nombre_lote
+          ? `Miel ${lote.variedad_floral || 'Nativa'} (${lote.nombre_lote})`
+          : `Miel ${lote.variedad_floral || 'Nativa'} (Lote ${String(lote.id).slice(0, 8)})`;
+        const matchedIng = ingMap.get(loteLabel.toLowerCase());
+
+        items.push({
+          id: `lote_${lote.id}`,
+          ingredient_id: matchedIng?.id || lote.id,
+          nombre: loteLabel,
+          clase: "miel",
+          unidad: "kg",
+          stock: Number(lote.kg_total ?? 0),
+          costo_unitario: Number(matchedIng?.precio_ref ?? 5000),
+          proveedor_nota: `Predio Pureo · Lote ${lote.nombre_lote || 'Activo'}`,
+          origen: "lote_miel",
+          lote_id: lote.id,
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error obteniendo lotes de miel para recetas:", e);
+  }
+
+  // 3. Hierbas secas de recolección de infusiones
+  try {
+    const { data: stockSeco } = await fromLoose(supabase, "v_infusion_stock_seco")
+      .select("materia_prima_id, materia_prima, stock_disponible_kg");
+
+    if (stockSeco && stockSeco.length > 0) {
+      const { data: ings } = await supabase
+        .from("ingredients")
+        .select("id, nombre, precio_ref")
+        .eq("empresa_id", empresaId)
+        .eq("categoria", "infusion");
+
+      const ingMap = new Map((ings ?? []).map((i) => [i.nombre.toLowerCase(), i]));
+
+      for (const sec of stockSeco) {
+        const secLabel = `${sec.materia_prima} (Hierba Seca)`;
+        const matchedIng = ingMap.get(secLabel.toLowerCase());
+
+        items.push({
+          id: `infusion_${sec.materia_prima_id}`,
+          ingredient_id: matchedIng?.id || sec.materia_prima_id,
+          nombre: secLabel,
+          clase: "infusion",
+          unidad: "kg",
+          stock: Number(sec.stock_disponible_kg ?? 0),
+          costo_unitario: Number(matchedIng?.precio_ref ?? 12000),
+          proveedor_nota: "Bosque Nativo · Recolección Silvestre",
+          origen: "recoleccion_infusion",
+          materia_prima_id: sec.materia_prima_id,
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error obteniendo stock seco de infusiones para recetas:", e);
+  }
+
+  // 4. Hidrolatos del alambique
+  try {
+    const { data: hidrolatos } = await fromLoose(supabase, "productos_destilacion")
+      .select("id, tipo, volumen_ml, unidades, precio_sugerido_clp, destilaciones(codigo, plantas_destilacion(nombre_comun))");
+
+    if (hidrolatos && hidrolatos.length > 0) {
+      const { data: ings } = await supabase
+        .from("ingredients")
+        .select("id, nombre, precio_ref")
+        .eq("empresa_id", empresaId)
+        .eq("categoria", "destilacion");
+
+      const ingMap = new Map((ings ?? []).map((i) => [i.nombre.toLowerCase(), i]));
+
+      for (const h of hidrolatos) {
+        const dest = (Array.isArray(h.destilaciones) ? h.destilaciones[0] : h.destilaciones) as unknown as Record<string, unknown> | null;
+        const planta = (Array.isArray(dest?.plantas_destilacion) ? dest.plantas_destilacion[0] : dest?.plantas_destilacion) as unknown as Record<string, unknown> | null;
+        const nombreComun = String(planta?.nombre_comun ?? h.tipo ?? "Hidrolato");
+        const destLabel = `Hidrolato de ${nombreComun}`;
+        const matchedIng = ingMap.get(destLabel.toLowerCase());
+
+        items.push({
+          id: `hidrolato_${h.id}`,
+          ingredient_id: matchedIng?.id || h.id,
+          nombre: destLabel,
+          clase: "destilacion",
+          unidad: "ml",
+          stock: Number((h.unidades ?? 1) * (h.volumen_ml ?? 100)),
+          costo_unitario: Number(matchedIng?.precio_ref ?? 35),
+          proveedor_nota: `Alambique · Destilación ${dest?.codigo || ''}`,
+          origen: "alambique",
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error obteniendo hidrolatos para recetas:", e);
+  }
+
+  return c.json({ data: items });
 });
 
-// ── INGREDIENTES DE FÓRMULA (Estrictamente sincronizados con Inventario → Insumos) ──
+// ── INGREDIENTES DE FÓRMULA (Sincronizados con Inventario y Recolecciones) ──
 
 costeoRoutes.get("/ingredientes", async (c) => {
   const supabase = c.get("supabase");
@@ -326,24 +635,10 @@ costeoRoutes.get("/ingredientes", async (c) => {
     await syncInventarioToIngredients(supabase, empresaId);
   }
 
-  const { data: activeInsumos } = await fromLoose(supabase, "inventario_items")
-    .select("ingredient_id")
-    .eq("activo", true)
-    .eq("clase", "insumo");
-
-  const validIngIds = ((activeInsumos as Array<{ ingredient_id?: string | null }>) ?? [])
-    .map((item) => item.ingredient_id)
-    .filter((id): id is string => Boolean(id));
-
-  if (validIngIds.length === 0) {
-    return c.json({ data: [] });
-  }
-
   let query = supabase
     .from("ingredients")
     .select("*, proveedor_ref_terceros:terceros(id, nombre, rut)")
     .eq("empresa_id", empresaId)
-    .in("id", validIngIds)
     .order("nombre");
 
   if (search && search.length >= 2) {
@@ -505,7 +800,7 @@ costeoRoutes.get("/recetas/:id", async (c) => {
     .eq("recipe_id", id)
     .order("orden");
 
-  // Enriquecer con stock actual en inventario_items
+  // Enriquecer con stock actual en inventario_items y orígenes de recolección
   const { data: invItems } = await fromLoose(supabase, "inventario_items")
     .select("id, nombre, clase, unidad, stock, stock_minimo, costo_unitario, proveedor_nota, ingredient_id")
     .eq("activo", true);
@@ -522,11 +817,64 @@ costeoRoutes.get("/recetas/:id", async (c) => {
     ingredient_id?: string | null;
   }>) ?? [];
 
+  // Obtener lotes de miel disponibles para enriquecer
+  const { data: lotesMiel } = await fromLoose(supabase, "lotes")
+    .select("id, nombre_lote, variedad_floral, kg_total")
+    .gt("kg_total", 0);
+
+  // Obtener stock seco de infusiones
+  const { data: stockSecoInfusiones } = await fromLoose(supabase, "v_infusion_stock_seco")
+    .select("materia_prima_id, materia_prima, stock_disponible_kg");
+
   const lines = ((rawLines as Array<Record<string, unknown>>) ?? []).map((l) => {
-    const ing = l.ingredients as { id?: string; nombre?: string } | undefined;
-    const inv = invList.find(
+    const ing = l.ingredients as { id?: string; nombre?: string; categoria?: string; precio_ref?: number; unidad?: string } | undefined;
+    let inv = invList.find(
       (item) => item.ingredient_id === l.ingredient_id || (ing?.nombre && item.nombre.toLowerCase() === ing.nombre.toLowerCase())
     );
+
+    // Fallback: si es un lote de miel
+    if (!inv && ing?.nombre && (ing.categoria === "miel" || ing.nombre.toLowerCase().includes("miel"))) {
+      const ingLower = ing.nombre.toLowerCase();
+      const matchedLote = (lotesMiel as Array<{ id: string; nombre_lote?: string; variedad_floral?: string; kg_total?: number }> ?? []).find(
+        (lm) => (lm.nombre_lote && ingLower.includes(lm.nombre_lote.toLowerCase())) ||
+               (lm.variedad_floral && ingLower.includes(lm.variedad_floral.toLowerCase()))
+      ) || lotesMiel?.[0];
+
+      if (matchedLote) {
+        inv = {
+          id: `lote_${matchedLote.id}`,
+          nombre: matchedLote.nombre_lote ? `Miel ${matchedLote.nombre_lote}` : `Miel ${matchedLote.variedad_floral || 'Nativa'}`,
+          clase: "miel",
+          unidad: "kg",
+          stock: Number(matchedLote.kg_total ?? 0),
+          stock_minimo: 10,
+          costo_unitario: Number(ing.precio_ref ?? 5000),
+          proveedor_nota: "Predio Pureo · Recolección Apícola",
+        };
+      }
+    }
+
+    // Fallback: si es infusión seca
+    if (!inv && ing?.nombre && (ing.categoria === "infusion" || ing.nombre.toLowerCase().includes("hierba"))) {
+      const ingLower = ing.nombre.toLowerCase();
+      const matchedSeco = (stockSecoInfusiones as Array<{ materia_prima_id?: string; materia_prima?: string; stock_disponible_kg?: number }> ?? []).find(
+        (s) => s.materia_prima && ingLower.includes(s.materia_prima.toLowerCase())
+      );
+
+      if (matchedSeco) {
+        inv = {
+          id: `infusion_${matchedSeco.materia_prima_id}`,
+          nombre: `${matchedSeco.materia_prima} (Hierba Seca)`,
+          clase: "infusion",
+          unidad: "kg",
+          stock: Number(matchedSeco.stock_disponible_kg ?? 0),
+          stock_minimo: 2,
+          costo_unitario: Number(ing.precio_ref ?? 12000),
+          proveedor_nota: "Bosque Nativo · Recolección Silvestre",
+        };
+      }
+    }
+
     return {
       ...l,
       inventario_item: inv ?? null,
@@ -653,13 +1001,13 @@ costeoRoutes.post("/recetas/:id/producir", zValidator("json", ProduccionLoteSche
   // 1. Obtener receta y producto
   const { data: recipe, error: rErr } = await supabase
     .from("recipes")
-    .select("*, productos(id, nombre, stock)")
+    .select("*, productos(id, nombre, stock, lote_id)")
     .eq("id", recipeId)
     .single();
 
   if (rErr || !recipe) return c.json({ code: "not_found", message: "Receta no encontrada" }, 404);
 
-  const producto = recipe.productos as { id: string; nombre: string; stock: number | null } | null;
+  const producto = recipe.productos as unknown as { id: string; nombre: string; stock: number | null; lote_id?: string | null } | null;
   if (!producto) return c.json({ code: "no_product", message: "La receta no tiene producto vinculado" }, 400);
 
   const frascosAProducir = recipe.rendimiento_frascos * cantidad_lotes;
@@ -750,6 +1098,47 @@ costeoRoutes.post("/recetas/:id/producir", zValidator("json", ProduccionLoteSche
             cantidad: cantidadTotalRequerida,
             nombre: invItem.nombre,
           });
+        }
+      } else if (ing?.nombre) {
+        // Deducir de lotes de miel si la línea corresponde a recolección apícola
+        const ingNameLower = ing.nombre.toLowerCase();
+        if (ingNameLower.includes("miel") || ingNameLower.includes("lote")) {
+          const { data: lotes } = await fromLoose(supabase, "lotes")
+            .select("id, nombre_lote, variedad_floral, kg_total")
+            .gt("kg_total", 0);
+
+          const matchedLote = (lotes as Array<{ id: string; nombre_lote?: string; variedad_floral?: string; kg_total?: number }> ?? []).find(
+            (l) => (l.nombre_lote && ingNameLower.includes(l.nombre_lote.toLowerCase())) ||
+                   (l.variedad_floral && ingNameLower.includes(l.variedad_floral.toLowerCase()))
+          ) || lotes?.[0];
+
+          if (matchedLote) {
+            const lineUnit = line.unidad || ing.unidad || "g";
+            let ratio = 1.0;
+            if (lineUnit === "g") ratio = 0.001; // g a kg
+            const factor = line.factor_conversion > 0 ? line.factor_conversion : 1.0;
+            const kgRequeridos = Number(((line.cantidad * ratio / factor) * cantidad_lotes).toFixed(3));
+
+            if (kgRequeridos > 0) {
+              const nuevoKg = Math.max(0, Number(matchedLote.kg_total ?? 0) - kgRequeridos);
+              await fromLoose(supabase, "lotes")
+                .update({ kg_total: nuevoKg })
+                .eq("id", matchedLote.id);
+
+              if (!producto.lote_id) {
+                await supabase
+                  .from("productos")
+                  .update({ lote_id: matchedLote.id })
+                  .eq("id", producto.id);
+              }
+
+              movimientosRealizados.push({
+                item_id: matchedLote.id,
+                cantidad: kgRequeridos,
+                nombre: `${ing.nombre} (${kgRequeridos} kg del Lote ${matchedLote.nombre_lote || 'Pureo'})`,
+              });
+            }
+          }
         }
       }
     }

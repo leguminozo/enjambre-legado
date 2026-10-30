@@ -78,7 +78,7 @@ export function EnjambreWelcomeClient({
             icon={<Gift size={20} />}
             title={t('canjeTitle')}
             description={t('canjeDesc')}
-            href="/perfil/canje"
+            href="/perfil/billetera?modal=canje"
             cta={t('canjeCta')}
           />
           <BenefitCard
@@ -151,7 +151,7 @@ export function EnjambreWelcomeClient({
             icon={<MapPin size={20} />}
             title={t('pasaporteTitle')}
             description={t('pasaporteDesc')}
-            href="/perfil/pasaporte"
+            href="/perfil/trazabilidad"
             cta={t('pasaporteCta')}
           />
         </section>

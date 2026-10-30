@@ -9,7 +9,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, toast, type ColumnDef,
+  Select, Badge, SkeletonTable, toast, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
@@ -54,13 +54,24 @@ function FormulaFormDialog({
     );
   }, [open, initial, reset]);
 
+  const onSubmit = (v: FormulaFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? `Editar ${initial.nombre}` : 'Nueva fórmula'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Nombre *" placeholder="Té de Menta y Melisa, Blend Bosque…" {...register('nombre')} error={errors.nombre?.message} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Gramaje por sachet (g) *" type="number" step="0.01" min="0" placeholder="2" {...register('gramaje_sachet_g')} error={errors.gramaje_sachet_g?.message} />
@@ -73,7 +84,7 @@ function FormulaFormDialog({
               />
             </div>
           </div>
-          <Textarea label="Descripción" placeholder="Notas de cata, uso sugerido, temporada…" rows={2} {...register('descripcion')} />
+          <Textarea label="Descripción" placeholder="Notas de cata, uso sugerido, temporada…" rows={2} {...register('descripcion')} error={errors.descripcion?.message} />
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={save.isPending}>
@@ -319,7 +330,21 @@ export function FormulasPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Fórmulas</CardTitle>
+            <CardDescription>Composiciones estandarizadas con control de proporciones e instrucciones de preparación.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-0">
@@ -348,7 +373,14 @@ export function FormulasPanel() {
             emptyState="Aún no hay fórmulas registradas."
           />
         </CardContent>
-        <FormulaFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+        <FormulaFormDialog
+          open={formOpen}
+          onOpenChange={(v) => {
+            setFormOpen(v);
+            if (!v) setEditing(null);
+          }}
+          initial={editing}
+        />
       </Card>
       {selected && <IngredientesEditor formula={selected} onClose={() => setSelected(null)} />}
     </div>

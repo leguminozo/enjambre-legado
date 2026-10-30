@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Card, CardContent, Input, toast, friendlyError } from '@enjambre/ui';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 import {
   PARES_SEMANTICOS, PUNTO_VENTA_TIPO_LABEL,
   type ChipCatalogoRow, type RegistroClienteValues,
@@ -293,7 +294,14 @@ function RegistroLocal({ codigo }: { codigo: string }) {
             <>
               <Input label="Nombre del local *" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Ciudad" value={form.ciudad} onChange={(e) => setForm({ ...form, ciudad: e.target.value })} />
+                <div>
+                  <Input label="Ciudad" list="ciudades-local-list" value={form.ciudad} onChange={(e) => setForm({ ...form, ciudad: e.target.value })} placeholder="Ej. Santiago, Castro..." />
+                  <datalist id="ciudades-local-list">
+                    {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
                 <Input label="Email" type="email" value={form.contacto_email} onChange={(e) => setForm({ ...form, contacto_email: e.target.value })} />
               </div>
               <Button variant="primary" className="w-full" onClick={registrar}>Registrar mi local</Button>

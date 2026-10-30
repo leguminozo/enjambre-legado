@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Textarea,
-  Select, Badge, ViewLoading, formatCLP, type ColumnDef,
+  Select, Badge, SkeletonTable, formatCLP, type ColumnDef,
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { FieldLabel } from './shared';
@@ -103,7 +103,21 @@ export function PedidosPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Microcanales" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Pedidos</CardTitle>
+            <CardDescription>Confirmar un pedido al por mayor dispara la retribución automática (rebate + velocity + depth + co-op).</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

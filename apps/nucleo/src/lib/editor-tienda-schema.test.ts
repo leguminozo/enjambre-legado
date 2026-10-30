@@ -128,7 +128,7 @@ describe('registro de schemas del editor', () => {
     expect(SECTION_SCHEMA_BY_KEY.floraciones_experience_settings.kind.kind).toBe('settings');
   });
 
-  it('Cata Floraciones declara las listas que pinta /experiencias/floraciones', () => {
+  it('Cata Floraciones declara las listas que pinta /experiencias/degustaciones', () => {
     const ids = FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA.fields.flatMap((f) =>
       'id' in f ? [f.id] : [],
     );

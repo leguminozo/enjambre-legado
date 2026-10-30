@@ -6,7 +6,6 @@ import {
   Truck,
   Package,
   Plus,
-  RefreshCw,
   Clock,
   RotateCcw,
   CheckCircle2,
@@ -30,7 +29,7 @@ import { DespachoEnviosSkeleton } from '@/components/shared/skeletons';
  */
 export function EnviosView() {
   const apiFetch = useApiFetch();
-  const { dashboard, isLoading, refetch, queryClient } = useLogisticaDashboard();
+  const { dashboard, isLoading, queryClient } = useLogisticaDashboard();
   const stats = dashboard.stats;
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -48,9 +47,18 @@ export function EnviosView() {
     mutationFn: async ({
       form,
       lineItems,
+      cliente,
     }: {
       form: typeof envioForm;
       lineItems?: Array<{ producto_id: string; cantidad: number }>;
+      cliente?: {
+        nombre: string;
+        telefono?: string;
+        email?: string;
+        direccion?: string;
+        canal?: string;
+        guardar_crm?: boolean;
+      };
     }) => {
       const res = await apiFetch('/api/logistica/envios', {
         method: 'POST',
@@ -63,6 +71,7 @@ export function EnviosView() {
           courier_code: form.courier_code,
           venta_id: form.venta_id || null,
           line_items: lineItems?.length ? lineItems : undefined,
+          cliente,
         }),
       });
       if (!res.ok) {
@@ -76,14 +85,14 @@ export function EnviosView() {
       return res.json();
     },
     onSuccess: () => {
-      toast('Envío registrado', { type: 'success' });
+      toast('Despacho registrado correctamente', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['logistica'] });
       setShowNewEnvio(false);
       setEnvioForm({
-        tracking_code: `ENV-${Math.floor(Math.random() * 10000)}`,
+        tracking_code: `LEG-${Math.floor(1000 + Math.random() * 9000)}`,
         destino: '',
         items: '',
-        status: 'En tránsito',
+        status: 'Empacando',
         eta: '',
         courier_code: DEFAULT_COURIER,
       });
@@ -152,7 +161,17 @@ export function EnviosView() {
   const filteredEnvios =
     statusFilter === 'all'
       ? dashboard.envios
-      : dashboard.envios.filter((e) => e.status === statusFilter);
+      : statusFilter === 'pendiente'
+        ? dashboard.envios.filter(
+            (e) =>
+              e.status === 'pendiente' ||
+              e.status === 'Empacando' ||
+              e.status === 'Programado' ||
+              e.status === 'empacando',
+          )
+        : dashboard.envios.filter(
+            (e) => e.status.toLowerCase() === statusFilter.toLowerCase(),
+          );
 
   const statusEntries = Object.entries(stats.byStatus);
 
@@ -175,31 +194,52 @@ export function EnviosView() {
             icon: <Truck size={20} />,
             val: String(stats.enTransito),
             label: 'En tránsito',
+            statusKey: 'En tránsito',
           },
           {
             icon: <Package size={20} />,
             val: String(stats.pendientes + stats.empacando),
             label: 'Pendientes / empacando',
+            statusKey: 'pendiente',
           },
           {
             icon: <Clock size={20} />,
             val: String(stats.entregados),
             label: 'Entregados',
+            statusKey: 'Entregado',
           },
           {
             icon: <Package size={20} />,
             val: String(stats.totalEnvios),
             label: 'Total registrados',
+            statusKey: 'all',
           },
-        ].map((s, i) => (
-          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
-            <div className="stat-header">
-              <div className="stat-icon">{s.icon}</div>
-            </div>
-            <div className="stat-value">{s.val}</div>
-            <div className="stat-label">{s.label}</div>
-          </div>
-        ))}
+        ].map((s, i) => {
+          const isActive = statusFilter === s.statusKey;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() =>
+                setStatusFilter(isActive && s.statusKey !== 'all' ? 'all' : s.statusKey)
+              }
+              className={`stat-card text-left transition-all hover:border-accent/60 cursor-pointer ${
+                isActive ? 'ring-2 ring-accent border-accent/80 bg-accent/5' : ''
+              } animate-in delay-${i + 1}`}
+            >
+              <div className="stat-header">
+                <div className="stat-icon">{s.icon}</div>
+                {isActive && (
+                  <span className="text-[10px] text-accent font-semibold uppercase tracking-wider">
+                    Activo
+                  </span>
+                )}
+              </div>
+              <div className="stat-value">{s.val}</div>
+              <div className="stat-label">{s.label}</div>
+            </button>
+          );
+        })}
       </div>
 
       <div className="dashboard-grid dashboard-grid-2-1">
@@ -212,24 +252,14 @@ export function EnviosView() {
                   {stats.totalEnvios} envío(s) registrado(s)
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void refetch()}
-                  className="p-2 rounded-lg border border-border hover:border-accent/50 text-muted-foreground hover:text-accent transition-colors min-h-11 min-w-11 inline-flex items-center justify-center"
-                  title="Refrescar"
-                >
-                  <RefreshCw size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setShowNewEnvio(true)}
-                >
-                  <Plus size={14} className="mr-1" />
-                  Nuevo envío
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => setShowNewEnvio(true)}
+              >
+                <Plus size={14} className="mr-1" />
+                Nuevo envío
+              </button>
             </div>
 
             {statusEntries.length > 0 && (
@@ -450,11 +480,12 @@ export function EnviosView() {
         onFormChange={setEnvioForm}
         productos={dashboard.productos}
         productosLoading={isLoading}
-        enviosHistoricos={dashboard.envios}
         ventasRecientes={dashboard.ventasRecientes.filter(
           (v) => v.pendiente_envio !== false,
         )}
-        onSubmit={(form, lineItems) => createEnvio.mutate({ form, lineItems })}
+        onSubmit={(form, lineItems, cliente) =>
+          createEnvio.mutate({ form, lineItems, cliente })
+        }
         submitting={createEnvio.isPending}
       />
     </div>

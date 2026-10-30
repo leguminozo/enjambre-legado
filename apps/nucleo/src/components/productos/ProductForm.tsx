@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3, QrCode, Link2, Search, Check } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3, QrCode, Link2, Search, Check, ShieldCheck } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
@@ -22,6 +22,9 @@ import {
   FORTIFICANTES_CANONICOS,
   FORTIFICANTES_LABELS,
   PARES_SEMANTICOS_POR_CATEGORIA,
+  EJES_SENSORIALES_POR_CATEGORIA,
+  VALORES_DEFAULT_EJES,
+  resolverEjesSensoriales,
   type CategoriaSensorial,
   type FortificanteCanonico,
   type ProductoVariante,
@@ -76,6 +79,7 @@ export function ProductForm({
   const [showPreview, setShowPreview] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showSensorial, setShowSensorial] = useState(false);
+  const [showFichaTecnica, setShowFichaTecnica] = useState(false);
   const [availableChips, setAvailableChips] = useState<string[]>([]);
   const [newCustomNota, setNewCustomNota] = useState('');
   const [newMaridajeTitulo, setNewMaridajeTitulo] = useState('');
@@ -217,6 +221,8 @@ export function ProductForm({
         notas_aromaticas: [],
         maridajes: [],
         momento_consumo: '',
+        advertencia_sanitaria: '',
+        atributos: [],
       },
     },
   });
@@ -255,6 +261,8 @@ export function ProductForm({
           notas_aromaticas: [],
           maridajes: [],
           momento_consumo: '',
+          advertencia_sanitaria: '',
+          atributos: [],
         },
       });
     }
@@ -290,6 +298,73 @@ export function ProductForm({
     notas_aromaticas: [],
     maridajes: [],
     momento_consumo: '',
+    advertencia_sanitaria: '',
+    atributos: [],
+  };
+
+  const rawAtributos = (perfilSensorial as { atributos?: Array<{ label: string; value: string }> })?.atributos;
+  const atributosList: Array<{ label: string; value: string }> = Array.isArray(rawAtributos) ? rawAtributos : [];
+
+  const addAtributo = (label = '', value = '') => {
+    setValue('perfil_sensorial.atributos', [...atributosList, { label, value }], {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const updateAtributo = (index: number, field: 'label' | 'value', value: string) => {
+    const next = [...atributosList];
+    if (next[index]) {
+      next[index] = { ...next[index], [field]: value };
+      setValue('perfil_sensorial.atributos', next, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  };
+
+  const removeAtributo = (index: number) => {
+    const next = atributosList.filter((_, i) => i !== index);
+    setValue('perfil_sensorial.atributos', next, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const applyAtributosTemplate = (templateKey: 'infusion' | 'miel' | 'hidrolato' | 'cera') => {
+    const templates: Record<string, Array<{ label: string; value: string }>> = {
+      infusion: [
+        { label: 'Origen Botánico', value: 'Fiordos de Compu, Chiloé' },
+        { label: 'Parte Utilizada', value: '100% Hoja entera seleccionada a mano' },
+        { label: 'Preparación Sugerida', value: 'Infusión a 85°C – 90°C durante 4 a 5 minutos' },
+        { label: 'Presentación', value: '12 sachets biodegradables / 13g neto' },
+      ],
+      miel: [
+        { label: 'Origen Territorial', value: 'Bosque nativo de Chiloé' },
+        { label: 'Floración Predominante', value: 'Monofloral de Ulmo silvestre' },
+        { label: 'Método de Extracción', value: 'Filtrado en frío, cruda y sin pasteurizar' },
+        { label: 'Presentación', value: 'Frasco de vidrio / 900g neto' },
+      ],
+      hidrolato: [
+        { label: 'Método de Destilación', value: 'Arrastre de vapor en alambique de cobre' },
+        { label: 'Especie Botánica', value: 'Hojas y corteza de bosque nativo' },
+        { label: 'Uso Recomendado', value: 'Tónico facial / aromaterapia dérmica' },
+        { label: 'Pureza', value: '100% agua botánica pura sin alcohol ni conservantes' },
+      ],
+      cera: [
+        { label: 'Composición Noble', value: 'Cera de opérculo virgen y aceite de linaza prensado' },
+        { label: 'Superficies Aptas', value: 'Cuero curtido vegetal, maderas nobles y metales' },
+        { label: 'Acabado y Protección', value: 'Hidrorrepelente natural, nutrición profunda y brillo satinado' },
+        { label: 'Rendimiento Estimado', value: '50g rinde hasta 10 m² de superficie' },
+      ],
+    };
+    const tpl = templates[templateKey];
+    if (!tpl) return;
+    if (atributosList.length === 0) {
+      setValue('perfil_sensorial.atributos', tpl, { shouldDirty: true, shouldValidate: true });
+    } else {
+      setValue('perfil_sensorial.atributos', [...atributosList, ...tpl], { shouldDirty: true, shouldValidate: true });
+    }
   };
 
   const toggleNotaAromatica = (chip: string) => {
@@ -624,6 +699,32 @@ export function ProductForm({
 
   const matchedFormat = formatOptionsForSelect.find((f) => f.value === formatoActual);
   const loteSeleccionado = lotes.find((l) => l.id === loteIdActual);
+
+  const nombreActual = watch('nombre') || '';
+  const activeSensoryAxes = resolverEjesSensoriales(tipoSensorialActual, nombreActual);
+  const ejesCalibracion = (perfilSensorial as { ejes_calibracion?: Record<string, number> })?.ejes_calibracion || {};
+
+  const handleAxisChange = (axisName: string, val: number) => {
+    const current = (getValues('perfil_sensorial.ejes_calibracion') as Record<string, number> | undefined) || {};
+    setValue(
+      'perfil_sensorial.ejes_calibracion',
+      {
+        ...current,
+        [axisName]: val,
+      },
+      { shouldDirty: true, shouldValidate: true },
+    );
+  };
+
+  const handleLoadDefaultAxes = () => {
+    const next: Record<string, number> = {};
+    activeSensoryAxes.forEach((axis: string) => {
+      const def = VALORES_DEFAULT_EJES[axis] ?? 75;
+      next[axis] = def;
+    });
+    setValue('perfil_sensorial.ejes_calibracion', next, { shouldDirty: true, shouldValidate: true });
+    toast.success('Valores canónicos cargados para la constelación sensorial.');
+  };
 
   const handleFormatoChange = (nuevoFormato: string) => {
     setValue('formato', nuevoFormato, { shouldValidate: true, shouldDirty: true });
@@ -1093,6 +1194,163 @@ export function ProductForm({
             )}
           </div>
 
+          {/* Ficha Técnica & Atributos de Origen (Neutral PDP) */}
+          <div className="border border-border rounded-md overflow-hidden bg-foreground/[0.01] mt-2">
+            <button
+              type="button"
+              onClick={() => setShowFichaTecnica(!showFichaTecnica)}
+              className="w-full flex items-center justify-between p-4 text-sm font-medium text-foreground hover:bg-foreground/[0.02] transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-primary" />
+                <span className="font-semibold">Ficha Técnica & Atributos de Origen (PDP)</span>
+                {atributosList.length > 0 && (
+                  <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    {atributosList.length} {atributosList.length === 1 ? 'atributo' : 'atributos'}
+                  </span>
+                )}
+              </div>
+              {showFichaTecnica ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showFichaTecnica && (
+              <div className="p-5 border-t border-border flex flex-col gap-6 bg-surface-sunken/30">
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-muted-foreground flex items-start gap-2.5">
+                  <Info size={16} className="text-primary shrink-0 mt-0.5" />
+                  <span>
+                    Estos bloques neutrales se exhiben bajo la galería de imágenes en la tienda. Permiten especificar con precisión las advertencias de uso y los atributos de elaboración para cualquier categoría (miel, infusiones, hidrolatos, ceras, etc.), sin mezclar datos técnicos con la narrativa editorial.
+                  </span>
+                </div>
+
+                {/* Advertencia Sanitaria / Precaución de Uso */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                    Advertencia Sanitaria o Precaución de Uso (opcional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={(perfilSensorial as { advertencia_sanitaria?: string })?.advertencia_sanitaria || ''}
+                    onChange={(e) =>
+                      setValue('perfil_sensorial.advertencia_sanitaria', e.target.value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    placeholder="Ej. Esta infusión no es apta para embarazadas, lactantes ni personas con problemas renales. / Uso externo únicamente. Evitar contacto con ojos."
+                    className="input-field text-xs p-3 resize-y"
+                  />
+                  <span className="text-[0.7rem] text-muted-foreground">
+                    Aparece destacada en una tarjeta de advertencia en la tienda. Vital para infusiones botánicas, cosmética o contraindicaciones de salud.
+                  </span>
+                </div>
+
+                {/* Atributos de Origen & Elaboración (Pares Clave-Valor) */}
+                <div className="space-y-3 pt-2 border-t border-border/40">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                        Atributos de Origen & Elaboración
+                      </label>
+                      <span className="text-[0.7rem] text-muted-foreground">
+                        Pares de certeza técnica exhibidos en cuadrícula en la tienda (reverso de etiqueta).
+                      </span>
+                    </div>
+
+                    {/* Botones de Plantilla Rápida */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mr-1">
+                        Plantillas:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => applyAtributosTemplate('infusion')}
+                        className="px-2 py-1 rounded bg-card border border-border text-[10px] font-medium text-foreground/80 hover:text-foreground hover:border-primary/50 transition-colors"
+                        title="Cargar atributos recomendados para Infusiones"
+                      >
+                        Infusión
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyAtributosTemplate('miel')}
+                        className="px-2 py-1 rounded bg-card border border-border text-[10px] font-medium text-foreground/80 hover:text-foreground hover:border-primary/50 transition-colors"
+                        title="Cargar atributos recomendados para Miel"
+                      >
+                        Miel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyAtributosTemplate('hidrolato')}
+                        className="px-2 py-1 rounded bg-card border border-border text-[10px] font-medium text-foreground/80 hover:text-foreground hover:border-primary/50 transition-colors"
+                        title="Cargar atributos recomendados para Hidrolatos"
+                      >
+                        Hidrolato
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyAtributosTemplate('cera')}
+                        className="px-2 py-1 rounded bg-card border border-border text-[10px] font-medium text-foreground/80 hover:text-foreground hover:border-primary/50 transition-colors"
+                        title="Cargar atributos recomendados para Cera y Linaza"
+                      >
+                        Cera
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Lista de Atributos */}
+                  <div className="space-y-2">
+                    {atributosList.length === 0 ? (
+                      <div className="p-4 rounded-lg border border-dashed border-border/80 bg-card/30 text-center">
+                        <p className="text-xs text-muted-foreground italic">
+                          Sin atributos técnicos declarados. Elige una plantilla rápida arriba o pulsa &quot;Añadir Atributo&quot;.
+                        </p>
+                      </div>
+                    ) : (
+                      atributosList.map((attr, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 p-2 rounded-lg border border-border/60 bg-card"
+                        >
+                          <input
+                            type="text"
+                            value={attr.label}
+                            onChange={(e) => updateAtributo(idx, 'label', e.target.value)}
+                            placeholder="Etiqueta (ej. Origen, Selección)"
+                            className="input-field text-xs p-2 flex-[0.4] min-w-0"
+                          />
+                          <input
+                            type="text"
+                            value={attr.value}
+                            onChange={(e) => updateAtributo(idx, 'value', e.target.value)}
+                            placeholder="Valor (ej. Fiordos de Compu, Chiloé)"
+                            className="input-field text-xs p-2 flex-[0.6] min-w-0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeAtributo(idx)}
+                            className="p-2 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                            title="Eliminar atributo"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => addAtributo('', '')}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-surface-raised text-xs font-medium text-foreground transition-colors"
+                    >
+                      <Plus size={13} className="text-primary" />
+                      <span>Añadir Atributo</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Perfil Sensorial & Organoléptico Canónico */}
           <div className="border border-border rounded-md overflow-hidden bg-foreground/[0.01] mt-2">
             <button
@@ -1159,83 +1417,157 @@ export function ProductForm({
                   </div>
                 </div>
 
-                {/* Métricas Organolépticas de Cata adaptativas */}
-                {(() => {
-                  const currentTipo = (watch('tipo_sensorial') || 'miel') as CategoriaSensorial;
-                  const pairs = PARES_SEMANTICOS_POR_CATEGORIA[currentTipo] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
-                  return (
-                    <div className="space-y-5">
-                      {/* Dimensión 1 */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="text-muted-foreground">{pairs[0]?.izq ?? 'Suave'}</span>
-                          <span className="text-foreground font-bold">
-                            {pairs[0]?.par ?? 'Intensidad'}: {perfilSensorial.intensidad ?? 75}%
-                          </span>
-                          <span className="text-muted-foreground">{pairs[0]?.der ?? 'Intenso'}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={perfilSensorial.intensidad ?? 75}
-                          onChange={(e) =>
-                            setValue('perfil_sensorial.intensidad', Number(e.target.value), {
-                              shouldDirty: true,
-                            })
-                          }
-                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                        />
+                {/* Calibración Canónica de los 8 Ejes de la Constelación */}
+                <div className="space-y-4 pt-2 border-t border-border/40">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                          Calibración de la Constelación Sensorial (8 Ejes Canónicos)
+                        </label>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
+                          {tipoSensorialActual}
+                        </span>
                       </div>
-
-                      {/* Dimensión 2 */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="text-muted-foreground">{pairs[1]?.izq ?? 'Equilibrado'}</span>
-                          <span className="text-foreground font-bold">
-                            {pairs[1]?.par ?? 'Balance'}: {perfilSensorial.dulzor_acidez ?? 60}%
-                          </span>
-                          <span className="text-muted-foreground">{pairs[1]?.der ?? 'Marcado'}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={perfilSensorial.dulzor_acidez ?? 60}
-                          onChange={(e) =>
-                            setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
-                              shouldDirty: true,
-                            })
-                          }
-                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                        />
-                      </div>
-
-                      {/* Dimensión 3 */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="text-muted-foreground">{pairs[2]?.izq ?? 'Fluido'}</span>
-                          <span className="text-foreground font-bold">
-                            {pairs[2]?.par ?? 'Textura'}: {perfilSensorial.textura ?? 85}%
-                          </span>
-                          <span className="text-muted-foreground">{pairs[2]?.der ?? 'Denso'}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={perfilSensorial.textura ?? 85}
-                          onChange={(e) =>
-                            setValue('perfil_sensorial.textura', Number(e.target.value), {
-                              shouldDirty: true,
-                            })
-                          }
-                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                        />
-                      </div>
+                      <span className="text-[0.7rem] text-muted-foreground block mt-0.5">
+                        Calibra la geometría del radar SVG para el PDP de la tienda y la ficha de cata de Campo POS.
+                      </span>
                     </div>
-                  );
-                })()}
+
+                    <button
+                      type="button"
+                      onClick={handleLoadDefaultAxes}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-card border border-border text-xs font-semibold text-foreground/80 hover:text-foreground hover:border-primary/50 transition-colors self-start sm:self-auto"
+                      title="Cargar valores canónicos recomendados según botánica de origen"
+                    >
+                      <Sparkles size={13} className="text-primary" />
+                      <span>Cargar valores canónicos</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                    {activeSensoryAxes.map((axis: string) => {
+                      const currentVal = ejesCalibracion[axis] ?? VALORES_DEFAULT_EJES[axis] ?? 75;
+                      const displayScore = (currentVal / 10).toFixed(1);
+
+                      return (
+                        <div
+                          key={axis}
+                          className="p-3 rounded-xl bg-card border border-border/60 hover:border-border transition-colors space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-foreground">{axis}</span>
+                            <span className="font-mono text-[11px] text-primary font-bold">
+                              {currentVal}% · <span className="text-muted-foreground">{displayScore}/10</span>
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={10}
+                            max={100}
+                            step={1}
+                            value={currentVal}
+                            onChange={(e) => handleAxisChange(axis, Number(e.target.value))}
+                            className="w-full accent-primary h-1.5 bg-border rounded-lg cursor-pointer"
+                          />
+                          <div className="flex justify-between text-[9px] text-muted-foreground/60">
+                            <span>Sutil (1.0)</span>
+                            <span>Intenso (10.0)</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Métricas de Resumen Rápido (3 Dimensiones Primarias) */}
+                <div className="space-y-4 pt-2 border-t border-border/40">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                      Métricas de Resumen Rápido (3 Dimensiones Primarias)
+                    </label>
+                    <span className="text-[0.7rem] text-muted-foreground">
+                      Dimensiones condensadas exhibidas en badges y tarjetas compactas.
+                    </span>
+                  </div>
+
+                  {(() => {
+                    const currentTipo = (watch('tipo_sensorial') || 'miel') as CategoriaSensorial;
+                    const pairs = PARES_SEMANTICOS_POR_CATEGORIA[currentTipo] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
+                    return (
+                      <div className="space-y-5">
+                        {/* Dimensión 1 */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-muted-foreground">{pairs[0]?.izq ?? 'Suave'}</span>
+                            <span className="text-foreground font-bold">
+                              {pairs[0]?.par ?? 'Intensidad'}: {perfilSensorial.intensidad ?? 75}%
+                            </span>
+                            <span className="text-muted-foreground">{pairs[0]?.der ?? 'Intenso'}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={perfilSensorial.intensidad ?? 75}
+                            onChange={(e) =>
+                              setValue('perfil_sensorial.intensidad', Number(e.target.value), {
+                                shouldDirty: true,
+                              })
+                            }
+                            className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                          />
+                        </div>
+
+                        {/* Dimensión 2 */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-muted-foreground">{pairs[1]?.izq ?? 'Equilibrado'}</span>
+                            <span className="text-foreground font-bold">
+                              {pairs[1]?.par ?? 'Balance'}: {perfilSensorial.dulzor_acidez ?? 60}%
+                            </span>
+                            <span className="text-muted-foreground">{pairs[1]?.der ?? 'Marcado'}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={perfilSensorial.dulzor_acidez ?? 60}
+                            onChange={(e) =>
+                              setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
+                                shouldDirty: true,
+                              })
+                            }
+                            className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                          />
+                        </div>
+
+                        {/* Dimensión 3 */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-muted-foreground">{pairs[2]?.izq ?? 'Fluido'}</span>
+                            <span className="text-foreground font-bold">
+                              {pairs[2]?.par ?? 'Textura'}: {perfilSensorial.textura ?? 85}%
+                            </span>
+                            <span className="text-muted-foreground">{pairs[2]?.der ?? 'Denso'}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={perfilSensorial.textura ?? 85}
+                            onChange={(e) =>
+                              setValue('perfil_sensorial.textura', Number(e.target.value), {
+                                shouldDirty: true,
+                              })
+                            }
+                            className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
 
                 {/* Notas Aromáticas & Chips */}
                 <div className="space-y-3 pt-2 border-t border-border/40">

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Button, Input, Label, toast, ViewLoading, ImmersiveModal, Badge,
+  Button, Input, Label, toast, SkeletonTable, ImmersiveModal, Badge,
 } from '@enjambre/ui';
 import { Droplets, Calendar, Plus, Link2 } from 'lucide-react';
 import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
@@ -249,7 +249,7 @@ export function RecoleccionPanel() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <ViewLoading variant="inline" label="Recolección" hideLabel />
+            <SkeletonTable rows={5} columns={6} />
           ) : rows.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No hay recolecciones registradas.</p>
           ) : (

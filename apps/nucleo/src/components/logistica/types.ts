@@ -97,6 +97,18 @@ export type LogisticaDashboard = {
     created_at: string | null;
     metodo_pago: string | null;
     items?: Array<{ cantidad: number; nombre: string }>;
+    buyer_email?: string | null;
+    direccion_envio?: {
+      nombre?: string;
+      email?: string;
+      telefono?: string;
+      direccion?: string;
+      comuna?: string;
+      ciudad?: string;
+      region?: string;
+      instrucciones?: string;
+    } | null;
+    buy_order?: string | null;
     /** Verdad única de "ya enviado": false si la venta ya tiene envío en la empresa. */
     pendiente_envio?: boolean;
   }>;

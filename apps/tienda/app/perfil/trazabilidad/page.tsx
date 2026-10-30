@@ -84,13 +84,13 @@ export default async function TrazabilidadPage({
       if (colmenaId) {
         const { data: pesoRow } = await supabase
           .from('peso_records')
-          .select('peso')
+          .select('kg')
           .eq('colmena_id', colmenaId)
-          .order('fecha', { ascending: false })
+          .order('date', { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (pesoRow && typeof pesoRow.peso === 'number') {
-          latestPesoKg = pesoRow.peso;
+        if (pesoRow && typeof pesoRow.kg === 'number') {
+          latestPesoKg = pesoRow.kg;
         }
       }
 
@@ -99,13 +99,13 @@ export default async function TrazabilidadPage({
       if (colmenaId) {
         const { data: inspRow } = await supabase
           .from('inspecciones')
-          .select('observaciones, notas')
+          .select('notes')
           .eq('colmena_id', colmenaId)
-          .order('fecha', { ascending: false })
+          .order('date', { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (inspRow?.observaciones || inspRow?.notas) {
-          latestNote = String(inspRow.observaciones || inspRow.notas);
+        if (inspRow?.notes) {
+          latestNote = String(inspRow.notes);
         }
       }
 
@@ -141,13 +141,13 @@ export default async function TrazabilidadPage({
       if (centinelaId) {
         const { data: pesoRow } = await supabase
           .from('peso_records')
-          .select('peso')
+          .select('kg')
           .eq('colmena_id', centinelaId)
-          .order('fecha', { ascending: false })
+          .order('date', { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (pesoRow && typeof pesoRow.peso === 'number') {
-          latestPesoKg = pesoRow.peso;
+        if (pesoRow && typeof pesoRow.kg === 'number') {
+          latestPesoKg = pesoRow.kg;
         }
       }
 
@@ -155,13 +155,13 @@ export default async function TrazabilidadPage({
       if (centinelaId) {
         const { data: inspRow } = await supabase
           .from('inspecciones')
-          .select('observaciones, notas')
+          .select('notes')
           .eq('colmena_id', centinelaId)
-          .order('fecha', { ascending: false })
+          .order('date', { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (inspRow?.observaciones || inspRow?.notas) {
-          latestNote = String(inspRow.observaciones || inspRow.notas);
+        if (inspRow?.notes) {
+          latestNote = String(inspRow.notes);
         }
       }
 
@@ -248,7 +248,7 @@ export default async function TrazabilidadPage({
             {
               evento: 'Extracción en Frío por Centrifugado',
               fecha: '16 Feb 2026 · 11:15',
-              ubicacion: 'Sala de Cosecha Pureo',
+              ubicacion: 'Sala de Extracción Pureo',
               valido: true,
             },
             {
@@ -355,7 +355,7 @@ export default async function TrazabilidadPage({
           {
             evento: 'Extracción en Frío',
             fecha: dbLote.created_at ? formatCalendarDate(dbLote.created_at) : 'Verano 2026',
-            ubicacion: 'Sala de Cosecha',
+            ubicacion: 'Sala de Extracción',
             valido: true,
           },
           {

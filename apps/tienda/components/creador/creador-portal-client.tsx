@@ -7,7 +7,9 @@ import {
   friendlyError,
   friendlySupabaseError,
   toast,
-  ViewLoading,
+  Skeleton,
+  SkeletonKpi,
+  SkeletonTable,
   EmptyState,
   ModuleHero,
 } from '@enjambre/ui';
@@ -230,7 +232,22 @@ export function CreadorPortalClient() {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Portal de embajador" hideLabel />;
+    return (
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando portal de embajador">
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
+          <Skeleton variant="text" className="w-24 h-3" />
+          <Skeleton variant="text" className="w-48 h-7" />
+          <Skeleton variant="text" className="w-72 max-w-full h-3.5" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+        </div>
+        <SkeletonTable rows={4} columns={4} />
+      </div>
+    );
   }
 
   if (!profile) {

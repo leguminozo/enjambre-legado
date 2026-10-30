@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle, Compass } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, cn } from '@enjambre/ui';
+import { friendlyError, toast, Skeleton, SkeletonKpi, SkeletonTable, ImmersiveModal, cn } from '@enjambre/ui';
 import type { ProductFormat, ProductCategory, ProductSensoryFamily } from '@/lib/product-types';
 import { extractGramajeFromFormato } from '@/lib/product-types';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -254,7 +254,16 @@ export function TaxonomiasPanel() {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Formatos y Categorías" hideLabel />;
+    return (
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando formatos y categorías">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+        </div>
+        <SkeletonTable rows={5} columns={4} />
+      </div>
+    );
   }
 
   return (

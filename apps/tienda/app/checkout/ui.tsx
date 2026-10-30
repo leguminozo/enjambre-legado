@@ -57,6 +57,18 @@ import { getDirecciones } from '@/app/actions/direcciones';
 import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
 import { validarRUT, formatearRUT } from '@/lib/shop/rut';
 
+const ATAJOS_CHECKOUT_DESTINOS = [
+  { label: 'Castro', comuna: 'Castro', region: 'Los Lagos' },
+  { label: 'Ancud', comuna: 'Ancud', region: 'Los Lagos' },
+  { label: 'Puerto Varas', comuna: 'Puerto Varas', region: 'Los Lagos' },
+  { label: 'Puerto Montt', comuna: 'Puerto Montt', region: 'Los Lagos' },
+  { label: 'Providencia (RM)', comuna: 'Providencia', region: 'Metropolitana' },
+  { label: 'Las Condes (RM)', comuna: 'Las Condes', region: 'Metropolitana' },
+  { label: 'Santiago Centro (RM)', comuna: 'Santiago', region: 'Metropolitana' },
+  { label: 'Viña del Mar', comuna: 'Viña del Mar', region: 'Valparaíso' },
+  { label: 'Concepción', comuna: 'Concepción', region: 'Biobío' },
+] as const;
+
 type BuyerMode = 'legado' | 'privada';
 
 type ShippingForm = {
@@ -985,6 +997,19 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     }
   };
 
+  const aplicarAtajoCheckout = (item: { comuna: string; region: string }) => {
+    setShipping((prev) => {
+      const sugerida = getSugerenciaCiudad(item.comuna, item.region) || item.comuna;
+      return {
+        ...prev,
+        region: item.region,
+        comuna: item.comuna,
+        ciudad: sugerida,
+      };
+    });
+    writeCommerceStorage(SHIPPING_REGION_STORAGE_KEY, item.region);
+  };
+
   const inputCls = (key: keyof ShippingForm) =>
     `w-full min-h-[44px] rounded-lg border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all ${
       validationErrors[key] ? 'border-destructive' : 'border-border'
@@ -1357,6 +1382,33 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                       />
                       {validationErrors.telefono && <p className="text-xs text-destructive mt-1">{validationErrors.telefono}</p>}
                     </div>
+
+                    {/* Atajos territoriales frecuentes */}
+                    <div className="sm:col-span-2 space-y-1.5 pt-1">
+                      <p className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
+                        Destinos habituales de despacho
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ATAJOS_CHECKOUT_DESTINOS.map((at) => {
+                          const isSel = shipping.comuna.toLowerCase() === at.comuna.toLowerCase();
+                          return (
+                            <button
+                              key={at.label}
+                              type="button"
+                              onClick={() => aplicarAtajoCheckout(at)}
+                              className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                                isSel
+                                  ? 'border-accent bg-accent/20 text-accent font-medium'
+                                  : 'border-border/60 bg-secondary/40 text-muted-foreground hover:border-accent/40 hover:text-foreground'
+                              }`}
+                            >
+                              {at.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Región *</label>
                       <select

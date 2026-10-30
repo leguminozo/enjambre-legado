@@ -1,9 +1,32 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useMemo } from 'react';
 import { toast, friendlyError } from '@enjambre/ui';
 import { type DireccionFormData, direccionSchema } from '@/lib/shop/direcciones-schema';
+import {
+  CHILE_REGIONES_DPA,
+  CHILE_COMUNAS_POR_REGION,
+  getComunasPorRegion,
+  getRegionDeComuna,
+  getSugerenciaCiudad,
+} from '@enjambre/logistica';
 import { ZodError } from 'zod';
+
+const DESTINOS_FRECUENTES_TIENDA = [
+  { label: 'Castro', comuna: 'Castro', region: 'Los Lagos' },
+  { label: 'Ancud', comuna: 'Ancud', region: 'Los Lagos' },
+  { label: 'Puerto Varas', comuna: 'Puerto Varas', region: 'Los Lagos' },
+  { label: 'Puerto Montt', comuna: 'Puerto Montt', region: 'Los Lagos' },
+  { label: 'Providencia (RM)', comuna: 'Providencia', region: 'Metropolitana' },
+  { label: 'Las Condes (RM)', comuna: 'Las Condes', region: 'Metropolitana' },
+  { label: 'Santiago Centro (RM)', comuna: 'Santiago', region: 'Metropolitana' },
+  { label: 'Viña del Mar', comuna: 'Viña del Mar', region: 'Valparaíso' },
+  { label: 'Concepción', comuna: 'Concepción', region: 'Biobío' },
+] as const;
+
+const TODAS_LAS_COMUNAS = Object.values(CHILE_COMUNAS_POR_REGION)
+  .flat()
+  .sort((a, b) => a.localeCompare(b, 'es'));
 
 interface DireccionFormProps {
   initialData?: DireccionFormData;
@@ -27,6 +50,67 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
   const [formData, setFormData] = useState<DireccionFormData>(initialData || defaultData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
+
+  const comunasDisponibles = useMemo(() => {
+    if (formData.region) {
+      return getComunasPorRegion(formData.region);
+    }
+    return TODAS_LAS_COMUNAS;
+  }, [formData.region]);
+
+  const handleComunaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const detectedRegion = getRegionDeComuna(val);
+    const targetRegion = detectedRegion || formData.region;
+    const sugerida = getSugerenciaCiudad(val, targetRegion);
+
+    setFormData((prev) => ({
+      ...prev,
+      comuna: val,
+      region: targetRegion,
+      ciudad: sugerida || prev.ciudad,
+    }));
+
+    if (errors.comuna) setErrors((prev) => ({ ...prev, comuna: '' }));
+    if (detectedRegion && errors.region) setErrors((prev) => ({ ...prev, region: '' }));
+    if (sugerida && errors.ciudad) setErrors((prev) => ({ ...prev, ciudad: '' }));
+  };
+
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRegion = e.target.value;
+    let nextComuna = formData.comuna;
+    let nextCiudad = formData.ciudad;
+
+    if (newRegion) {
+      const comunasDeNuevaRegion = getComunasPorRegion(newRegion);
+      if (formData.comuna && !comunasDeNuevaRegion.some((c) => c.toLowerCase() === formData.comuna.toLowerCase())) {
+        nextComuna = '';
+        nextCiudad = '';
+      } else if (formData.comuna) {
+        nextCiudad = getSugerenciaCiudad(formData.comuna, newRegion);
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      region: newRegion,
+      comuna: nextComuna,
+      ciudad: nextCiudad,
+    }));
+
+    if (errors.region) setErrors((prev) => ({ ...prev, region: '' }));
+  };
+
+  const handleSelectDestinoFrecuente = (item: { comuna: string; region: string }) => {
+    const ciudadSugerida = getSugerenciaCiudad(item.comuna, item.region);
+    setFormData((prev) => ({
+      ...prev,
+      comuna: item.comuna,
+      region: item.region,
+      ciudad: ciudadSugerida || item.comuna,
+    }));
+    setErrors((prev) => ({ ...prev, comuna: '', region: '', ciudad: '' }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -133,23 +217,88 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
         {errors.direccion && <p className="text-xs text-destructive ml-1">{errors.direccion}</p>}
       </div>
 
+      {/* Destinos frecuentes (1 clic) */}
+      <div className="space-y-1 md:col-span-2">
+        <span className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
+          Localidades frecuentes (clic para autocompletar)
+        </span>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {DESTINOS_FRECUENTES_TIENDA.map((dest) => {
+            const isSelected =
+              formData.comuna.toLowerCase() === dest.comuna.toLowerCase() &&
+              formData.region.toLowerCase() === dest.region.toLowerCase();
+            return (
+              <button
+                key={`${dest.comuna}-${dest.region}`}
+                type="button"
+                onClick={() => handleSelectDestinoFrecuente(dest)}
+                disabled={isPending}
+                className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                  isSelected
+                    ? 'bg-accent/20 border-accent text-accent font-semibold shadow-sm'
+                    : 'border-border/80 bg-secondary/60 hover:border-accent/40 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {dest.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Región */}
       <div className="space-y-1.5">
-        <label htmlFor="comuna" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
-          Comuna *
+        <label htmlFor="region" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
+          Región *
         </label>
-        <input
-          id="comuna"
-          name="comuna"
-          value={formData.comuna}
-          onChange={handleChange}
+        <select
+          id="region"
+          name="region"
+          value={formData.region}
+          onChange={handleRegionChange}
           disabled={isPending}
           className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
-            errors.comuna ? 'border-destructive' : 'border-border'
+            errors.region ? 'border-destructive' : 'border-border'
           }`}
-        />
+        >
+          <option value="">Selecciona tu región...</option>
+          {CHILE_REGIONES_DPA.map((r) => (
+            <option key={r.id} value={r.nombre}>
+              {r.nombreOficial} ({r.romano})
+            </option>
+          ))}
+        </select>
+        {errors.region && <p className="text-xs text-destructive ml-1">{errors.region}</p>}
+      </div>
+
+      {/* Comuna con autocompletado datalist */}
+      <div className="space-y-1.5">
+        <label htmlFor="comuna" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
+          Comuna {formData.region ? `(${formData.region})` : '*'}
+        </label>
+        <div className="relative">
+          <input
+            id="comuna"
+            name="comuna"
+            list="tienda-comunas-list"
+            value={formData.comuna}
+            onChange={handleComunaChange}
+            disabled={isPending}
+            placeholder="Escribe o selecciona tu comuna..."
+            className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+              errors.comuna ? 'border-destructive' : 'border-border'
+            }`}
+          />
+          <datalist id="tienda-comunas-list">
+            {comunasDisponibles.map((com) => (
+              <option key={com} value={com} />
+            ))}
+          </datalist>
+        </div>
         {errors.comuna && <p className="text-xs text-destructive ml-1">{errors.comuna}</p>}
       </div>
 
+      {/* Ciudad */}
       <div className="space-y-1.5">
         <label htmlFor="ciudad" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
           Ciudad *
@@ -160,28 +309,12 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.ciudad}
           onChange={handleChange}
           disabled={isPending}
+          placeholder="Ciudad o localidad"
           className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.ciudad ? 'border-destructive' : 'border-border'
           }`}
         />
         {errors.ciudad && <p className="text-xs text-destructive ml-1">{errors.ciudad}</p>}
-      </div>
-
-      <div className="space-y-1.5">
-        <label htmlFor="region" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
-          Región *
-        </label>
-        <input
-          id="region"
-          name="region"
-          value={formData.region}
-          onChange={handleChange}
-          disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
-            errors.region ? 'border-destructive' : 'border-border'
-          }`}
-        />
-        {errors.region && <p className="text-xs text-destructive ml-1">{errors.region}</p>}
       </div>
 
       <div className="space-y-1.5">

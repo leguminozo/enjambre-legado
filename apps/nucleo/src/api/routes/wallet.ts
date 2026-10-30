@@ -31,7 +31,11 @@ async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapsho
 
   const [profileRes, tierRes, puntosRes, progressRes] = await Promise.all([
     admin.from('profiles').select('full_name, email').eq('id', userId).maybeSingle(),
-    admin.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
+    admin
+      .from('user_tier_view')
+      .select('tier, tier_nombre, tier_icono, tier_color_token, tier_narrativa, ciclos_historicos')
+      .eq('user_id', userId)
+      .maybeSingle(),
     admin
       .from('puntos_fidelizacion')
       .select('puntos')
@@ -77,6 +81,10 @@ async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapsho
     userId,
     displayName: profile.full_name ?? profile.email?.split('@')[0] ?? 'Guardián',
     tier: (tierRes.data?.tier as string) ?? 'OBRERA',
+    tierNombre: (tierRes.data?.tier_nombre as string) ?? undefined,
+    tierIcono: (tierRes.data?.tier_icono as string) ?? undefined,
+    tierColorToken: (tierRes.data?.tier_color_token as string) ?? undefined,
+    tierNarrativa: (tierRes.data?.tier_narrativa as string) ?? undefined,
     ciclos: Number(tierRes.data?.ciclos_historicos ?? 0),
     puntos: Number(puntosRes.data?.puntos ?? 0),
     programs,

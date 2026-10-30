@@ -11,7 +11,7 @@ import {
   Power,
   Settings,
 } from 'lucide-react';
-import { toast, Badge, ViewLoading, ImmersiveModal } from '@enjambre/ui';
+import { toast, Badge, Skeleton, ImmersiveModal } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -266,7 +266,17 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
             </p>
 
             {integrationsQuery.isLoading ? (
-              <ViewLoading variant="inline" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-border bg-surface-sunken">
+                    <div className="space-y-1">
+                      <Skeleton variant="text" className="w-32 h-4" />
+                      <Skeleton variant="text" className="w-48 h-3" />
+                    </div>
+                    <Skeleton variant="rectangular" className="w-16 h-6 rounded-full" />
+                  </div>
+                ))}
+              </div>
             ) : integrationsQuery.isError ? (
               <div className="text-xs text-destructive p-4 bg-destructive/10 rounded-xl border border-destructive/20">
                 Error al cargar el estado de las integraciones.

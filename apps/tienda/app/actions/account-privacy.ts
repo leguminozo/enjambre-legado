@@ -26,7 +26,7 @@ export async function exportAccountData(): Promise<AccountExportPayload> {
       .select('id, email, full_name, role, notification_preferences')
       .eq('id', user.id)
       .maybeSingle(),
-    supabase.from('cliente_direcciones').select('id, alias, comuna, ciudad, region, created_at').eq('user_id', user.id),
+    supabase.from('cliente_direcciones').select('id, etiqueta, comuna, ciudad, region, created_at').eq('user_id', user.id),
     supabase.from('carrito_items').select('product_id, quantity, updated_at').eq('user_id', user.id),
     supabase.from('puntos_fidelizacion').select('puntos, puntos_acumulados_total, nivel_actual, updated_at').eq('user_id', user.id),
     supabase

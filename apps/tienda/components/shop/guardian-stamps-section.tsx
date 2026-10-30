@@ -112,7 +112,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
   if (loading) {
     return (
       <div className="py-12 text-center">
-        <p className="text-sm text-muted-foreground italic animate-pulse">Cargando Tarjeta Obrera...</p>
+        <p className="text-sm text-muted-foreground italic animate-pulse">Cargando Pase del Bosque...</p>
       </div>
     );
   }
@@ -200,7 +200,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
               </div>
               <div className="flex items-center gap-2">
                 <p className="font-display text-xl text-foreground font-light leading-tight">
-                  Tarjeta Obrera
+                  {snapshot?.tierNombre ? `Pase · ${snapshot.tierNombre}` : 'Pase del Bosque'}
                 </p>
                 {isStandalone && (
                   <span className="px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.6rem] font-mono font-bold uppercase tracking-wider">
@@ -214,8 +214,8 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
                 {snapshot?.displayName || 'Miembro del Legado'}
               </p>
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.65rem] font-mono font-bold uppercase tracking-wider">
-                <Award size={12} />
-                <span>{snapshot?.tier || 'OBRERA'}</span>
+                {snapshot?.tierIcono ? <span>{snapshot.tierIcono}</span> : <Award size={12} />}
+                <span>{snapshot?.tierNombre || snapshot?.tier || 'Iniciador'}</span>
               </div>
             </div>
           </div>
@@ -399,7 +399,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
         <div>
           <h2 className="font-display text-2xl text-foreground">Todas tus Rutas de Sellos</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Cada producto suma independientemente a su tarjeta obrera.
+            Cada producto suma independientemente a su credencial de sellos.
           </p>
         </div>
         <GuardianStampProgress programs={snapshot?.programs ?? []} />

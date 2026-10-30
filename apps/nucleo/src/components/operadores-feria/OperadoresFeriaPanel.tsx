@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP, DataTable, type ColumnDef, parseIntegerCLP, parseNumberCLP } from '@enjambre/ui';
+import { friendlyError, toast, Skeleton, SkeletonTable, ImmersiveModal, DatePicker, formatCLP, DataTable, type ColumnDef, parseIntegerCLP, parseNumberCLP } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
@@ -622,7 +622,24 @@ export function OperadoresFeriaPanel() {
   ];
 
   if (loading) {
-    return <ViewLoading variant="view" label="Red de feria" hideLabel />;
+    return (
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando operadores de feria">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 rounded-2xl border border-border bg-card">
+          <div className="space-y-2">
+            <Skeleton variant="text" className="w-32 h-3" />
+            <Skeleton variant="text" className="w-48 h-7" />
+            <Skeleton variant="text" className="w-80 max-w-full h-3.5" />
+          </div>
+          <Skeleton variant="rectangular" className="w-10 h-10 rounded-xl" />
+        </div>
+        <div className="flex gap-2 border-b border-border/80 pb-3">
+          <Skeleton variant="rectangular" className="w-28 h-9 rounded-xl" />
+          <Skeleton variant="rectangular" className="w-28 h-9 rounded-xl" />
+          <Skeleton variant="rectangular" className="w-28 h-9 rounded-xl" />
+        </div>
+        <SkeletonTable rows={5} columns={5} />
+      </div>
+    );
   }
 
   return (

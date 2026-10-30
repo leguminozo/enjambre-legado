@@ -124,12 +124,18 @@ describe('Triangulación 1: Retorno de Envases de Vidrio', () => {
         return chain;
       }
       if (table === 'profiles') {
-        const chain = makeChain({
-          data: { id: clienteId, puntos_acumulados: 1000, email: 'cliente@test.com' },
+        return makeChain({
+          data: { id: clienteId, email: 'cliente@test.com' },
           error: null,
         });
-        chain.update = vi.fn().mockImplementation((payload: { puntos_acumulados: number }) => {
-          updatedPuntos = payload.puntos_acumulados;
+      }
+      if (table === 'puntos_fidelizacion') {
+        const chain = makeChain({
+          data: { user_id: clienteId, puntos: 1000 },
+          error: null,
+        });
+        chain.upsert = vi.fn().mockImplementation((payload: { puntos: number }) => {
+          updatedPuntos = payload.puntos;
           return chain;
         });
         return chain;
@@ -175,12 +181,18 @@ describe('Triangulación 1: Retorno de Envases de Vidrio', () => {
         });
       }
       if (table === 'profiles') {
-        const chain = makeChain({
-          data: { id: clienteId, puntos_acumulados: 0, email: 'cliente@test.com' },
+        return makeChain({
+          data: { id: clienteId, email: 'cliente@test.com' },
           error: null,
         });
-        chain.update = vi.fn().mockImplementation((payload: { puntos_acumulados: number }) => {
-          updatedPuntos = payload.puntos_acumulados;
+      }
+      if (table === 'puntos_fidelizacion') {
+        const chain = makeChain({
+          data: { user_id: clienteId, puntos: 0 },
+          error: null,
+        });
+        chain.upsert = vi.fn().mockImplementation((payload: { puntos: number }) => {
+          updatedPuntos = payload.puntos;
           return chain;
         });
         return chain;

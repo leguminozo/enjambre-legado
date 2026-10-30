@@ -224,7 +224,11 @@ export function getDemoWalletSnapshot(): WalletGuardianSnapshot {
   return {
     userId: 'demo-agente-guardian-01',
     displayName: 'Guardián Centinela',
-    tier: 'GUARDIAN',
+    tier: 'COLMENA',
+    tierNombre: 'Guardián Legado',
+    tierIcono: '🏛️',
+    tierColorToken: 'accent',
+    tierNarrativa: 'Máxima distinción de alianza territorial y regeneración del bosque de Chiloé.',
     ciclos: 6,
     puntos: 450,
     programs: [

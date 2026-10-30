@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, formatCLP } from '@enjambre/ui';
+import { friendlyError, toast, Skeleton, SkeletonTable, ImmersiveModal, formatCLP } from '@enjambre/ui';
 import {
   Percent, Check, Loader2, Plus, Edit3,
   Trash2, ToggleLeft, ToggleRight
@@ -167,7 +167,18 @@ export function ReglasComisionPanel() {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Reglas de comisión" hideLabel />;
+    return (
+      <div className="space-y-8 animate-in" aria-busy="true" aria-label="Cargando reglas de comisión">
+        <div className="flex items-center gap-4 mb-8">
+          <Skeleton variant="rectangular" className="w-12 h-12 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton variant="text" className="w-56 h-7" />
+            <Skeleton variant="text" className="w-80 max-w-full h-4" />
+          </div>
+        </div>
+        <SkeletonTable rows={5} columns={5} />
+      </div>
+    );
   }
 
   return (

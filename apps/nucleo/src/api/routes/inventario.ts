@@ -513,7 +513,7 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
   let targetUserId: string | null = null;
 
   if (input.cliente_id || input.cliente_email) {
-    let profileQuery = admin.from("profiles").select("id, puntos_acumulados, email");
+    let profileQuery = admin.from("profiles").select("id, email");
     if (input.cliente_id) {
       profileQuery = profileQuery.eq("id", input.cliente_id);
     } else if (input.cliente_email) {
@@ -539,13 +539,22 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
       puntosAcreditados = reward.totalPuntos;
       const ciclosAcreditados = reward.totalCiclos;
 
-      const saldoActual = Number(profile.puntos_acumulados ?? 0);
+      // Los puntos viven en puntos_fidelizacion
+      const { data: puntosRow } = await admin
+        .from("puntos_fidelizacion")
+        .select("puntos")
+        .eq("user_id", profile.id)
+        .maybeSingle();
+      const saldoActual = Number(puntosRow?.puntos ?? 0);
       const nuevoSaldo = saldoActual + puntosAcreditados;
 
       await admin
-        .from("profiles")
-        .update({ puntos_acumulados: nuevoSaldo })
-        .eq("id", profile.id);
+        .from("puntos_fidelizacion")
+        .upsert({
+          user_id: profile.id,
+          puntos: nuevoSaldo,
+          updated_at: new Date().toISOString(),
+        });
 
       try {
         await admin

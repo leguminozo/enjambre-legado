@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency, formatCalendarDate } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, Skeleton, LoadingOverlay, DatePicker } from "@enjambre/ui";
 import { HonorarioRow } from "../types";
 
 export function HonorariosTab() {
@@ -128,7 +128,17 @@ export function HonorariosTab() {
             <LoadingOverlay label="Actualizando honorarios" />
           ) : null}
           {honorariosQuery.isLoading ? (
-            <ViewLoading variant="inline" label="Honorarios" hideLabel className="py-6" />
+            <div className="space-y-2 py-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-surface-sunken rounded-xl border border-border">
+                  <div className="space-y-1">
+                    <Skeleton variant="text" className="w-36 h-4" />
+                    <Skeleton variant="text" className="w-24 h-3" />
+                  </div>
+                  <Skeleton variant="text" className="w-20 h-5" />
+                </div>
+              ))}
+            </div>
           ) : (honorariosQuery.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4 bg-surface-sunken rounded-lg border border-border">Sin honorarios registrados</p>
           ) : (

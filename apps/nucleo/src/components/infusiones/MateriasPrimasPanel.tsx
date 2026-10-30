@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, type ColumnDef,
+  Select, Badge, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
@@ -51,13 +51,24 @@ function MateriaPrimaFormDialog({
     );
   }, [open, initial, reset]);
 
+  const onSubmit = (v: MateriaPrimaFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? `Editar ${initial.nombre}` : 'Nueva materia prima'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Nombre *" placeholder="Menta, Melisa, Cacao…" {...register('nombre')} error={errors.nombre?.message} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -70,7 +81,7 @@ function MateriaPrimaFormDialog({
             </div>
             <Input label="Unidad de medida *" placeholder="kg" {...register('unidad_medida')} error={errors.unidad_medida?.message} />
           </div>
-          <Textarea label="Notas" placeholder="Parte usada, temporada, origen…" rows={2} {...register('notas')} />
+          <Textarea label="Notas" placeholder="Parte usada, temporada, origen…" rows={2} {...register('notas')} error={errors.notas?.message} />
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={save.isPending}>
@@ -116,7 +127,21 @@ export function MateriasPrimasPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Materias Primas</CardTitle>
+            <CardDescription>Catálogo de botánicos nativos y agroecológicos con control de merma y stock mínimo.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -144,7 +169,14 @@ export function MateriasPrimasPanel() {
           emptyState="Aún no hay materias primas registradas."
         />
       </CardContent>
-      <MateriaPrimaFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+      <MateriaPrimaFormDialog
+        open={formOpen}
+        onOpenChange={(v) => {
+          setFormOpen(v);
+          if (!v) setEditing(null);
+        }}
+        initial={editing}
+      />
     </Card>
   );
 }

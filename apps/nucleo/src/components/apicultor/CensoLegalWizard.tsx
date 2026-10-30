@@ -10,6 +10,20 @@ import {
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
 import { Badge, Button, Spinner, toast } from '@enjambre/ui';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
+
+const COMUNAS_CHILOE_CENSO = [
+  'Castro',
+  'Ancud',
+  'Quellón',
+  'Dalcahue',
+  'Chonchi',
+  'Queilén',
+  'Quemchi',
+  'Puqueldón',
+  'Quinchao',
+  'Curaco de Vélez',
+] as const;
 
 export interface ActorLegal {
   id: string;
@@ -677,12 +691,35 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                         </div>
                         <div>
                           <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Comuna *</label>
+                          <div className="flex flex-wrap gap-1 mb-1.5">
+                            {COMUNAS_CHILOE_CENSO.map((c) => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => setApiarioComuna(c)}
+                                className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                                  apiarioComuna.toLowerCase() === c.toLowerCase()
+                                    ? 'border-primary bg-primary/20 text-primary font-medium'
+                                    : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                                }`}
+                              >
+                                {c}
+                              </button>
+                            ))}
+                          </div>
                           <input
                             type="text"
+                            list="censo-comunas-list"
                             value={apiarioComuna}
                             onChange={(e) => setApiarioComuna(e.target.value)}
+                            placeholder="Ej: Castro"
                             className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
                           />
+                          <datalist id="censo-comunas-list">
+                            {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                              <option key={c} value={c} />
+                            ))}
+                          </datalist>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>

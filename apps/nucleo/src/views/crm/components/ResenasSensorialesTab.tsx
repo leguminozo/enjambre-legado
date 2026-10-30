@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
+import { friendlyError, toast, SkeletonTable } from '@enjambre/ui';
 import { Star, Check, X, EyeOff, Sparkles, Tag } from 'lucide-react';
 import { FORTIFICANTES_LABELS, type FortificanteCanonico } from '@enjambre/resenas';
 
@@ -113,7 +113,7 @@ export function ResenasSensorialesTab() {
   };
 
   if (loading) {
-    return <ViewLoading variant="inline" />;
+    return <SkeletonTable rows={5} columns={4} />;
   }
 
   return (

@@ -12,6 +12,7 @@ import {
   FiscalSiiSkeleton,
   DespachoEnviosSkeleton,
   BancoChileSkeleton,
+  ClubLegadoSkeleton,
   ModuloGenericoSkeleton,
 } from '@/components/shared/skeletons';
 
@@ -55,16 +56,20 @@ export default function NucleoLoading() {
     return <ContableDashboardSkeleton />;
   }
 
-  // 5. CRM / clientes / creadores / invitaciones / planes / club legado
+  // 5. CRM / clientes / creadores / invitaciones / planes
   if (
     pathname.startsWith('/crm') ||
     pathname.startsWith('/creadores') ||
     pathname.startsWith('/invitaciones') ||
     pathname.startsWith('/planes-suscripcion') ||
-    pathname.startsWith('/mis-planes') ||
-    pathname.startsWith('/club-legado')
+    pathname.startsWith('/mis-planes')
   ) {
     return <CrmOverviewSkeleton />;
+  }
+
+  // 5.b Club Legado / fidelización y membresías
+  if (pathname.startsWith('/club-legado')) {
+    return <ClubLegadoSkeleton />;
   }
 
   // 6. Colmenas / apiarios / cuaderno / fenología / salud

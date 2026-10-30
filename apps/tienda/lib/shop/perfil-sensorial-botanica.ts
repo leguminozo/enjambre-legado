@@ -84,6 +84,15 @@ const MONOGRAFIAS_CANONICAS: Record<string, Omit<BotanicalReference, 'slug'>> = 
       'Miel multifloral de bosque lluvioso templado sin intervención agroquímica. Equilibrio armónico de floraciones sucesivas con alta riqueza polínica.',
     ejes: [8.2, 9.0, 6.6, 8.0, 5.0, 8.5, 7.8, 9.2],
   },
+  hierbabuena: {
+    nombreComun: 'Hierbabuena Silvestre',
+    nombreCientifico: 'Mentha spicata L. / Fiordos de Compu',
+    referenciaLiteratura: 'Farmacopea y Botánica Tradicional de Chiloé · Villagrán & Castro (2004)',
+    fuenteUrl: '/catalogo',
+    resumenBotanico:
+      'Hojas enteras seleccionadas a mano en cursos de agua y quebradas húmedas de los fiordos de Compu. Marcada pureza aromática, perfil mentolado vivo y fondo balsámico refrescante.',
+    ejes: [8.8, 7.8, 8.5, 6.0, 7.0, 5.5, 7.5, 9.5],
+  },
 };
 
 /**
@@ -111,7 +120,9 @@ export function resolveBotanicalReference(params: {
 
   let matchedKey: string | null = null;
 
-  if (haystack.includes('ulmo')) {
+  if (haystack.includes('hierbabuena') || haystack.includes('mentha')) {
+    matchedKey = 'hierbabuena';
+  } else if (haystack.includes('ulmo')) {
     matchedKey = 'ulmo';
   } else if (haystack.includes('tiaca')) {
     matchedKey = 'tiaca';

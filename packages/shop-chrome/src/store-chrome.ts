@@ -6473,96 +6473,6 @@ export function parseExperienciasSettings(
   };
 }
 
-// ── Floraciones: Calendario Fenológico y Manifiesto ──────────────────────────
-
-export type FloracionesPageSettings = {
-  kicker: string;
-  kicker_en?: string;
-  title: string;
-  title_en?: string;
-  subtitle: string;
-  subtitle_en?: string;
-  badge1: string;
-  badge1_en?: string;
-  badge2: string;
-  badge2_en?: string;
-  badge3: string;
-  badge3_en?: string;
-  manifiesto_kicker: string;
-  manifiesto_kicker_en?: string;
-  manifiesto_title: string;
-  manifiesto_title_en?: string;
-  manifiesto_text: string;
-  manifiesto_text_en?: string;
-  manifiesto_cta_label: string;
-  manifiesto_cta_label_en?: string;
-  manifiesto_cta_href: string;
-  text_align?: TextAlign;
-};
-
-export const DEFAULT_FLORACIONES_PAGE_SETTINGS: FloracionesPageSettings = {
-  kicker: 'Fenología Austral & Estándar de Origen',
-  kicker_en: 'Austral Phenology & Origin Standard',
-  title: 'El Ritmo de las Floraciones',
-  title_en: 'The Rhythm of the Blooms',
-  subtitle:
-    'En el archipiélago de Chiloé, cada estación dicta un perfil aromático único. No alteramos la naturaleza: esperamos a que el bosque nativo florezca.',
-  subtitle_en:
-    'In the Chiloé archipelago, each season dictates a unique aromatic profile. We do not alter nature: we await the native forest bloom.',
-  badge1: 'Predio Pureo, Queilén',
-  badge1_en: 'Pureo Estate, Queilén',
-  badge2: 'Sin Trashumancia',
-  badge2_en: 'No Transhumance',
-  badge3: 'Centrifugado en Frío',
-  badge3_en: 'Cold Extracted',
-  manifiesto_kicker: 'Pureza sin compromiso',
-  manifiesto_kicker_en: 'Uncompromising Purity',
-  manifiesto_title: 'Por qué nuestras colmenas nunca viajan',
-  manifiesto_title_en: 'Why Our Hives Never Travel',
-  manifiesto_text:
-    'La apicultura industrial traslada abejas miles de kilómetros para polinizar monocultivos de palta o almendro, sometiéndolas a estrés y pesticidas. En Enjambre Legado, nuestras colmenas permanecen fijas en el santuario de bosque nativo de Chiloé todo el año. Su única fuente de néctar son las flores silvestres del bosque austral.',
-  manifiesto_text_en:
-    'Industrial beekeeping transports bees thousands of miles to pollinate industrial monocultures, exposing them to stress and synthetic chemicals. At Enjambre Legado, our hives remain fixed in the native Chiloé forest sanctuary year-round. Their sole source of nectar is the wild flowers of the southern forest.',
-  manifiesto_cta_label: 'Explorar Colección de Origen',
-  manifiesto_cta_label_en: 'Explore Origin Collection',
-  manifiesto_cta_href: '/catalogo',
-};
-
-export function parseFloracionesPageSettings(
-  raw: Record<string, unknown> | null | undefined,
-): FloracionesPageSettings {
-  const d = DEFAULT_FLORACIONES_PAGE_SETTINGS;
-  if (!raw) return { ...d };
-  return {
-    kicker: asString(raw.kicker, d.kicker).trim(),
-    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
-    title: asString(raw.title, d.title).trim(),
-    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
-    subtitle: asString(raw.subtitle, d.subtitle).trim(),
-    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
-    badge1: asString(raw.badge1, d.badge1).trim(),
-    badge1_en: typeof raw.badge1_en === 'string' ? raw.badge1_en.trim() : d.badge1_en,
-    badge2: asString(raw.badge2, d.badge2).trim(),
-    badge2_en: typeof raw.badge2_en === 'string' ? raw.badge2_en.trim() : d.badge2_en,
-    badge3: asString(raw.badge3, d.badge3).trim(),
-    badge3_en: typeof raw.badge3_en === 'string' ? raw.badge3_en.trim() : d.badge3_en,
-    manifiesto_kicker: asString(raw.manifiesto_kicker, d.manifiesto_kicker).trim(),
-    manifiesto_kicker_en:
-      typeof raw.manifiesto_kicker_en === 'string' ? raw.manifiesto_kicker_en.trim() : d.manifiesto_kicker_en,
-    manifiesto_title: asString(raw.manifiesto_title, d.manifiesto_title).trim(),
-    manifiesto_title_en:
-      typeof raw.manifiesto_title_en === 'string' ? raw.manifiesto_title_en.trim() : d.manifiesto_title_en,
-    manifiesto_text: asString(raw.manifiesto_text, d.manifiesto_text).trim(),
-    manifiesto_text_en:
-      typeof raw.manifiesto_text_en === 'string' ? raw.manifiesto_text_en.trim() : d.manifiesto_text_en,
-    manifiesto_cta_label: asString(raw.manifiesto_cta_label, d.manifiesto_cta_label).trim(),
-    manifiesto_cta_label_en:
-      typeof raw.manifiesto_cta_label_en === 'string' ? raw.manifiesto_cta_label_en.trim() : d.manifiesto_cta_label_en,
-    manifiesto_cta_href: sanitizeStoreHref(raw.manifiesto_cta_href, d.manifiesto_cta_href) ?? d.manifiesto_cta_href,
-    text_align: parseTextAlign(raw.text_align),
-  };
-}
-
 export type MovementStepSettings = {
   step: string;
   title: string;
@@ -8219,7 +8129,6 @@ export const EXPERIENCIAS_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_SETTINGS
 export const EXPERIENCIAS_PUREO_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_PUREO_SETTINGS };
 export const EXPERIENCIAS_TALLERES_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS };
 export const FLORACIONES_EXPERIENCE_TEMPLATE = { ...DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS };
-export const FLORACIONES_PAGE_SETTINGS_TEMPLATE = { ...DEFAULT_FLORACIONES_PAGE_SETTINGS };
 export const QR_SCAN_SETTINGS_TEMPLATE = { ...DEFAULT_QR_SCAN_SETTINGS };
 
 
@@ -8368,8 +8277,8 @@ export const DEFAULT_PERFIL_INICIO_SETTINGS: PerfilInicioSettings = {
   hero_tagline_en: 'The native forest of Chiloé in your pantry',
   member_label: 'Miembro Activo',
   member_label_en: 'Active Member',
-  tier_label: 'Nivel en colmena',
-  tier_label_en: 'Hive Tier',
+  tier_label: 'Rango de fidelidad',
+  tier_label_en: 'Loyalty Tier',
   stat_pedidos_label: 'Pedidos',
   stat_pedidos_label_en: 'Orders',
   stat_pedidos_empty: 'Aún sin pedidos · Tu primer ciclo abre el legado',
@@ -8378,8 +8287,8 @@ export const DEFAULT_PERFIL_INICIO_SETTINGS: PerfilInicioSettings = {
   stat_legado_label_en: 'Accumulated Legacy',
   stat_legado_empty: 'Aún sin aportes · Financia bosque nativo en Pureo',
   stat_legado_empty_en: 'No contributions yet · Funds native forest in Pureo',
-  stat_m2_label: 'm² Regenerados',
-  stat_m2_label_en: 'm² Protected',
+  stat_m2_label: 'Superficie Protegida',
+  stat_m2_label_en: 'Protected Area',
   stat_m2_empty: 'Aún en reposo · Se activa con tu primer frasco',
   stat_m2_empty_en: 'At rest · Activates with your first jar',
   onboarding_step_1: 'Cuenta creada (+100 pts de bienvenida)',
@@ -8814,8 +8723,8 @@ export const DEFAULT_PERFIL_BILLETERA_SETTINGS: PerfilBilleteraSettings = {
   title_en: 'Wallet & Benefits',
   subtitle: '',
   subtitle_en: '',
-  tarjeta_kicker: 'Tarjeta Obrera',
-  tarjeta_kicker_en: 'Obrera Card',
+  tarjeta_kicker: 'Pase del Bosque',
+  tarjeta_kicker_en: 'Forest Pass',
   tarjeta_title: 'Sellos de producto y pase digital',
   tarjeta_title_en: 'Product stamps and digital pass',
   tarjeta_desc: 'Escanea tu credencial en ferias locales, gestiona sellos de fidelización por variedad y descarga tu pase oficial a Apple Wallet o Google Wallet.',

@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/terminos`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
     { url: `${siteUrl}/privacidad`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
     { url: `${siteUrl}/envio`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/origen`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${siteUrl}/origen/ulmo`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     // Superficie agéntica y demostrativa
     { url: `${siteUrl}/demo/perfil`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },

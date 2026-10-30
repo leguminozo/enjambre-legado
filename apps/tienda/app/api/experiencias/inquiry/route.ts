@@ -141,16 +141,23 @@ export async function POST(request: Request) {
         .eq('id', clienteId);
     }
 
-    // 3. Registrar interacción en CRM
+    // 3. Registrar interacción en CRM (best-effort)
     if (empresaId && adminId && clienteId) {
-      await admin.from('interacciones').insert({
-        cliente_id: clienteId,
-        rep_id: adminId,
-        empresa_id: empresaId,
-        tipo: 'whatsapp',
-        notas: inquirySummary,
-        resultado: 'pendiente',
-      });
+      try {
+        const { error: interaccionErr } = await admin.from('interacciones').insert({
+          cliente_id: clienteId,
+          rep_id: adminId,
+          empresa_id: empresaId,
+          tipo: 'whatsapp',
+          notas: inquirySummary,
+          resultado: 'pendiente',
+        });
+        if (interaccionErr) {
+          console.warn('[experiencias/inquiry] CRM interaccion omitida:', interaccionErr.message);
+        }
+      } catch (crmErr) {
+        console.warn('[experiencias/inquiry] Error registrando interaccion:', crmErr);
+      }
     }
 
     return NextResponse.json({

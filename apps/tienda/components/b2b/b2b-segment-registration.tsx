@@ -16,11 +16,23 @@ import {
   Download,
 } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 import type {
   B2BSegmentSlug,
   SegmentKit,
   SegmentQuestion,
 } from '@/lib/b2b/segment-content';
+
+const ATAJOS_B2B_CIUDADES = [
+  'Providencia',
+  'Las Condes',
+  'Vitacura',
+  'Santiago Centro',
+  'Puerto Varas',
+  'Castro',
+  'Viña del Mar',
+  'Concepción',
+] as const;
 
 export interface B2BSegmentRegistrationProps {
   segmentSlug: B2BSegmentSlug;
@@ -443,20 +455,42 @@ export function B2BSegmentRegistration({
             />
           </div>
 
-          {/* Ciudad / Comuna */}
-          <div>
+          {/* Ciudad / Comuna con atajos y autocompletado */}
+          <div className="space-y-2">
             <label htmlFor="b2b-ciudad" className={labelClassName}>
               Ciudad o Comuna <span className="text-destructive">*</span>
             </label>
+            <div className="flex flex-wrap gap-1 mb-1.5">
+              {ATAJOS_B2B_CIUDADES.map((at) => (
+                <button
+                  key={at}
+                  type="button"
+                  onClick={() => setCiudad(at)}
+                  className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                    ciudad.toLowerCase() === at.toLowerCase()
+                      ? 'border-primary bg-primary/20 text-primary font-medium'
+                      : 'border-border/60 bg-secondary/30 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  }`}
+                >
+                  {at}
+                </button>
+              ))}
+            </div>
             <input
               id="b2b-ciudad"
               type="text"
               required
+              list="b2b-ciudades-list"
               value={ciudad}
               onChange={(e) => setCiudad(e.target.value)}
-              placeholder="Ej. Puerto Varas / Santiago"
+              placeholder="Ej. Puerto Varas, Castro, Providencia..."
               className={inputClassName}
             />
+            <datalist id="b2b-ciudades-list">
+              {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((com) => (
+                <option key={com} value={com} />
+              ))}
+            </datalist>
           </div>
 
           {/* Preguntas Operativas del Segmento (Cero redundancia) */}
@@ -764,9 +798,10 @@ export function B2BSegmentRegistration({
               <input
                 id="dos-ciudad"
                 type="text"
+                list="b2b-ciudades-list"
                 value={dossierCiudad}
                 onChange={(e) => setDossierCiudad(e.target.value)}
-                placeholder="Ej. Frutillar"
+                placeholder="Ej. Frutillar, Castro, Puerto Varas..."
                 className={inputClassName}
               />
             </div>

@@ -1,18 +1,52 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { AudiovisualIdentityWorkspace } from '@/components/marketing/AudiovisualIdentityWorkspace';
+import { ColeccionVideosView } from '@/components/marketing/ColeccionVideosView';
+import { type SavedVideoProject } from '@/components/marketing/saved-videos';
 
 export function EstudioAudiovisualView() {
-  return (
-    <div className="space-y-6">
-      <ViewShell
-        title="Video de Identidad & Sustrato Biológico"
-        subtitle="Generador audiovisual procedural multiformato (9:16, 4:5, 1:1, 16:9) sobre la física y reología del bosque de Chiloé"
-      />
+  const [viewMode, setViewMode] = useState<'coleccion' | 'editor'>('coleccion');
+  const [selectedProject, setSelectedProject] = useState<SavedVideoProject | null>(null);
 
-      <AudiovisualIdentityWorkspace />
+  const handleNuevoVideo = () => {
+    setSelectedProject(null);
+    setViewMode('editor');
+  };
+
+  const handleEditarVideo = (proyecto: SavedVideoProject) => {
+    setSelectedProject(proyecto);
+    setViewMode('editor');
+  };
+
+  const handleVolverColeccion = () => {
+    setSelectedProject(null);
+    setViewMode('coleccion');
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {viewMode === 'coleccion' ? (
+        <>
+          <ViewShell
+            title="Video de Identidad & Archivo Audiovisual"
+            subtitle="Colección de piezas archivadas y generador procedural para difusión pública"
+          />
+          <ColeccionVideosView
+            onNuevoVideo={handleNuevoVideo}
+            onEditarVideo={handleEditarVideo}
+          />
+        </>
+      ) : (
+        <AudiovisualIdentityWorkspace
+          initialProject={selectedProject}
+          onVolver={handleVolverColeccion}
+          onGuardadoExitoso={() => {
+            // Se mantiene en el editor para seguir ajustando
+          }}
+        />
+      )}
     </div>
   );
 }

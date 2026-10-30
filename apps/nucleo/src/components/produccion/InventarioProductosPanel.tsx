@@ -18,7 +18,9 @@ import {
 import {
   Button,
   toast,
-  ViewLoading,
+  Skeleton,
+  SkeletonKpi,
+  SkeletonTable,
   friendlySupabaseError,
   formatMoney,
   ImmersiveModal,
@@ -305,7 +307,17 @@ export function InventarioProductosPanel() {
   const hasActiveFilters = filterStock !== 'all' || searchQuery.trim() !== '' || sortKey !== 'nombre';
 
   if (loading) {
-    return <ViewLoading variant="view" label="Inventario" hideLabel />;
+    return (
+      <div className="space-y-4 animate-in" aria-busy="true" aria-label="Cargando inventario de productos">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+        </div>
+        <SkeletonTable rows={6} columns={6} />
+      </div>
+    );
   }
 
   return (
@@ -713,8 +725,13 @@ export function InventarioProductosPanel() {
           </div>
         )}
         {editLoading && (
-          <div className="p-12 flex justify-center">
-            <ViewLoading variant="view" label="Ficha" hideLabel />
+          <div className="p-6 space-y-4" aria-busy="true" aria-label="Cargando ficha">
+            <Skeleton variant="text" className="w-48 h-6" />
+            <Skeleton variant="rectangular" className="w-full h-48 rounded-xl" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+              <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+            </div>
           </div>
         )}
       </ImmersiveModal>

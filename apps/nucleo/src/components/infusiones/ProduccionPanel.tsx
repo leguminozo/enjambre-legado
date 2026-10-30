@@ -9,7 +9,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, toast, type ColumnDef,
+  Select, Badge, SkeletonTable, toast, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel, ResponsableInput } from './shared';
@@ -93,13 +93,24 @@ function LoteProduccionFormDialog({
     );
   }, [open, initial, reset]);
 
+  const onSubmit = (v: LoteProduccionFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? 'Editar lote de producción' : 'Nuevo lote de producción'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <FormFieldLabel>Fórmula *</FormFieldLabel>
             {formulaOptions.length === 0 ? (
@@ -360,7 +371,21 @@ export function ProduccionPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Lotes de producción</CardTitle>
+            <CardDescription>Mezcla y envasado final: descuenta del stock seco y genera unidades listas.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-0">
@@ -389,7 +414,14 @@ export function ProduccionPanel() {
             emptyState="Aún no hay lotes de producción registrados."
           />
         </CardContent>
-        <LoteProduccionFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+        <LoteProduccionFormDialog
+          open={formOpen}
+          onOpenChange={(v) => {
+            setFormOpen(v);
+            if (!v) setEditing(null);
+          }}
+          initial={editing}
+        />
       </Card>
       {selected && <MaterialesEditor lote={selected} onClose={() => setSelected(null)} />}
     </div>

@@ -6,7 +6,7 @@ import { Plus, Pencil } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
-  Badge, Select, ViewLoading, type ColumnDef,
+  Badge, Select, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import {
@@ -148,7 +148,7 @@ export function FidelizacionPanel() {
             <SelectPunto puntos={puntos} value={puntoId} onChange={setPuntoId} />
           </div>
           {!puntoId && <p className="text-sm text-muted-foreground">Selecciona un punto de venta para ver su fidelización.</p>}
-          {fidQuery.isLoading && puntoId && <ViewLoading variant="view" label="Fidelización" hideLabel />}
+          {fidQuery.isLoading && puntoId && <SkeletonTable rows={4} columns={4} />}
           {fid && (
             <>
               <DataTable<FidProgramaRow> columns={programasColumns} rows={fid.programas} getId={(p) => p.id}
@@ -172,7 +172,7 @@ export function FidelizacionPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {configQuery.isLoading && <ViewLoading variant="view" label="Configuración" hideLabel />}
+          {configQuery.isLoading && <SkeletonTable rows={4} columns={4} />}
           {cfg && (
             <>
               <div>

@@ -17,7 +17,7 @@ import {
   Compass,
   Plus,
 } from 'lucide-react';
-import { ViewLoading, formatCLP } from '@enjambre/ui';
+import { SkeletonCard, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useCart } from '@/components/pos/cart-context';
 import { ContinuousStreamScanner } from '@/components/pos/continuous-stream-scanner';
@@ -359,9 +359,9 @@ export default function CatalogoPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {!productos ? (
-          <div className="col-span-full">
-            <ViewLoading variant="view" label="Inventario" hideLabel />
-          </div>
+          Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} lines={3} />
+          ))
         ) : productosFiltrados.length === 0 ? (
           <div className="col-span-full py-16 text-center bg-card/30 border border-border border-dashed rounded-3xl">
             <Info className="w-8 h-8 text-muted-foreground mx-auto mb-3" />

@@ -35,6 +35,15 @@ const LineItemSchema = z.object({
   cantidad: z.number().int().positive().max(9_999),
 });
 
+const ClientePayloadSchema = z.object({
+  nombre: z.string().min(1).max(200),
+  telefono: z.string().max(50).optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  direccion: z.string().max(500).optional(),
+  canal: z.string().max(50).optional(),
+  guardar_crm: z.boolean().optional(),
+});
+
 const CreateEnvioSchema = z.object({
   tracking_code: z.string().min(1).max(120),
   destino: z.string().min(1).max(500),
@@ -45,6 +54,7 @@ const CreateEnvioSchema = z.object({
   courier_code: z.string().max(40).optional(),
   venta_id: z.string().uuid().optional(),
   line_items: z.array(LineItemSchema).max(50).optional(),
+  cliente: ClientePayloadSchema.optional(),
 });
 
 type DecrementedLine = { productId: string; quantity: number };
@@ -209,7 +219,7 @@ logisticaRoutes.get("/dashboard", async (c) => {
       .order("created_at", { ascending: false }),
     supabase
       .from("ventas")
-      .select("id, total, channel, created_at, metodo_pago, productos")
+      .select("id, total, channel, created_at, metodo_pago, productos, buyer_email, direccion_envio, buy_order")
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(20),
@@ -309,6 +319,9 @@ logisticaRoutes.get("/dashboard", async (c) => {
     channel: v.channel,
     created_at: v.created_at,
     metodo_pago: v.metodo_pago,
+    buyer_email: v.buyer_email,
+    direccion_envio: v.direccion_envio,
+    buy_order: v.buy_order,
     items: parseVentaLineas(v.productos),
     pendiente_envio: !envioVentaIds.has(String(v.id)),
   }));
@@ -465,6 +478,23 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
       }
     }
     return c.json({ code: "envio_create_failed", message: error.message }, 400);
+  }
+
+  if (input.cliente?.guardar_crm && input.cliente.nombre?.trim()) {
+    try {
+      await fromLoose(supabase, "clientes").insert({
+        user_id: user.id,
+        name: input.cliente.nombre.trim(),
+        telefono: input.cliente.telefono?.trim() || null,
+        email: input.cliente.email?.trim() || null,
+        direccion: input.cliente.direccion?.trim() || input.destino,
+        fuente: input.cliente.canal || "whatsapp",
+        status: "activo",
+        type: "persona",
+      });
+    } catch (crmErr) {
+      console.warn("[logistica/envios] no se pudo guardar cliente en CRM:", crmErr);
+    }
   }
 
   if (isShippedStatus(data.status)) {

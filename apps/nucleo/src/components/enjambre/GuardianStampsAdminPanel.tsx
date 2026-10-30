@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Stamp, Plus, Trash2, Edit2, Check, X, ShieldAlert } from 'lucide-react';
-import { toast, ViewLoading, Badge } from '@enjambre/ui';
+import { toast, Skeleton, SkeletonCard, Badge } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface StampProgram {
@@ -156,7 +156,22 @@ export function GuardianStampsAdminPanel() {
   };
 
   if (programsQuery.isLoading) {
-    return <ViewLoading variant="inline" label="Programas de Sellos D2C" />;
+    return (
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-4" aria-busy="true" aria-label="Cargando programas de sellos">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="circular" className="w-5 h-5" />
+            <Skeleton variant="text" className="w-52 h-5" />
+          </div>
+          <Skeleton variant="rectangular" className="w-32 h-9 rounded-full" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} lines={3} />
+          ))}
+        </div>
+      </section>
+    );
   }
 
   return (

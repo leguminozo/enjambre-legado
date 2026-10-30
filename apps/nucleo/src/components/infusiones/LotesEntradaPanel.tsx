@@ -9,7 +9,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, type ColumnDef,
+  Select, Badge, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel, ResponsableInput } from './shared';
@@ -105,13 +105,24 @@ function LoteEntradaFormDialog({
     );
   }, [open, initial, reset]);
 
+  const onSubmit = (v: LoteEntradaFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? `Editar ${initial.codigo_lote}` : 'Nuevo lote de entrada'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <FormFieldLabel>Materia prima *</FormFieldLabel>
@@ -230,7 +241,21 @@ export function LotesEntradaPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Lotes de entrada</CardTitle>
+            <CardDescription>Recepción de materia prima fresca con pesaje, origen botánico y registro de humedad.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -258,7 +283,14 @@ export function LotesEntradaPanel() {
           emptyState="Aún no hay lotes de entrada registrados."
         />
       </CardContent>
-      <LoteEntradaFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+      <LoteEntradaFormDialog
+        open={formOpen}
+        onOpenChange={(v) => {
+          setFormOpen(v);
+          if (!v) setEditing(null);
+        }}
+        initial={editing}
+      />
     </Card>
   );
 }

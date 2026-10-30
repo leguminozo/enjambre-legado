@@ -181,6 +181,54 @@ describe('DELETE /api/produccion/lotes/:id — Trazabilidad y Borrado Seguro', (
     const json = (await res.json()) as { ok: boolean };
     expect(json.ok).toBe(true);
   });
+
+  it('retorna 404 si el lote no existe', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'lotes') {
+        return makeChain({ data: null, error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request(`/api/produccion/lotes/${loteId}`, {
+      method: 'DELETE',
+      headers: authHeaders,
+    });
+
+    expect(res.status).toBe(404);
+    const json = (await res.json()) as { code: string };
+    expect(json.code).toBe('lote_not_found');
+  });
+
+  it('retorna 500 si la base de datos falla al consultar el lote', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'lotes') {
+        return makeChain({ data: null, error: { message: 'Database connection failed' } });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request(`/api/produccion/lotes/${loteId}`, {
+      method: 'DELETE',
+      headers: authHeaders,
+    });
+
+    expect(res.status).toBe(500);
+    const json = (await res.json()) as { code: string };
+    expect(json.code).toBe('lote_fetch_error');
+  });
 });
 
 describe('POST /api/produccion/cosechas — Atomicidad lote + recolección', () => {

@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
-  Card, CardContent, CardDescription, CardHeader, CardTitle, ViewLoading, formatCLP,
+  Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton, formatCLP,
 } from '@enjambre/ui';
 
 interface TemporadaDato {
@@ -35,7 +35,25 @@ export function TemporadaPanel() {
     },
   });
 
-  if (isLoading) return <ViewLoading variant="view" label="Temporadas" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton variant="text" className="w-56 h-6" />
+          <Skeleton variant="text" className="w-80 max-w-full h-4" />
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-4 rounded-xl border border-border bg-surface-sunken space-y-3">
+              <Skeleton variant="text" className="w-24 h-5" />
+              <Skeleton variant="text" className="w-32 h-6" />
+              <Skeleton variant="text" className="w-28 h-4" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   const maxIngreso = Math.max(1, ...TEMPORADAS.map((t) => data?.[t.key]?.ingreso ?? 0));
 

@@ -43,6 +43,7 @@ import {
   Italic,
   Film,
   Scan,
+  Sliders,
 } from 'lucide-react';
 import {
   cn,
@@ -165,6 +166,14 @@ function getBlockTypeInfo(type: SlideBlock['type']) {
   }
 }
 
+const SLIDE_FONT_GUIDANCE: Record<string, string> = {
+  cormorant: 'Titulares de prestigio, declaraciones solemnes y peso botánico del bosque nativo.',
+  sans: 'Kits de cafetería, lectura ágil, tablas de pureza y fichas técnicas de mesa.',
+  mono: 'Coordenadas geográficas, constantes de laboratorio, análisis físico-químicos y números de lote.',
+  display: 'Portadas de campaña de alto impacto, acentos editoriales y tipografía de cartel.',
+  humanist: 'Cartas del fundador, notas de cata reflexivas y relatos territoriales cálidos.',
+};
+
 function getBlockSummary(block: SlideBlock): string {
   switch (block.type) {
     case 'paragraph':
@@ -190,10 +199,17 @@ function getBlockSummary(block: SlideBlock): string {
 
 export interface SlideStudioWorkspaceProps {
   initialSlides?: SlideData[];
+  initialProjectName?: string;
+  onVolver?: () => void;
   className?: string;
 }
 
-export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWorkspaceProps) {
+export function SlideStudioWorkspace({
+  initialSlides,
+  initialProjectName,
+  onVolver,
+  className,
+}: SlideStudioWorkspaceProps) {
   const [isPresenterOpen, setIsPresenterOpen] = useState(false);
   const [isDataInjectorOpen, setIsDataInjectorOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
@@ -201,9 +217,17 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
   const [isPrintTabletopOpen, setIsPrintTabletopOpen] = useState(false);
   const [isIdentityStudioOpen, setIsIdentityStudioOpen] = useState(false);
   const [b2bPartnerName, setB2bPartnerName] = useState('');
+  const [projectName, setProjectName] = useState(initialProjectName || '');
+
+  useEffect(() => {
+    if (initialProjectName) {
+      setProjectName(initialProjectName);
+    }
+  }, [initialProjectName]);
   const [isB2bPopoverOpen, setIsB2bPopoverOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [showSafeZones, setShowSafeZones] = useState(false);
+  const [isThemeMixerOpen, setIsThemeMixerOpen] = useState(false);
   const [arsenalSearchQuery, setArsenalSearchQuery] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -272,12 +296,12 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         setIsCommandPaletteOpen((prev) => !prev);
       } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        saveChanges();
+        saveChanges(projectName.trim() || initialProjectName);
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [saveChanges]);
+  }, [saveChanges, projectName, initialProjectName]);
 
 
   // Navegación bidireccional: clic en elemento del preview salta al formulario y hace focus con feedback visual
@@ -347,8 +371,32 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Lado Izquierdo: Plantillas & Formato del Lienzo */}
+          {/* Lado Izquierdo: Volver, Proyecto, Plantillas & Formato del Lienzo */}
           <div className="flex items-center gap-2">
+            {onVolver && (
+              <button
+                type="button"
+                onClick={onVolver}
+                className="btn btn-ghost btn-xs h-8 px-2.5 rounded-xl text-xs font-mono flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-sunken border border-border/60 transition-colors shadow-sm"
+                title="Volver a la colección editorial"
+              >
+                <ArrowLeft size={13} />
+                <span className="hidden sm:inline font-medium">Colección</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-sunken border border-border/60 text-xs font-mono text-foreground">
+              <span className="text-[10px] uppercase text-muted-foreground hidden sm:inline">Pieza:</span>
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder={activeSlide?.title || 'Nombre de la pieza...'}
+                className="bg-transparent font-medium text-primary border-none focus:outline-none focus:ring-0 p-0 text-xs font-mono min-w-[90px] max-w-[150px] sm:max-w-[200px] truncate placeholder:text-muted-foreground/60"
+                title="Editar nombre de la pieza editorial"
+              />
+            </div>
+
             {/* Menú Desplegable de Plantillas & Kits */}
             <DropdownMenu
               align="start"
@@ -434,7 +482,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => saveChanges()}
+              onClick={() => saveChanges(projectName.trim() || initialProjectName)}
               disabled={isSaving}
               className={cn(
                 'btn btn-xs h-8 px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all shadow-sm',
@@ -463,8 +511,19 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
             </button>
           </div>
 
-          {/* Lado Derecho: Herramientas, Atajo ⌘K y Exportación Agrupada */}
+          {/* Lado Derecho: Animar en Video, Herramientas, Atajo ⌘K y Exportación Agrupada */}
           <div className="flex items-center gap-2">
+            {/* Acceso directo a Video de Identidad Territorial */}
+            <button
+              type="button"
+              onClick={() => setIsIdentityStudioOpen(true)}
+              className="btn btn-outline btn-xs h-8 px-2.5 sm:px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 border-border hover:border-primary/50 text-foreground bg-surface-sunken/40 hover:bg-surface-sunken transition-all shadow-sm"
+              title="Generar animación de identidad territorial viva con este contenido"
+            >
+              <Film size={13} className="text-primary" />
+              <span className="hidden md:inline font-medium">Animar en Video</span>
+            </button>
+
             {/* Menú Desplegable de Herramientas Operativas */}
             <DropdownMenu
               align="end"
@@ -507,41 +566,12 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
               <DropdownMenuSeparator />
               <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
-                Difusión & Impresión
+                Planificación & Ingesta
               </div>
-              <DropdownMenuItem onSelect={() => setIsIdentityStudioOpen(true)}>
-                <span className="flex items-center gap-2 font-mono text-xs font-medium">
-                  <Film size={13} className="text-primary" />
-                  Video de Identidad & Sustrato Biológico
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setIsPrintTabletopOpen(true)}>
-                <span className="flex items-center gap-2 font-mono text-xs">
-                  <Printer size={13} />
-                  Imprimir Ficha de Mesa (300 DPI)
-                </span>
-              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setIsSchedulePostOpen(true)}>
                 <span className="flex items-center gap-2 font-mono text-xs">
                   <Calendar size={13} />
                   Agendar en Calendario
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleCopyCaption}>
-                <span className="flex items-center gap-2 font-mono text-xs">
-                  <Copy size={13} />
-                  {isCopied ? '¡Copiado!' : 'Copiar Caption de Redes'}
-                </span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
-                Respaldo JSON Soberano
-              </div>
-              <DropdownMenuItem onSelect={() => exportCarouselJSON()}>
-                <span className="flex items-center gap-2 font-mono text-xs">
-                  <FileDown size={13} />
-                  Exportar Carrusel (JSON)
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
@@ -551,18 +581,6 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </span>
               </DropdownMenuItem>
             </DropdownMenu>
-
-            {/* Generador Audiovisual de Identidad & Sustrato Biológico */}
-            <button
-              type="button"
-              onClick={() => setIsIdentityStudioOpen(true)}
-              className="btn btn-outline btn-xs h-8 px-2.5 sm:px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-sm"
-              title="Abrir Generador Audiovisual de Identidad y Sustrato Biológico (Reels / Stories / Feed)"
-            >
-              <Film size={13} className="text-primary" />
-              <span className="font-semibold hidden sm:inline">Video de Identidad</span>
-              <span className="font-semibold sm:hidden">Video</span>
-            </button>
 
             {/* Acceso a Paleta de Comandos ⌘K */}
             <button
@@ -577,7 +595,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               </kbd>
             </button>
 
-            {/* Botón de Exportación Primario Unificado */}
+            {/* Botón de Exportación Primario Unificado (Hub Central de Salidas) */}
             <DropdownMenu
               align="end"
               trigger={
@@ -585,7 +603,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   type="button"
                   disabled={isExporting}
                   className="btn btn-primary btn-xs h-8 px-3 rounded-xl text-xs font-mono flex items-center gap-2 font-semibold shadow-sm transition-all"
-                  title="Opciones de exportación de láminas"
+                  title="Opciones centrales de exportación, difusión e imprenta"
                 >
                   <Download size={13} />
                   <span>{isExporting ? 'Generando...' : 'Exportar'}</span>
@@ -594,7 +612,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               }
             >
               <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
-                Exportación de Imagen
+                Imágenes & Carrusel
               </div>
               <DropdownMenuItem onSelect={() => handleExportSinglePNG(false)}>
                 <span className="flex items-center gap-2 font-mono text-xs">
@@ -616,11 +634,54 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   </span>
                 </DropdownMenuItem>
               )}
+
               <DropdownMenuSeparator />
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Audiovisual & Identidad Territorial
+              </div>
+              <DropdownMenuItem onSelect={() => setIsIdentityStudioOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs font-semibold text-primary">
+                  <Film size={13} />
+                  Video de Identidad Territorial (60 FPS)
+                </span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Física & Redes
+              </div>
+              <DropdownMenuItem onSelect={() => setIsPrintTabletopOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Printer size={13} />
+                  Imprimir Ficha de Mesa (300 DPI / PDF)
+                </span>
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={handleCopyCaption}>
                 <span className="flex items-center gap-2 font-mono text-xs">
                   <Copy size={13} />
-                  Copiar Texto / Caption
+                  {isCopied ? '¡Copiado!' : 'Copiar Caption de Redes'}
+                </span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Archivo & Respaldo Soberano
+              </div>
+              <DropdownMenuItem onSelect={() => exportCarouselJSON()}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <FileDown size={13} />
+                  Exportar Carrusel (JSON)
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  const el = document.getElementById('slide-export-engine');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+                  <Sparkles size={13} />
+                  Motor Avanzado de Salida (Receta / Semilla)...
                 </span>
               </DropdownMenuItem>
             </DropdownMenu>
@@ -645,10 +706,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         </div>
       )}
 
-      {/* 3. Alcance de movimiento y formato de salida */}
-      <SlideExportPanel slides={slides} aspectRatio={aspectRatio} />
-
-      {/* 4. Secuencia de Láminas (Filmstrip Táctil) */}
+      {/* 3. Secuencia de Láminas (Filmstrip Táctil) */}
       <div className="rounded-2xl border border-border bg-card p-3 sm:p-3.5 space-y-2.5 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <label className="text-xs uppercase tracking-wider font-mono text-muted-foreground truncate">
@@ -945,7 +1003,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     </button>
                   </div>
 
-                  {/* 1. Atmósfera de Fondo (Tema de Lámina) */}
+                  {/* 1. Atmósfera de Fondo (Segmentado Apple-style + Mixeador) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs font-mono text-muted-foreground uppercase block">
@@ -955,40 +1013,71 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                         {SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.label}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      {Object.values(SLIDE_THEMES).map((th) => {
-                        const isSelected = (activeSlide.theme || 'obsidiana') === th.id;
-                        return (
-                          <button
-                            key={th.id}
-                            type="button"
-                            onClick={() => updateActiveSlide({ theme: th.id })}
-                            className={cn(
-                              'p-2 rounded-xl border text-left transition-all flex flex-col gap-1.5',
-                              isSelected
-                                ? 'border-primary ring-1 ring-primary/40 bg-primary/10 shadow-sm'
-                                : 'border-border bg-card hover:bg-surface-raised',
-                            )}
-                          >
-                            <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center p-0.5 rounded-xl border border-border bg-surface-sunken">
+                        {Object.values(SLIDE_THEMES).map((th) => {
+                          const isSelected = (activeSlide.theme || 'obsidiana') === th.id;
+                          return (
+                            <button
+                              key={th.id}
+                              type="button"
+                              onClick={() => updateActiveSlide({ theme: th.id })}
+                              className={cn(
+                                'px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all',
+                                isSelected
+                                  ? 'bg-card text-foreground font-semibold shadow-xs border border-border/80'
+                                  : 'text-muted-foreground hover:text-foreground',
+                              )}
+                              title={th.label}
+                            >
                               <span
-                                className="h-3.5 w-3.5 rounded-full border border-white/20 shrink-0"
+                                className="h-2.5 w-2.5 rounded-full border border-white/20 shrink-0"
                                 style={{ backgroundColor: th.bgHex }}
                               />
-                              <span className="text-xs font-mono font-medium truncate text-foreground">
-                                {th.label}
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-muted-foreground leading-tight truncate">
-                              {th.sublabel}
-                            </span>
-                          </button>
-                        );
-                      })}
+                              <span>{th.label.split(' ')[0]}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Botón Apple-type: Mixeador de Fondo */}
+                      <button
+                        type="button"
+                        onClick={() => setIsThemeMixerOpen((prev) => !prev)}
+                        className={cn(
+                          'px-2.5 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 transition-all',
+                          isThemeMixerOpen
+                            ? 'border-primary bg-primary/10 text-primary font-semibold'
+                            : 'border-border bg-card text-muted-foreground hover:text-foreground',
+                        )}
+                        title="Mixeador de fondo: afinar saturación y tono de sustrato"
+                      >
+                        <Sliders size={12} className="text-primary" />
+                        <span>Mixeador</span>
+                      </button>
                     </div>
+
+                    {isThemeMixerOpen && (
+                      <div className="mt-2 p-3 rounded-xl border border-border bg-surface-sunken/60 space-y-2 animate-in fade-in">
+                        <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+                          <span>Sustrato Orgánico Activo</span>
+                          <span className="text-primary font-medium">{SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.label}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                          <div className="flex items-center gap-2 p-1.5 rounded-lg border border-border bg-card">
+                            <span className="text-[10px] text-muted-foreground">HEX:</span>
+                            <span className="text-foreground font-semibold">{SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.bgHex}</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-1.5 rounded-lg border border-border bg-card">
+                            <span className="text-[10px] text-muted-foreground">Modo:</span>
+                            <span className="text-foreground">{SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.isLight ? 'Ficha Clara' : 'Nocturno Carbón'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* 2. Voz Tipográfica (Familia de Fuentes) */}
+                  {/* 2. Voz Tipográfica (Dropdown con Orientación Editorial) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs font-mono text-muted-foreground uppercase flex items-center gap-1">
@@ -998,49 +1087,82 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                         {SLIDE_FONT_FAMILIES[activeSlide.fontFamily || 'cormorant']?.sublabel}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
-                      {Object.values(SLIDE_FONT_FAMILIES).map((f) => {
-                        const isSelected = (activeSlide.fontFamily || 'cormorant') === f.id;
-                        return (
-                          <button
-                            key={f.id}
-                            type="button"
-                            onClick={() => updateActiveSlide({ fontFamily: f.id })}
-                            className={cn(
-                              'p-2 rounded-xl border text-left transition-all flex flex-col justify-between gap-1',
-                              isSelected
-                                ? 'border-primary ring-1 ring-primary/40 bg-primary/10 shadow-sm'
-                                : 'border-border bg-card hover:bg-surface-raised',
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className={cn('text-sm font-semibold text-foreground', f.cssClass)}>
-                                {f.id === 'mono' ? '01' : 'Aa'}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                {f.isCanonical && (
-                                  <span className="text-[8px] font-mono uppercase px-1 py-0.2 rounded bg-primary/20 text-primary border border-primary/30">
+                    <DropdownMenu
+                      align="start"
+                      trigger={
+                        <button
+                          type="button"
+                          className="w-full h-11 px-3.5 rounded-xl border border-border bg-card hover:bg-surface-raised flex items-center justify-between text-left transition-all group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className={cn('text-base font-bold text-primary shrink-0', SLIDE_FONT_FAMILIES[activeSlide.fontFamily || 'cormorant']?.cssClass)}>
+                              {activeSlide.fontFamily === 'mono' ? '01' : 'Aa'}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-mono font-semibold text-foreground truncate">
+                                  {SLIDE_FONT_FAMILIES[activeSlide.fontFamily || 'cormorant']?.label}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground truncate">
+                                  · {SLIDE_FONT_FAMILIES[activeSlide.fontFamily || 'cormorant']?.sublabel}
+                                </span>
+                                {SLIDE_FONT_FAMILIES[activeSlide.fontFamily || 'cormorant']?.isCanonical && (
+                                  <span className="text-[8px] font-mono uppercase px-1 py-0.2 rounded bg-primary/20 text-primary border border-primary/30 shrink-0">
                                     Canónica
                                   </span>
                                 )}
-                                {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                               </div>
+                              <p className="text-[10.5px] text-muted-foreground truncate">
+                                {SLIDE_FONT_GUIDANCE[activeSlide.fontFamily || 'cormorant'] || 'Tipografía editorial de alta precisión.'}
+                              </p>
                             </div>
-                            <div>
-                              <div className="text-xs font-mono font-medium text-foreground truncate">
-                                {f.label}
+                          </div>
+                          <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground shrink-0 transition-transform" />
+                        </button>
+                      }
+                    >
+                      <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                        Voces Tipográficas de la Marca
+                      </div>
+                      {Object.values(SLIDE_FONT_FAMILIES).map((f) => {
+                        const isSelected = (activeSlide.fontFamily || 'cormorant') === f.id;
+                        return (
+                          <DropdownMenuItem
+                            key={f.id}
+                            onSelect={() => updateActiveSlide({ fontFamily: f.id })}
+                            className={cn(
+                              'p-2.5 rounded-lg cursor-pointer transition-colors flex items-start gap-3 my-0.5',
+                              isSelected && 'bg-primary/10 border border-primary/30',
+                            )}
+                          >
+                            <span className={cn('text-lg font-bold text-primary shrink-0 w-6 text-center mt-0.5', f.cssClass)}>
+                              {f.id === 'mono' ? '01' : 'Aa'}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-xs font-mono font-semibold text-foreground">
+                                  {f.label} <span className="text-muted-foreground font-normal">({f.sublabel})</span>
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {f.isCanonical && (
+                                    <span className="text-[8px] font-mono uppercase px-1 py-0.2 rounded bg-primary/20 text-primary border border-primary/30">
+                                      Canónica
+                                    </span>
+                                  )}
+                                  {isSelected && <Check size={12} className="text-primary shrink-0" />}
+                                </div>
                               </div>
-                              <div className="text-[9.5px] text-muted-foreground truncate">
-                                {f.sublabel}
-                              </div>
+                              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                                {SLIDE_FONT_GUIDANCE[f.id]}
+                              </p>
                             </div>
-                          </button>
+                          </DropdownMenuItem>
                         );
                       })}
-                    </div>
+                    </DropdownMenu>
                   </div>
 
-                  {/* 3. Color de Acento (Paletas de Origen & Hex Libre) */}
+                  {/* 3. Color de Acento (Fila Compacta Apple-style) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs font-mono text-muted-foreground uppercase block">
@@ -1049,37 +1171,38 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                       {activeSlide.accentColor && (
                         <span className="text-[10px] font-mono text-primary/80 uppercase">
                           {activeSlide.accentColor.startsWith('#')
-                            ? activeSlide.accentColor
-                            : SLIDE_ACCENT_PALETTES[activeSlide.accentColor]?.hex}
+                            ? `Co-Branding: ${activeSlide.accentColor}`
+                            : SLIDE_ACCENT_PALETTES[activeSlide.accentColor]?.label}
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {Object.values(SLIDE_ACCENT_PALETTES).map((p) => {
-                        const isSelected = (activeSlide.accentColor || 'oro') === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => updateActiveSlide({ accentColor: p.id })}
-                            className={cn(
-                              'px-2.5 py-1.5 rounded-lg border text-xs font-mono flex items-center gap-2 transition-all',
-                              isSelected
-                                ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-sm'
-                                : 'border-border bg-card hover:bg-surface-raised text-muted-foreground',
-                            )}
-                          >
-                            <span
-                              className="h-3 w-3 rounded-full shrink-0 border border-black/20"
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Swatches Circulares de Paletas Curadas */}
+                      <div className="flex items-center gap-1.5 p-1 rounded-xl border border-border bg-surface-sunken">
+                        {Object.values(SLIDE_ACCENT_PALETTES).map((p) => {
+                          const isSelected = (activeSlide.accentColor || 'oro') === p.id;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => updateActiveSlide({ accentColor: p.id })}
+                              className={cn(
+                                'h-6 w-6 rounded-full border transition-all relative shrink-0 flex items-center justify-center',
+                                isSelected
+                                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-card scale-110 border-white/40'
+                                  : 'border-black/30 hover:scale-105 opacity-85 hover:opacity-100',
+                              )}
                               style={{ backgroundColor: p.hex }}
-                            />
-                            <span>{p.label}</span>
-                          </button>
-                        );
-                      })}
+                              title={`${p.label} (${p.hex})`}
+                            >
+                              {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-white shadow-xs" />}
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                      {/* Selector de Hex Libre / Color Personalizado */}
-                      <div className="flex items-center gap-1.5 pl-1 ml-auto sm:ml-0">
+                      {/* Selector Apple-type de Color Libre / Co-branding */}
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl border border-border bg-card">
                         <div className="relative flex items-center">
                           <input
                             type="color"
@@ -1090,8 +1213,8 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                                 : SLIDE_ACCENT_PALETTES[activeSlide.accentColor || 'oro']?.hex || '#D6AA5C'
                             }
                             onChange={(e) => updateActiveSlide({ accentColor: e.target.value })}
-                            className="h-7 w-7 rounded-lg border border-border bg-card cursor-pointer p-0.5"
-                            title="Color personalizado libre"
+                            className="h-5 w-5 rounded-full border border-border bg-card cursor-pointer p-0 shrink-0"
+                            title="Selector de color personalizado"
                           />
                         </div>
                         <input
@@ -1106,8 +1229,8 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                               updateActiveSlide({ accentColor: `#${val}` });
                             }
                           }}
-                          className="w-20 px-2 py-1 rounded-lg border border-border bg-card text-xs font-mono text-foreground placeholder:text-muted-foreground uppercase"
-                          title="Ingresa código HEX hexadecimal directo"
+                          className="w-16 px-1.5 py-0.5 rounded bg-surface-sunken border border-border/70 text-[11px] font-mono text-foreground placeholder:text-muted-foreground uppercase"
+                          title="Ingresa código HEX para aliado B2B o co-branding"
                         />
                       </div>
                     </div>
@@ -1574,46 +1697,47 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   )}
                 </div>
 
-                {/* Catálogo de adición guiada de bloques */}
-                <div className="pt-2 border-t border-border/60 space-y-2">
+                {/* Selector Compacto de Adición de Bloques (Apple / Figma style) */}
+                <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2">
                   <span className="text-xs font-mono text-muted-foreground uppercase block font-medium">
-                    + Añadir Bloque Modular:
+                    Añadir Contenido Modular
                   </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {MODULAR_BLOCK_TYPES.map((bt) => (
+                  <DropdownMenu
+                    align="end"
+                    trigger={
                       <button
-                        key={bt.type}
                         type="button"
-                        onClick={() => addBlockToActiveSlide(bt.type)}
-                        className={cn(
-                          'p-2.5 rounded-xl border text-left transition-all flex items-start gap-2.5 group',
-                          bt.accent
-                            ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50'
-                            : 'border-border bg-card hover:bg-surface-raised hover:border-primary/30',
-                        )}
-                        title={bt.desc}
+                        className="btn btn-primary btn-xs h-8 px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 font-semibold shadow-xs"
                       >
-                        <span
-                          className={cn(
-                            'w-6 h-6 rounded-lg flex items-center justify-center text-xs font-mono font-bold shrink-0 border transition-colors',
-                            bt.accent
-                              ? 'border-primary/40 bg-primary/20 text-primary'
-                              : 'border-border bg-surface-sunken text-muted-foreground group-hover:text-primary group-hover:border-primary/30',
-                          )}
-                        >
+                        <Plus size={13} />
+                        <span>+ Añadir Bloque</span>
+                        <ChevronDown size={11} className="opacity-70" />
+                      </button>
+                    }
+                  >
+                    <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                      Arquitectura del Bloque
+                    </div>
+                    {MODULAR_BLOCK_TYPES.map((bt) => (
+                      <DropdownMenuItem
+                        key={bt.type}
+                        onSelect={() => addBlockToActiveSlide(bt.type)}
+                        className="p-2 rounded-lg cursor-pointer flex items-center gap-2.5 my-0.5"
+                      >
+                        <span className="w-6 h-6 rounded-md bg-surface-sunken border border-border flex items-center justify-center font-mono text-xs font-bold text-primary shrink-0">
                           {bt.symbol}
                         </span>
                         <div className="min-w-0">
-                          <span className="text-xs font-semibold text-foreground block group-hover:text-primary transition-colors">
-                            + {bt.label}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground leading-tight line-clamp-1">
+                          <div className="text-xs font-mono font-medium text-foreground">
+                            {bt.label}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground truncate">
                             {bt.desc}
-                          </span>
+                          </div>
                         </div>
-                      </button>
+                      </DropdownMenuItem>
                     ))}
-                  </div>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
@@ -1857,6 +1981,11 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 6. Alcance de movimiento y motor de salida avanzada */}
+      <div id="slide-export-engine" className="pt-2">
+        <SlideExportPanel slides={slides} aspectRatio={aspectRatio} />
       </div>
 
       {/* Botón Flotante Quick Peek en Móvil (Permite saltar entre Editor y Preview con un solo tap) */}

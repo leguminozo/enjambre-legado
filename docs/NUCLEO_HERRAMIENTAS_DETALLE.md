@@ -25,12 +25,13 @@
 15. [Monitor de Feria en Tiempo Real & Arqueo (`/monitor-feria`)](#15-monitor-de-feria-en-tiempo-real--arqueo)
 16. [Microcanales B2B, Cotizador & Percepción Sensorial CATA (`/microcanales`)](#16-microcanales-b2b-cotizador--percepción-sensorial-cata)
 17. [Pipeline Comercial & CRM B2B (`/pipeline`, `/crm`)](#17-pipeline-comercial--crm-b2b)
-18. [Estudio Editorial & Motion RRSS (`/estudio-rrss`, `/estudio-audiovisual`)](#18-estudio-editorial--motion-rrss)
-19. [Soberanía Fiscal SII & Facturación Electrónica (`/sii`)](#19-soberanía-fiscal-sii--facturación-electrónica)
-20. [Integración Bancaria & Conciliación Automática (`/banco`, `/conciliacion`)](#20-integración-bancaria--conciliación-automática)
-21. [Censo Territorial de Chiloé & Alertas Fitosanitarias (`/registro-territorial`, `/territorio`)](#21-censo-territorial-de-chiloé--alertas-fitosanitarias)
-22. [Canal de Protección de Datos ARCO Ley 21.719 (`/arco`)](#22-canal-de-protección-de-datos-arco-ley-21719)
-23. [Salud, Telemetría & Observabilidad de Plataforma (`/salud`)](#23-salud-telemetría--observabilidad-de-plataforma)
+18. [Creadores & Embajadores Admin (`/creadores`, `/reglas-comision`)](#18-creadores--embajadores-admin)
+19. [Estudio Editorial & Motion RRSS (`/estudio-rrss`, `/estudio-audiovisual`)](#19-estudio-editorial--motion-rrss)
+20. [Soberanía Fiscal SII & Facturación Electrónica (`/sii`)](#20-soberanía-fiscal-sii--facturación-electrónica)
+21. [Integración Bancaria & Conciliación Automática (`/banco`, `/conciliacion`)](#21-integración-bancaria--conciliación-automática)
+22. [Censo Territorial de Chiloé & Alertas Fitosanitarias (`/registro-territorial`, `/territorio`)](#22-censo-territorial-de-chiloé--alertas-fitosanitarias)
+23. [Canal de Protección de Datos ARCO Ley 21.719 (`/arco`)](#23-canal-de-protección-de-datos-arco-ley-21719)
+24. [Salud, Telemetría & Observabilidad de Plataforma (`/salud`)](#24-salud-telemetría--observabilidad-de-plataforma)
 
 ---
 
@@ -387,26 +388,46 @@
 
 ---
 
-## 18. Estudio Editorial & Motion RRSS
+## 18. Creadores & Embajadores Admin
+
+- **Rutas**: `/creadores`, `/reglas-comision`
+- **Vistas**: `CreadoresAdminView.tsx`, `ReglasComisionView.tsx`
+- **BFF**: `/api/referrals/*`, `/api/b2b`
+
+### Mecánica Interna
+1. **Gestión de Solicitudes de Creadores y Embajadores**:
+   - Bandeja de entrada para postulaciones enviadas desde la tienda pública (`/embajadores`).
+   - Aprobación/rechazo de creadores, asignación de código de enlace personalizado (`?ref=codigo`) y porcentaje de comisión.
+2. **Atribución de Comisiones en Checkout**:
+   - Cuando un comprador utiliza el código de un embajador, el motor de liquidación asocia la orden y calcula la comisión pactada.
+3. **Reglas de Comisión Parametrizables**:
+   - Matriz de comisiones por tramo de ventas, periodicidad de pago y deducción de retenciones legales correspondientes.
+
+---
+
+## 19. Estudio Editorial & Motion RRSS
 
 - **Rutas**: `/estudio-rrss`, `/estudio-audiovisual`
 - **Vistas**: `EstudioRrssView.tsx`, `EstudioAudiovisualView.tsx`
-- **Componentes clave**: `SlideStudioWorkspace.tsx`
+- **Componentes clave**: `SlideStudioWorkspace.tsx`, `SlideStudioCommandPalette.tsx`, `LivePresenterKioskModal.tsx`, `HardDataInjectorModal.tsx`, `TabletopPrintModal.tsx`
 - **Doctrina**: [`docs/ANTI_SLOP.md`](./ANTI_SLOP.md), [`docs/ESTUDIO_RRSS_MOTION.md`](./ESTUDIO_RRSS_MOTION.md)
 
 ### Mecánica Interna
 1. **Generador Editorial Multiformato (`SlideStudioWorkspace.tsx`)**:
    - Entorno visual en el navegador para maquetar piezas gráficas, carruseles educativos, kits de mesa para cafeterías y fichas botánicas.
    - Formatos estandarizados: 4:5 (Post vertical Instagram), 9:16 (Stories / Reels / TikTok), 1:1 (Cuadrado).
+   - **Paleta de Comandos (`SlideStudioCommandPalette.tsx`)**: Acceso directo a atajos, cambio de plantillas, inyección de datos y presets.
+   - **Inyector de Datos Duros (`HardDataInjectorModal.tsx`)**: Inyecta métricas territoriales vivas (polen, CO₂, coordenadas de apiario) directamente en las diapositivas.
+   - **Kiosco en Vivo e Impresión Tabletop**: Modo presentación interactiva y exportación de fichas físicas para mesas de cata y mesones de emporios.
 2. **Constricciones de Marca Anti-Slop (`BrandViolation`)**:
    - Validador en tiempo real que prohíbe el uso de fuentes no autorizadas, gradientes fluorescentes, ilustraciones genéricas o jerga ecologista/hippie.
    - Fuerza tipografía Cormorant Garamond / Geist, texturas de sustrato orgánico (lino, papel algodón, madera de tepú) y tonos oscuros de poder silencioso.
-3. **Exportación de Alta Resolución**:
-   - Renderiza las láminas en alta densidad de píxeles (HiDPI / Retina) listas para publicación en redes o impresión en papel verjurado.
+3. **Exportación de Alta Resolución y Video**:
+   - Renderiza láminas en alta densidad de píxeles (HiDPI / Retina) y secuencias animadas para Reels y pantallas digitales.
 
 ---
 
-## 19. Soberanía Fiscal SII & Facturación Electrónica
+## 20. Soberanía Fiscal SII & Facturación Electrónica
 
 - **Rutas**: `/sii`, `/sii/rcv`, `/sii/impuestos`
 - **Vistas**: `SiiDteView.tsx`, `RcvView.tsx`, `ImpuestosView.tsx`
@@ -434,7 +455,7 @@
 
 ---
 
-## 20. Integración Bancaria & Conciliación Automática
+## 21. Integración Bancaria & Conciliación Automática
 
 - **Rutas**: `/banco`, `/conciliacion`
 - **Vistas**: `BancoChileView.tsx`, `ConciliacionAutoView.tsx`
@@ -455,7 +476,7 @@
 
 ---
 
-## 21. Censo Territorial de Chiloé & Alertas Fitosanitarias
+## 22. Censo Territorial de Chiloé & Alertas Fitosanitarias
 
 - **Rutas**: `/registro-territorial`, `/territorio`, `/territorio/mapa`, `/territorio/alertas`, `/territorio/trashumancia`
 - **Vistas**: `RegistroTerritorialView.tsx`, `TerritorioHomeView.tsx`
@@ -475,7 +496,7 @@
 
 ---
 
-## 22. Canal de Protección de Datos ARCO Ley 21.719
+## 23. Canal de Protección de Datos ARCO Ley 21.719
 
 - **Ruta**: `/arco`
 - **Vista**: `ArcoAdminView.tsx`
@@ -492,7 +513,7 @@
 
 ---
 
-## 23. Salud, Telemetría & Observabilidad de Plataforma
+## 24. Salud, Telemetría & Observabilidad de Plataforma
 
 - **Ruta**: `/salud`
 - **Vista**: `SaludPlataformaView.tsx`

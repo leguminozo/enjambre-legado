@@ -89,7 +89,7 @@ describe('POST /api/produccion/lotes/:id/envasar — atomicidad', () => {
       }
       if (table === 'lotes') {
         return makeChain({
-          data: { id: loteId, kg_total: 100, nombre_lote: 'Lote Ulmo 2026', codigo: 'LOT-01' },
+          data: { id: loteId, kg_total: 100, nombre_lote: 'Lote Ulmo 2026' },
           error: null,
         });
       }
@@ -134,7 +134,7 @@ describe('POST /api/produccion/lotes/:id/envasar — atomicidad', () => {
       }
       if (table === 'lotes') {
         return makeChain({
-          data: { id: loteId, kg_total: 100, nombre_lote: 'Lote Ulmo 2026', codigo: 'LOT-01' },
+          data: { id: loteId, kg_total: 100, nombre_lote: 'Lote Ulmo 2026' },
           error: null,
         });
       }
@@ -186,7 +186,7 @@ describe('POST /api/produccion/lotes/:id/envasar — atomicidad', () => {
       }
       if (table === 'lotes') {
         return makeChain({
-          data: { id: loteId, kg_total: 100, nombre_lote: 'Lote Ulmo 2026', codigo: 'LOT-01' },
+          data: { id: loteId, kg_total: 100, nombre_lote: 'Lote Ulmo 2026' },
           error: null,
         });
       }

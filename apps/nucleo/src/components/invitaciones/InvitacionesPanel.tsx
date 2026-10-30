@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker } from '@enjambre/ui';
+import { friendlyError, toast, Skeleton, SkeletonTable, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import {
   Ticket, Loader2, Plus, Copy, Check,
   CheckCircle2, Clock, X, Eye, UserPlus, Users, Shield, Shuffle
@@ -20,6 +20,22 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { RedeemInviteForm } from '@/components/invitaciones/RedeemInviteForm';
 import { DirectorioCuentasTab } from '@/components/invitaciones/DirectorioCuentasTab';
 import { RolesPersonalizadosTab } from '@/components/invitaciones/RolesPersonalizadosTab';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
+
+const COMUNAS_CHILOE_INVITACIONES = [
+  'Castro',
+  'Ancud',
+  'Quellón',
+  'Dalcahue',
+  'Chonchi',
+  'Queilén',
+  'Quemchi',
+  'Puqueldón',
+  'Quinchao',
+  'Curaco de Vélez',
+  'Puerto Varas',
+  'Puerto Montt',
+] as const;
 
 interface InvitationCodeRow {
   id: string;
@@ -344,7 +360,24 @@ export function InvitacionesPanel({
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Invitaciones" hideLabel />;
+    return (
+      <div className="space-y-8 animate-in" aria-busy="true" aria-label="Cargando cuentas y accesos">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 rounded-2xl border border-border bg-card">
+          <div className="space-y-2">
+            <Skeleton variant="text" className="w-32 h-3" />
+            <Skeleton variant="text" className="w-48 h-7" />
+            <Skeleton variant="text" className="w-72 max-w-full h-3.5" />
+          </div>
+          <Skeleton variant="rectangular" className="w-10 h-10 rounded-xl" />
+        </div>
+        <div className="flex gap-2 border-b border-border/80 pb-3">
+          <Skeleton variant="rectangular" className="w-36 h-9 rounded-xl" />
+          <Skeleton variant="rectangular" className="w-36 h-9 rounded-xl" />
+          <Skeleton variant="rectangular" className="w-36 h-9 rounded-xl" />
+        </div>
+        <SkeletonTable rows={5} columns={5} />
+      </div>
+    );
   }
 
   return (
@@ -718,13 +751,35 @@ export function InvitacionesPanel({
                     </div>
                     <div>
                       <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Comuna principal</label>
+                      <div className="flex flex-wrap gap-1 mb-1.5">
+                        {COMUNAS_CHILOE_INVITACIONES.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setNuevaCuenta(p => ({ ...p, comuna: c }))}
+                            className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                              nuevaCuenta.comuna.toLowerCase() === c.toLowerCase()
+                                ? 'border-primary bg-primary/20 text-primary font-medium'
+                                : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
                       <input
                         type="text"
+                        list="invitaciones-comunas-list"
                         value={nuevaCuenta.comuna}
                         onChange={e => setNuevaCuenta(p => ({ ...p, comuna: e.target.value }))}
                         className="input-field text-sm w-full"
                         placeholder="Ej: Queilén, Chonchi, Castro..."
                       />
+                      <datalist id="invitaciones-comunas-list">
+                        {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                          <option key={c} value={c} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 </div>

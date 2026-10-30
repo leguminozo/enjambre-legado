@@ -151,8 +151,8 @@ export function usePerfil() {
         .upload(path, file, { upsert: true, cacheControl: '31536000' });
       if (uploadErr) throw uploadErr;
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-      const { error: updateErr } = await supabase
-        .from("profiles")
+      const { error: updateErr } = await (supabase
+        .from("profiles") as unknown as { update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: Error | null }> } })
         .update({ avatar_url: publicUrl })
         .eq("id", profile.id);
       if (updateErr) throw updateErr;

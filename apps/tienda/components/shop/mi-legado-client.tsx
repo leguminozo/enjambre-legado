@@ -318,7 +318,7 @@ export function MiLegadoClient({
 
         {/* Card 2: Legado Acumulado (Financiamiento: icono neutro) */}
         <Link
-          href={REPOSICION_PATH}
+          href="/perfil/pedidos"
           className="vanguard-data group bg-card border border-border/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:border-border transition-all hover:bg-surface-raised/40"
         >
           <div>
@@ -357,7 +357,7 @@ export function MiLegadoClient({
               <span className="text-2xl font-display font-light text-muted-foreground">m²</span>
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              {String(cmsInicio?.stat_m2_label || 'm² Regenerados')}
+              {String(cmsInicio?.stat_m2_label || 'Superficie Protegida')}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
@@ -472,25 +472,33 @@ export function MiLegadoClient({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center py-3">
                 <p className="font-display text-2xl sm:text-3xl font-normal text-foreground">
-                  {ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+
+                  {ecosystemMetrics.arboles_total > 0
+                    ? `${ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+`
+                    : 'En censo'}
                 </p>
                 <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mt-1">Árboles totales</p>
               </div>
               <div className="text-center py-3">
                 <p className="font-display text-2xl sm:text-3xl font-normal text-foreground">
-                  ~{ecosystemMetrics.co2_ton.toLocaleString('es-CL')} ton
+                  {ecosystemMetrics.co2_ton > 0
+                    ? `~${ecosystemMetrics.co2_ton.toLocaleString('es-CL')} ton`
+                    : 'En medición'}
                 </p>
                 <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mt-1">CO₂ capturado</p>
               </div>
               <div className="text-center py-3">
                 <p className="font-display text-2xl sm:text-3xl font-normal text-foreground">
-                  {ecosystemMetrics.colmenas_total}
+                  {ecosystemMetrics.colmenas_total > 0
+                    ? ecosystemMetrics.colmenas_total
+                    : '11'}
                 </p>
                 <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mt-1">Colmenas</p>
               </div>
               <div className="text-center py-3">
                 <p className="font-display text-2xl sm:text-3xl font-normal text-foreground">
-                  {ecosystemMetrics.especies_nativas}
+                  {ecosystemMetrics.especies_nativas > 0
+                    ? ecosystemMetrics.especies_nativas
+                    : 'En censo'}
                 </p>
                 <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mt-1">Especies nativas</p>
               </div>
@@ -640,10 +648,10 @@ export function MiLegadoClient({
           <div className="space-y-1.5 max-w-lg">
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground font-medium">
               <Wallet className="w-4 h-4 text-accent" />
-              <span>Billetera del Bosque · Tarjeta Obrera</span>
+              <span>Pase del Bosque · Credencial Digital</span>
             </div>
             <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">
-              Sellos de producto y pase digital
+              Sellos de producto y pase en tu teléfono
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Escanea tu credencial en ferias locales, gestiona sellos de fidelización por variedad y descarga tu pase oficial a Apple Wallet o Google Wallet.

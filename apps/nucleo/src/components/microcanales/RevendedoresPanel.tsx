@@ -7,7 +7,7 @@ import { Plus, Pencil } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, toast, formatCLP, type ColumnDef,
+  Select, Badge, SkeletonTable, toast, formatCLP, type ColumnDef,
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { FieldLabel } from './shared';
@@ -128,7 +128,21 @@ export function RevendedoresPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Microcanales" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Revendedores</CardTitle>
+            <CardDescription>El segmento de personas que promueven la marca (tienda, frutería, feria) — retribución por compras al por mayor en Fidelización.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

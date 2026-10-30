@@ -173,6 +173,7 @@ export interface SubstrateParameters {
   luminance: number; // 0.5 a 2.5 (default 1.2)
   fadePersistence: number; // 0.02 a 0.20 (fade de estelas)
   palette: SubstratePaletteId;
+  customColor?: string;
   motor: SubstrateMotorType;
   camera: CameraDynamics;
   gravity: GravitationalDynamics;
@@ -232,7 +233,7 @@ export const DEFAULT_SUBSTRATE_PARAMS: SubstrateParameters = {
     synapses: true,
     pulses: true,
     cameraMotion: true,
-    brandSeal: true,
+    brandSeal: false,
   },
 };
 
@@ -385,12 +386,25 @@ export class IdentitySubstrateSimulation {
     }
   }
 
+  public getActivePalette(): SubstratePaletteConfig {
+    const base = SUBSTRATE_PALETTES[this.params.palette] || SUBSTRATE_PALETTES.ambar;
+    if (this.params.customColor) {
+      return {
+        ...base,
+        primaryHex: this.params.customColor,
+        secondaryHex: this.params.customColor,
+        glowHex: this.params.customColor,
+      };
+    }
+    return base;
+  }
+
   public resetSimulation(): void {
     this.tickCount = 0;
     this.pulses = [];
     this.initParticles();
     // Limpiar pantalla inmediatamente
-    const palette = SUBSTRATE_PALETTES[this.params.palette];
+    const palette = this.getActivePalette();
     this.ctx.fillStyle = palette.bgHex;
     this.ctx.fillRect(0, 0, this.width, this.height);
   }
@@ -676,7 +690,7 @@ export class IdentitySubstrateSimulation {
 
   private render(): void {
     const { ctx, width, height, params, cameraOffset } = this;
-    const palette = SUBSTRATE_PALETTES[params.palette];
+    const palette = this.getActivePalette();
 
     ctx.save();
 

@@ -13,66 +13,55 @@ export async function getUserGamificationProfile(): Promise<GamificationProfile 
 
   if (!user) return null;
 
-  // 1. Fetch user profile for tier key
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('nivel_guardian')
-    .eq('id', user.id)
-    .maybeSingle();
+  // 1. Fetch user tier view, dynamic configs and loyalty points from the canonical SSOT
+  const [userTierRes, tierConfigsRes, puntosRows] = await Promise.all([
+    supabase
+      .from('user_tier_view')
+      .select('tier, tier_nombre, tier_icono, tier_color_token, tier_narrativa, tier_priority, ciclos_historicos')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('guardian_tier_configs')
+      .select('tier, nombre_display, icono, color_token, min_ciclos, priority, activo')
+      .eq('activo', true)
+      .order('priority', { ascending: true }),
+    supabase
+      .from('puntos_fidelizacion')
+      .select('puntos_acumulados_total')
+      .eq('user_id', user.id),
+  ]);
 
-  // El progreso se alimenta del saldo VIVO (puntos_fidelizacion), no del saldo
-  // legacy profiles.puntos_acumulados (solo los referidos lo tocaban y las
-  // compras reales nunca avanzaban el nivel). Suma por si hay más de una
-  // empresa.
-  const { data: puntosRows } = await supabase
-    .from('puntos_fidelizacion')
-    .select('puntos_acumulados_total')
-    .eq('user_id', user.id);
-
-  const userPoints = (puntosRows ?? []).reduce(
+  const userPoints = (puntosRows.data ?? []).reduce(
     (acc, row) => acc + (Number(row.puntos_acumulados_total) || 0),
     0,
   );
-  
-  // 2. Fetch all tiers to calculate progress
-  const { data: tiers } = await supabase
-    .from('loyalty_tiers')
-    .select('*')
-    .order('min_points', { ascending: true });
 
-  let currentTierName = 'Obrera';
-  let nextTierPoints: number | null = 100;
-  let nextTierName: string | null = 'Zángano';
+  const userTier = userTierRes.data;
+  const currentTierCode = String(userTier?.tier || 'OBRERA').toUpperCase();
+  const configs = (tierConfigsRes.data ?? []).filter((c) => c.activo !== false);
+
+  const currentConfig = configs.find((c) => c.tier.toUpperCase() === currentTierCode) || configs[0];
+  const currentTierName = userTier?.tier_nombre || currentConfig?.nombre_display || 'Iniciador';
+  const currentPriority = currentConfig?.priority ?? 1;
+  const nextConfig = configs.find((c) => c.priority > currentPriority);
+
+  const ciclos = Number(userTier?.ciclos_historicos ?? 0);
+  let nextTierPoints: number | null = null;
+  let nextTierName: string | null = null;
   let progressPercentage = 0;
 
-  if (tiers && tiers.length > 0) {
-    // El nivel se deriva del saldo vivo (nivel_guardian legacy quedó atado al
-    // saldo muerto profiles.puntos_acumulados y no refleja las compras).
-    const currentTier = [...tiers].reverse().find(t => userPoints >= t.min_points)
-      ?? tiers[0];
-      
-    currentTierName = currentTier.name;
-
-    // Find next tier
-    const nextTier = tiers.find(t => t.min_points > userPoints);
-    if (nextTier) {
-      nextTierPoints = nextTier.min_points;
-      nextTierName = nextTier.name;
-      
-      const prevTierPoints = currentTier.min_points;
-      const range = nextTier.min_points - prevTierPoints;
-      const progress = userPoints - prevTierPoints;
-      progressPercentage = range > 0 ? Math.max(0, Math.min(100, Math.round((progress / range) * 100))) : 0;
-    } else {
-      nextTierPoints = null;
-      nextTierName = null;
-      progressPercentage = 100;
-    }
+  if (nextConfig) {
+    nextTierPoints = nextConfig.min_ciclos;
+    nextTierName = nextConfig.nombre_display || nextConfig.tier;
+    const threshold = nextConfig.min_ciclos;
+    progressPercentage = threshold > 0 ? Math.min(100, Math.round((ciclos / threshold) * 100)) : 100;
+  } else {
+    progressPercentage = 100;
   }
 
   return {
     puntos_acumulados: userPoints,
-    nivel_guardian: profile?.nivel_guardian ?? 'obrera',
+    nivel_guardian: userTier?.tier ?? 'OBRERA',
     tier_name: currentTierName,
     next_tier_points: nextTierPoints,
     next_tier_name: nextTierName,

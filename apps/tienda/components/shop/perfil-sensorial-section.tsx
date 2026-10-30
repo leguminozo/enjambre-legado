@@ -20,6 +20,12 @@ import type { ShopProduct } from '@/lib/shop/products';
 import type { ResenasListResponse } from '@/lib/shop/resenas-api';
 import type { AnalisisPublico } from '@/lib/shop/analisis-lote';
 import { resolveBotanicalReference } from '@/lib/shop/perfil-sensorial-botanica';
+import {
+  resolverEjesSensoriales,
+  VALORES_DEFAULT_EJES,
+  PARES_SEMANTICOS_POR_CATEGORIA,
+  type CategoriaSensorial,
+} from '@enjambre/resenas';
 
 export interface PerfilSensorialSectionProps {
   productName: string;
@@ -42,8 +48,7 @@ export interface PerfilSensorialSectionProps {
   pdpSettings?: PdpSettings;
 }
 
-// 8 Ejes Canónicos de la Constelación Sensorial de Bosque Nativo
-const AXES = [
+const DEFAULT_HONEY_AXES = [
   'Madurez Enzimática',
   'Complejidad Botánica',
   'Dulzor',
@@ -161,6 +166,21 @@ export function PerfilSensorialSection({
       currentLocale,
     ) || 'Aportar mi evaluación sensorial';
 
+  // ── 0. Resolución dinámica de taxonomía sensorial y 8 ejes canónicos ───────
+  const normalizedTipo: CategoriaSensorial = useMemo(() => {
+    const raw = tipoSensorial?.toLowerCase().trim() ?? '';
+    if (raw.includes('infusion')) return 'infusion';
+    if (raw.includes('hidromiel')) return 'hidromiel';
+    if (raw.includes('cosmet') || raw.includes('balsamo') || raw.includes('cera') || raw.includes('linaza') || raw.includes('hidrolato')) return 'cosmetica';
+    if (raw.includes('extracto') || raw.includes('propoleo')) return 'extracto';
+    if (raw.includes('fortificada')) return 'miel_fortificada';
+    return 'miel';
+  }, [tipoSensorial]);
+
+  const activeAxes = useMemo(() => {
+    return resolverEjesSensoriales(tipoSensorial, productName);
+  }, [tipoSensorial, productName]);
+
   // ── 1. Capa Exoesqueleto (Laboratorio / Literatura y Triangulación Botánica) ──
   const botanicalRef = useMemo(() => {
     return resolveBotanicalReference({
@@ -184,6 +204,7 @@ export function PerfilSensorialSection({
       (typeof activePerfil.intensidad === 'number' ||
         typeof activePerfil.dulzor_acidez === 'number' ||
         typeof activePerfil.textura === 'number' ||
+        Boolean(activePerfil.ejes_calibracion && Object.keys(activePerfil.ejes_calibracion).length > 0) ||
         (Array.isArray(activePerfil.notas_aromaticas) && activePerfil.notas_aromaticas.length > 0))
     );
   }, [activePerfil]);
@@ -191,12 +212,41 @@ export function PerfilSensorialSection({
   const curatorData = useMemo(() => {
     if (!isCuratorCalibrated || !activePerfil) return null;
 
+    // 1. Verificamos si existen ejes_calibracion explícitos en el perfil sensorial
+    const ejesCal = activePerfil.ejes_calibracion;
+    if (ejesCal && typeof ejesCal === 'object') {
+      const explicitVals = activeAxes.map((axis, i) => {
+        const v = ejesCal[axis] ?? ejesCal[String(i)];
+        if (typeof v === 'number') {
+          return v > 10 ? Number((v / 10).toFixed(1)) : Number(v.toFixed(1));
+        }
+        return null;
+      });
+
+      if (explicitVals.some((v) => v !== null)) {
+        return explicitVals.map((v, i) => {
+          if (v !== null) return v;
+          const axisName = activeAxes[i];
+          const def100 = VALORES_DEFAULT_EJES[axisName] ?? 75;
+          return Number((def100 / 10).toFixed(1));
+        });
+      }
+    }
+
+    // 2. Si no es miel pura y no hay calibración explícita, proyectamos los valores canónicos por eje
+    if (normalizedTipo !== 'miel') {
+      return activeAxes.map((axis) => {
+        const def100 = VALORES_DEFAULT_EJES[axis] ?? 75;
+        return Number((def100 / 10).toFixed(1));
+      });
+    }
+
+    // 3. Proyección clásica para miel desde los 3 sliders de intensidad, balance y textura
     const int = (activePerfil.intensidad ?? 75) / 10;
     const dulz = (activePerfil.dulzor_acidez ?? 60) / 10;
     const text = (activePerfil.textura ?? 85) / 10;
     const acidez = Math.max(1.5, Number(((100 - (activePerfil.dulzor_acidez ?? 60)) / 10).toFixed(1)));
 
-    // Ejes proyectados desde la calibración curatorial real
     const madurez = Math.min(10, Math.max(2, Number((int * 1.05).toFixed(1))));
     const complejidad = Math.min(10, Math.max(2, Number((int * 1.1).toFixed(1))));
     const sinergia = Math.min(10, Math.max(2, Number(((int + acidez) / 2).toFixed(1))));
@@ -212,7 +262,7 @@ export function PerfilSensorialSection({
       sinergia,
       vector,
     ];
-  }, [activePerfil, isCuratorCalibrated]);
+  }, [activePerfil, isCuratorCalibrated, activeAxes, normalizedTipo]);
 
   // ── 3. Capa Nebulosa (Percepción Real Colectiva de la Comunidad) ────────────
   const communityStats = useMemo(() => {
@@ -234,58 +284,13 @@ export function PerfilSensorialSection({
         ? validRatings.reduce((a, b) => a + b, 0) / validRatings.length
         : null;
 
-    const intensidades = items
-      .map((i) => i.intensidad_fondo)
-      .filter((v): v is number => typeof v === 'number');
-
-    const avgInt =
-      intensidades.length > 0
-        ? (intensidades.reduce((a, b) => a + b, 0) / intensidades.length) / 10
-        : avgRating
-          ? (avgRating / 7) * 8.0
-          : 7.0;
-
-    let dulceSum = 0;
-    let dulceCount = 0;
-    let texturaSum = 0;
-    let texturaCount = 0;
-
-    for (const item of items) {
-      if (item.percepcion?.pares) {
-        for (const p of item.percepcion.pares) {
-          if (p.par.includes('dulce') || p.par.includes('acido')) {
-            dulceSum += p.valor;
-            dulceCount++;
-          }
-          if (p.par.includes('liquida') || p.par.includes('cremosa') || p.par.includes('sedosa')) {
-            texturaSum += p.valor;
-            texturaCount++;
-          }
-        }
-      }
-    }
-
-    const avgDulz =
-      dulceCount > 0 ? (dulceSum / dulceCount) / 10 : curatorData ? curatorData[2] : 6.5;
-    const avgText =
-      texturaCount > 0 ? (texturaSum / texturaCount) / 10 : curatorData ? curatorData[3] : 7.5;
-    const avgAcidez = Math.max(1.5, Number((10 - avgDulz).toFixed(1)));
-
-    const madurez = Math.min(10, Math.max(2, Number((avgInt * 0.95 + 0.5).toFixed(1))));
-    const complejidad = Math.min(10, Math.max(2, Number((avgInt * 1.05).toFixed(1))));
-    const sinergia = Math.min(10, Math.max(2, Number(((avgInt + avgAcidez) / 2).toFixed(1))));
-    const vector = Math.min(10, Math.max(2, Number((avgInt * 1.1).toFixed(1))));
-
-    const data = [
-      madurez,
-      complejidad,
-      Number(avgDulz.toFixed(1)),
-      Number(avgText.toFixed(1)),
-      Number(avgAcidez.toFixed(1)),
-      Number(avgInt.toFixed(1)),
-      sinergia,
-      vector,
-    ];
+    const defaultData = activeAxes.map((axis) => Number(((VALORES_DEFAULT_EJES[axis] ?? 75) / 10).toFixed(1)));
+    const baseFallback: number[] = curatorData ?? labData ?? defaultData;
+    const modulation = avgRating ? ((avgRating - 5.5) * 0.25) : 0;
+    const data = activeAxes.map((_, i) => {
+      const base = baseFallback[i] ?? 7.0;
+      return Number(Math.min(10, Math.max(1.5, base + modulation)).toFixed(1));
+    });
 
     return {
       total,
@@ -293,7 +298,7 @@ export function PerfilSensorialSection({
       avgRating,
       consolidated: total >= 30, // Protocolo ST-CATA: umbral canónico N >= 30
     };
-  }, [resenasData, curatorData]);
+  }, [resenasData, curatorData, labData, activeAxes]);
 
   const userData = communityStats.data;
 
@@ -311,7 +316,7 @@ export function PerfilSensorialSection({
   const cx = 175;
   const cy = 175;
   const maxR = 115;
-  const totalAxes = AXES.length;
+  const totalAxes = activeAxes.length;
 
   const getCoordinates = (index: number, value: number) => {
     const angle = -Math.PI / 2 + (index * 2 * Math.PI) / totalAxes;
@@ -415,7 +420,7 @@ export function PerfilSensorialSection({
               })}
 
               {/* Ejes radiales */}
-              {AXES.map((_, i) => {
+              {activeAxes.map((_, i) => {
                 const { x, y } = getCoordinates(i, 10);
                 return (
                   <line
@@ -497,7 +502,7 @@ export function PerfilSensorialSection({
               )}
 
               {/* Etiquetas de los vértices */}
-              {AXES.map((axis, i) => {
+              {activeAxes.map((axis, i) => {
                 const angle = -Math.PI / 2 + (i * 2 * Math.PI) / totalAxes;
                 const labelR = maxR + 18;
                 const lx = cx + labelR * Math.cos(angle);
@@ -634,18 +639,48 @@ export function PerfilSensorialSection({
               </div>
               {isCuratorCalibrated && activePerfil ? (
                 <div className="grid grid-cols-3 gap-2 pt-1 text-center">
-                  <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
-                    <span className="text-[10px] text-muted-foreground block">Intensidad</span>
-                    <strong className="text-xs text-foreground font-bold">{activePerfil.intensidad ?? 75}%</strong>
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
-                    <span className="text-[10px] text-muted-foreground block">Balance</span>
-                    <strong className="text-xs text-foreground font-bold">{activePerfil.dulzor_acidez ?? 60}%</strong>
-                  </div>
-                  <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
-                    <span className="text-[10px] text-muted-foreground block">Textura</span>
-                    <strong className="text-xs text-foreground font-bold">{activePerfil.textura ?? 85}%</strong>
-                  </div>
+                  {(() => {
+                    const currentPairs =
+                      PARES_SEMANTICOS_POR_CATEGORIA[normalizedTipo] ||
+                      PARES_SEMANTICOS_POR_CATEGORIA.miel;
+                    return (
+                      <>
+                        <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
+                          <span
+                            className="text-[10px] text-muted-foreground block truncate"
+                            title={currentPairs[0]?.par ?? 'Intensidad'}
+                          >
+                            {currentPairs[0]?.par ?? 'Intensidad'}
+                          </span>
+                          <strong className="text-xs text-foreground font-bold">
+                            {activePerfil.intensidad ?? 75}%
+                          </strong>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
+                          <span
+                            className="text-[10px] text-muted-foreground block truncate"
+                            title={currentPairs[1]?.par ?? 'Balance'}
+                          >
+                            {currentPairs[1]?.par ?? 'Balance'}
+                          </span>
+                          <strong className="text-xs text-foreground font-bold">
+                            {activePerfil.dulzor_acidez ?? 60}%
+                          </strong>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
+                          <span
+                            className="text-[10px] text-muted-foreground block truncate"
+                            title={currentPairs[2]?.par ?? 'Textura'}
+                          >
+                            {currentPairs[2]?.par ?? 'Textura'}
+                          </span>
+                          <strong className="text-xs text-foreground font-bold">
+                            {activePerfil.textura ?? 85}%
+                          </strong>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground italic">

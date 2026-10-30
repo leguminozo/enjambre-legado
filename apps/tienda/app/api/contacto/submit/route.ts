@@ -112,16 +112,23 @@ export async function POST(request: Request) {
         .eq('id', clienteId);
     }
 
-    // 3. Registrar interacción en CRM de Núcleo
+    // 3. Registrar interacción en CRM de Núcleo (best-effort)
     if (empresaId && adminId && clienteId) {
-      await admin.from('interacciones').insert({
-        cliente_id: clienteId,
-        rep_id: adminId,
-        empresa_id: empresaId,
-        tipo: 'email',
-        notas: `Mensaje desde formulario de contacto:\n\n${mensaje}`,
-        resultado: 'pendiente',
-      });
+      try {
+        const { error: interaccionErr } = await admin.from('interacciones').insert({
+          cliente_id: clienteId,
+          rep_id: adminId,
+          empresa_id: empresaId,
+          tipo: 'email',
+          notas: `Mensaje desde formulario de contacto:\n\n${mensaje}`,
+          resultado: 'pendiente',
+        });
+        if (interaccionErr) {
+          console.warn('[contacto/submit] CRM interaccion omitida:', interaccionErr.message);
+        }
+      } catch (crmErr) {
+        console.warn('[contacto/submit] Error registrando interaccion:', crmErr);
+      }
     }
 
     return NextResponse.json({

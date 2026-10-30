@@ -15,9 +15,31 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { formatCLP, toast, friendlyError } from '@enjambre/ui';
-import { CHILE_REGIONES } from '@enjambre/logistica';
+import {
+  CHILE_REGIONES,
+  CHILE_COMUNAS_POR_REGION,
+  getComunasPorRegion,
+  getRegionDeComuna,
+  type ChileRegion,
+} from '@enjambre/logistica';
 import { validarRUT, formatearRUT } from '@/lib/shop/rut';
 import type { B2BSegmentSlug, SegmentKit } from '@/lib/b2b/segment-content';
+
+const DESTINOS_FRECUENTES_B2B = [
+  { label: 'Providencia (RM)', comuna: 'Providencia', region: 'Metropolitana' },
+  { label: 'Las Condes (RM)', comuna: 'Las Condes', region: 'Metropolitana' },
+  { label: 'Vitacura (RM)', comuna: 'Vitacura', region: 'Metropolitana' },
+  { label: 'Santiago Centro (RM)', comuna: 'Santiago', region: 'Metropolitana' },
+  { label: 'Viña del Mar', comuna: 'Viña del Mar', region: 'Valparaíso' },
+  { label: 'Castro (Chiloé)', comuna: 'Castro', region: 'Los Lagos' },
+  { label: 'Puerto Varas', comuna: 'Puerto Varas', region: 'Los Lagos' },
+  { label: 'Puerto Montt', comuna: 'Puerto Montt', region: 'Los Lagos' },
+  { label: 'Concepción', comuna: 'Concepción', region: 'Biobío' },
+] as const;
+
+const TODAS_LAS_COMUNAS_B2B = Object.values(CHILE_COMUNAS_POR_REGION)
+  .flat()
+  .sort((a, b) => a.localeCompare(b, 'es'));
 
 export interface B2BOnboardingWizardProps {
   segmentSlug: B2BSegmentSlug;
@@ -60,10 +82,40 @@ export function B2BOnboardingWizard({
   );
   const [direccion, setDireccion] = useState('');
   const [comuna, setComuna] = useState('');
-  const [region, setRegion] = useState('Región Metropolitana');
+  const [region, setRegion] = useState('Metropolitana');
   const [contactoRecepcion, setContactoRecepcion] = useState(userName || '');
   const [telefonoRecepcion, setTelefonoRecepcion] = useState('');
   const [horarioEntrega, setHorarioEntrega] = useState('Lunes a Viernes 09:00 - 14:00');
+
+  const comunasDisponibles = React.useMemo(() => {
+    if (region) {
+      return getComunasPorRegion(region);
+    }
+    return TODAS_LAS_COMUNAS_B2B;
+  }, [region]);
+
+  const handleComunaChange = (val: string) => {
+    setComuna(val);
+    const detected = getRegionDeComuna(val);
+    if (detected && detected !== region) {
+      setRegion(detected);
+    }
+  };
+
+  const handleRegionChange = (newRegion: string) => {
+    setRegion(newRegion);
+    if (newRegion) {
+      const comunasDeNuevaRegion = getComunasPorRegion(newRegion);
+      if (comuna && !comunasDeNuevaRegion.some((c) => c.toLowerCase() === comuna.toLowerCase())) {
+        setComuna('');
+      }
+    }
+  };
+
+  const handleSelectDestinoFrecuente = (dest: { comuna: string; region: string }) => {
+    setComuna(dest.comuna);
+    setRegion(dest.region);
+  };
 
   // Paso 2: Selección y personalización de pedido
   const [selectedKitId, setSelectedKitId] = useState(initialKitId || kits[0]?.id || '');
@@ -288,20 +340,56 @@ export function B2BOnboardingWizard({
             />
           </div>
 
+          {/* Comunas frecuentes B2B (1 clic) */}
+          <div className="space-y-1">
+            <span className="block text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1 font-medium">
+              Destinos frecuentes (1 clic para autocompletar)
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {DESTINOS_FRECUENTES_B2B.map((dest) => {
+                const isSelected =
+                  comuna.toLowerCase() === dest.comuna.toLowerCase() &&
+                  region.toLowerCase() === dest.region.toLowerCase();
+                return (
+                  <button
+                    key={`${dest.comuna}-${dest.region}`}
+                    type="button"
+                    onClick={() => handleSelectDestinoFrecuente(dest)}
+                    className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                      isSelected
+                        ? 'bg-primary/20 border-primary text-primary font-semibold shadow-sm'
+                        : 'border-border/70 bg-surface-raised hover:border-primary/40 text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {dest.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="onb-comuna" className={labelClassName}>
-                Comuna <span className="text-destructive">*</span>
+                Comuna {region ? `(${region})` : ''} <span className="text-destructive">*</span>
               </label>
-              <input
-                id="onb-comuna"
-                type="text"
-                required
-                value={comuna}
-                onChange={(e) => setComuna(e.target.value)}
-                placeholder="Ej. Providencia"
-                className={inputClassName}
-              />
+              <div className="relative">
+                <input
+                  id="onb-comuna"
+                  type="text"
+                  required
+                  list="b2b-comunas-list"
+                  value={comuna}
+                  onChange={(e) => handleComunaChange(e.target.value)}
+                  placeholder="Ej. Providencia, Castro..."
+                  className={inputClassName}
+                />
+                <datalist id="b2b-comunas-list">
+                  {comunasDisponibles.map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+              </div>
             </div>
 
             <div>
@@ -311,7 +399,7 @@ export function B2BOnboardingWizard({
               <select
                 id="onb-region"
                 value={region}
-                onChange={(e) => setRegion(e.target.value)}
+                onChange={(e) => handleRegionChange(e.target.value)}
                 className={inputClassName}
               >
                 {CHILE_REGIONES.map((reg) => (

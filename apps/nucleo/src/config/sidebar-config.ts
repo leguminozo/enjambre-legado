@@ -438,12 +438,13 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     // Marca: contenido editorial y audiovisual
     key: 'marca',
     label: 'MARCA Y CONTENIDO',
+    icon: 'palette',
     collapsible: true,
     items: [
       {
         key: 'estudio-rrss',
         label: 'Estudio Editorial',
-        icon: 'sparkles',
+        icon: 'pen-tool',
         href: '/estudio-rrss',
         greeting: 'Director editorial y de marca',
         mission: 'Kits para cafeterías, maridaje barista, fichas de mesa y campañas multiformato',
@@ -454,7 +455,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'film',
         href: '/estudio-audiovisual',
         greeting: 'Director audiovisual y arte procedural',
-        mission: 'Generador audiovisual y sustrato biológico de marca para difusión pública',
+        mission: 'Generador audiovisual multiformato y archivo de piezas de identidad territorial',
       },
     ],
   },

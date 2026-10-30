@@ -20,7 +20,7 @@ import {
   Button,
   ImmersiveModal,
   EmptyState,
-  ViewLoading,
+  SkeletonCard,
   friendlyError,
   toast,
   cn,
@@ -267,8 +267,10 @@ export function RolesPersonalizadosTab() {
 
       {/* Roles grid */}
       {loading ? (
-        <div className="py-12">
-          <ViewLoading variant="view" label="Cargando roles personalizados..." />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} lines={3} />
+          ))}
         </div>
       ) : roles.length === 0 ? (
         <EmptyState

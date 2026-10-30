@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, toast, ViewLoading, Button, Badge, GlassPanel } from "@enjambre/ui";
+import { Card, CardContent, CardHeader, CardTitle, toast, SkeletonCard, Button, Badge, GlassPanel } from "@enjambre/ui";
 import { Brain, Calculator, TrendingUp, Shield, Play, RefreshCw, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { formatDate } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -218,7 +218,11 @@ const tiposCalculo = [
         </CardHeader>
         <CardContent>
           {loading && calculos.length === 0 ? (
-            <ViewLoading variant="view" label="Cálculos IA" hideLabel />
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonCard key={i} lines={2} />
+              ))}
+            </div>
           ) : calculos.length === 0 ? (
             <div className="text-center py-12">
               <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />

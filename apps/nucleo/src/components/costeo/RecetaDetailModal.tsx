@@ -8,7 +8,8 @@ import {
   Badge,
   Button,
   ImmersiveModal,
-  ViewLoading,
+  SkeletonKpi,
+  SkeletonTable,
   formatCLP,
   toast,
 } from '@enjambre/ui';
@@ -107,8 +108,14 @@ export function RecetaDetailModal({
       size="xl"
     >
       {isLoading || !receta ? (
-        <div className="py-12">
-          <ViewLoading variant="view" label="Cargando detalles de receta" hideLabel />
+        <div className="space-y-6" aria-busy="true" aria-label="Cargando detalles de receta">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <SkeletonKpi />
+            <SkeletonKpi />
+            <SkeletonKpi />
+            <SkeletonKpi />
+          </div>
+          <SkeletonTable rows={5} columns={4} />
         </div>
       ) : (
         <div className="space-y-6">

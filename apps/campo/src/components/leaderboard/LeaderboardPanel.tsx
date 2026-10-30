@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
-import { ViewLoading, formatCLP } from '@enjambre/ui';
+import { Skeleton, formatCLP } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 import { RepTierBadge } from '@/components/pos/tier-badge';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -59,7 +59,23 @@ export function LeaderboardPanel({ variant = 'page' }: { variant?: 'page' | 'wid
   const weekLabel = `Semana del ${weekStart.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}`;
 
   if (loading) {
-    return <ViewLoading variant="view" label="Ranking" hideLabel />;
+    return (
+      <div className="space-y-4 animate-in" aria-busy="true" aria-label="Cargando ranking">
+        <Skeleton variant="text" className="w-36 h-5" />
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-surface-sunken border border-border/50">
+              <Skeleton variant="circular" className="w-8 h-8 shrink-0" />
+              <div className="flex-1 space-y-1">
+                <Skeleton variant="text" className="w-32 h-4" />
+                <Skeleton variant="text" className="w-20 h-3" />
+              </div>
+              <Skeleton variant="text" className="w-16 h-4" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (entries.length === 0) {

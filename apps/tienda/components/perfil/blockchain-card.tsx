@@ -334,14 +334,14 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           </div>
         )}
 
-        {/* Cadena de Custodia Verificada en Vivo */}
+        {/* Cadena de Trazabilidad Verificada en Vivo */}
         {bio?.eventosCadena && bio.eventosCadena.length > 0 && (
           <div className="p-6 rounded-2xl bg-secondary/20 border border-border/70 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={18} className="text-success" />
                 <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-                  Cadena de Custodia Ininterrumpida
+                  Cadena de Trazabilidad Ininterrumpida
                 </span>
               </div>
               <span className="text-[11px] font-mono text-success px-2.5 py-1 rounded-full bg-success/10 border border-success/20 inline-flex items-center gap-1.5 w-fit">

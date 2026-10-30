@@ -316,7 +316,7 @@ export function TrazabilidadClient({
                 Esta colmena centinela registra en vivo las condiciones del bosque nativo. Al activar una reposición periódica de miel en el Club Legado, vinculamos tu propia colmena con telemetría personalizada.
               </p>
               <Link
-                href="/catalogo"
+                href="/perfil/reposicion"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition shrink-0"
               >
                 <span>Explorar Reposiciones</span>

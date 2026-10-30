@@ -215,26 +215,30 @@ El área de clientes (`/perfil`) es el centro neurálgico de la relación a larg
 
 ---
 
-## 9. Ciencia Pública y Origen Territorial
+## 9. Ciencia Pública y Biblioteca Botánica de Origen
 
 - **Rutas**: `/ciencia`, `/ciencia/[slug]`, `/origen`, `/origen/[slug]`
 - **Paquete de dominio**: `@enjambre/ciencia`
 
-### 9.1 Catálogo de Afirmaciones Científicas Validadas
-- `/ciencia` reúne la evidencia analítica y botánica del néctar y la miel nativa de Chiloé.
-- Cumplimiento riguroso de la Ley 20.606 y normativa de alimentos:
-  - Cero declaraciones terapéuticas ilegales o promesas médicas infundadas.
-  - Toda afirmación publicada cuenta con triangulación científica documentada (análisis melisopalinológicos, actividad antibacteriana natural, contenido de fenoles y flavonoides de especies como el Ulmo y el Tiaca).
+### 9.1 Catálogo de Afirmaciones Científicas Validadas y Ejes de Navegación
+- `/ciencia` reúne la evidencia analítica y botánica del néctar y la miel nativa de Chiloé estructurada en 5 ejes de divulgación:
+  - **Eje 01 · Triangulación Botánica & Pureza**: Refugio austral, análisis cromatográficos y ausencia de pesticidas.
+  - **Eje 02 · Bioquímica & Enzimas Vivas**: Miel cruda viva vs azúcar refinada, preservación enzimática (diastasa, glucosa oxidasa) y parámetros Codex.
+  - **Eje 03 · Biblioteca de Floraciones de Chile**: Mapeo palinológico con las fuentes nectaríferas del archipiélago.
+  - **Eje 04 · Contabilidad Biofísica & CO₂**: Modelación matemática de emisiones evitadas y servicios ecosistémicos de pecoreo.
+  - **Eje 05 · Respaldo Académico & Límites Legales**: Literatura universitaria (UACh, PUC, INIA) y límites normativos del RSA DS 977/96 y Ley 20.606.
 
-### 9.2 Narrativa Geográfica de Origen
-- `/origen` detalla la geografía del archipiélago: Pureo, Queilen, los canales interiores y la cordillera de la Costa de Chiloé.
-- Describe la interacción entre la abeja virgen y los bosques templados lluviosos libres de contaminación agroindustrial.
+### 9.2 Biblioteca Botánica Central de Origen
+- `/origen` centraliza la biblioteca botánica oficial y el catastro de especies melíferas del archipiélago (absorbió y unificó la antigua `/floraciones`).
+- Monografías botánicas individuales (`/origen/[slug]` y `/origen/ulmo`) con fenología de floración, perfil sensorial, descriptores organolépticos y taxonomía botánica.
+- Distintivos territoriales de origen (Predio Pureo, Sin Trashumancia, Extracción y Centrifugado en Frío).
+- El **Manifiesto de No-Trashumancia** (*«Por qué nuestras colmenas nunca viajan»*), declarando la permanencia territorial inmutable frente a la trashumancia intensiva.
 
 ---
 
 ## 10. Alianzas B2B y Canal Mayorista
 
-- **Rutas**: `/alianzas`, `/alianzas/[segmento]`, `/mayorista`
+- **Rutas**: `/alianzas`, `/alianzas/[segmento]`, `/perfil/mayorista` (la antigua ruta pública `/mayorista` redirige permanentemente a `/alianzas`)
 - **Componentes clave**: `mayorista-portal-client.tsx`, formularios de onboarding B2B
 
 ### 10.1 Landings por Segmento Comercial

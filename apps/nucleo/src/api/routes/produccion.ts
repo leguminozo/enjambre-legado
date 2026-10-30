@@ -1115,11 +1115,16 @@ produccionRoutes.delete(
     // 1. Obtener el lote
     const { data: lote, error: loteErr } = await admin
       .from("lotes")
-      .select("id, nombre_lote, codigo, fecha_envasado, blockchain_hash, kg_total")
+      .select("id, nombre_lote, fecha_envasado, blockchain_hash, kg_total")
       .eq("id", id)
       .maybeSingle();
 
-    if (loteErr || !lote) {
+    if (loteErr) {
+      console.error("[Produccion] Error al consultar lote para eliminación:", loteErr);
+      return c.json({ code: "lote_fetch_error", message: loteErr.message }, 500);
+    }
+
+    if (!lote) {
       return c.json({ code: "lote_not_found", message: "Lote no encontrado" }, 404);
     }
 
@@ -1271,10 +1276,14 @@ produccionRoutes.post(
 
     const { data: lote, error: loteError } = await admin
       .from("lotes")
-      .select("id, kg_total, nombre_lote, codigo")
+      .select("id, kg_total, nombre_lote")
       .eq("id", id)
       .single();
-    if (loteError || !lote) {
+    if (loteError) {
+      console.error("[Produccion] Error al consultar lote para envasado:", loteError);
+      return c.json({ code: "lote_fetch_error", message: loteError.message }, 500);
+    }
+    if (!lote) {
       return c.json({ code: "lote_not_found", message: "Lote no encontrado" }, 404);
     }
 
@@ -1344,7 +1353,7 @@ produccionRoutes.post(
             p_item_id: insumo.item_id,
             p_tipo: "salida",
             p_cantidad: insumo.cantidad,
-            p_motivo: `Envasado lote ${lote.nombre_lote || lote.codigo || id.substring(0, 8)} (${cantidad} frascos)`,
+            p_motivo: `Envasado lote ${lote.nombre_lote || id.substring(0, 8)} (${cantidad} frascos)`,
             p_ref_tipo: "lote",
             p_ref_id: id,
           });
@@ -1357,7 +1366,7 @@ produccionRoutes.post(
                   p_item_id: applied.item_id,
                   p_tipo: "entrada",
                   p_cantidad: applied.cantidad,
-                  p_motivo: `Compensación por error en envasado lote ${lote.codigo || id.substring(0, 8)}`,
+                  p_motivo: `Compensación por error en envasado lote ${lote.nombre_lote || id.substring(0, 8)}`,
                   p_ref_tipo: "lote",
                   p_ref_id: id,
                 });
@@ -1377,7 +1386,7 @@ produccionRoutes.post(
                 p_item_id: applied.item_id,
                 p_tipo: "entrada",
                 p_cantidad: applied.cantidad,
-                p_motivo: `Compensación por error en envasado lote ${lote.codigo || id.substring(0, 8)}`,
+                p_motivo: `Compensación por error en envasado lote ${lote.nombre_lote || id.substring(0, 8)}`,
                 p_ref_tipo: "lote",
                 p_ref_id: id,
               });
@@ -1402,7 +1411,7 @@ produccionRoutes.post(
             p_item_id: applied.item_id,
             p_tipo: "entrada",
             p_cantidad: applied.cantidad,
-            p_motivo: `Rollback por fallo de stock producto en envasado lote ${lote.codigo || id.substring(0, 8)}`,
+            p_motivo: `Rollback por fallo de stock producto en envasado lote ${lote.nombre_lote || id.substring(0, 8)}`,
             p_ref_tipo: "lote",
             p_ref_id: id,
           });
@@ -1433,7 +1442,7 @@ produccionRoutes.post(
             p_item_id: applied.item_id,
             p_tipo: "entrada",
             p_cantidad: applied.cantidad,
-            p_motivo: `Rollback por fallo de lote en envasado ${lote.codigo || id.substring(0, 8)}`,
+            p_motivo: `Rollback por fallo de lote en envasado ${lote.nombre_lote || id.substring(0, 8)}`,
             p_ref_tipo: "lote",
             p_ref_id: id,
           });

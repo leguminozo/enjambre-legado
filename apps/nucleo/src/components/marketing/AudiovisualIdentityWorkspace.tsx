@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Play,
   Square,
@@ -11,6 +11,8 @@ import {
   Film,
   Zap,
   Activity,
+  Save,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   cn,
@@ -27,10 +29,18 @@ import {
 } from './identity-substrate-engine';
 import { type SlideData } from './slide-studio-core';
 import { exportVideo } from './slide-video-export';
+import {
+  type SavedVideoProject,
+  saveVideoProject,
+  type AspectRatioType,
+} from './saved-videos';
 
-export type AspectRatioType = '9:16' | '4:5' | '1:1' | '16:9';
+export type { AspectRatioType };
 
 export interface AudiovisualIdentityWorkspaceProps {
+  initialProject?: SavedVideoProject | null;
+  onVolver?: () => void;
+  onGuardadoExitoso?: (proyecto: SavedVideoProject) => void;
   activeSlide?: SlideData;
   className?: string;
 }
@@ -81,15 +91,33 @@ const ASPECT_DIMENSIONS: Record<AspectRatioType, { width: number; height: number
 };
 
 export function AudiovisualIdentityWorkspace({
+  initialProject,
+  onVolver,
+  onGuardadoExitoso,
   activeSlide,
   className,
 }: AudiovisualIdentityWorkspaceProps) {
-  const [aspect, setAspect] = useState<AspectRatioType>('4:5');
-  const [params, setParams] = useState<SubstrateParameters>(DEFAULT_SUBSTRATE_PARAMS);
+  const [projectTitle, setProjectTitle] = useState(
+    initialProject?.title ||
+      (activeSlide
+        ? `Video — ${activeSlide.title || 'Lámina'}`
+        : 'Nueva Pieza Audiovisual'),
+  );
+  const [projectId, setProjectId] = useState(
+    initialProject?.id || `vid-${Date.now()}`,
+  );
+  const [aspect, setAspect] = useState<AspectRatioType>(
+    initialProject?.aspect || '4:5',
+  );
+  const [params, setParams] = useState<SubstrateParameters>(
+    initialProject?.params || DEFAULT_SUBSTRATE_PARAMS,
+  );
   const [activeTab, setActiveTab] = useState<'motor' | 'fisica' | 'capas' | 'exportar'>('motor');
 
-  // Estado de Lámina Editorial superpuesta
-  const [cardOverlayStyle, setCardOverlayStyle] = useState<'none' | 'full' | 'floating' | 'fog'>('floating');
+  // Estado de Lámina Editorial superpuesta (neutral = 'none' por defecto para no tapar el sustrato)
+  const [cardOverlayStyle, setCardOverlayStyle] = useState<'none' | 'full' | 'floating' | 'fog'>(
+    initialProject?.cardOverlayStyle || (activeSlide ? 'floating' : 'none'),
+  );
 
   // Grabación de video
   const [isRecording, setIsRecording] = useState(false);
@@ -327,14 +355,95 @@ export function AudiovisualIdentityWorkspace({
   }, []);
 
   const currentDimensions = ASPECT_DIMENSIONS[aspect];
-  const activePalette = SUBSTRATE_PALETTES[params.palette];
+  const activePalette = useMemo(() => {
+    const base = SUBSTRATE_PALETTES[params.palette] || SUBSTRATE_PALETTES.ambar;
+    if (params.customColor) {
+      return {
+        ...base,
+        label: 'Color Personalizado',
+        primaryHex: params.customColor,
+        secondaryHex: params.customColor,
+        glowHex: params.customColor,
+      };
+    }
+    return base;
+  }, [params.palette, params.customColor]);
+
+  const handleGuardarProyecto = () => {
+    const canvas = canvasRef.current;
+    let thumbnailUrl: string | undefined;
+    if (canvas) {
+      try {
+        thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+      } catch {
+        // ignore
+      }
+    }
+
+    const saved: SavedVideoProject = {
+      id: projectId,
+      title: projectTitle.trim() || 'Pieza Audiovisual',
+      aspect,
+      durationSeconds: recordingSeconds,
+      params,
+      cardOverlayStyle,
+      thumbnailUrl,
+      createdAt: initialProject?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    saveVideoProject(saved);
+    toast.success('Pieza guardada en el archivo audiovisual');
+    onGuardadoExitoso?.(saved);
+  };
 
   return (
-    <div className={cn('flex flex-col lg:flex-row h-full min-h-[calc(100vh-140px)] gap-6 overflow-hidden', className)}>
-      {/* ============================================================== */}
-      {/* COLUMNA IZQUIERDA: PANEL DE CONTROL Y FÍSICA PROCEDIMENTAL     */}
-      {/* ============================================================== */}
-      <div className="w-full lg:w-[460px] xl:w-[500px] flex flex-col justify-between shrink-0 rounded-2xl border border-border bg-card/70 backdrop-blur-md overflow-hidden shadow-xl">
+    <div className={cn('flex flex-col gap-4 h-full', className)}>
+      {/* Barra superior de Proyecto: Volver a colección, Título editable, Guardar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-border bg-card/60 backdrop-blur-sm">
+        <div className="flex items-center gap-3 min-w-0">
+          {onVolver && (
+            <button
+              type="button"
+              onClick={onVolver}
+              className="btn btn-outline btn-sm font-mono text-xs flex items-center gap-1.5 px-3 rounded-xl shrink-0"
+              title="Volver a la colección de piezas"
+            >
+              <ArrowLeft size={13} />
+              <span>Colección</span>
+            </button>
+          )}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hidden sm:inline">
+              Pieza:
+            </span>
+            <input
+              type="text"
+              value={projectTitle}
+              onChange={(e) => setProjectTitle(e.target.value)}
+              className="bg-transparent font-serif text-base sm:text-lg font-light text-foreground border-b border-transparent hover:border-border/60 focus:border-primary px-1 py-0.5 focus:outline-none transition-colors min-w-[180px] sm:min-w-[280px]"
+              placeholder="Nombre de la pieza audiovisual..."
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleGuardarProyecto}
+            className="btn btn-primary btn-sm font-mono text-xs flex items-center gap-1.5 px-3.5 rounded-xl shadow-sm"
+          >
+            <Save size={13} />
+            <span>Guardar en Colección</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row flex-1 min-h-[calc(100vh-210px)] gap-6 overflow-hidden">
+        {/* ============================================================== */}
+        {/* COLUMNA IZQUIERDA: PANEL DE CONTROL Y FÍSICA PROCEDIMENTAL     */}
+        {/* ============================================================== */}
+        <div className="w-full lg:w-[460px] xl:w-[500px] flex flex-col justify-between shrink-0 rounded-2xl border border-border bg-card/70 backdrop-blur-md overflow-hidden shadow-xl">
         {/* 1. Header del Estudio & Ticker Stats */}
         <div className="p-4 border-b border-border/70 space-y-3 bg-surface-sunken/40">
           <div className="flex items-center justify-between">
@@ -374,7 +483,7 @@ export function AudiovisualIdentityWorkspace({
               )}
             >
               <Activity size={13} />
-              <span>Sustrato</span>
+              <span>Lienzo Vivo</span>
             </button>
             <button
               type="button"
@@ -423,41 +532,30 @@ export function AudiovisualIdentityWorkspace({
           {/* ---------------- PESTAÑA: MOTOR DEL SUSTRATO ---------------- */}
           {activeTab === 'motor' && (
             <div className="space-y-6 animate-in fade-in">
-              {/* Formato de Encuadre */}
-              <div className="space-y-2">
-                <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                  <span>Formato de Encuadre</span>
+              {/* Formato de Encuadre — Selector Compacto */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-muted-foreground uppercase">Formato de Encuadre</span>
                   <span className="text-foreground font-medium">
-                    {currentDimensions.width} × {currentDimensions.height} px ({aspect})
+                    {currentDimensions.width} × {currentDimensions.height} px
                   </span>
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(Object.keys(ASPECT_DIMENSIONS) as AspectRatioType[]).map((r) => {
-                    const d = ASPECT_DIMENSIONS[r];
-                    return (
-                      <button
-                        key={r}
-                        type="button"
-                        onClick={() => setAspect(r)}
-                        className={cn(
-                          'p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-0.5',
-                          aspect === r
-                            ? 'border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/40'
-                            : 'border-border/60 bg-surface-sunken/40 text-muted-foreground hover:text-foreground hover:border-border',
-                        )}
-                      >
-                        <span className="text-xs font-mono font-bold">{d.label}</span>
-                        <span className="text-[9px] opacity-80 leading-tight">{d.sub}</span>
-                      </button>
-                    );
-                  })}
                 </div>
+                <select
+                  value={aspect}
+                  onChange={(e) => setAspect(e.target.value as AspectRatioType)}
+                  className="w-full rounded-xl border border-border bg-surface-sunken/60 px-3 py-2 text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-h-[38px] cursor-pointer"
+                >
+                  <option value="4:5">4:5 — Feed Vertical (1080 × 1350 px)</option>
+                  <option value="9:16">9:16 — Reel / Historia (1080 × 1920 px)</option>
+                  <option value="1:1">1:1 — Feed Cuadrado (1080 × 1080 px)</option>
+                  <option value="16:9">16:9 — Apaisado / Web (1920 × 1080 px)</option>
+                </select>
               </div>
 
               {/* Selección del Motor Biológico */}
               <div className="space-y-2">
                 <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                  Motor del Sustrato Generativo
+                  Motor Generativo de Identidad
                 </label>
                 <div className="space-y-2">
                   {MOTOR_CONFIGS.map((m) => (
@@ -488,41 +586,68 @@ export function AudiovisualIdentityWorkspace({
                 </div>
               </div>
 
-              {/* Paleta Cromática Territorial */}
+              {/* Paleta Cromática Territorial & Mixeador */}
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                  Paleta Cromática Territorial
-                </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-muted-foreground uppercase">Paleta Cromática Territorial</span>
+                  <span className="text-primary font-medium uppercase">
+                    {params.customColor || activePalette.label}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
                   {(Object.keys(SUBSTRATE_PALETTES) as SubstratePaletteId[]).map((palKey) => {
                     const pal = SUBSTRATE_PALETTES[palKey];
+                    const isSelected = !params.customColor && params.palette === palKey;
                     return (
                       <button
                         key={palKey}
                         type="button"
-                        onClick={() => handleParamChange({ palette: palKey })}
+                        onClick={() => handleParamChange({ palette: palKey, customColor: undefined })}
                         className={cn(
-                          'p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5',
-                          params.palette === palKey
-                            ? 'border-primary bg-primary/10 ring-1 ring-primary/40'
-                            : 'border-border/60 bg-surface-sunken/40 hover:border-border',
+                          'px-2.5 py-1.5 rounded-lg border text-xs font-mono flex items-center gap-1.5 transition-all',
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-sm ring-1 ring-primary/40'
+                            : 'border-border/70 bg-card hover:bg-surface-raised text-muted-foreground hover:text-foreground',
                         )}
+                        title={`${pal.label} · ${pal.sublabel}`}
                       >
-                        <div
-                          className="w-4 h-4 rounded-full border border-border/80 shrink-0 shadow-sm"
+                        <span
+                          className="h-3 w-3 rounded-full shrink-0 border border-black/20"
                           style={{ backgroundColor: pal.primaryHex }}
                         />
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-mono font-medium text-foreground truncate">
-                            {pal.label}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground truncate">
-                            {pal.sublabel}
-                          </span>
-                        </div>
+                        <span>{pal.label}</span>
                       </button>
                     );
                   })}
+
+                  {/* Mixeador de Color Personalizado Libre */}
+                  <div className="flex items-center gap-1.5 pl-1 ml-auto sm:ml-0">
+                    <div className="relative flex items-center">
+                      <input
+                        type="color"
+                        id="video-custom-color-picker"
+                        value={params.customColor || activePalette.primaryHex}
+                        onChange={(e) => handleParamChange({ customColor: e.target.value })}
+                        className="h-7 w-7 rounded-lg border border-border bg-card cursor-pointer p-0.5"
+                        title="Mixeador de color personalizado libre"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="#HEX"
+                      value={params.customColor || ''}
+                      onChange={(e) => {
+                        const val = e.target.value.trim();
+                        if (val === '' || val.startsWith('#')) {
+                          handleParamChange({ customColor: val || undefined });
+                        } else {
+                          handleParamChange({ customColor: `#${val}` });
+                        }
+                      }}
+                      className="w-20 px-2 py-1 rounded-lg border border-border bg-card text-xs font-mono text-foreground placeholder:text-muted-foreground uppercase"
+                      title="Ingresa código HEX hexadecimal directo"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -775,7 +900,7 @@ export function AudiovisualIdentityWorkspace({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'none' as const, label: 'Solo Sustrato', sub: 'Fondo biológico puro' },
+                    { id: 'none' as const, label: 'Solo Lienzo Vivo', sub: 'Fondo botánico puro' },
                     { id: 'floating' as const, label: 'Tarjeta Flotante', sub: 'Recuadro con marco' },
                     { id: 'fog' as const, label: 'Fundido Atmosférico', sub: 'Niebla sutil integrada' },
                     { id: 'full' as const, label: 'Pantalla Plena', sub: 'Texto a borde completo' },
@@ -926,9 +1051,9 @@ export function AudiovisualIdentityWorkspace({
       {/* ============================================================== */}
       {/* COLUMNA DERECHA: LIENZO EN VIVO (VIEWPORT INTERACTIVO)         */}
       {/* ============================================================== */}
-      <div className="flex-1 flex flex-col items-center justify-center relative rounded-2xl border border-border bg-background/90 p-4 sm:p-6 overflow-hidden shadow-2xl min-h-[480px]">
+      <div className="flex-1 flex flex-col items-center justify-between relative rounded-2xl border border-border bg-background/90 p-4 sm:p-6 overflow-hidden shadow-2xl min-h-[480px]">
         {/* Header flotante del Viewport */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20 pointer-events-none">
+        <div className="w-full flex items-center justify-between z-20 mb-3">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-lg bg-surface-sunken/90 border border-border text-[11px] font-mono text-foreground backdrop-blur-md">
               {currentDimensions.width} × {currentDimensions.height} px ({aspect})
@@ -940,7 +1065,7 @@ export function AudiovisualIdentityWorkspace({
             )}
           </div>
 
-          <div className="flex items-center gap-2 pointer-events-auto">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => simRef.current?.triggerPulse()}
@@ -962,79 +1087,82 @@ export function AudiovisualIdentityWorkspace({
           </div>
         </div>
 
-        {/* Contenedor del Lienzo con Escala Automática */}
-        <div
-          className="relative flex items-center justify-center w-full h-full max-h-[82vh] overflow-hidden"
-          style={{
-            aspectRatio: `${currentDimensions.width} / ${currentDimensions.height}`,
-          }}
-        >
-          {/* 1. Canvas 2D Procedimental */}
-          <canvas
-            ref={canvasRef}
-            width={currentDimensions.width}
-            height={currentDimensions.height}
-            onPointerDown={handleCanvasPointerDown}
-            onPointerMove={handleCanvasPointerMove}
-            onPointerLeave={handleCanvasPointerLeave}
-            className="w-full h-full object-contain rounded-xl shadow-2xl cursor-crosshair select-none touch-none border border-border/40"
+        {/* Contenedor del Lienzo con Escala Automática sin Desfase */}
+        <div className="relative flex items-center justify-center w-full flex-1 min-h-0 p-1 sm:p-2 overflow-hidden">
+          <div
+            className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-black flex items-center justify-center"
             style={{
-              maxWidth: '100%',
+              aspectRatio: `${currentDimensions.width} / ${currentDimensions.height}`,
               maxHeight: '100%',
+              maxWidth: '100%',
+              height: currentDimensions.height >= currentDimensions.width ? '100%' : 'auto',
+              width: currentDimensions.width >= currentDimensions.height ? '100%' : 'auto',
             }}
-          />
+          >
+            {/* 1. Canvas 2D Procedimental */}
+            <canvas
+              ref={canvasRef}
+              width={currentDimensions.width}
+              height={currentDimensions.height}
+              onPointerDown={handleCanvasPointerDown}
+              onPointerMove={handleCanvasPointerMove}
+              onPointerLeave={handleCanvasPointerLeave}
+              className="w-full h-full block cursor-crosshair select-none touch-none"
+            />
 
-          {/* 2. Superposición de Lámina Editorial (si está activa y no es 'none') */}
-          {cardOverlayStyle !== 'none' && (
-            <div
-              className={cn(
-                'absolute pointer-events-none flex flex-col justify-between transition-all duration-300',
-                cardOverlayStyle === 'floating'
-                  ? 'inset-6 sm:inset-10 p-6 sm:p-8 rounded-2xl border border-primary/20 backdrop-blur-[3px] bg-background/30 shadow-2xl'
-                  : cardOverlayStyle === 'fog'
-                  ? 'inset-0 p-8 sm:p-12 bg-gradient-to-t from-background/90 via-background/40 to-transparent'
-                  : 'inset-0 p-8 sm:p-12 flex flex-col justify-between',
-              )}
-            >
-              {/* Kicker Superior */}
-              <div className="flex justify-between items-center text-[10px] font-mono tracking-widest uppercase">
-                <span className="text-primary font-medium">
-                  {activeSlide?.kickerLeft || 'CHILOÉ 42°S // ESTÁNDAR DE ORIGEN'}
-                </span>
-                <span className="text-muted-foreground">
-                  {activeSlide?.kickerRight || 'RECOLECCIÓN SILVESTRE'}
-                </span>
-              </div>
+            {/* 2. Superposición de Lámina Editorial (solo si está explícitamente activa y no es 'none') */}
+            {cardOverlayStyle !== 'none' && (
+              <div
+                className={cn(
+                  'absolute inset-0 pointer-events-none flex flex-col justify-between transition-all duration-300',
+                  cardOverlayStyle === 'floating'
+                    ? 'p-6 sm:p-8 rounded-2xl border border-primary/20 backdrop-blur-[3px] bg-background/30'
+                    : cardOverlayStyle === 'fog'
+                    ? 'p-8 sm:p-12 bg-gradient-to-t from-background/90 via-background/40 to-transparent'
+                    : 'p-8 sm:p-12 flex flex-col justify-between',
+                )}
+              >
+                {/* Kicker Superior */}
+                <div className="flex justify-between items-center text-[10px] font-mono tracking-widest uppercase">
+                  <span className="text-primary font-medium">
+                    {activeSlide?.kickerLeft || 'CHILOÉ 42°S // ESTÁNDAR DE ORIGEN'}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {activeSlide?.kickerRight || 'RECOLECCIÓN SILVESTRE'}
+                  </span>
+                </div>
 
-              {/* Título Principal en Cormorant Garamond */}
-              <div className="space-y-3 my-auto max-w-xl">
-                <h2
-                  className="font-serif text-2xl sm:text-4xl lg:text-5xl font-light tracking-tight text-foreground leading-[1.12]"
-                  style={{ color: activePalette.primaryHex }}
-                >
-                  {activeSlide?.title || 'LA OBRERA Y EL ZÁNGANO'}
-                </h2>
-                <p className="text-xs sm:text-sm text-foreground/80 font-sans leading-relaxed">
-                  {activeSlide?.subtitle || 'Miel cruda de bosque nativo, sin pasteurizar, sin ultrafiltrar. Soberanía territorial del sur austral.'}
-                </p>
-              </div>
+                {/* Título Principal en Cormorant Garamond */}
+                <div className="space-y-3 my-auto max-w-xl">
+                  <h2
+                    className="font-serif text-2xl sm:text-4xl lg:text-5xl font-light tracking-tight text-foreground leading-[1.12]"
+                    style={{ color: activePalette.primaryHex }}
+                  >
+                    {activeSlide?.title || projectTitle}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-foreground/80 font-sans leading-relaxed">
+                    {activeSlide?.subtitle || 'Miel cruda de bosque nativo, sin pasteurizar, sin ultrafiltrar.'}
+                  </p>
+                </div>
 
-              {/* Footer de Trazabilidad */}
-              <div className="flex justify-between items-center text-[9px] font-mono tracking-wider text-muted-foreground border-t border-border/40 pt-3">
-                <span>{activeSlide?.footerLeft || 'obrerayzangano.cl'}</span>
-                <span className="text-primary">
-                  {activeSlide?.footerRight || 'CERTIFICADO DE ORIGEN VERIFICADO'}
-                </span>
+                {/* Footer de Trazabilidad */}
+                <div className="flex justify-between items-center text-[9px] font-mono tracking-wider text-muted-foreground border-t border-border/40 pt-3">
+                  <span>{activeSlide?.footerLeft || 'obrerayzangano.cl'}</span>
+                  <span className="text-primary">
+                    {activeSlide?.footerRight || 'CERTIFICADO DE ORIGEN VERIFICADO'}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Hint de Interacción en el fondo */}
-        <div className="absolute bottom-3 text-[10px] font-mono text-muted-foreground/80 pointer-events-none text-center">
+        <div className="pt-2 text-[10px] font-mono text-muted-foreground/80 pointer-events-none text-center">
           Haz clic o arrastra sobre el lienzo para emitir ondas gravitacionales y guiar el flujo
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

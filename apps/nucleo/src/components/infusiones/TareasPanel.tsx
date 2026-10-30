@@ -11,7 +11,7 @@ import { processImage } from '@/lib/process-image';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, toast, type ColumnDef,
+  Select, Badge, SkeletonTable, toast, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
@@ -135,8 +135,15 @@ function TareaFormDialog({
             lote_entrada_id: v.tipo === 'recoleccion' ? v.lote_entrada_id : null,
             lote_deshidratado_id: v.tipo === 'deshidratado' ? v.lote_deshidratado_id : null,
             lote_produccion_id: PASOS_DE_PRODUCCION.includes(v.tipo) ? v.lote_produccion_id : null,
-          }
-          save.mutate({ id: initial?.id, body });
+          };
+          save.mutate(
+            { id: initial?.id, body },
+            {
+              onSuccess: () => {
+                onOpenChange(false);
+              },
+            },
+          );
         })} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -446,7 +453,21 @@ export function TareasPanel() {
     [equipo],
   )
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Tareas</CardTitle>
+            <CardDescription>Pasos asignados al equipo con foto de evidencia — validás remoto sin estar presente.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -504,7 +525,14 @@ export function TareasPanel() {
             emptyState="Aún no hay tareas. Asigna el primer paso del equipo."
           />
         </CardContent>
-        <TareaFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+        <TareaFormDialog
+          open={formOpen}
+          onOpenChange={(v) => {
+            setFormOpen(v);
+            if (!v) setEditing(null);
+          }}
+          initial={editing}
+        />
       </Card>
 
       {/* Input oculto para la foto de evidencia */}

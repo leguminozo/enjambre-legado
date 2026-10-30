@@ -44,6 +44,16 @@ export function BilleteraClient({
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  // Apertura automática desde enlaces externos (?modal=canje o #canjes)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('modal') === 'canje' || window.location.hash === '#canjes') {
+        setShowCatalogModal(true);
+      }
+    }
+  }, []);
+
   // Bloqueo de scroll y cierre con tecla Escape para el modal
   useEffect(() => {
     if (!showCatalogModal) return;
@@ -154,10 +164,11 @@ export function BilleteraClient({
         </div>
 
         <div className="pt-4 border-t border-border/40 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground font-mono">
-          <span>
-            Nivel en colmena:{' '}
-            <strong className="text-foreground">
-              {loyalty.tierDisplay.guardianTier}
+          <span className="flex items-center gap-1.5">
+            <span>Rango de fidelidad:</span>
+            <strong className="text-foreground font-semibold inline-flex items-center gap-1">
+              {loyalty.tierDisplay.tierIcono && <span>{loyalty.tierDisplay.tierIcono}</span>}
+              <span>{loyalty.tierDisplay.tierNombre || loyalty.tierDisplay.guardianTier}</span>
             </strong>
           </span>
           <span>1.000 pts = $10.000 en recompensas exclusivas</span>

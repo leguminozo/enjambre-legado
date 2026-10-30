@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError, toast, ViewLoading, formatCLP } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast, Skeleton, SkeletonKpi, SkeletonTable, formatCLP } from '@enjambre/ui';
 import {
   Users, TrendingUp, DollarSign, Check, X,
   Loader2, Search, Filter, Eye, Edit3, ChevronDown, ExternalLink,
@@ -353,7 +353,23 @@ export function CreadoresAdminPanel() {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Red de creadores" hideLabel />;
+    return (
+      <div className="space-y-8 animate-in" aria-busy="true" aria-label="Cargando red de creadores">
+        <div className="flex items-center gap-4 mb-8">
+          <Skeleton variant="rectangular" className="w-12 h-12 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton variant="text" className="w-48 h-7" />
+            <Skeleton variant="text" className="w-72 h-4" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+        </div>
+        <SkeletonTable rows={5} columns={5} />
+      </div>
+    );
   }
 
   return (

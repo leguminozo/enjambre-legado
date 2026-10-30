@@ -5,12 +5,31 @@ import { useRouter } from 'next/navigation';
 import { toast, friendlyError } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { Truck, FileText, UserCheck, Building2, Loader2, Check } from 'lucide-react';
-import { CHILEAN_COURIERS, CHILE_REGIONES } from '@enjambre/logistica';
+import {
+  CHILEAN_COURIERS,
+  CHILE_REGIONES,
+  CHILE_COMUNAS_POR_REGION,
+  getComunasPorRegion,
+  getRegionDeComuna,
+  getSugerenciaCiudad,
+} from '@enjambre/logistica';
 import { validarRUT, formatearRUT } from '@/lib/shop/rut';
 import {
   type ProfileCompleteData,
   updateProfileCompleteData,
 } from '@/app/actions/profile';
+
+const ATAJOS_COMUNAS_PERFIL = [
+  { label: 'Castro', comuna: 'Castro', region: 'Los Lagos' },
+  { label: 'Ancud', comuna: 'Ancud', region: 'Los Lagos' },
+  { label: 'Puerto Varas', comuna: 'Puerto Varas', region: 'Los Lagos' },
+  { label: 'Puerto Montt', comuna: 'Puerto Montt', region: 'Los Lagos' },
+  { label: 'Providencia (RM)', comuna: 'Providencia', region: 'Metropolitana' },
+  { label: 'Las Condes (RM)', comuna: 'Las Condes', region: 'Metropolitana' },
+  { label: 'Santiago Centro (RM)', comuna: 'Santiago', region: 'Metropolitana' },
+  { label: 'Viña del Mar', comuna: 'Viña del Mar', region: 'Valparaíso' },
+  { label: 'Concepción', comuna: 'Concepción', region: 'Biobío' },
+] as const;
 
 interface ProfileIdentityFormProps {
   initialData: ProfileCompleteData;
@@ -44,6 +63,30 @@ export function ProfileIdentityForm({ initialData }: ProfileIdentityFormProps) {
   const [direccionTributaria, setDireccionTributaria] = useState(
     initialData.direccion_tributaria || '',
   );
+
+  // Autocompletado territorial
+  const comunasDisponibles = React.useMemo(() => {
+    return region ? getComunasPorRegion(region) : Object.values(CHILE_COMUNAS_POR_REGION).flat();
+  }, [region]);
+
+  const handleComunaChange = (valor: string) => {
+    setComuna(valor);
+    const sugerencia = getSugerenciaCiudad(valor);
+    if (sugerencia && (!ciudad || ciudad === 'Santiago' || comunasDisponibles.includes(ciudad))) {
+      setCiudad(sugerencia);
+    }
+    const regDetectada = getRegionDeComuna(valor);
+    if (regDetectada && regDetectada !== region) {
+      setRegion(regDetectada);
+    }
+  };
+
+  const aplicarAtajo = (item: { comuna: string; region: string }) => {
+    setRegion(item.region);
+    setComuna(item.comuna);
+    const sugerencia = getSugerenciaCiudad(item.comuna);
+    if (sugerencia) setCiudad(sugerencia);
+  };
 
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
@@ -203,6 +246,32 @@ export function ProfileIdentityForm({ initialData }: ProfileIdentityFormProps) {
           </select>
         </div>
 
+        {/* Atajos territoriales frecuentes */}
+        <div className="space-y-1.5">
+          <p className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground ml-1 font-semibold">
+            Destinos habituales de despacho
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {ATAJOS_COMUNAS_PERFIL.map((item) => {
+              const isSelected = comuna.trim().toLowerCase() === item.comuna.toLowerCase();
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => aplicarAtajo(item)}
+                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                    isSelected
+                      ? 'border-accent bg-accent/15 text-accent font-medium'
+                      : 'border-border/60 bg-secondary/40 text-muted-foreground hover:border-accent/40 hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label
@@ -232,17 +301,23 @@ export function ProfileIdentityForm({ initialData }: ProfileIdentityFormProps) {
               htmlFor="comuna"
               className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground ml-1 font-semibold"
             >
-              Comuna
+              Comuna {region ? `(${region})` : ''}
             </label>
             <input
               type="text"
               id="comuna"
+              list="perfil-comunas-list"
               value={comuna}
-              onChange={(e) => setComuna(e.target.value)}
-              placeholder="Ej: Castro, Providencia..."
+              onChange={(e) => handleComunaChange(e.target.value)}
+              placeholder="Escribe o selecciona tu comuna..."
               disabled={isPending}
               className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
             />
+            <datalist id="perfil-comunas-list">
+              {comunasDisponibles.map((com) => (
+                <option key={com} value={com} />
+              ))}
+            </datalist>
           </div>
 
           <div className="space-y-2">
@@ -257,7 +332,7 @@ export function ProfileIdentityForm({ initialData }: ProfileIdentityFormProps) {
               id="ciudad"
               value={ciudad}
               onChange={(e) => setCiudad(e.target.value)}
-              placeholder="Ej: Chiloé, Santiago..."
+              placeholder="Ej: Castro, Puerto Montt, Santiago..."
               disabled={isPending}
               className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
             />

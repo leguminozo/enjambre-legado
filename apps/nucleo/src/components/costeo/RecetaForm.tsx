@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Check, Plus, Trash2, AlertCircle, Sparkles, Building2, Package } from 'lucide-react';
-import { Button, toast, ViewLoading, formatCLP } from '@enjambre/ui';
+import { Button, toast, Skeleton, SkeletonTable, formatCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -31,7 +31,8 @@ interface InsumoOption {
   nombre: string;
   unidad: string;
   precio_ref: number;
-  origen: 'inventario' | 'ingrediente';
+  origen: string;
+  clase?: string;
   stock?: number;
   proveedor?: string;
 }
@@ -96,6 +97,24 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
     return Math.max(1, val || 1);
   }, [baseRendimiento, valorRendimientoInput]);
 
+  const categoriasOpciones = useMemo(() => {
+    const miel = insumosOptions.filter((o) => o.clase === 'miel' || o.origen === 'lote_miel');
+    const infusiones = insumosOptions.filter((o) => o.clase === 'infusion' || o.origen === 'recoleccion_infusion');
+    const destilacion = insumosOptions.filter((o) => o.clase === 'destilacion' || o.origen === 'alambique');
+    const bodega = insumosOptions.filter(
+      (o) =>
+        !['miel', 'infusion', 'destilacion'].includes(o.clase || '') &&
+        !['lote_miel', 'recoleccion_infusion', 'alambique'].includes(o.origen),
+    );
+
+    return [
+      { label: '🍯 Recolección Apícola (Miel a Granel)', items: miel },
+      { label: '🌿 Recolección Botánica (Infusiones Secas)', items: infusiones },
+      { label: '💧 Alambique y Destilación (Hidrolatos)', items: destilacion },
+      { label: '📦 Insumos y Secos de Bodega', items: bodega },
+    ].filter((g) => g.items.length > 0);
+  }, [insumosOptions]);
+
   const handleBaseChange = (newBase: BaseRendimiento) => {
     setBaseRendimiento(newBase);
     if (newBase === 'unidad') {
@@ -133,7 +152,8 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
             nombre: inv.nombre,
             unidad: inv.unidad,
             precio_ref: Number(inv.costo_unitario ?? 0),
-            origen: 'inventario',
+            origen: inv.origen || 'inventario',
+            clase: inv.clase || 'insumo',
             stock: Number(inv.stock ?? 0),
             proveedor: inv.proveedor_nota ?? undefined,
           });
@@ -316,8 +336,14 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
 
   if (isLoadingRecipe) {
     return (
-      <div className="py-12">
-        <ViewLoading variant="view" label="Cargando fórmula maestra" hideLabel />
+      <div className="space-y-4 p-6" aria-busy="true" aria-label="Cargando fórmula maestra">
+        <Skeleton variant="text" className="w-56 h-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+        </div>
+        <SkeletonTable rows={4} columns={5} />
       </div>
     );
   }
@@ -543,17 +569,21 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
                       }}
                       className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:border-primary"
                     >
-                      <option value="">Seleccionar insumo...</option>
-                      {insumosOptions.map((i) => (
-                        <option key={i.id} value={i.id}>
-                          {i.nombre} ({i.unidad}) · Ref: {formatCLP(i.precio_ref)}
-                          {i.stock !== undefined ? ` · Stock: ${i.stock} ${i.unidad}` : ''}
-                        </option>
+                      <option value="">Seleccionar insumo o materia prima...</option>
+                      {categoriasOpciones.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.items.map((i) => (
+                            <option key={i.id} value={i.id}>
+                              {i.nombre} ({i.unidad}) · Ref: {formatCLP(i.precio_ref)}
+                              {i.stock !== undefined ? ` · Stock: ${i.stock} ${i.unidad}` : ''}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
 
                     {opt && (
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-muted-foreground">
                         {opt.proveedor && (
                           <span className="inline-flex items-center gap-1 text-primary">
                             <Building2 size={11} /> {opt.proveedor}
@@ -561,7 +591,22 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
                         )}
                         {opt.stock !== undefined && (
                           <span className="inline-flex items-center gap-1">
-                            <Package size={11} /> Bodega: {opt.stock} {opt.unidad}
+                            <Package size={11} /> Disponible: {opt.stock} {opt.unidad}
+                          </span>
+                        )}
+                        {opt.clase === 'miel' && (
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground bg-surface-raised px-1.5 py-0.5 rounded text-[10px]">
+                            🍯 Recolección Apícola
+                          </span>
+                        )}
+                        {opt.clase === 'infusion' && (
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground bg-surface-raised px-1.5 py-0.5 rounded text-[10px]">
+                            🌿 Recolección Botánica
+                          </span>
+                        )}
+                        {opt.clase === 'destilacion' && (
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground bg-surface-raised px-1.5 py-0.5 rounded text-[10px]">
+                            💧 Alambique
                           </span>
                         )}
                       </div>

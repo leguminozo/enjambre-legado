@@ -499,7 +499,7 @@ export function CheckoutResultClient() {
                           </p>
                         </div>
                         <Link
-                          href="/perfil/canje"
+                          href="/perfil/billetera?modal=canje"
                           className="pt-2 text-[11px] font-mono uppercase tracking-wider text-accent inline-flex items-center gap-1 hover:underline"
                         >
                           <span>Ver premios disponibles</span>
@@ -542,7 +542,7 @@ export function CheckoutResultClient() {
                         <ArrowRight className="w-3 h-3" />
                       </Link>
                       <Link
-                        href="/perfil/pasaporte"
+                        href="/perfil/trazabilidad"
                         className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Leaf className="w-3.5 h-3.5 text-accent" />

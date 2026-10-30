@@ -10,7 +10,7 @@ import { ContableView } from '@/views/ContableView';
 import { LibrosView } from '@/views/contable/LibrosView';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useEmpresaId } from '@/hooks/use-empresa-id';
-import { ViewLoading } from '@enjambre/ui';
+import { SkeletonTable } from '@enjambre/ui';
 import { Calculator, FileText, ShoppingCart, BarChart3, BookOpen } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -128,7 +128,7 @@ export function ContableHubView() {
       )}
       {activeTab === 'facturas' && (
         empresaLoading ? (
-          <ViewLoading variant="view" label="Empresa" hideLabel />
+          <SkeletonTable rows={5} columns={5} />
         ) : (
           <ListaFacturas empresaId={empresaId} />
         )

@@ -34,14 +34,9 @@ type ParsedAttribute = {
   value: string;
 };
 
-type ParsedDescription = {
-  leadParagraphs: string[];
-  attributes: ParsedAttribute[];
-};
-
-function parseProductDescription(raw: string | null): ParsedDescription {
+function formatNarrativeParagraphs(raw: string | null): string[] {
   if (!raw || !raw.trim()) {
-    return { leadParagraphs: [], attributes: [] };
+    return [];
   }
 
   // Normalizar vocabulario sagrado
@@ -51,48 +46,15 @@ function parseProductDescription(raw: string | null): ParsedDescription {
     .replace(/\bcosecha\b/gi, 'recolección')
     .trim();
 
-  const sectionRegex = /(?:Beneficios(?:\s+Clave)?|Caracter[íi]sticas|Atributos(?:\s+de\s+Origen)?|Propiedades|Notas\s+de\s+Cata):?\s*/i;
-  const match = normalized.match(sectionRegex);
-
-  let narrativePart = normalized;
-  let attributesPart = '';
-
-  if (match && match.index !== undefined) {
-    narrativePart = normalized.slice(0, match.index).trim();
-    attributesPart = normalized.slice(match.index + match[0].length).trim();
-  }
-
-  const leadParagraphs = narrativePart
+  return normalized
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
-
-  const attributes: ParsedAttribute[] = [];
-  if (attributesPart) {
-    const rawItems = attributesPart
-      .split(/(?:[\n\r]+|[•*–—]\s+)/)
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0 && item !== '•' && item !== '-' && item !== '*');
-
-    for (const item of rawItems) {
-      const colonIdx = item.indexOf(':');
-      if (colonIdx > 0 && colonIdx < 40) {
-        const label = item.slice(0, colonIdx).trim();
-        const value = item.slice(colonIdx + 1).trim();
-        if (label && value) {
-          attributes.push({ label, value });
-        }
-      } else {
-        attributes.push({ label: '', value: item });
-      }
-    }
-  }
-
-  return { leadParagraphs, attributes };
 }
 
 interface OriginAndTrustBlocksProps {
   attributes: ParsedAttribute[];
+  advertenciaSanitaria?: string | null;
   ingredientes?: string | null;
   warrantyText: string;
   retractoText: string;
@@ -104,6 +66,7 @@ interface OriginAndTrustBlocksProps {
 
 function OriginAndTrustBlocks({
   attributes,
+  advertenciaSanitaria,
   ingredientes,
   warrantyText,
   retractoText,
@@ -114,7 +77,24 @@ function OriginAndTrustBlocks({
 }: OriginAndTrustBlocksProps) {
   return (
     <div className="space-y-6">
-      {/* Atributos y especificaciones estructuradas */}
+      {/* Advertencia Sanitaria / Precaución Botánica Explícita */}
+      {advertenciaSanitaria ? (
+        <div className="rounded-2xl border border-accent/40 bg-accent/5 p-4 sm:p-5 text-xs">
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-semibold text-accent-text uppercase tracking-wider text-[10px] sm:text-[11px]">
+                Nota Importante & Precaución de Uso
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {advertenciaSanitaria}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Atributos y especificaciones estructuradas neutrales */}
       {attributes.length > 0 ? (
         <div className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
           <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
@@ -233,10 +213,22 @@ export function PdpBody({
   const viewedRef = useRef(false);
   const badges = useMemo(() => resolveProductBadges(product), [product]);
 
-  const { leadParagraphs, attributes } = useMemo(
-    () => parseProductDescription(product.description),
+  const leadParagraphs = useMemo(
+    () => formatNarrativeParagraphs(product.description),
     [product.description],
   );
+
+  const structuredAttributes: ParsedAttribute[] = useMemo(() => {
+    const rawList = product.perfil_sensorial?.atributos;
+    if (Array.isArray(rawList) && rawList.length > 0) {
+      return rawList
+        .filter((a) => a && (a.label?.trim() || a.value?.trim()))
+        .map((a) => ({ label: a.label?.trim() ?? '', value: a.value?.trim() ?? '' }));
+    }
+    return [];
+  }, [product.perfil_sensorial?.atributos]);
+
+  const advertenciaSanitaria = product.perfil_sensorial?.advertencia_sanitaria?.trim() || null;
 
   const collectionKicker = useMemo(() => {
     const found = badges.find((b) => /reserva|edici[oó]n|bosque|colecci[oó]n|legado/i.test(b));
@@ -435,7 +427,8 @@ export function PdpBody({
               {/* En escritorio (lg+): Atributos de origen, ingredientes, garantías y trazabilidad bajo la galería */}
               <div className="hidden lg:block mt-8">
                 <OriginAndTrustBlocks
-                  attributes={attributes}
+                  attributes={structuredAttributes}
+                  advertenciaSanitaria={advertenciaSanitaria}
                   ingredientes={product.ingredientes}
                   warrantyText={warrantyText}
                   retractoText={retractoText}
@@ -663,7 +656,8 @@ export function PdpBody({
               {/* En móvil (<lg): Atributos de origen, ingredientes, garantías y trazabilidad tras el bloque de compra */}
               <div className="lg:hidden mt-6">
                 <OriginAndTrustBlocks
-                  attributes={attributes}
+                  attributes={structuredAttributes}
+                  advertenciaSanitaria={advertenciaSanitaria}
                   ingredientes={product.ingredientes}
                   warrantyText={warrantyText}
                   retractoText={retractoText}

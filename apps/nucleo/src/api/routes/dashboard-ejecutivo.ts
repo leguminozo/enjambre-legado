@@ -90,15 +90,15 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .gte("date", yearStart)
       .order("date", { ascending: false })
       .limit(50),
-    // typegen de cosechas sin empresa_id; runtime sí lo tiene
-    fromLoose(supabase, "cosechas")
+    // cosechas no tiene columna empresa_id; RLS filtra por colmenas del usuario o gerente
+    supabase
+      .from("cosechas")
       .select("id, kg, fecha, floracion")
-      .eq("empresa_id", empresaId)
       .gte("fecha", from)
       .lte("fecha", to),
-    fromLoose(supabase, "cosechas")
+    supabase
+      .from("cosechas")
       .select("id, kg, fecha, floracion")
-      .eq("empresa_id", empresaId)
       .gte("fecha", yearStart),
     supabase
       .from("arboles_plantados")
@@ -172,10 +172,10 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(10),
-    // productos typegen sin empresa_id
-    fromLoose(supabase, "productos")
-      .select("id, nombre, precio, stock, categoria")
-      .eq("empresa_id", empresaId),
+    // Catálogo de productos (productos no tiene columna empresa_id)
+    supabase
+      .from("productos")
+      .select("id, nombre, precio, stock, categoria"),
     // Lotes de miel para KPIs operativos del panel (misma semántica que /produccion/dashboard)
     supabase
       .from("lotes")

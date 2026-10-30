@@ -167,7 +167,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
               <p className="text-sm text-foreground">{tSheet('paymentMethods')}</p>
               <p className="text-xs text-muted-foreground">{tSheet('paymentNote')}</p>
               <Link
-                href="/perfil/pasaporte"
+                href="/perfil/trazabilidad"
                 className="inline-flex min-h-11 items-center gap-1.5 text-xs text-accent-text hover:underline"
                 onClick={onClose}
               >

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Save, Settings2 } from 'lucide-react';
-import { toast, ViewLoading } from '@enjambre/ui';
+import { toast, Skeleton } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface BeneficioRow {
@@ -59,7 +59,29 @@ export function EnjambreConfigPanel() {
   });
 
   if (query.isLoading) {
-    return <ViewLoading variant="inline" label="Beneficios del Enjambre" />;
+    return (
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-4" aria-busy="true" aria-label="Cargando beneficios">
+        <div className="flex items-center gap-2">
+          <Skeleton variant="circular" className="w-5 h-5" />
+          <Skeleton variant="text" className="w-48 h-5" />
+        </div>
+        <Skeleton variant="text" className="w-full max-w-md h-3.5" />
+        <div className="space-y-3 pt-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b border-border/30 last:border-b-0 gap-2"
+            >
+              <div className="space-y-1">
+                <Skeleton variant="text" className="w-48 sm:w-64 h-4" />
+                <Skeleton variant="text" className="w-32 sm:w-40 h-3" />
+              </div>
+              <Skeleton variant="rectangular" className="w-full sm:w-32 h-10 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
   }
   if (query.isError) return null;
 

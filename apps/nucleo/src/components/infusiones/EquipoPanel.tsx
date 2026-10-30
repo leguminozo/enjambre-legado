@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, type ColumnDef,
+  Select, Badge, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
@@ -51,13 +51,24 @@ function EquipoFormDialog({
 
   const esDosificador = watch('rol_operacion') === 'dosificador';
 
+  const onSubmit = (v: EquipoFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? `Editar ${initial.nombre}` : 'Nuevo miembro del equipo'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Nombre *" placeholder="Quién hace el trabajo…" {...register('nombre')} error={errors.nombre?.message} />
           <div className="space-y-2">
             <FormFieldLabel>Rol de operación *</FormFieldLabel>
@@ -73,7 +84,7 @@ function EquipoFormDialog({
               </p>
             )}
           </div>
-          <Textarea label="Notas" placeholder="Contacto, disponibilidad, preferencias…" rows={2} {...register('notas')} />
+          <Textarea label="Notas" placeholder="Contacto, disponibilidad, preferencias…" rows={2} {...register('notas')} error={errors.notas?.message} />
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={save.isPending}>
@@ -126,7 +137,21 @@ export function EquipoPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Equipo de Taller</CardTitle>
+            <CardDescription>Personal involucrado en recolección, secado, formulación y control de calidad.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -154,7 +179,14 @@ export function EquipoPanel() {
           emptyState="Aún no hay miembros del equipo. Agrega a las personas a quienes delegarás."
         />
       </CardContent>
-      <EquipoFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+      <EquipoFormDialog
+        open={formOpen}
+        onOpenChange={(v) => {
+          setFormOpen(v);
+          if (!v) setEditing(null);
+        }}
+        initial={editing}
+      />
     </Card>
   );
 }

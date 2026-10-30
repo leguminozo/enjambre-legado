@@ -52,7 +52,7 @@ export function buildGoogleSavePayload(
               }
             : undefined,
           textModulesData: [
-            { header: 'Tier', body: snapshot.tier },
+            { header: 'Rango', body: snapshot.tierNombre ?? snapshot.tier },
             { header: 'Ciclos', body: String(snapshot.ciclos) },
           ],
         },

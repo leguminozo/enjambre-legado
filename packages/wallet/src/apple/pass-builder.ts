@@ -37,8 +37,8 @@ export function buildApplePassJson(
       primaryFields: [
         {
           key: 'tier',
-          label: 'Guardian',
-          value: `${snapshot.displayName} · ${snapshot.tier}`,
+          label: 'Guardián',
+          value: `${snapshot.displayName} · ${snapshot.tierNombre ?? snapshot.tier}`,
         },
       ],
       secondaryFields: primary

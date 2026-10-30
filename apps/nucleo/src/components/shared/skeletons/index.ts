@@ -7,4 +7,5 @@ export { ColmenasDashboardSkeleton } from './ColmenasDashboardSkeleton';
 export { FiscalSiiSkeleton } from './FiscalSiiSkeleton';
 export { DespachoEnviosSkeleton } from './DespachoEnviosSkeleton';
 export { BancoChileSkeleton } from './BancoChileSkeleton';
+export { ClubLegadoSkeleton } from './ClubLegadoSkeleton';
 export { ModuloGenericoSkeleton } from './ModuloGenericoSkeleton';

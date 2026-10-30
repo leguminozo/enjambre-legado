@@ -655,7 +655,7 @@ repVentasRoutes.get("/session/:sessionId", async (c) => {
 
   const { data: ventas, error } = await supabase
     .from("ventas")
-    .select("id, total, metodo_pago, channel, created_at, items, rep_commission_total")
+    .select("id, total, metodo_pago, channel, created_at, productos, rep_commission_total")
     .eq("cash_session_id", sessionId)
     .order("created_at", { ascending: true });
 
@@ -752,7 +752,7 @@ repVentasRoutes.get("/feria-context", async (c) => {
   try {
     const { data: cmsCombos } = await fromLoose(supabase, 'site_content')
       .select('content')
-      .eq('key', 'pos_feria_combos')
+      .eq('section_key', 'pos_feria_combos')
       .maybeSingle();
     const parsed = cmsCombos as { content?: unknown } | null;
     if (parsed?.content && Array.isArray(parsed.content)) {

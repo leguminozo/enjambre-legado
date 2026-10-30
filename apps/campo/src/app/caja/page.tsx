@@ -8,7 +8,7 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { CashSessionPanel } from '@/components/pos/cash-session-panel';
 import { SessionVoidsPanel } from '@/components/pos/session-voids-panel';
 import { useAuthStore } from '@enjambre/auth';
-import { formatCLP, useClientViewLoading, ViewLoading } from '@enjambre/ui';
+import { formatCLP, useClientViewLoading, Skeleton } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 
 type SessionEntry = {
@@ -50,7 +50,19 @@ function CajaContent() {
   }, [token]);
 
   if (showLoading) {
-    return <ViewLoading variant="view" label="Control de Caja" hideLabel />;
+    return (
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando control de caja">
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
+          <Skeleton variant="text" className="w-24 h-3" />
+          <Skeleton variant="text" className="w-48 h-7" />
+          <Skeleton variant="text" className="w-72 max-w-full h-3.5" />
+        </div>
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-4">
+          <Skeleton variant="text" className="w-40 h-5" />
+          <Skeleton variant="rectangular" className="w-full h-32 rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   return (

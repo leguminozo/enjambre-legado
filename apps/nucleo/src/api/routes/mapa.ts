@@ -28,7 +28,7 @@ mapaRoutes.get(
     // 1. Apiario
     const { data: apiario, error: errApiario } = await supabase
       .from("apiarios")
-      .select("id, name, lat, lng, sector, details, created_at")
+      .select("id, name, lat, lng, details, created_at")
       .eq("id", id)
       .maybeSingle();
     if (errApiario) return c.json({ error: errApiario.message }, 500);

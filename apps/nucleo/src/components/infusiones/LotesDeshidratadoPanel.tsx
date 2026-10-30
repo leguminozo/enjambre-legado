@@ -9,7 +9,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, type ColumnDef,
+  Select, Badge, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel, ResponsableInput } from './shared';
@@ -102,13 +102,24 @@ function LoteDeshidratadoFormDialog({
     );
   }, [open, initial, reset]);
 
+  const onSubmit = (v: LoteDeshidratadoFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? 'Editar deshidratado' : 'Nuevo proceso de deshidratado'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <FormFieldLabel>Lote de entrada *</FormFieldLabel>
             {entradaOptions.length === 0 ? (
@@ -259,7 +270,21 @@ export function LotesDeshidratadoPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Deshidratación</CardTitle>
+            <CardDescription>El proceso fresca→seca: método, temperaturas y cuánto se registró de salida.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -287,7 +312,14 @@ export function LotesDeshidratadoPanel() {
           emptyState="Aún no hay procesos de deshidratado registrados."
         />
       </CardContent>
-      <LoteDeshidratadoFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+      <LoteDeshidratadoFormDialog
+        open={formOpen}
+        onOpenChange={(v) => {
+          setFormOpen(v);
+          if (!v) setEditing(null);
+        }}
+        initial={editing}
+      />
     </Card>
   );
 }

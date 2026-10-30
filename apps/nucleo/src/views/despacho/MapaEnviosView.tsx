@@ -2,14 +2,14 @@
 
 import dynamic from 'next/dynamic';
 import { Map } from 'lucide-react';
-import { ViewLoading } from '@enjambre/ui';
+import { Skeleton } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
 
 const MapaEnviosHistorico = dynamic(
   () =>
     import('@/components/logistica/MapaEnviosHistorico').then((mod) => mod.MapaEnviosHistorico),
-  { ssr: false, loading: () => <ViewLoading variant="view" label="Mapa" hideLabel /> },
+  { ssr: false, loading: () => <Skeleton variant="rectangular" className="w-full h-[560px] rounded-xl" /> },
 );
 
 export function MapaEnviosView() {
@@ -26,7 +26,7 @@ export function MapaEnviosView() {
 
       <div className="card p-4">
         {isLoading ? (
-          <ViewLoading variant="view" label="Mapa" hideLabel />
+          <Skeleton variant="rectangular" className="w-full h-[560px] rounded-xl" />
         ) : (
           <MapaEnviosHistorico envios={dashboard.envios} height="min(70vh, 560px)" />
         )}

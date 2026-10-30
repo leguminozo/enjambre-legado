@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Shield, Save, Plus, Trash2, AlertTriangle } from 'lucide-react';
-import { toast, ViewLoading, formatCLP } from '@enjambre/ui';
+import { toast, Skeleton, formatCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
 export interface GuardianTierRow {
@@ -64,7 +64,43 @@ export function GuardianTiersConfigPanel(_props: GuardianTiersConfigPanelProps =
   }, [query.data]); // Solo reacciona a cambios reales de datos, no a toggles de dirty
 
   if (query.isLoading) {
-    return <ViewLoading variant="inline" label="Tiers de Guardián" />;
+    return (
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-6" aria-busy="true" aria-label="Cargando tiers de guardián">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" className="w-5 h-5" />
+              <Skeleton variant="text" className="w-56 h-5" />
+            </div>
+            <Skeleton variant="text" className="w-96 max-w-full h-3.5" />
+          </div>
+          <Skeleton variant="rectangular" className="w-32 h-9 rounded-full" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-border bg-background p-4 space-y-4">
+              <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-3">
+                <div className="flex items-center gap-2 flex-1">
+                  <Skeleton variant="rectangular" className="w-10 h-8 rounded-lg" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton variant="text" className="w-20 h-2.5" />
+                    <Skeleton variant="text" className="w-36 h-5" />
+                  </div>
+                </div>
+                <Skeleton variant="rectangular" className="w-14 h-8 rounded-md" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Skeleton variant="rectangular" className="h-10 rounded-md" />
+                <Skeleton variant="rectangular" className="h-10 rounded-md" />
+                <Skeleton variant="rectangular" className="h-10 rounded-md" />
+              </div>
+              <Skeleton variant="text" className="w-full h-8 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
   }
   if (query.isError) return null;
 

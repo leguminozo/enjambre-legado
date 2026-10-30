@@ -5,6 +5,9 @@ import {
   FORTIFICANTES_CANONICOS,
   FORTIFICANTES_LABELS,
   PARES_SEMANTICOS_POR_CATEGORIA,
+  EJES_SENSORIALES_POR_CATEGORIA,
+  VALORES_DEFAULT_EJES,
+  resolverEjesSensoriales,
   ProductoVarianteSchema,
   type CategoriaSensorial,
   type FortificanteCanonico,
@@ -16,6 +19,9 @@ export {
   FORTIFICANTES_CANONICOS,
   FORTIFICANTES_LABELS,
   PARES_SEMANTICOS_POR_CATEGORIA,
+  EJES_SENSORIALES_POR_CATEGORIA,
+  VALORES_DEFAULT_EJES,
+  resolverEjesSensoriales,
   ProductoVarianteSchema,
   type CategoriaSensorial,
   type FortificanteCanonico,
@@ -27,6 +33,7 @@ export const perfilSensorialSchema = z
     intensidad: z.coerce.number().min(0).max(100).default(75),
     dulzor_acidez: z.coerce.number().min(0).max(100).default(60),
     textura: z.coerce.number().min(0).max(100).default(85),
+    ejes_calibracion: z.record(z.string(), z.coerce.number()).optional(),
     descriptores_intensidad: z
       .object({
         izq: z.string().default('Suave & Floral'),
@@ -55,6 +62,15 @@ export const perfilSensorialSchema = z
       )
       .default([]),
     momento_consumo: z.string().optional(),
+    advertencia_sanitaria: z.string().optional(),
+    atributos: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.string(),
+        }),
+      )
+      .default([]),
     qr_modo: z.enum(['experiencia', 'trazabilidad', 'comercial']).default('experiencia').optional(),
     qr_titulo: z.string().optional(),
     qr_mensaje: z.string().optional(),

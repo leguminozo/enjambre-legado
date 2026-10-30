@@ -4,6 +4,20 @@ import { useState } from 'react';
 import { Button, toast, ImmersiveModal } from '@enjambre/ui';
 import { Check } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
+
+const COMUNAS_CHILOE_PREDIOS = [
+  'Castro',
+  'Ancud',
+  'Quellón',
+  'Dalcahue',
+  'Chonchi',
+  'Queilén',
+  'Quemchi',
+  'Puqueldón',
+  'Quinchao',
+  'Curaco de Vélez',
+] as const;
 
 interface ActorResumen {
   id: string;
@@ -134,13 +148,35 @@ export function PredioForm({ actores, fixedActorId, fixedActorName, onClose, onS
             <label className="text-sm font-medium text-foreground">
               Comuna <span className="text-destructive">*</span>
             </label>
+            <div className="flex flex-wrap gap-1 mb-1">
+              {COMUNAS_CHILOE_PREDIOS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setComuna(c)}
+                  className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                    comuna.toLowerCase() === c.toLowerCase()
+                      ? 'border-primary bg-primary/20 text-primary font-medium'
+                      : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
             <input
               type="text"
+              list="predio-comunas-list"
               value={comuna}
               onChange={(e) => setComuna(e.target.value)}
               placeholder="Ej. Castro"
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <datalist id="predio-comunas-list">
+              {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
           </div>
 
           <div className="space-y-2">

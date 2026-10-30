@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
-import { EmptyState, friendlyError, toast, ViewLoading } from '@enjambre/ui';
+import { EmptyState, friendlyError, toast, Skeleton } from '@enjambre/ui';
 
 const PLATAFORMAS = ['instagram', 'tiktok', 'youtube', 'blog', 'podcast', 'otro'] as const;
 
@@ -161,7 +161,20 @@ export function CreadorSolicitudClient({ initialName }: CreadorSolicitudClientPr
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label={t('title')} hideLabel />;
+    return (
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando postulación">
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
+          <Skeleton variant="text" className="w-24 h-3" />
+          <Skeleton variant="text" className="w-48 h-7" />
+          <Skeleton variant="text" className="w-72 max-w-full h-3.5" />
+        </div>
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-4">
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+          <Skeleton variant="rectangular" className="h-24 rounded-lg" />
+        </div>
+      </div>
+    );
   }
 
   if (isCreator) {

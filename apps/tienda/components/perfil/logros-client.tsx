@@ -21,10 +21,10 @@ export function LogrosClient({
 
   const activeProfile: GamificationProfile = profile ?? {
     puntos_acumulados: 0,
-    nivel_guardian: 'obrera',
-    tier_name: 'Obrera',
-    next_tier_points: 100,
-    next_tier_name: 'Zángano',
+    nivel_guardian: 'OBRERA',
+    tier_name: 'Iniciador',
+    next_tier_points: 500,
+    next_tier_name: 'Aliado del Enjambre',
     progress_percentage: 0,
   };
 

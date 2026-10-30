@@ -23,7 +23,7 @@
 13. [Narrativa Geográfica de Origen (`/origen`)](#13-narrativa-geográfica-de-origen)
 14. [Encuentros & Experiencias en el Bosque (`/experiencias`)](#14-encuentros--experiencias-en-el-bosque)
 15. [Landings B2B por Segmento (`/alianzas/[segmento]`)](#15-landings-b2b-por-segmento)
-16. [Portal Mayorista B2B (`/mayorista`)](#16-portal-mayorista-b2b)
+16. [Portal Mayorista B2B (`/perfil/mayorista`)](#16-portal-mayorista-b2b)
 17. [Portal de Embajadores & Creadores (`/embajadores`)](#17-portal-de-embajadores--creadores)
 18. [Hub del Cliente: Mi Legado (`/perfil`)](#18-hub-del-cliente-mi-legado)
 19. [Línea de Tiempo de Pedidos & DTEs (`/perfil/pedidos`)](#19-línea-de-tiempo-de-pedidos--dtes)
@@ -234,39 +234,43 @@
 
 - **Rutas**: `/ciencia`, `/ciencia/[slug]`
 - **Paquete de dominio**: `@enjambre/ciencia`
+- **Componentes clave**: `CienciaCanvas`, índice de navegación por anclas
 
 ### Mecánica Interna
-1. **Evidencia Botánica sin Prédica Médica**:
-   - Detalla las propiedades físico-químicas del néctar nativo respetando el Decreto 977 (Reglamento Sanitario de los Alimentos) y la Ley 20.606.
-   - Describe la actividad enzimática de la glucosa oxidasa presente en la miel cruda, la inhibina natural y la concentración de compuestos fenólicos.
-2. **Triangulación Científica**:
-   - Cada afirmación está respaldada por estudios botánicos y análisis de laboratorio universitarios sobre la flora melífera austral.
+1. **Los 5 Ejes de Evidencia Rigurosa**:
+   - **Eje 01 · Triangulación Botánica & Pureza**: Refugio austral, análisis cromatográficos y ausencia comprobada de pesticidas e hidrocarburos.
+   - **Eje 02 · Bioquímica & Enzimas Vivas**: Miel cruda viva vs azúcar refinada, actividad de glucosa oxidasa/diastasa, HMF y parámetros Codex Alimentarius.
+   - **Eje 03 · Biblioteca de Floraciones de Chile**: Vinculación palinológica directa con las especies melíferas del bosque templado.
+   - **Eje 04 · Contabilidad Biofísica & CO₂**: Modelación matemática de emisiones evitadas y servicios de polinización por colmena.
+   - **Eje 05 · Respaldo Académico & Límites Legales**: Bibliografía universitaria (UACh, PUC, INIA) y límites normativos estrictos del Reglamento Sanitario de los Alimentos (RSA DS 977/96) y Ley 20.606 (cero promesas médicas).
 
 ---
 
-## 13. Narrativa Geográfica de Origen
+## 13. Biblioteca Botánica Central de Origen
 
-- **Rutas**: `/origen`, `/origen/[slug]`, `/origen/ulmo`
-- **Componente clave**: `mapa-identidad-hero.tsx`
+- **Rutas**: `/origen`, `/origen/[slug]`, `/origen/ulmo` (centraliza y reemplaza la antigua `/floraciones`)
+- **Componentes clave**: `origen_monografias`, `CienciaCanvas`, `EditorialHero`
 
 ### Mecánica Interna
-1. **Inmersión Territorial en Chiloé**:
-   - Cartografía visual interactiva que sitúa los apiarios en la microcuenca de Pureo y los bosques de Queilen y Quellón.
-2. **Ecosistema del Bosque Templado Lluvioso**:
-   - Explica la interacción entre la lluvia austral, los vientos del Pacífico y la abeja virgen, destacando la pureza de un entorno sin cultivos industriales transgénicos.
+1. **Catálogo Unificado de Monografías Botánicas**:
+   - Monografías científicas individuales por árbol nativo (Ulmo, Tiaca, Melí, Luma, Tepú, Tineo).
+   - Fenología austral, ventana estacional de néctar, perfil organoléptico y notas de maridaje de la miel resultante.
+2. **Distintivos Territoriales y Manifiesto**:
+   - Distintivos de origen: Predio Pureo (Queilén), Sin Trashumancia, Extracción y Centrifugado en Frío.
+   - **Manifiesto de No-Trashumancia**: Fundamenta el modelo de colmenas fijas permanentes en el bosque nativo frente al estrés y agroquímicos de la apicultura industrial migratoria.
 
 ---
 
 ## 14. Encuentros & Experiencias en el Bosque
 
-- **Rutas**: `/experiencias`, `/experiencias/talleres`, `/experiencias/degustaciones`, `/experiencias/pureo`, `/experiencias/floraciones`
+- **Rutas**: `/experiencias`, `/experiencias/talleres`, `/experiencias/degustaciones`, `/experiencias/territorio` (rutas legadas `/experiencias/pureo` y `/experiencias/floraciones` redirigen con 308)
 - **BFF**: `/api/experiencias/inquiry`
 
 ### Mecánica Interna
 1. **Catálogo de Experiencias en Terreno**:
-   - Visitas guiadas a los apiarios con trajes de protección completos.
-   - Talleres de iniciación sensorial en mieles nativas.
-   - Catas maridadas con gastronomía chilota tradicional.
+   - **Territorio & Bosque Austral** (`/experiencias/territorio`): Inmersión en el bosque templado lluvioso y colmenas en Chiloé.
+   - **Degustaciones & Protocolo de Cata** (`/experiencias/degustaciones`): Cata de mieles de Chile, kit sensorial y ruedas de aromas (CMS: `floraciones_experience_settings`).
+   - **Talleres de Técnica Apícola** (`/experiencias/talleres`): Manejo técnico, nutrición y biología de la colmena.
 2. **Formulario de Reserva Institucional**:
    - Permite solicitar fechas exclusivas para grupos pequeños, integrando la gestión de reservas con la cabina de mando de Núcleo.
 
@@ -291,7 +295,7 @@
 
 ## 16. Portal Mayorista B2B
 
-- **Ruta**: `/mayorista`
+- **Ruta**: `/perfil/mayorista` (Portal privado autenticado para aliados comerciales; la antigua ruta pública `/mayorista` redirige a `/alianzas`)
 - **Vista**: `mayorista-portal-client.tsx`
 - **BFF**: `/api/b2b/onboarding-order`
 

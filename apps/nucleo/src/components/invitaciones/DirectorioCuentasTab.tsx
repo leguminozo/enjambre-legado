@@ -20,7 +20,7 @@ import {
   Button,
   ImmersiveModal,
   EmptyState,
-  ViewLoading,
+  SkeletonTable,
   formatDateShort,
   friendlyError,
   toast,
@@ -275,9 +275,7 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
 
       {/* Listado de cuentas */}
       {loading ? (
-        <div className="py-12">
-          <ViewLoading variant="view" label="Cargando directorio de cuentas..." />
-        </div>
+        <SkeletonTable rows={5} columns={4} />
       ) : filteredUsuarios.length === 0 ? (
         <EmptyState
           title={search ? 'Sin coincidencias' : 'No hay cuentas en esta categoría'}

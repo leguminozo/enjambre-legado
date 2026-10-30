@@ -87,10 +87,10 @@ blockchainRoutes.post(
                 const apiarioId = (join as { apiario_id?: string } | null | undefined)?.apiario_id;
                 if (apiarioId && !apiario) {
                   const { data: apiarioRow } = await fromLoose(supabase, 'apiarios')
-                    .select('nombre')
+                    .select('name')
                     .eq('id', apiarioId)
                     .maybeSingle();
-                  apiario = (apiarioRow?.nombre as string | undefined) ?? null;
+                  apiario = (apiarioRow?.name as string | undefined) ?? null;
                 }
               }
             }
@@ -119,9 +119,8 @@ blockchainRoutes.post(
         }
         case 'cosecha': {
           const { data: cosecha } = await fromLoose(supabase, 'cosechas')
-            .select('id, lote_id, kg, fecha, estado, blockchain_hash')
+            .select('id, lote_id, kg, fecha, blockchain_hash')
             .eq('id', entity_id)
-            .eq('empresa_id', empresaId)
             .maybeSingle();
           if (cosecha) {
             entityExists = true;
@@ -129,7 +128,6 @@ blockchainRoutes.post(
               lote_id: cosecha.lote_id,
               kg: cosecha.kg,
               fecha: cosecha.fecha,
-              estado: cosecha.estado,
             };
           }
           break;

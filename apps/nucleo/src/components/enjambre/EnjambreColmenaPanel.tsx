@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Save } from 'lucide-react';
-import { toast, ViewLoading } from '@enjambre/ui';
+import { toast, Skeleton } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface SuscriptorRow {
@@ -43,7 +43,20 @@ export function EnjambreColmenaPanel() {
   });
 
   if (query.isLoading) {
-    return <ViewLoading variant="inline" label="Pasaporte Colmena" />;
+    return (
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-4" aria-busy="true" aria-label="Cargando pasaporte colmena">
+        <div className="flex items-center gap-2">
+          <Skeleton variant="circular" className="w-5 h-5" />
+          <Skeleton variant="text" className="w-44 h-5" />
+        </div>
+        <Skeleton variant="text" className="w-80 max-w-full h-3.5" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+          <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+        </div>
+        <Skeleton variant="rectangular" className="w-36 h-10 rounded-full mt-4" />
+      </section>
+    );
   }
   if (query.isError) return null; // silencioso: el resto de la configuración sigue
 

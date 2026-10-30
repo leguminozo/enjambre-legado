@@ -19,7 +19,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Button,
-  ViewLoading,
+  Skeleton,
   overlayBackdropClassName,
   useModalFocusTrap,
   cn,
@@ -293,7 +293,12 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
                 className="absolute inset-0 overflow-y-auto overscroll-contain p-4 pb-12 space-y-6"
               >
                 {loading ? (
-                  <ViewLoading variant="view" label="Cargando configuración..." />
+                  <div className="space-y-4" aria-busy="true" aria-label="Cargando configuración">
+                    <Skeleton variant="text" className="w-48 h-6" />
+                    <Skeleton variant="rectangular" className="w-full h-24 rounded-2xl" />
+                    <Skeleton variant="rectangular" className="w-full h-12 rounded-xl" />
+                    <Skeleton variant="rectangular" className="w-full h-12 rounded-xl" />
+                  </div>
                 ) : mobileView === 'menu' ? (
                   <div className="space-y-5">
                     {/* Tarjeta de Perfil interactiva */}
@@ -530,7 +535,15 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
           {/* Cuerpo scrollable del tab */}
           <div className="flex-1 overflow-y-auto overscroll-contain p-7">
             {loading ? (
-              <ViewLoading variant="view" label="Cargando..." />
+              <div className="max-w-3xl space-y-6 animate-in" aria-busy="true" aria-label="Cargando configuración">
+                <Skeleton variant="text" className="w-48 h-6" />
+                <Skeleton variant="text" className="w-80 max-w-full h-4" />
+                <div className="space-y-4 pt-2">
+                  <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+                  <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+                  <Skeleton variant="rectangular" className="h-10 rounded-lg" />
+                </div>
+              </div>
             ) : (
               <div key={activeSection} className="max-w-3xl space-y-6 animate-in fade-in duration-200">
                 {renderSectionContent(activeSection)}

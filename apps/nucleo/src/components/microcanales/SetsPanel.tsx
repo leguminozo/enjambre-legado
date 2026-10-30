@@ -9,7 +9,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, toast, formatCLP, type ColumnDef,
+  Select, Badge, SkeletonTable, toast, formatCLP, type ColumnDef,
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { FieldLabel } from './shared';
@@ -212,7 +212,21 @@ export function SetsPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Microcanales" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Sets de entrada</CardTitle>
+            <CardDescription>Unidades narrativas y comerciales: productos + materiales físicos + pack digital, por entorno.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-0">

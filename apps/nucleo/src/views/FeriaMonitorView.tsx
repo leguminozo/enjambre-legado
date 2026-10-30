@@ -32,9 +32,7 @@ interface VentaFeriaRow {
   total: number | null;
   metodo_pago: string | null;
   estado: string | null;
-  offline_synced: boolean | null;
   created_at: string | null;
-  evento_id: string | null;
   participante_evento_id: string | null;
   productos: Array<{ producto_id: string; nombre?: string; cantidad: number; precio_unitario?: number }> | null;
 }
@@ -127,13 +125,13 @@ export function FeriaMonitorView() {
       // 1. Ventas feria (últimas 200, filtradas por evento si hay selección)
       let ventasQuery = supabase
         .from('ventas')
-        .select('id, vendedor_id, total, metodo_pago, estado, offline_synced, created_at, evento_id, participante_evento_id, productos')
+        .select('id, vendedor_id, total, metodo_pago, estado, created_at, participante_evento_id, productos')
         .eq('origen', 'feria')
         .order('created_at', { ascending: false })
         .limit(200);
 
       if (selectedEventoId !== 'all') {
-        ventasQuery = ventasQuery.eq('evento_id', selectedEventoId);
+        ventasQuery = ventasQuery.eq('participante_evento_id', selectedEventoId);
       }
 
       const { data: ventasRaw, error: e1 } = await ventasQuery;
@@ -201,9 +199,9 @@ export function FeriaMonitorView() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'ventas' },
-        (payload: { new: { origen?: string; evento_id?: string } }) => {
+        (payload: { new: { origen?: string; participante_evento_id?: string } }) => {
           if (payload.new.origen !== 'feria') return;
-          if (selectedEventoId !== 'all' && payload.new.evento_id !== selectedEventoId) return;
+          if (selectedEventoId !== 'all' && payload.new.participante_evento_id !== selectedEventoId) return;
           queryClient.invalidateQueries({ queryKey: ['feria-monitor', selectedEventoId] });
         },
       )
@@ -550,9 +548,9 @@ export function FeriaMonitorView() {
                             <Wallet size={12} />
                             {v.metodo_pago ? (METODO_PAGO_LABEL[v.metodo_pago] ?? v.metodo_pago) : '—'}
                           </span>
-                          <span className={`flex items-center gap-1 ${v.offline_synced ? 'text-warning' : 'text-success'}`}>
-                            {v.offline_synced ? <WifiOff size={12} /> : <Wifi size={12} />}
-                            {v.offline_synced ? 'offline' : 'synced'}
+                          <span className="flex items-center gap-1 text-success">
+                            <Wifi size={12} />
+                            synced
                           </span>
                         </div>
                         <span className="tabular-nums opacity-60 flex items-center gap-1">
@@ -713,7 +711,7 @@ export function FeriaMonitorView() {
               <div><span className="text-muted-foreground block">Estado</span> <span className="font-medium">{detailVenta.estado ?? '—'}</span></div>
               <div><span className="text-muted-foreground block">Fecha</span> <span className="font-medium">{detailVenta.created_at ? new Date(detailVenta.created_at).toLocaleString() : '—'}</span></div>
               <div className="sm:col-span-2"><span className="text-muted-foreground block">Total</span> <span className="text-xl font-bold">{formatTotal(detailVenta.total)}</span></div>
-              <div className="sm:col-span-2"><span className="text-muted-foreground block">Sync</span> <span className="font-medium">{detailVenta.offline_synced ? 'Offline (pendiente)' : 'Online'}</span></div>
+              <div className="sm:col-span-2"><span className="text-muted-foreground block">Sync</span> <span className="font-medium text-success">Online (confirmado)</span></div>
             </div>
             <div className="border-t border-border pt-4">
               <div className="font-medium mb-2">Items</div>

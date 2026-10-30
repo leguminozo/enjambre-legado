@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Badge,
-  Select, ViewLoading, type ColumnDef,
+  Select, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { type PuntoVentaRow, type SesionPercepcionRow, type PercepcionAgregado } from '@/lib/microcanales-types';
@@ -71,7 +71,12 @@ export function PercepcionPanel() {
             <SelectPunto puntos={puntos} value={puntoId} onChange={setPuntoId} />
           </div>
           {!puntoId && <p className="text-sm text-muted-foreground">Selecciona un punto de venta para ver su percepción.</p>}
-          {query.isLoading && puntoId && <ViewLoading variant="view" label="Percepción" hideLabel />}
+          {query.isLoading && puntoId && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SkeletonTable rows={4} columns={3} />
+              <SkeletonTable rows={4} columns={3} />
+            </div>
+          )}
           {d && (
             <>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

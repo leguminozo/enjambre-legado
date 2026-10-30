@@ -87,7 +87,7 @@ export async function getLoyaltyDashboard(): Promise<{
       .order('points_cost'),
     supabase
       .from('user_tier_view')
-      .select('ciclos_historicos, tier')
+      .select('ciclos_historicos, tier, tier_nombre, tier_icono, tier_color_token, tier_narrativa')
       .eq('user_id', user.id)
       .maybeSingle(),
   ])
@@ -95,6 +95,9 @@ export async function getLoyaltyDashboard(): Promise<{
   const tierDisplay = buildUnifiedTierDisplay({
     ciclosHistoricos: guardianResult.data?.ciclos_historicos ?? 0,
     loyaltyNivel: pointsResult.data?.nivel_actual,
+    guardianTier: guardianResult.data?.tier,
+    tierNombre: guardianResult.data?.tier_nombre,
+    tierIcono: guardianResult.data?.tier_icono,
   })
 
   return {

@@ -5,6 +5,20 @@ import { Button, toast, ImmersiveModal } from '@enjambre/ui';
 import { Check, FileUp } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
+
+const COMUNAS_CHILOE_TRASHUMANCIA = [
+  'Castro',
+  'Ancud',
+  'Quellón',
+  'Dalcahue',
+  'Chonchi',
+  'Queilén',
+  'Quemchi',
+  'Puqueldón',
+  'Quinchao',
+  'Curaco de Vélez',
+] as const;
 
 interface ActorResumen {
   id: string;
@@ -282,13 +296,35 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
                 <label className="text-sm font-medium text-foreground">
                   Comuna Destino (Chiloé)
                 </label>
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {COMUNAS_CHILOE_TRASHUMANCIA.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setComunaDestino(c)}
+                      className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                        comunaDestino.toLowerCase() === c.toLowerCase()
+                          ? 'border-primary bg-primary/20 text-primary font-medium'
+                          : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
                 <input
                   type="text"
+                  list="trashumancia-comunas-list"
                   value={comunaDestino}
                   onChange={(e) => setComunaDestino(e.target.value)}
                   placeholder="Ej. Castro"
                   className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+                <datalist id="trashumancia-comunas-list">
+                  {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
               </div>
             </div>
 

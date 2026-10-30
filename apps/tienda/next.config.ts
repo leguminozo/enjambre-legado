@@ -193,6 +193,16 @@ const nextConfig: NextConfig = {
         destination: '/experiencias/degustaciones',
         permanent: true,
       },
+      {
+        source: '/floraciones',
+        destination: '/origen',
+        permanent: true,
+      },
+      {
+        source: '/mayorista',
+        destination: '/alianzas',
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

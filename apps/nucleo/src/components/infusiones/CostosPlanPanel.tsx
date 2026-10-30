@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
-  Input, Select, ViewLoading, formatCLP, type ColumnDef,
+  Input, Select, SkeletonTable, formatCLP, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
@@ -104,7 +104,7 @@ function Planificador({ formulas }: { formulas: FormulaRow[] }) {
         )}
       </div>
 
-      {planQuery.isLoading && <ViewLoading variant="view" label="Planificación" hideLabel />}
+      {planQuery.isLoading && <SkeletonTable rows={4} columns={5} />}
       {planQuery.isError && <p className="text-sm text-destructive">No se pudo calcular la planificación.</p>}
 
       {plan && plan.por_ingrediente.length > 0 && (
@@ -181,7 +181,14 @@ export function CostosPlanPanel() {
     },
   })
 
-  if (formulasLoading || costosQuery.isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />
+  if (formulasLoading || costosQuery.isLoading) {
+    return (
+      <div className="space-y-6">
+        <SkeletonTable rows={4} columns={5} />
+        <SkeletonTable rows={4} columns={5} />
+      </div>
+    );
+  }
 
   const porMateria = costosQuery.data?.data.por_materia ?? []
   const porFormula = costosQuery.data?.data.por_formula ?? []

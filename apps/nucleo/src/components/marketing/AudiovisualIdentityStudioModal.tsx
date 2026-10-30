@@ -23,7 +23,7 @@ export function AudiovisualIdentityStudioModal({
       open={open}
       onClose={onClose}
       title="Generador Audiovisual de Identidad"
-      eyebrow="SUSTRATO BIOLÓGICO · LIENZO VIVO · FINISTERRE 42°S"
+      eyebrow="IDENTIDAD TERRITORIAL · LIENZO VIVO · FINISTERRE 42°S"
       size="full"
     >
       <div className="p-4 sm:p-6 h-full">

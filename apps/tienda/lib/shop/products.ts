@@ -45,6 +45,9 @@ export type ShopProduct = {
     notas_aromaticas?: string[];
     maridajes?: Array<{ titulo: string; detalle: string }>;
     momento_consumo?: string;
+    advertencia_sanitaria?: string | null;
+    atributos?: Array<{ label: string; value: string }> | null;
+    ejes_calibracion?: Record<string, number> | null;
     qr_modo?: 'experiencia' | 'trazabilidad' | 'comercial';
     qr_titulo?: string;
     qr_mensaje?: string;
@@ -237,7 +240,18 @@ export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promi
 export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduct {
   const formatLabel = p.formato ? (taxonomies?.formats[p.formato] ?? p.formato) : null;
   const categoryLabel = p.categoria ? (taxonomies?.categories[p.categoria] ?? p.categoria) : null;
-  const sensoryLabel = p.tipo_sensorial ? (taxonomies?.sensoryFamilies[p.tipo_sensorial] ?? p.tipo_sensorial) : null;
+  const fallbackTipo = (() => {
+    const cat = (p.categoria || '').toLowerCase();
+    const nom = (p.nombre || '').toLowerCase();
+    if (cat.includes('infusion') || nom.includes('infusión') || nom.includes('infusion')) return 'infusion';
+    if (cat.includes('cera') || nom.includes('cera') || nom.includes('linaza')) return 'cera';
+    if (cat.includes('hidrolato') || nom.includes('hidrolato')) return 'hidrolato';
+    if (cat.includes('hidromiel') || nom.includes('hidromiel')) return 'hidromiel';
+    if (cat.includes('cosmet') || nom.includes('balsamo')) return 'cosmetica';
+    return 'miel';
+  })();
+  const effectiveSensoryType = p.tipo_sensorial || fallbackTipo;
+  const sensoryLabel = effectiveSensoryType ? (taxonomies?.sensoryFamilies[effectiveSensoryType] ?? effectiveSensoryType) : null;
 
   return {
     id: p.id,
@@ -272,7 +286,7 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
     co2_evitado_kg: p.co2_evitado_kg ?? null,
     irr_referencia: p.irr_referencia ?? null,
     perfil_sensorial: (p.perfil_sensorial as ShopProduct['perfil_sensorial']) ?? null,
-    tipo_sensorial: p.tipo_sensorial ?? 'miel',
+    tipo_sensorial: effectiveSensoryType,
     tipoSensorialLabel: sensoryLabel,
     variantes: [],
   };

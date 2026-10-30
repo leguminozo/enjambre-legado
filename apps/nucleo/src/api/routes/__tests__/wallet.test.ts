@@ -57,7 +57,7 @@ describe('GET /api/wallet/stamps', () => {
           select: () => ({
             eq: () => ({
               maybeSingle: async () => ({
-                data: { tier: 'ZÁNGANO', ciclos_historicos: 120 },
+                data: { tier: 'ZÁNGANO', tier_nombre: 'Aliado del Enjambre', tier_icono: '🌿', ciclos_historicos: 120 },
                 error: null,
               }),
             }),

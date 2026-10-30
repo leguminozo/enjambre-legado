@@ -10,6 +10,7 @@ import {
   Receipt, Landmark, Brain, Flower2, Repeat, Percent, Leaf,
   Plug, ShieldAlert, Sparkles,
   Boxes, MapPinned, Globe, Layers, Award, QrCode, Image, Film,
+  Palette, PenTool,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -74,6 +75,8 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   layers: Layers,
   award: Award,
   film: Film,
+  palette: Palette,
+  'pen-tool': PenTool,
 };
 
 export function toNavItemDataFromItem(

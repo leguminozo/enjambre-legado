@@ -30,6 +30,10 @@ export type WalletGuardianSnapshot = {
   userId: string;
   displayName: string;
   tier: string;
+  tierNombre?: string;
+  tierIcono?: string;
+  tierColorToken?: string;
+  tierNarrativa?: string;
   ciclos: number;
   puntos: number;
   programs: StampProgressView[];

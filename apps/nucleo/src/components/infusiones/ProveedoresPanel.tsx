@@ -7,12 +7,13 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  ViewLoading, type ColumnDef,
+  SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import {
   proveedorFormSchema, type ProveedorRow, type ProveedorFormValues,
 } from '@/lib/infusiones-types';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 
 const DEFAULT_VALUES: ProveedorFormValues = {
   nombre: '',
@@ -49,19 +50,59 @@ function ProveedorFormDialog({
     );
   }, [open, initial, reset]);
 
+  const onSubmit = (v: ProveedorFormValues) => {
+    save.mutate(
+      { id: initial?.id, body: v },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initial ? `Editar ${initial.nombre}` : 'Nuevo proveedor'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
-          <Input label="Nombre *" placeholder="Vivero, cooperativa, feria…" {...register('nombre')} error={errors.nombre?.message} />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Input
+            label="Nombre *"
+            placeholder="Vivero, cooperativa, feria…"
+            {...register('nombre')}
+            error={errors.nombre?.message}
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Contacto" placeholder="Nombre, teléfono o correo" {...register('contacto')} />
-            <Input label="Ubicación" placeholder="Comuna, sector…" {...register('ubicacion')} />
+            <Input
+              label="Contacto"
+              placeholder="Nombre, teléfono o correo"
+              {...register('contacto')}
+              error={errors.contacto?.message}
+            />
+            <div>
+              <Input
+                label="Ubicación"
+                placeholder="Comuna, sector…"
+                list="ubicaciones-proveedores-list"
+                {...register('ubicacion')}
+                error={errors.ubicacion?.message}
+              />
+              <datalist id="ubicaciones-proveedores-list">
+                {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
           </div>
-          <Textarea label="Notas" placeholder="Condiciones, temporada de oferta…" rows={2} {...register('notas')} />
+          <Textarea
+            label="Notas"
+            placeholder="Condiciones, temporada de oferta…"
+            rows={2}
+            {...register('notas')}
+            error={errors.notas?.message}
+          />
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={save.isPending}>
@@ -105,7 +146,21 @@ export function ProveedoresPanel() {
     },
   ];
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Proveedores</CardTitle>
+            <CardDescription>Recolectores, predios familiares y cooperativas de insumos botánicos.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SkeletonTable rows={5} columns={6} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -133,7 +188,14 @@ export function ProveedoresPanel() {
           emptyState="Aún no hay proveedores registrados."
         />
       </CardContent>
-      <ProveedorFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+      <ProveedorFormDialog
+        open={formOpen}
+        onOpenChange={(v) => {
+          setFormOpen(v);
+          if (!v) setEditing(null);
+        }}
+        initial={editing}
+      />
     </Card>
   );
 }

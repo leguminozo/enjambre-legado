@@ -1623,9 +1623,8 @@ registroTerritorialRoutes.post(
           `${row.comuna_destino} — ${row.zona_destino}`,
         lat: (row.lat_aproximada as number | null) ?? 0,
         lng: (row.lng_aproximada as number | null) ?? 0,
-        sector: row.zona_destino as string,
         health: "optimal",
-        details: `Materializado desde declaración trashumante (${row.comuna_origen ?? "?"} → ${row.comuna_destino}).`,
+        details: `${row.zona_destino} — Materializado desde declaración trashumante (${row.comuna_origen ?? "?"} → ${row.comuna_destino}).`,
         user_id: user.id,
       })
       .select("id")
@@ -1761,9 +1760,26 @@ registroTerritorialRoutes.post(
         const admin = createAdminClient();
         const { data: actores } = await admin
           .from("actores_registro")
-          .select("id, user_id, email, consentimientos")
+          .select("id, user_id, consentimientos")
           .eq("estado", "activo")
           .eq("comuna", data.comuna);
+
+        // Obtener emails desde profiles (actores_registro no tiene columna email)
+        const userIds = (actores ?? [])
+          .map((a) => a.user_id)
+          .filter((id): id is string => typeof id === "string");
+        const emailByUserId: Record<string, string> = {};
+        if (userIds.length > 0) {
+          const { data: profilesRows } = await admin
+            .from("profiles")
+            .select("id, email")
+            .in("id", userIds);
+          for (const p of profilesRows ?? []) {
+            if (p.id && typeof p.email === "string" && p.email) {
+              emailByUserId[p.id] = p.email;
+            }
+          }
+        }
 
         const alerta = data as unknown as {
           id: string;
@@ -1786,7 +1802,8 @@ registroTerritorialRoutes.post(
               ? (actor.consentimientos as Record<string, unknown>)
               : null;
           if (consent && consent.alertas_fitosanitarias === false) continue;
-          if (typeof actor.email !== "string" || !actor.email) continue;
+          const actorEmail = typeof actor.user_id === "string" ? emailByUserId[actor.user_id] : undefined;
+          if (!actorEmail) continue;
 
           const fecha = alerta.fecha_programada
             ? new Intl.DateTimeFormat("es-CL", {
@@ -1811,7 +1828,7 @@ registroTerritorialRoutes.post(
           await enqueueTransactionalNotification(admin, {
             dedupeKey: `alerta_fitosanitaria:${alerta.id}:${actor.id}`,
             source: "alerta_fitosanitaria",
-            email: actor.email,
+            email: actorEmail,
             userId: typeof actor.user_id === "string" ? actor.user_id : undefined,
             subject: `Aviso fitosanitario en ${sector || "tu zona de pecoreo"}`,
             body: [

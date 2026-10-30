@@ -3,8 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription, DataTable, Badge, ViewLoading,
-  type ColumnDef,
+  Card, CardContent, CardHeader, CardTitle, CardDescription, DataTable, Badge,
+  SkeletonKpi, SkeletonTable, type ColumnDef,
 } from '@enjambre/ui';
 import {
   fmtKg, fmtPct, fmtFecha, LOTE_ORIGEN_LABEL,
@@ -42,7 +42,18 @@ export function InfusionesResumenPanel() {
     },
   });
 
-  if (isLoading) return <ViewLoading variant="view" label="Infusiones" hideLabel />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonKpi key={i} />
+          ))}
+        </div>
+        <SkeletonTable rows={5} columns={4} />
+      </div>
+    );
+  }
 
   const d = data?.data;
   const kpis = d?.kpis;

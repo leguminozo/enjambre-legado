@@ -21,7 +21,7 @@ import {
   CardContent,
   Button,
   HexagonLoader,
-  ViewLoading,
+  Skeleton,
   DatePicker,
   Badge,
 } from "@enjambre/ui";
@@ -391,10 +391,14 @@ export function SettingsTab() {
 
   if (empresaQuery.isLoading) {
     return (
-      <Card className="max-w-3xl">
-        <CardContent>
-          <ViewLoading variant="view" label="Configuración SII" hideLabel />
-        </CardContent>
+      <Card className="max-w-3xl space-y-4 p-6" aria-busy="true" aria-label="Cargando configuración SII">
+        <Skeleton variant="text" className="w-48 h-6" />
+        <Skeleton variant="text" className="w-80 max-w-full h-4" />
+        <div className="space-y-3 pt-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" className="w-full h-10 rounded-lg" />
+          ))}
+        </div>
       </Card>
     );
   }
@@ -442,7 +446,12 @@ export function SettingsTab() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {checklistQuery.isLoading && <ViewLoading variant="view" label="Checklist SII" hideLabel />}
+          {checklistQuery.isLoading && (
+            <div className="space-y-3">
+              <Skeleton variant="rectangular" className="w-full h-12 rounded-xl" />
+              <Skeleton variant="rectangular" className="w-full h-12 rounded-xl" />
+            </div>
+          )}
           {checklistQuery.isError && (
             <p className="text-sm text-destructive font-medium">
               {(checklistQuery.error as Error).message}
@@ -686,7 +695,11 @@ export function SettingsTab() {
           <p className="text-xs text-muted-foreground">
             Sube el .p12 y su contraseña desde la app. La clave se cifra; el archivo va a storage privado.
           </p>
-          {certsQuery.isLoading && <ViewLoading variant="inline" label="Certificados" hideLabel />}
+          {certsQuery.isLoading && (
+            <div className="space-y-2">
+              <Skeleton variant="rectangular" className="w-full h-10 rounded-xl" />
+            </div>
+          )}
           {(certsQuery.data ?? []).length > 0 && (
             <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
               {(certsQuery.data ?? []).map((cert) => (
@@ -827,7 +840,11 @@ export function SettingsTab() {
             Pegá el XML completo de autorización CAF del SII (incluye RSASK/RSAPUBK). Se activa por tipo DTE
             (39 boleta, 33 factura, 46 FC…).
           </p>
-          {cafQuery.isLoading && <ViewLoading variant="inline" label="CAF" hideLabel />}
+          {cafQuery.isLoading && (
+            <div className="space-y-2">
+              <Skeleton variant="rectangular" className="w-full h-10 rounded-xl" />
+            </div>
+          )}
           {(cafQuery.data ?? []).length > 0 && (
             <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
               {(cafQuery.data ?? []).map((caf) => {

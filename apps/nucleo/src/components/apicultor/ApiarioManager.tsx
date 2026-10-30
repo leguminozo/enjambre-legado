@@ -9,7 +9,21 @@ import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado, Inspeccio
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
+import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 import { cn } from '@/lib/cn';
+
+const COMUNAS_CHILOE_APIARIOS = [
+  'Castro',
+  'Ancud',
+  'Quellón',
+  'Dalcahue',
+  'Chonchi',
+  'Queilén',
+  'Quemchi',
+  'Puqueldón',
+  'Quinchao',
+  'Curaco de Vélez',
+] as const;
 import {
     buildApiaryState,
     buildHiveState,
@@ -1505,12 +1519,35 @@ function PublicarRegistroModal({
                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
                         Comuna *
                     </label>
+                    <div className="flex flex-wrap gap-1 my-1">
+                        {COMUNAS_CHILOE_APIARIOS.map((c) => (
+                            <button
+                                key={c}
+                                type="button"
+                                onClick={() => setComuna(c)}
+                                className={cn(
+                                    "text-[10px] px-2 py-0.5 rounded-full border transition-all",
+                                    comuna.toLowerCase() === c.toLowerCase()
+                                        ? "border-primary bg-primary/20 text-primary font-medium"
+                                        : "border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                                )}
+                            >
+                                {c}
+                            </button>
+                        ))}
+                    </div>
                     <input
                         className="input-field w-full"
+                        list="apiario-comunas-list"
                         value={comuna}
                         onChange={(e) => setComuna(e.target.value)}
                         placeholder="Ej. Castro"
                     />
+                    <datalist id="apiario-comunas-list">
+                        {Object.values(CHILE_COMUNAS_POR_REGION).flat().map((c) => (
+                            <option key={c} value={c} />
+                        ))}
+                    </datalist>
                 </div>
                 <div>
                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>

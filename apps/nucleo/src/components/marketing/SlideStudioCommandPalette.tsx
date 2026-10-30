@@ -120,8 +120,8 @@ export function SlideStudioCommandPalette({
     {
       id: 'open-identity-studio',
       category: 'Audiovisual',
-      label: 'Video de Identidad & Sustrato Biológico',
-      description: 'Generar video y fotogramas con el sustrato botánico de La Obrera y el Zángano',
+      label: 'Video de Identidad Territorial',
+      description: 'Generar video y fotogramas con la identidad botánica viva de La Obrera y el Zángano',
       icon: Film,
       badge: '60 FPS',
       action: () => {

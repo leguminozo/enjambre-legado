@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  ViewLoading,
+  Skeleton,
   formatCLP,
 } from '@enjambre/ui';
 import { AlertTriangle, Layers, Package } from 'lucide-react';
@@ -67,7 +67,14 @@ export function EscandalloTorta({ recetaId, nombre }: EscandalloTortaProps) {
     enabled: Boolean(recetaId),
   });
 
-  if (isLoading) return <ViewLoading variant="view" label="Escandallo" hideLabel />;
+  if (isLoading) {
+    return (
+      <div className="p-6 rounded-2xl border border-border bg-card space-y-4" aria-busy="true" aria-label="Cargando escandallo">
+        <Skeleton variant="text" className="w-48 h-5" />
+        <Skeleton variant="rectangular" className="w-full h-56 rounded-xl" />
+      </div>
+    );
+  }
   if (!data) return null;
 
   const rendimiento = Math.max(1, data.rendimiento_frascos ?? 1);
