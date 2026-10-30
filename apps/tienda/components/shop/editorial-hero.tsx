@@ -150,27 +150,16 @@ export function EditorialHero({
             priority
             className="object-cover scale-[1.02] transition-transform duration-1000"
             style={{
-              opacity: Math.min(0.72, heroOpacity),
+              opacity: heroOpacity,
               objectPosition: imagePosition,
             }}
           />
-          {/* Base de contraste para domar cielos nublados y fondos brillantes */}
-          <div className="absolute inset-0 bg-background/45" />
-
-          {/* Scrim direccional inteligente según alineación de lectura */}
-          {align === 'left' ? (
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/70 sm:via-background/80 sm:to-transparent" />
-          ) : align === 'right' ? (
-            <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/90 to-background/70 sm:via-background/80 sm:to-transparent" />
-          ) : (
-            /* Viñeta perimetral de cine calibrada para domar nubes en composiciones centradas */
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.40)_45%,rgba(0,0,0,0.85)_100%)]" />
-          )}
-
           {/* Scrim superior para proteger legibilidad de la cabecera */}
           <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-background/95 via-background/40 to-transparent" />
           {/* Scrim inferior para fusión perfecta con la sección que sigue */}
-          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/70 to-transparent" />
+          {/* Viñeta perimetral de cine */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.4)_0%,rgba(0,0,0,0.18)_50%,rgba(0,0,0,0.75)_100%)]" />
         </div>
       ) : null}
 
@@ -197,16 +186,8 @@ export function EditorialHero({
 
       {/* ── Contenido Central (Centrado verticalmente con my-auto) ── */}
       <div className="relative my-auto px-2 sm:px-4 max-w-5xl xl:max-w-6xl mx-auto z-10 w-full py-6">
-        {/* Halo de lectura ambiental para garantizar contraste AAA sobre cielos nublados */}
-        {hasImage ? (
-          <div
-            className="pointer-events-none absolute -inset-x-6 sm:-inset-x-10 -inset-y-6 rounded-3xl bg-background/55 blur-2xl -z-10"
-            aria-hidden
-          />
-        ) : null}
-
         {hasHeaderMeta ? (
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-surface-raised/80 backdrop-blur-md px-4 py-1.5 text-[0.65rem] sm:text-[0.68rem] uppercase tracking-[0.25em] text-accent-text mb-6 shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-surface-raised/70 backdrop-blur-md px-4 py-1.5 text-[0.65rem] sm:text-[0.68rem] uppercase tracking-[0.25em] text-accent-text mb-6 shadow-xs">
             {cleanKicker ? <span>{cleanKicker}</span> : null}
             {cleanKicker && cleanBadge ? (
               <span className="opacity-50" aria-hidden>
@@ -218,7 +199,7 @@ export function EditorialHero({
         ) : null}
 
         {cleanTitle ? (
-          <h1 className="font-display text-[clamp(2.25rem,5.5vw,4.5rem)] font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08] tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
+          <h1 className="font-display text-[clamp(2.25rem,5.5vw,4.5rem)] font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08] tracking-tight">
             {cleanTitle}
           </h1>
         ) : null}
@@ -226,7 +207,7 @@ export function EditorialHero({
         {cleanSubtitle ? (
           <p
             className={cn(
-              'text-base sm:text-lg md:text-xl text-foreground/90 max-w-3xl lg:max-w-4xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line drop-shadow-[0_1px_8px_rgba(0,0,0,0.85)]',
+              'text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line',
               alignToClass(align),
             )}
           >

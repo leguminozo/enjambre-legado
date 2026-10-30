@@ -378,27 +378,27 @@ export default async function ParaHubPage({
           {/* Tres pilares operativos tangibles para el comprador */}
           {content.show_hero_pills !== false ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-4xl lg:max-w-5xl mx-auto text-left">
-              <div className="rounded-xl border border-border/60 bg-surface-raised/85 backdrop-blur-md p-3.5 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+              <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
                   <div className="text-xs font-semibold text-foreground">{pill1Title}</div>
-                  <div className="text-[11px] text-foreground/80">{pill1Subtitle}</div>
+                  <div className="text-[11px] text-muted-foreground">{pill1Subtitle}</div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border/60 bg-surface-raised/85 backdrop-blur-md p-3.5 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+              <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
                 <Truck className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
                   <div className="text-xs font-semibold text-foreground">{pill2Title}</div>
-                  <div className="text-[11px] text-foreground/80">{pill2Subtitle}</div>
+                  <div className="text-[11px] text-muted-foreground">{pill2Subtitle}</div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border/60 bg-surface-raised/85 backdrop-blur-md p-3.5 flex items-center gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+              <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
                 <FileText className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
                   <div className="text-xs font-semibold text-foreground">{pill3Title}</div>
-                  <div className="text-[11px] text-foreground/80">{pill3Subtitle}</div>
+                  <div className="text-[11px] text-muted-foreground">{pill3Subtitle}</div>
                 </div>
               </div>
             </div>

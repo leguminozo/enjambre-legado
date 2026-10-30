@@ -181,8 +181,8 @@ export default async function ExperienciasPage({
           secondaryCtaHref={heroSecondaryHref}
           preferAnchor
         >
-          {/* Badges de especificación editorial protegidos para contraste óptimo */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto text-left rounded-2xl border border-border/50 bg-surface-raised/75 backdrop-blur-md px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+          {/* Badges de especificación editorial */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto text-left border-y border-border/30 py-4 backdrop-blur-xs">
             <div className="border-r border-border/20 pr-2">
               <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">{specsBadge1Label}</span>
               <span className="text-xs text-foreground font-medium">{specsBadge1Value}</span>

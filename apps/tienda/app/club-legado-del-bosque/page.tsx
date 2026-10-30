@@ -16,7 +16,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { ScrollCue } from '@/components/shop/scroll-cue';
-import { formatCalendarDate, cn } from '@enjambre/ui';
+import { formatCalendarDate } from '@enjambre/ui';
 import { ClubCosechaBadge } from '@/components/shop/club-cosecha-badge';
 import { listActiveSubscriptionPlans } from '@/lib/shop/subscription-plans';
 import {
@@ -181,19 +181,12 @@ export default async function ClubCosechaPage() {
                 sizes="100vw"
                 priority
                 className="object-cover scale-[1.02]"
-                style={{ opacity: Math.min(0.65, Math.max(heroOpacity, 0.5)) }}
+                style={{ opacity: Math.max(heroOpacity, 0.75) }}
               />
             )}
-            {/* Base de contraste para domar cielos nublados */}
-            <div className="absolute inset-0 bg-background/45" />
-            {/* Scrim direccional izquierdo para asegurar contraste impecable en la columna de texto */}
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/70 sm:via-background/80 sm:to-transparent" />
-            {/* Scrim superior para la cabecera */}
             <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-background/95 via-background/40 to-transparent" />
-            {/* Scrim inferior para la transición de scroll */}
-            <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent" />
-            {/* Viñeta cinematográfica calibrada */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.38)_45%,rgba(0,0,0,0.85)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/70 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0.15)_50%,rgba(0,0,0,0.75)_100%)]" />
           </div>
 
           <div className="h-2 shrink-0" aria-hidden />
@@ -201,17 +194,11 @@ export default async function ClubCosechaPage() {
           <div className="relative my-auto max-w-6xl mx-auto px-4 sm:px-6 w-full z-10 py-6">
             <div className={`grid ${showHeroCard ? 'lg:grid-cols-12 gap-10 lg:gap-12' : 'grid-cols-1'} items-center`}>
               {/* Columna Izquierda: Relato y Acción */}
-              <div className={`${showHeroCard ? 'lg:col-span-7' : 'max-w-3xl'} relative`}>
-                {/* Halo de lectura ambiental */}
-                <div
-                  className="pointer-events-none absolute -inset-x-6 sm:-inset-x-8 -inset-y-6 rounded-3xl bg-background/55 blur-2xl -z-10"
-                  aria-hidden
-                />
-
+              <div className={showHeroCard ? 'lg:col-span-7' : 'max-w-3xl'}>
                 {(heroKicker || heroBadge) && (
                   <div className="mb-5 flex flex-wrap items-center gap-2">
                     {heroKicker && (
-                      <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                      <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-semibold">
                         {heroKicker}
                       </span>
                     )}
@@ -219,7 +206,7 @@ export default async function ClubCosechaPage() {
                       <span className="text-[0.65rem] text-muted-foreground/60">·</span>
                     )}
                     {heroBadge && (
-                      <span className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                      <span className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground font-medium">
                         {heroBadge}
                       </span>
                     )}
@@ -227,17 +214,16 @@ export default async function ClubCosechaPage() {
                 )}
 
                 {heroTitle && (
-                  <h1 className="font-display text-[clamp(2.25rem,6vw,4rem)] font-light text-foreground text-balance leading-[1.08] mb-5 drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)]">
+                  <h1 className="font-display text-[clamp(2.25rem,6vw,4rem)] font-light text-foreground text-balance leading-[1.08] mb-5">
                     {heroTitle}
                   </h1>
                 )}
 
                 {heroSubtitle && (
                   <p
-                    className={cn(
-                      'text-base sm:text-lg md:text-xl text-foreground/90 max-w-3xl lg:max-w-4xl text-pretty mb-6 leading-relaxed whitespace-pre-line drop-shadow-[0_1px_8px_rgba(0,0,0,0.85)]',
-                      alignToClass(clubSettings.text_align),
-                    )}
+                    className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl text-pretty mb-6 leading-relaxed whitespace-pre-line ${alignToClass(
+                      clubSettings.text_align,
+                    )}`}
                   >
                     {heroSubtitle}
                   </p>
@@ -268,84 +254,69 @@ export default async function ClubCosechaPage() {
                 )}
               </div>
 
-              {/* Columna Derecha: Credencial de Membresía Digital (Digital Membership Pass) */}
+              {/* Columna Derecha: Tarjeta de Membresía y Privilegios */}
               {showHeroCard && (
                 <div className="lg:col-span-5">
-                  <div className="group relative rounded-3xl border border-accent/40 bg-gradient-to-br from-card/95 via-surface-raised/90 to-background p-7 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_30px_rgba(201,162,39,0.12)] backdrop-blur-xl overflow-hidden transition-all duration-500 hover:border-accent/60 hover:shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(201,162,39,0.18)]">
-                    {/* Brillo de reflejo perimetral sutil */}
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(201,162,39,0.12)_0%,transparent_65%)] pointer-events-none" aria-hidden />
-
-                    {/* Cabecera de la credencial: Sello oficial y estado */}
-                    <div className="relative z-10 flex items-center justify-between gap-3 mb-6 pb-4 border-b border-border/30">
-                      <div className="flex items-center gap-2">
-                        <Crown className="w-3.5 h-3.5 text-accent-text" />
-                        <span className="text-[0.62rem] uppercase tracking-[0.28em] text-accent-text font-mono font-semibold">
-                          {heroCardKicker || 'Credencial de Origen'}
-                        </span>
-                      </div>
-                      <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-[0.6rem] font-mono uppercase tracking-wider text-accent-text">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                        <span>{heroCardBadgeBottom || 'Registro Libre'}</span>
-                      </div>
-                    </div>
-
-                    {/* Emblema central de orfebrería apícola */}
-                    <div className="relative z-10 space-y-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/20 via-surface-sunken to-background flex items-center justify-center shrink-0 shadow-inner shadow-accent/20">
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="w-7 h-7 text-accent-text fill-accent/20 stroke-accent stroke-[1.5]"
-                            aria-hidden
-                          >
-                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <span className="text-[0.6rem] uppercase tracking-[0.25em] text-muted-foreground font-mono block">
-                            Enjambre Legado · Chiloé
+                  <div className="rounded-3xl border border-border/40 bg-card/80 backdrop-blur-md p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                    {(heroCardKicker || heroCardBadgeTop) && (
+                      <div className="flex items-center justify-between gap-2 mb-4 border-b border-border/20 pb-3">
+                        {heroCardKicker && (
+                          <span className="text-[0.65rem] uppercase tracking-widest text-accent-text font-semibold">
+                            {heroCardKicker}
                           </span>
-                          <h3 className="font-display text-2xl sm:text-[1.7rem] font-light text-foreground leading-tight text-balance">
-                            {heroCardTitle || 'Tu espacio reservado en el enjambre'}
-                          </h3>
-                        </div>
+                        )}
+                        {heroCardBadgeTop && (
+                          <span className="text-[11px] text-muted-foreground font-mono">
+                            {heroCardBadgeTop}
+                          </span>
+                        )}
                       </div>
+                    )}
 
-                      {heroCardText ? (
-                        <p className="text-xs sm:text-[0.82rem] text-muted-foreground leading-relaxed text-pretty border-l border-accent/30 pl-3.5 py-0.5">
-                          {heroCardText}
-                        </p>
-                      ) : null}
+                    <div className="space-y-4">
+                      {heroCardImage && (
+                        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-surface-sunken/60 border border-border/20 flex items-center justify-center">
+                          <Image
+                            src={heroCardImage}
+                            alt="Comunidad del Club Legado"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 400px"
+                            className="object-cover transition-transform duration-elegant hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+                          <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-foreground/90">
+                            <span className="font-medium">{heroCardBadgeBottom || 'Registro Libre'}</span>
+                            <span className="text-accent-text font-mono text-[11px]">Acceso Inmediato</span>
+                          </div>
+                        </div>
+                      )}
 
-                      {/* Trilogía de privilegios tangibles */}
-                      <div className="space-y-2 pt-2 border-t border-border/20">
-                        <div className="flex items-center gap-2 text-[0.72rem] text-foreground/90 font-mono">
-                          <CheckCircle className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>4 Floraciones Anuales de Reserva</span>
+                      {(heroCardTitle || heroCardText) && (
+                        <div>
+                          {heroCardTitle && (
+                            <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">
+                              {heroCardTitle}
+                            </h3>
+                          )}
+                          {heroCardText && (
+                            <p className="text-xs text-foreground/75 leading-relaxed mt-2 whitespace-pre-line">
+                              {heroCardText}
+                            </p>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 text-[0.72rem] text-foreground/90 font-mono">
-                          <CheckCircle className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Trazabilidad a Colmena & Censo CO₂</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[0.72rem] text-foreground/90 font-mono">
-                          <CheckCircle className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Batido en Frío y Asignación Directa</span>
-                        </div>
-                      </div>
+                      )}
 
-                      {/* Pie de credencial con enlace a ciclos */}
-                      <div className="pt-4 border-t border-border/20 flex items-center justify-between text-xs">
-                        <span className="text-[0.62rem] font-mono text-muted-foreground/70 uppercase tracking-widest">
-                          Pase N° PUREO-42°S
-                        </span>
-                        <a
-                          href={heroCardLinkHref}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:text-accent transition-colors"
-                        >
-                          <span>{heroCardLinkLabel || 'Ver 4 Ciclos'}</span>
-                          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                        </a>
-                      </div>
+                      {/* Ciclos y niveles */}
+                      {heroCardLinkLabel && (
+                        <div className="pt-3 border-t border-border/20 flex items-center justify-end text-xs">
+                          <a
+                            href={heroCardLinkHref}
+                            className="text-[11px] font-semibold uppercase tracking-wider text-accent-text hover:underline"
+                          >
+                            {heroCardLinkLabel}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
