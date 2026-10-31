@@ -1,6 +1,5 @@
-// Etiquetas y categorías de la red semántica del cuaderno de campo.
-// Inspiradas en NODE_CATEGORIES/RELATION_CONFIG de Trama (RSN), adaptadas al
-// dominio apícola con los tokens de Enjambre (sin hex).
+// Etiquetas y categorías de la red semántica del cuaderno de campo
+// para el dominio apícola con los tokens de Enjambre (sin hex).
 
 import type { NodoRedCuaderno, BrechaColmena } from '@/lib/bitacora-types';
 import { FASE_LABEL } from '../bitacora-labels';
@@ -94,8 +93,7 @@ export interface HojaPlantilla {
   notas: string;
 }
 
-/** Plantillas de "Nueva hoja" — cada estudio del cuaderno nace de una plantilla
- *  (análogo a RSN_STUDY_TEMPLATES de Trama). */
+/** Plantillas de "Nueva hoja" — cada registro del cuaderno nace de una plantilla canónica. */
 export const HOJA_PLANTILLAS: HojaPlantilla[] = [
   { id: 'visita', label: 'Visita rutinaria', fase: 'temporada', poblacion: 'Media', notas: 'Inspección general: estado de cría, reservas y sanidad.' },
   { id: 'monitoreo', label: 'Monitoreo varroa', fase: 'temporada', poblacion: 'Media', notas: 'Monitoreo de Varroa destructor: método y nivel registrado.' },

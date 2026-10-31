@@ -30,7 +30,7 @@ function varroaBadge(level: number | null): React.ReactNode {
   );
 }
 
-/** Sheet de análisis de la escena (patrón AnalysisTabs de Trama RSN). */
+/** Sheet de análisis de la escena apícola. */
 export function AnalisisSheet({ open, onOpenChange, detalle }: AnalisisSheetProps) {
   const [tab, setTab] = useState('hoja');
   const hoja = detalle?.hoja;

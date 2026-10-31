@@ -14,6 +14,9 @@ import {
   Store,
   Loader2,
   AlertTriangle,
+  Lock,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   Badge,
@@ -40,19 +43,19 @@ export interface RolPersonalizado {
   usuarios_asignados?: number;
 }
 
-interface ModuloOption {
+export interface ModuloOption {
   key: string;
   label: string;
   description: string;
 }
 
-interface ModuloGroup {
+export interface ModuloGroup {
   name: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   options: ModuloOption[];
 }
 
-const MODULO_GROUPS: ModuloGroup[] = [
+export const MODULO_GROUPS: ModuloGroup[] = [
   {
     name: 'Bodega & Producción',
     icon: Package,
@@ -93,12 +96,85 @@ const MODULO_GROUPS: ModuloGroup[] = [
   },
 ];
 
-const COLOR_OPTIONS = [
+export const COLOR_OPTIONS = [
   { id: 'amber', label: 'Ámbar', class: 'border-amber-500/30 text-amber-300 bg-amber-500/15' },
   { id: 'emerald', label: 'Esmeralda', class: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/15' },
   { id: 'blue', label: 'Zafiro', class: 'border-sky-500/30 text-sky-300 bg-sky-500/15' },
   { id: 'purple', label: 'Amatista', class: 'border-purple-500/30 text-purple-300 bg-purple-500/15' },
   { id: 'rose', label: 'Cobre', class: 'border-rose-500/30 text-rose-300 bg-rose-500/15' },
+];
+
+export const PLATFORM_CAPABILITIES_MATRIX = [
+  {
+    role: 'Administrador',
+    badge: 'Admin',
+    color: 'border-amber-500/30 bg-amber-500/15 text-amber-300 font-bold',
+    bodega: 'Acceso Total',
+    patio: 'Acceso Total',
+    feria: 'Supervisión en Vivo',
+    imprenta: 'Control Maestro',
+    finanzas: 'Exclusivo (Banco, SII, Conciliación)',
+  },
+  {
+    role: 'Apicultor de Patio',
+    badge: 'Patio',
+    color: 'border-yellow-500/30 bg-yellow-500/15 text-yellow-300 font-semibold',
+    bodega: 'Sin acceso',
+    patio: 'Colmenas, Apiarios y Cuaderno',
+    feria: 'Sin acceso',
+    imprenta: 'Sin acceso',
+    finanzas: 'Blindado',
+  },
+  {
+    role: 'Operador de Bodega',
+    badge: 'Bodega',
+    color: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300 font-semibold',
+    bodega: 'Inventario, Lotes y Recolección',
+    patio: 'Sin acceso',
+    feria: 'Sin acceso',
+    imprenta: 'Sin acceso',
+    finanzas: 'Blindado',
+  },
+  {
+    role: 'Representante Feria POS',
+    badge: 'Feria POS',
+    color: 'border-blue-500/30 bg-blue-500/15 text-blue-300 font-semibold',
+    bodega: 'Sin acceso',
+    patio: 'Sin acceso',
+    feria: 'POS Móvil, Catálogo y Pedidos',
+    imprenta: 'Sin acceso',
+    finanzas: 'Blindado',
+  },
+  {
+    role: 'Diseñador & Imprenta',
+    badge: 'Imprenta',
+    color: 'border-purple-500/30 bg-purple-500/15 text-purple-300 font-semibold',
+    bodega: 'Sin acceso',
+    patio: 'Sin acceso',
+    feria: 'Sin acceso',
+    imprenta: 'Portal Imprenta, Fichas y QR',
+    finanzas: 'Blindado',
+  },
+  {
+    role: 'Actor Territorial',
+    badge: 'Territorial',
+    color: 'border-sky-500/30 bg-sky-500/15 text-sky-300 font-semibold',
+    bodega: 'Sin acceso',
+    patio: 'Red, Censo y Alertas Chiloé',
+    feria: 'Sin acceso',
+    imprenta: 'Sin acceso',
+    finanzas: 'Blindado',
+  },
+  {
+    role: 'Colaborador a Medida',
+    badge: 'A Medida',
+    color: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300 font-semibold',
+    bodega: 'Modular según rol',
+    patio: 'Modular según rol',
+    feria: 'Modular según rol',
+    imprenta: 'Sin acceso',
+    finanzas: 'Blindado',
+  },
 ];
 
 export function RolesPersonalizadosTab() {
@@ -109,6 +185,7 @@ export function RolesPersonalizadosTab() {
   const [editingRole, setEditingRole] = useState<RolPersonalizado | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showMatrix, setShowMatrix] = useState(true);
 
   // Form state
   const [formNombre, setFormNombre] = useState('');
@@ -263,6 +340,84 @@ export function RolesPersonalizadosTab() {
           <Plus size={14} />
           Crear nuevo rol
         </Button>
+      </div>
+
+      {/* Matriz Visual de Capacidades y Superficies */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="p-4 bg-muted/20 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Lock size={15} className="text-primary" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Matriz de Superficies & Privilegios por Rol
+            </h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">
+              Privilegio Mínimo Garantizado
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowMatrix((p) => !p)}
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 shrink-0"
+          >
+            {showMatrix ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            <span>{showMatrix ? 'Ocultar matriz' : 'Mostrar matriz'}</span>
+          </button>
+        </div>
+
+        {showMatrix && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-border/60 bg-muted/10 text-muted-foreground font-semibold">
+                  <th className="py-2.5 px-3.5">Perfil de Plataforma</th>
+                  <th className="py-2.5 px-3.5">Bodega & Trazabilidad</th>
+                  <th className="py-2.5 px-3.5">Patio & Apicultura</th>
+                  <th className="py-2.5 px-3.5">Comercial / Feria</th>
+                  <th className="py-2.5 px-3.5">Portal Imprenta</th>
+                  <th className="py-2.5 px-3.5">Finanzas, Banco & SII</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40 text-[11px]">
+                {PLATFORM_CAPABILITIES_MATRIX.map((m) => (
+                  <tr key={m.role} className="hover:bg-muted/10 transition-colors">
+                    <td className="py-2.5 px-3.5">
+                      <div className="flex items-center gap-2">
+                        <span className={cn('px-2 py-0.5 rounded-full text-[10px] border whitespace-nowrap', m.color)}>
+                          {m.badge}
+                        </span>
+                        <span className="font-semibold text-foreground whitespace-nowrap">{m.role}</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3.5 text-muted-foreground">{m.bodega}</td>
+                    <td className="py-2.5 px-3.5 text-muted-foreground">{m.patio}</td>
+                    <td className="py-2.5 px-3.5 text-muted-foreground">{m.feria}</td>
+                    <td className="py-2.5 px-3.5 text-muted-foreground">{m.imprenta}</td>
+                    <td className="py-2.5 px-3.5">
+                      <span className={cn(
+                        'px-2 py-0.5 rounded-full text-[10px] font-medium border inline-block whitespace-nowrap',
+                        m.finanzas.includes('Exclusivo')
+                          ? 'border-amber-500/30 bg-amber-500/15 text-amber-300 font-semibold'
+                          : 'border-border/50 bg-muted/40 text-muted-foreground'
+                      )}>
+                        {m.finanzas}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-2">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+          <Shield size={16} className="text-primary" />
+          Roles a Medida Creados en la Empresa
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Perfiles específicos con combinaciones modulares personalizadas.
+        </p>
       </div>
 
       {/* Roles grid */}

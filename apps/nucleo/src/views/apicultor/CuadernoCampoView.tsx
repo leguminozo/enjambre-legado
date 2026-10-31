@@ -3,7 +3,7 @@
 import { CuadernoColeccion } from '@/components/apicultor/cuaderno/CuadernoColeccion';
 
 /** /colmenas/cuaderno — colección del cuaderno de campo: cada hoja es un
- *  "estudio" de la red semántica (workflow RSN de Trama adaptado). */
+ *  registro integral de la red semántica apícola territorial. */
 export function CuadernoCampoView() {
   return <CuadernoColeccion />;
 }

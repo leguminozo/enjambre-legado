@@ -1,5 +1,5 @@
 // ============================================================================
-// saved-videos.ts — Persistencia y Gestión del Archivo Audiovisual (RSN / Trama)
+// saved-videos.ts — Persistencia y Gestión del Archivo Audiovisual de Identidad
 // Marca: La Obrera y el Zángano · Enjambre Legado (Chiloé 42°S)
 // ============================================================================
 

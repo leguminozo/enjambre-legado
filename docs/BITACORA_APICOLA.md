@@ -428,7 +428,7 @@ de origen en la misma fila; `origen_colmena_madre` encadena el linaje hacia atr�
 
 ### Sprint D — Cuaderno de campo v2: colección + escena + red semántica ✅ COMPLETADO
 
-Workflow inspirado en la herramienta **RSN (Redes Semánticas Naturales) de Trama** (proyecto local `~/Desktop/Antropoyo/trama`), **adaptado 100% al dominio apícola** — no es una copia: el lienzo es un espejo de los registros canónicos y los formularios son específicos (fases, cuadros C/L/E/V/M, retiro, patógeno).
+Workflow de red semántica natural apícola **adaptado 100% al dominio territorial** — el lienzo es un espejo de los registros canónicos y los formularios son específicos (fases, cuadros C/L/E/V/M, retiro, patógeno).
 
 - [x] Migración `1010_cuaderno_crud.sql` — **auditoría RLS completa** (565 políticas): relaja a dueño las
       políticas delete solo-gerente de la migración 40 (`colmenas_delete`, `inspecciones_delete`,

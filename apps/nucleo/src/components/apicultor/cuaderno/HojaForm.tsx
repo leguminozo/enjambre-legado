@@ -33,7 +33,7 @@ interface HojaFormProps {
 const POBLACIONES = ['Baja', 'Media', 'Alta'];
 
 /** Formulario de hoja de cuaderno (crear/editar) — cada hoja es un "estudio"
- *  de la red semántica del apiario (workflow RSN adaptado). */
+ *  de la red semántica del apiario. */
 export function HojaForm({
   open,
   onOpenChange,

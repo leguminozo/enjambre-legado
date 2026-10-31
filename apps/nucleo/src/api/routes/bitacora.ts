@@ -968,8 +968,7 @@ bitacoraRoutes.post(
 );
 
 // ---------------------------------------------------------------------------
-// CUADERNO DE CAMPO v2 — colección, escena de hoja y red semántica
-// (inspirada en la herramienta RSN de Trama, adaptada al dominio apícola).
+// CUADERNO DE CAMPO v2 — colección, escena de hoja y red semántica territorial.
 // El dueño administra sus datos (migración 1010 relajó las políticas delete).
 // ---------------------------------------------------------------------------
 
@@ -1778,7 +1777,7 @@ bitacoraRoutes.delete(
 );
 
 // ---------------------------------------------------------------------------
-// CAPA MANUAL DE LA RED (nodos/aristas libres, como los nodos manuales de RSN)
+// CAPA MANUAL DE LA RED (nodos/aristas libres del cuaderno apícola)
 // ---------------------------------------------------------------------------
 
 /** POST /api/bitacora/nodos — crear nodo manual (observación/decisión/tensión). */

@@ -1111,7 +1111,7 @@ export function ApiarioManager({
                                     )}
                                 </div>
 
-                                {/* Tira de micro-métricas en cuadrícula limpia de 4 columnas (RSN) */}
+                                {/* Tira de micro-métricas en cuadrícula limpia de 4 columnas */}
                                 <div className="px-2 sm:px-3.5 py-2 mt-auto grid grid-cols-4 gap-0.5 sm:gap-1.5 bg-surface-sunken/40 border-t border-b border-border/40 font-datos text-center">
                                     <div>
                                         <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PESO</p>

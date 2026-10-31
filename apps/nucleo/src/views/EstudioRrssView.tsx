@@ -1,9 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { PenTool } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { SlideStudioWorkspace } from '@/components/marketing/SlideStudioWorkspace';
-import { ColeccionEditorialView } from '@/components/marketing/ColeccionEditorialView';
+import {
+  ColeccionEditorialView,
+  NuevaPiezaEditorialDropdown,
+} from '@/components/marketing/ColeccionEditorialView';
 import { type SlideData } from '@/components/marketing/slide-studio-core';
 
 export function EstudioRrssView() {
@@ -37,6 +41,11 @@ export function EstudioRrssView() {
           <ViewShell
             title="Estudio Editorial & Kits de Entrega"
             subtitle="Colección soberana de carruseles, fichas de cata y kits impresos multiformato (4:5, 9:16, 1:1, 16:9)"
+            eyebrow="MARCA Y CONTENIDO · IDENTIDAD TERRITORIAL"
+            icon={<PenTool size={20} />}
+            actions={
+              <NuevaPiezaEditorialDropdown onCrearNueva={handleCrearNueva} />
+            }
           />
           <ColeccionEditorialView
             onCrearNueva={handleCrearNueva}

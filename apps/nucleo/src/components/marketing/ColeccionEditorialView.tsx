@@ -118,6 +118,65 @@ const PRESETS_CANONICOS: Array<{
   },
 ];
 
+export interface NuevaPiezaEditorialDropdownProps {
+  onCrearNueva: (slides: SlideData[], nombre: string) => void;
+  className?: string;
+}
+
+export function NuevaPiezaEditorialDropdown({
+  onCrearNueva,
+  className,
+}: NuevaPiezaEditorialDropdownProps) {
+  return (
+    <DropdownMenu
+      trigger={
+        <Button className={cn("btn btn-primary text-xs font-mono flex items-center gap-2 px-4 h-10 rounded-xl shadow-md", className)}>
+          <Plus size={15} />
+          <span>Nueva Pieza</span>
+          <ChevronDown size={13} className="opacity-70 ml-0.5" />
+        </Button>
+      }
+    >
+      <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+        Creación de Lámina
+      </div>
+      <DropdownMenuItem onSelect={() => onCrearNueva(BLANK_NEUTRAL_SLIDES, 'Lienzo Limpio')}>
+        <div className="flex items-center gap-2 py-1">
+          <FilePlus2 size={15} className="text-primary" />
+          <div className="flex flex-col">
+            <span className="font-medium text-foreground">Lienzo Limpio (Neutral)</span>
+            <span className="text-[10px] text-muted-foreground">
+              Sin textos de relleno · Construye modularmente
+            </span>
+          </div>
+        </div>
+      </DropdownMenuItem>
+
+      <DropdownMenuSeparator />
+
+      <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+        Desde Plantillas Canónicas
+      </div>
+      {PRESETS_CANONICOS.map((preset) => (
+        <DropdownMenuItem
+          key={preset.id}
+          onSelect={() => onCrearNueva(preset.slides, preset.name)}
+        >
+          <div className="flex items-center gap-2 py-1">
+            <BookOpen size={14} className="text-muted-foreground" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium text-foreground truncate">{preset.name}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {preset.slides.length} láminas · {preset.aspectRatio}
+              </span>
+            </div>
+          </div>
+        </DropdownMenuItem>
+      ))}
+    </DropdownMenu>
+  );
+}
+
 export function ColeccionEditorialView({
   onCrearNueva,
   onEditarPieza,
@@ -228,75 +287,7 @@ export function ColeccionEditorialView({
 
   return (
     <div className="space-y-6">
-      {/* 1. Cabecera de Colección con Resumen & Acciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card/60 backdrop-blur-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Estudio Editorial · RSN Trama
-            </span>
-          </div>
-          <h2 className="font-serif text-xl sm:text-2xl font-light text-foreground tracking-tight">
-            Archivo de Láminas & Carruseles
-          </h2>
-          <p className="text-xs text-muted-foreground max-w-xl">
-            Piezas editoriales, kits para cafeterías, pasaportes de lote y láminas institucionales en alta resolución.
-          </p>
-        </div>
-
-        {/* Botón Nueva Lámina con Dropdown */}
-        <div className="flex items-center gap-2 shrink-0">
-          <DropdownMenu
-            trigger={
-              <Button className="btn btn-primary text-xs font-mono flex items-center gap-2 px-4 h-10 rounded-xl shadow-md">
-                <Plus size={15} />
-                <span>Nueva Pieza</span>
-                <ChevronDown size={13} className="opacity-70 ml-0.5" />
-              </Button>
-            }
-          >
-            <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
-              Creación de Lámina
-            </div>
-            <DropdownMenuItem onSelect={() => onCrearNueva(BLANK_NEUTRAL_SLIDES, 'Lienzo Limpio')}>
-              <div className="flex items-center gap-2 py-1">
-                <FilePlus2 size={15} className="text-primary" />
-                <div className="flex flex-col">
-                  <span className="font-medium text-foreground">Lienzo Limpio (Neutral)</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Sin textos de relleno · Construye modularmente
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
-              Desde Plantillas Canónicas
-            </div>
-            {PRESETS_CANONICOS.map((preset) => (
-              <DropdownMenuItem
-                key={preset.id}
-                onSelect={() => onCrearNueva(preset.slides, preset.name)}
-              >
-                <div className="flex items-center gap-2 py-1">
-                  <BookOpen size={14} className="text-muted-foreground" />
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-medium text-foreground truncate">{preset.name}</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {preset.slides.length} láminas · {preset.aspectRatio}
-                    </span>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* 2. Barra de Búsqueda y Filtros */}
+      {/* Barra de Búsqueda y Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />

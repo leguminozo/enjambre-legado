@@ -259,7 +259,7 @@ export type BitacoraDb = Omit<Database, 'public'> & {
 export type BitacoraSupabase = SupabaseClient<BitacoraDb>;
 
 // ---------------------------------------------------------------------------
-// Cuaderno de campo v2 — red semántica (inspirada en RSN de Trama, adaptada)
+// Cuaderno de campo v2 — red semántica territorial apícola
 // ---------------------------------------------------------------------------
 
 /** Nodo de la red del cuaderno. Los nodos derivados se componen en el BFF

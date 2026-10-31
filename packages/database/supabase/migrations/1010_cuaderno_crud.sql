@@ -57,8 +57,8 @@ CREATE POLICY "actores_own_delete" ON public.actores_registro
 
 -- ---------------------------------------------------------------------------
 -- 2. CAPA MANUAL DE LA RED SEMÁNTICA DEL CUADERNO
---    Nodos/aristas libres (observaciones, decisiones, tensiones) como en la
---    herramienta RSN de Trama, adaptados al dominio apícola.
+--    Nodos/aristas libres (observaciones, decisiones, tensiones)
+--    adaptados al dominio apícola territorial.
 --    Los nodos derivados (colmenas, hojas, tratamientos…) NO se persisten:
 --    el BFF los compone desde las tablas canónicas. Solo la capa manual vive
 --    en estas tablas.

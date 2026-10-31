@@ -60,8 +60,10 @@ function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) 
 export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) {
   const pathname = usePathname();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
-  const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
-  const shellOpts = useMemo(() => ({ territorialRol, pathname, includeHiddenContexts: true }), [territorialRol, pathname]);
+  const authUser = useAuthStore((s) => s.user);
+  const territorialRol = authUser?.territorial_rol ?? null;
+  const customModules = authUser?.custom_modules ?? null;
+  const shellOpts = useMemo(() => ({ territorialRol, customModules, pathname, includeHiddenContexts: true }), [territorialRol, customModules, pathname]);
   const [configOpen, setConfigOpen] = useState(false);
   const allItems = useMemo(
     () => [

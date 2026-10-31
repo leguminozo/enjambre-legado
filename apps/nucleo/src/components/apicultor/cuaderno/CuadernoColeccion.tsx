@@ -87,7 +87,7 @@ function AccionesCuadernoMenu({
 }
 
 /** Colección del cuaderno de campo: cada hoja es un "estudio" de la red
- *  semántica (workflow RSN de Trama adaptado). */
+ *  semántica apícola territorial. */
 export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionProps) {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();

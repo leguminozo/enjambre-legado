@@ -87,36 +87,7 @@ export function ColeccionVideosView({
 
   return (
     <div className="space-y-6">
-      {/* 1. Header con Resumen & Acciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card/60 backdrop-blur-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Archivo Audiovisual · RSN Trama
-            </span>
-          </div>
-          <h2 className="font-serif text-xl sm:text-2xl font-light text-foreground tracking-tight">
-            Colección de Piezas de Identidad
-          </h2>
-          <p className="text-xs text-muted-foreground max-w-xl">
-            Piezas audiovisuales generadas y archivadas para redes sociales, proyecciones en ferias y pantallas territoriales.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            type="button"
-            onClick={onNuevoVideo}
-            className="btn btn-primary text-xs font-mono flex items-center gap-2 px-4 h-10 rounded-xl shadow-md"
-          >
-            <Plus size={15} />
-            <span>Nueva Pieza</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* 2. Barra de Filtros y Búsqueda */}
+      {/* Barra de Filtros y Búsqueda */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -148,7 +119,7 @@ export function ColeccionVideosView({
         </div>
       </div>
 
-      {/* 3. Rejilla de Tarjetas de Videos (RSN) */}
+      {/* Rejilla de Tarjetas de Videos */}
       {videosFiltrados.length === 0 ? (
         <div className="p-12 text-center rounded-2xl border border-dashed border-border bg-card/30 space-y-4">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">

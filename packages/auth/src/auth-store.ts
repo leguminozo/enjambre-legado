@@ -21,6 +21,8 @@ export interface AuthUser {
   full_name: string
   avatar_url: string
   theme_preference: 'light' | 'dark' | 'system'
+  custom_modules?: string[] | null
+  perfil_acceso_nombre?: string | null
 }
 
 interface AuthState {
@@ -138,11 +140,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // Ignorar fallo de getSession en red inestable
         }
 
-        let profile: { id: string; email: string | null; full_name: string | null; role: string | null; theme_preference: string | null } | null = null
+        let profile: {
+          id: string;
+          email: string | null;
+          full_name: string | null;
+          role: string | null;
+          theme_preference: string | null;
+          perfil_acceso_id?: string | null;
+        } | null = null
         try {
           const { data } = await supabase
             .from('profiles')
-            .select('id, email, full_name, role, theme_preference')
+            .select('id, email, full_name, role, theme_preference, perfil_acceso_id')
             .eq('id', user.id)
             .maybeSingle()
           profile = data
@@ -180,6 +189,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         }
 
+        // Cargar módulos autorizados si tiene rol a medida (colaborador)
+        let custom_modules: string[] | null = null
+        let perfil_acceso_nombre: string | null = null
+        if (resolvedRole === 'colaborador' && profile?.perfil_acceso_id) {
+          try {
+            const { data: customRole } = await (supabase as unknown as {
+              from: (table: string) => {
+                select: (cols: string) => {
+                  eq: (col: string, val: string) => {
+                    maybeSingle: () => Promise<{ data: { nombre?: string; modulos?: string[] } | null }>
+                  }
+                }
+              }
+            })
+              .from('roles_personalizados')
+              .select('nombre, modulos')
+              .eq('id', profile.perfil_acceso_id)
+              .maybeSingle()
+
+            if (customRole) {
+              perfil_acceso_nombre = customRole.nombre ?? null
+              custom_modules = Array.isArray(customRole.modulos) ? customRole.modulos : null
+            }
+          } catch {
+            custom_modules = null
+          }
+        }
+
         const prev = get()
         const existingUser = prev.user?.id === user.id ? prev.user : null
 
@@ -188,6 +225,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: profile?.email ?? user.email ?? existingUser?.email ?? '',
           role: resolvedRole,
           territorial_rol,
+          custom_modules: custom_modules ?? existingUser?.custom_modules ?? null,
+          perfil_acceso_nombre: perfil_acceso_nombre ?? existingUser?.perfil_acceso_nombre ?? null,
           nivel_guardian: existingUser?.nivel_guardian ?? '',
           full_name: profile?.full_name ?? existingUser?.full_name ?? '',
           avatar_url: existingUser?.avatar_url ?? '',

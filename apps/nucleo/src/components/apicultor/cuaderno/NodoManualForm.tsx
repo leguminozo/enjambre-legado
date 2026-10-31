@@ -22,7 +22,7 @@ const TIPOS = [
   { value: 'otro', label: 'Otro' },
 ];
 
-/** Nodo manual de la red (capa libre, como los nodos manuales de RSN). */
+/** Nodo manual de la red (capa libre de anotación apícola). */
 export function NodoManualForm({ open, onOpenChange, colmenas = [], colmenaIdFijo, initial, onSaved }: NodoManualFormProps) {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();

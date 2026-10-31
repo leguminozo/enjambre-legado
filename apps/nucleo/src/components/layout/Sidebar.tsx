@@ -59,9 +59,10 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const authUser = useAuthStore((s) => s.user);
   const territorialRol = authUser?.territorial_rol ?? null;
+  const customModules = authUser?.custom_modules ?? null;
   const shellOpts = useMemo(
-    () => ({ territorialRol, pathname }),
-    [territorialRol, pathname],
+    () => ({ territorialRol, customModules, pathname }),
+    [territorialRol, customModules, pathname],
   );
   const sidebarGroups = useMemo(
     () => getSidebarGroupsForRole(userRole, shellOpts),

@@ -14,6 +14,13 @@ import {
   Crown,
   RefreshCw,
   Wrench,
+  Trash2,
+  Copy,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Badge,
@@ -26,12 +33,17 @@ import {
   toast,
   cn,
 } from '@enjambre/ui';
+import { useAuthStore } from '@enjambre/auth';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   INVITABLE_PLATFORM_ROLES,
   INVITABLE_ROLE_META,
   type InvitablePlatformRole,
 } from '@/lib/invitation-roles';
+import {
+  MODULO_GROUPS,
+  COLOR_OPTIONS,
+} from './RolesPersonalizadosTab';
 
 export interface PerfilAccesoMeta {
   id: string;
@@ -85,11 +97,29 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
   const [search, setSearch] = useState('');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState('todos');
 
-  // Modal de edición
+  const currentUserId = useAuthStore((s) => s.user?.id);
+
+  // Modal de edición de rol
   const [editingUser, setEditingUser] = useState<UsuarioCuenta | null>(null);
   const [targetRole, setTargetRole] = useState<InvitablePlatformRole>('cliente');
   const [targetPerfilAccesoId, setTargetPerfilAccesoId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Modal de eliminación de cuenta
+  const [deletingUser, setDeletingUser] = useState<UsuarioCuenta | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Copiado rápido de email/ID
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Creador inline de rol personalizado dentro del modal
+  const [isCreatingCustomRole, setIsCreatingCustomRole] = useState(false);
+  const [newRoleNombre, setNewRoleNombre] = useState('');
+  const [newRoleDescripcion, setNewRoleDescripcion] = useState('');
+  const [newRoleColor, setNewRoleColor] = useState('amber');
+  const [newRoleModulos, setNewRoleModulos] = useState<string[]>(['inventario', 'lotes']);
+  const [isSavingCustomRole, setIsSavingCustomRole] = useState(false);
+  const [inspectingRoleId, setInspectingRoleId] = useState<string | null>(null);
 
   const fetchDirectorio = useCallback(async () => {
     setLoading(true);
@@ -138,6 +168,8 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
     setEditingUser(u);
     setTargetRole(u.role);
     setTargetPerfilAccesoId(u.perfil_acceso_id || null);
+    setIsCreatingCustomRole(false);
+    setInspectingRoleId(u.perfil_acceso_id || null);
   };
 
   const handleSelectCustomRole = (r: PerfilAccesoMeta) => {
@@ -148,6 +180,102 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
   const handleSelectStandardRole = (r: InvitablePlatformRole) => {
     setTargetRole(r);
     setTargetPerfilAccesoId(null);
+  };
+
+  const handleCopyEmail = (email: string, id: string) => {
+    navigator.clipboard.writeText(email);
+    setCopiedId(id);
+    toast.success('Correo copiado al portapapeles');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+    setIsDeleting(true);
+    try {
+      const res = await apiFetch(`/api/admin/usuarios/${deletingUser.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || 'Error al eliminar usuario');
+      }
+      toast.success(data.message || 'Cuenta eliminada permanentemente');
+      setDeletingUser(null);
+      void fetchDirectorio();
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleShareUserAccess = (u: UsuarioCuenta) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://registroapicolachiloe.me';
+    const roleLabel = u.perfil_acceso?.nombre || INVITABLE_ROLE_META[u.role]?.label || u.role;
+    const text = `🏛️ *ENJAMBRE LEGADO — Registro de Acceso Oficial*\n\nEstimado/a ${u.full_name || 'Usuario'}, confirmamos tus datos de acceso en la plataforma:\n\n• *Portal de acceso:* ${origin}/login\n• *Identificador:* ${u.email}\n• *Perfil asignado:* ${roleLabel}\n\n_Si requieres asistencia de acceso o actualizar tu contraseña, contáctanos directamente._`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleToggleNewRoleModulo = (key: string) => {
+    setNewRoleModulos((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const handleCreateCustomRoleInline = async () => {
+    if (!newRoleNombre.trim()) {
+      toast.error('El nombre del rol es obligatorio');
+      return;
+    }
+    if (newRoleModulos.length === 0) {
+      toast.error('Selecciona al menos un módulo permitido');
+      return;
+    }
+
+    setIsSavingCustomRole(true);
+    try {
+      const res = await apiFetch('/api/admin/roles-personalizados', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: newRoleNombre.trim(),
+          descripcion: newRoleDescripcion.trim() || undefined,
+          color: newRoleColor,
+          modulos: newRoleModulos,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || 'Error al crear rol');
+      }
+
+      toast.success(`Rol «${newRoleNombre}» creado y asignado`);
+
+      // Refrescar roles disponibles
+      const rolesRes = await apiFetch('/api/admin/roles-personalizados');
+      if (rolesRes.ok) {
+        const rolesData = await rolesRes.json();
+        setRolesPersonalizados(rolesData.roles || []);
+      }
+
+      // Asignar el nuevo rol de inmediato
+      if (data.rol?.id) {
+        setTargetRole('colaborador');
+        setTargetPerfilAccesoId(data.rol.id);
+        setInspectingRoleId(data.rol.id);
+      }
+
+      setIsCreatingCustomRole(false);
+      setNewRoleNombre('');
+      setNewRoleDescripcion('');
+      setNewRoleModulos(['inventario', 'lotes']);
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setIsSavingCustomRole(false);
+    }
   };
 
   const handleSaveRole = async () => {
@@ -404,16 +532,51 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
                         {formatDateShort(u.created_at)}
                       </td>
 
-                      {/* Acción de reasignación */}
+                      {/* Acción de reasignación y gestión */}
                       <td className="py-3 px-4 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenEdit(u)}
-                          className="text-xs h-7 px-2.5 hover:bg-muted/80"
-                        >
-                          Asignar rol →
-                        </Button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenEdit(u)}
+                            className="text-xs h-7 px-2.5 hover:bg-muted/80"
+                          >
+                            Asignar rol →
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyEmail(u.email, u.id)}
+                            className="h-7 w-7 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                            title="Copiar correo"
+                            aria-label="Copiar correo"
+                          >
+                            {copiedId === u.id ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleShareUserAccess(u)}
+                            className="h-7 w-7 rounded-lg border border-emerald-500/30 flex items-center justify-center text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/15 transition-colors"
+                            title="Compartir ficha de acceso vía WhatsApp"
+                            aria-label="Compartir ficha de acceso vía WhatsApp"
+                          >
+                            <MessageCircle size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeletingUser(u)}
+                            disabled={u.id === currentUserId}
+                            className={cn(
+                              'h-7 w-7 rounded-lg border flex items-center justify-center transition-colors',
+                              u.id === currentUserId
+                                ? 'opacity-30 cursor-not-allowed border-border/30 text-muted-foreground'
+                                : 'border-border/50 text-muted-foreground hover:border-destructive/30 hover:text-destructive hover:bg-destructive/10'
+                            )}
+                            title={u.id === currentUserId ? 'No puedes eliminar tu propia cuenta' : 'Eliminar cuenta'}
+                            aria-label={`Eliminar cuenta de ${u.full_name || u.email}`}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -422,6 +585,71 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
             </table>
           </div>
         </div>
+      )}
+
+      {/* Modal de confirmación de eliminación de cuenta */}
+      {deletingUser && (
+        <ImmersiveModal
+          open={Boolean(deletingUser)}
+          onClose={() => !isDeleting && setDeletingUser(null)}
+          title="Eliminar cuenta del ecosistema"
+        >
+          <div className="py-4 space-y-4">
+            <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/25 text-destructive flex items-start gap-3">
+              <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <strong className="block font-semibold">Acción definitiva e irreversible</strong>
+                <span>
+                  Esta acción eliminará de forma permanente el usuario, sus credenciales de acceso y sus perfiles asociados de la base de datos.
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-surface-sunken border border-border/70 text-xs space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Nombre:</span>
+                <span className="font-semibold text-foreground">{deletingUser.full_name || 'Sin nombre registrado'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Correo:</span>
+                <span className="font-mono text-foreground">{deletingUser.email}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Rol actual:</span>
+                <span className="text-foreground font-medium">{INVITABLE_ROLE_META[deletingUser.role]?.label || deletingUser.role}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeletingUser(null)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteUser()}
+                disabled={isDeleting}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={13} />
+                    Eliminar cuenta
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </ImmersiveModal>
       )}
 
       {/* Modal de reasignación y ascenso de rol */}
@@ -452,133 +680,287 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
               </div>
             </div>
 
-            {/* SECCIÓN 1: Roles Personalizados (A Medida) */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                  <Wrench size={13} />
-                  Roles a Medida Creados en Núcleo
-                </label>
-                {onNavigateToRoles && (
+            {/* SECCIÓN: Creador Inline de Rol a Medida */}
+            {isCreatingCustomRole ? (
+              <div className="p-4 rounded-xl bg-surface-raised border border-primary/30 space-y-4 animate-in">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <Plus size={14} />
+                    Nuevo Rol a Medida & Permisos Modulares
+                  </h4>
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditingUser(null);
-                      onNavigateToRoles();
-                    }}
-                    className="text-[11px] text-primary hover:underline"
+                    onClick={() => setIsCreatingCustomRole(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
                   >
-                    + Gestionar o crear roles
+                    Volver a lista
                   </button>
-                )}
-              </div>
-
-              {rolesPersonalizados.length === 0 ? (
-                <div className="p-3 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-                  Aún no hay roles personalizados creados. Puedes crear uno desde la pestaña «Roles y Permisos».
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-1">
-                  {rolesPersonalizados.map((r) => {
-                    const isSelected =
-                      targetRole === 'colaborador' && targetPerfilAccesoId === r.id;
-                    return (
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                      Nombre del Rol *
+                    </label>
+                    <input
+                      type="text"
+                      value={newRoleNombre}
+                      onChange={(e) => setNewRoleNombre(e.target.value)}
+                      placeholder="Ej: Encargado de Packing & Despachos"
+                      className="w-full text-xs px-3 py-2 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                      Descripción breve
+                    </label>
+                    <input
+                      type="text"
+                      value={newRoleDescripcion}
+                      onChange={(e) => setNewRoleDescripcion(e.target.value)}
+                      placeholder="Ej: Acceso exclusivo a envíos y stock satélite"
+                      className="w-full text-xs px-3 py-2 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                {/* Selector de color */}
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">
+                    Distintivo visual
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLOR_OPTIONS.map((c) => (
                       <button
-                        key={r.id}
+                        key={c.id}
                         type="button"
-                        onClick={() => handleSelectCustomRole(r)}
+                        onClick={() => setNewRoleColor(c.id)}
                         className={cn(
-                          'text-left p-2.5 rounded-xl border transition-all flex items-start gap-3',
-                          isSelected
-                            ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/30'
-                            : 'bg-card border-border/70 hover:bg-surface-raised hover:border-border'
+                          'text-xs px-2.5 py-1 rounded-full border transition-all',
+                          c.class,
+                          newRoleColor === c.id ? 'ring-2 ring-primary font-bold' : 'opacity-70'
                         )}
                       >
-                        <div className="pt-0.5">
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Selector modular por categorías */}
+                <div className="space-y-3 pt-2 border-t border-border/50">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                    Módulos y Permisos que podrá operar
+                  </label>
+                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                    {MODULO_GROUPS.map((group) => {
+                      const Icon = group.icon;
+                      return (
+                        <div key={group.name} className="p-2.5 rounded-lg bg-background/60 border border-border/60">
+                          <div className="flex items-center gap-1.5 mb-2 text-xs font-semibold text-foreground">
+                            <Icon size={14} className="text-primary" />
+                            <span>{group.name}</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {group.options.map((opt) => {
+                              const isChecked = newRoleModulos.includes(opt.key);
+                              return (
+                                <button
+                                  key={opt.key}
+                                  type="button"
+                                  onClick={() => handleToggleNewRoleModulo(opt.key)}
+                                  className={cn(
+                                    'text-left p-1.5 rounded-md border text-xs transition-colors flex items-start gap-2',
+                                    isChecked
+                                      ? 'bg-primary/10 border-primary text-foreground'
+                                      : 'bg-card border-border/40 text-muted-foreground hover:bg-muted/40'
+                                  )}
+                                >
+                                  <div className={cn(
+                                    'w-3.5 h-3.5 rounded border mt-0.5 shrink-0 flex items-center justify-center',
+                                    isChecked ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
+                                  )}>
+                                    {isChecked && <Check size={10} strokeWidth={3} />}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-medium text-[11px] leading-tight text-foreground">{opt.label}</p>
+                                    <p className="text-[9px] text-muted-foreground leading-tight">{opt.description}</p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsCreatingCustomRole(false)}
+                    disabled={isSavingCustomRole}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => void handleCreateCustomRoleInline()}
+                    disabled={isSavingCustomRole || !newRoleNombre.trim() || newRoleModulos.length === 0}
+                    className="gap-1.5 font-semibold"
+                  >
+                    {isSavingCustomRole ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        Creando rol...
+                      </>
+                    ) : (
+                      'Crear y Asignar este Rol'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* SECCIÓN 1: Roles Personalizados (A Medida) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Wrench size={13} />
+                      Roles a Medida con Permisos Modulares
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingCustomRole(true)}
+                      className="text-[11px] text-primary hover:underline font-semibold flex items-center gap-1"
+                    >
+                      <Plus size={12} />
+                      Crear nuevo rol a medida
+                    </button>
+                  </div>
+
+                  {rolesPersonalizados.length === 0 ? (
+                    <div className="p-3.5 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground space-y-2">
+                      <p>Aún no hay roles personalizados creados.</p>
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingCustomRole(true)}
+                        className="btn btn-outline text-xs inline-flex items-center gap-1 py-1 px-3"
+                      >
+                        <Plus size={12} /> Crear el primer rol a medida
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2 max-h-[190px] overflow-y-auto pr-1">
+                      {rolesPersonalizados.map((r) => {
+                        const isSelected =
+                          targetRole === 'colaborador' && targetPerfilAccesoId === r.id;
+                        return (
                           <div
+                            key={r.id}
                             className={cn(
-                              'w-4 h-4 rounded-full border flex items-center justify-center',
+                              'p-2.5 rounded-xl border transition-all space-y-2',
                               isSelected
-                                ? 'border-primary bg-primary text-primary-foreground'
-                                : 'border-muted-foreground'
+                                ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/30'
+                                : 'bg-card border-border/70 hover:bg-surface-raised hover:border-border'
                             )}
                           >
-                            {isSelected && <Check size={10} strokeWidth={3} />}
+                            <button
+                              type="button"
+                              onClick={() => handleSelectCustomRole(r)}
+                              className="w-full text-left flex items-start gap-3"
+                            >
+                              <div className="pt-0.5">
+                                <div
+                                  className={cn(
+                                    'w-4 h-4 rounded-full border flex items-center justify-center',
+                                    isSelected
+                                      ? 'border-primary bg-primary text-primary-foreground'
+                                      : 'border-muted-foreground'
+                                  )}
+                                >
+                                  {isSelected && <Check size={10} strokeWidth={3} />}
+                                </div>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="text-xs font-semibold text-foreground">
+                                    {r.nombre}
+                                  </p>
+                                  <span className="text-[10px] text-muted-foreground font-mono">
+                                    {r.modulos.length} módulos
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {r.modulos.map((m) => (
+                                    <span
+                                      key={m}
+                                      className="text-[10px] px-1.5 py-0.2 rounded bg-muted/80 text-muted-foreground font-mono"
+                                    >
+                                      {m}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </button>
                           </div>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-foreground">
-                              {r.nombre}
-                            </p>
-                            <span className="text-[10px] text-muted-foreground font-mono">
-                              {r.modulos.length} módulos
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {r.modulos.map((m) => (
-                              <span
-                                key={m}
-                                className="text-[10px] px-1.5 py-0.2 rounded bg-muted/80 text-muted-foreground font-mono"
-                              >
-                                {m}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* SECCIÓN 2: Roles Estándar de Plataforma */}
-            <div className="space-y-2 pt-2 border-t border-border/60">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-                O Selecciona un Rol de Plataforma Estándar
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
-                {INVITABLE_PLATFORM_ROLES.filter((r) => r !== 'colaborador').map((r) => {
-                  const meta = INVITABLE_ROLE_META[r];
-                  const isSelected = targetRole === r && targetPerfilAccesoId === null;
-                  return (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => handleSelectStandardRole(r)}
-                      className={cn(
-                        'text-left p-2.5 rounded-xl border transition-all flex items-start gap-2.5',
-                        isSelected
-                          ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/30'
-                          : 'bg-card border-border/70 hover:bg-surface-raised hover:border-border'
-                      )}
-                    >
-                      <div className="pt-0.5">
-                        <div
+                {/* SECCIÓN 2: Roles Estándar de Plataforma */}
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+                    O Selecciona un Rol de Plataforma Estándar
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
+                    {INVITABLE_PLATFORM_ROLES.filter((r) => r !== 'colaborador').map((r) => {
+                      const meta = INVITABLE_ROLE_META[r];
+                      const isSelected = targetRole === r && targetPerfilAccesoId === null;
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => handleSelectStandardRole(r)}
                           className={cn(
-                            'w-3.5 h-3.5 rounded-full border flex items-center justify-center',
+                            'text-left p-2.5 rounded-xl border transition-all flex items-start gap-2.5',
                             isSelected
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-muted-foreground'
+                              ? 'bg-primary/10 border-primary shadow-sm ring-1 ring-primary/30'
+                              : 'bg-card border-border/70 hover:bg-surface-raised hover:border-border'
                           )}
                         >
-                          {isSelected && <Check size={9} strokeWidth={3} />}
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground leading-tight">
-                          {meta?.label || r}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 leading-tight">
-                          {meta?.desc}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                          <div className="pt-0.5">
+                            <div
+                              className={cn(
+                                'w-3.5 h-3.5 rounded-full border flex items-center justify-center',
+                                isSelected
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'border-muted-foreground'
+                              )}
+                            >
+                              {isSelected && <Check size={9} strokeWidth={3} />}
+                            </div>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-foreground leading-tight">
+                              {meta?.label || r}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 leading-tight">
+                              {meta?.desc}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Advertencia si selecciona Admin */}
             {targetRole === 'admin' && (
@@ -607,7 +989,7 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
                 variant="outline"
                 size="sm"
                 onClick={() => setEditingUser(null)}
-                disabled={saving}
+                disabled={saving || isSavingCustomRole}
               >
                 Cancelar
               </Button>
@@ -617,6 +999,7 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
                 onClick={() => void handleSaveRole()}
                 disabled={
                   saving ||
+                  isSavingCustomRole ||
                   (targetRole === editingUser.role &&
                     targetPerfilAccesoId === (editingUser.perfil_acceso_id || null))
                 }

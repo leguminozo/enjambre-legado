@@ -379,6 +379,86 @@ adminIdentidadesRoutes.patch(
 );
 
 // ---------------------------------------------------------------------------
+// DELETE /api/admin/usuarios/:id — eliminar cuenta permanentemente
+// ---------------------------------------------------------------------------
+
+adminIdentidadesRoutes.delete("/usuarios/:id", async (c) => {
+  const currentUserId = c.get("user")?.id;
+  const targetId = c.req.param("id");
+
+  if (currentUserId && currentUserId === targetId) {
+    return c.json(
+      {
+        code: "cannot_delete_self",
+        message: "No puedes eliminar tu propia cuenta administradora con la sesión activa.",
+      },
+      400
+    );
+  }
+
+  const admin = createAdminClient();
+  if (!admin) {
+    return c.json(
+      { code: "admin_client_unavailable", message: "Servicio administrativo no disponible" },
+      503
+    );
+  }
+
+  // 1. Obtener datos del usuario a eliminar
+  const { data: targetProfile, error: profileErr } = await admin
+    .from("profiles")
+    .select("id, email, full_name, role")
+    .eq("id", targetId)
+    .maybeSingle();
+
+  if (profileErr) {
+    return c.json({ code: "fetch_failed", message: profileErr.message }, 500);
+  }
+
+  if (!targetProfile) {
+    return c.json({ code: "user_not_found", message: "Usuario no encontrado" }, 404);
+  }
+
+  // 2. Si el usuario es admin, impedir borrar el último admin del sistema
+  if (targetProfile.role === "admin") {
+    const { count: adminCount, error: countErr } = await admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin");
+
+    if (!countErr && (adminCount ?? 0) <= 1) {
+      return c.json(
+        {
+          code: "cannot_delete_last_admin",
+          message: "No es posible eliminar al único administrador del sistema.",
+        },
+        400
+      );
+    }
+  }
+
+  // 3. Eliminar de Supabase Auth (el cascade de Postgres limpia profiles, usuarios_empresas, etc.)
+  const { error: deleteAuthErr } = await admin.auth.admin.deleteUser(targetId);
+  if (deleteAuthErr && !deleteAuthErr.message.toLowerCase().includes("not found")) {
+    return c.json(
+      {
+        code: "auth_delete_failed",
+        message: deleteAuthErr.message || "No se pudo eliminar el usuario en autenticación",
+      },
+      500
+    );
+  }
+
+  // 4. Asegurar que profiles se limpie si no ocurrió cascade inmediato
+  await admin.from("profiles").delete().eq("id", targetId);
+
+  return c.json({
+    ok: true,
+    message: `Cuenta de «${targetProfile.full_name || targetProfile.email}» eliminada correctamente`,
+  });
+});
+
+// ---------------------------------------------------------------------------
 // CRUD /api/admin/roles-personalizados
 // ---------------------------------------------------------------------------
 

@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, Skeleton, SkeletonTable, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import {
   Ticket, Loader2, Plus, Copy, Check,
-  CheckCircle2, Clock, X, Eye, UserPlus, Users, Shield, Shuffle
+  CheckCircle2, Clock, X, Eye, UserPlus, Users, Shield, Shuffle,
+  MessageCircle, Share2
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -88,17 +89,22 @@ const ROLES_TERRITORIALES = [
   { value: 'institucion_publica', label: '🏛️ Institución Pública', desc: 'Municipio, CONAF, INDAP, etc.' },
 ];
 
+export type InvitacionesPanelTab = 'cuentas' | 'roles' | 'invitaciones' | 'codigos' | 'canjes';
+
 export function InvitacionesPanel({
   defaultTab,
 }: {
-  defaultTab?: 'cuentas' | 'roles' | 'codigos' | 'canjes';
+  defaultTab?: InvitacionesPanelTab;
 } = {}) {
   const apiFetch = useApiFetch();
   const searchParams = useSearchParams();
-  const queryTab = searchParams?.get('tab');
-  const initialTab =
-    (defaultTab || queryTab) && ['cuentas', 'roles', 'codigos', 'canjes'].includes((defaultTab || queryTab) as string)
-      ? ((defaultTab || queryTab) as 'cuentas' | 'roles' | 'codigos' | 'canjes')
+  const queryTab = searchParams?.get('tab') as InvitacionesPanelTab | null;
+  const rawTab = defaultTab || queryTab || 'cuentas';
+  const normalizedTab: 'cuentas' | 'roles' | 'invitaciones' =
+    rawTab === 'codigos' || rawTab === 'canjes' || rawTab === 'invitaciones'
+      ? 'invitaciones'
+      : rawTab === 'roles'
+      ? 'roles'
       : 'cuentas';
 
   const [codes, setCodes] = useState<InvitationCodeRow[]>([]);
@@ -107,8 +113,30 @@ export function InvitacionesPanel({
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showCrearCuenta, setShowCrearCuenta] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cuentas' | 'roles' | 'codigos' | 'canjes'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'cuentas' | 'roles' | 'invitaciones'>(normalizedTab);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const shareViaWhatsApp = (text: string) => {
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const copyToClipboard = (text: string, successMessage: string) => {
+    navigator.clipboard.writeText(text);
+    toast(successMessage, { type: 'success' });
+  };
+
+  const getInviteCodeShareText = (code: string, roles: string[], expiresAt?: string | null) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://registroapicolachiloe.me';
+    const roleLabels = roles.map((r) => INVITABLE_ROLE_META[r as InvitablePlatformRole]?.label || r).join(', ');
+    const expText = expiresAt ? `\n• *Vigencia hasta:* ${new Date(expiresAt).toLocaleDateString('es-CL')}` : '';
+    return `🎫 *ENJAMBRE LEGADO — Invitación de Acceso*\n\nHas recibido una invitación oficial para incorporarte al ecosistema:\n\n• *Código de activación:* ${code}\n• *Perfil asignado:* ${roleLabels}${expText}\n• *Enlace de activación:* ${origin}/login?codigo=${code}\n\n_Ingresa el código al registrarte para activar tus herramientas automáticamente._`;
+  };
+
+  const getAccountShareText = (fullName: string, email: string, pass: string, role: string) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://registroapicolachiloe.me';
+    const roleLabel = INVITABLE_ROLE_META[role as InvitablePlatformRole]?.label || role;
+    return `🏛️ *ENJAMBRE LEGADO — Credenciales de Acceso*\n\nEstimado/a ${fullName || 'Usuario'}, tu cuenta ha sido habilitada:\n\n• *Portal de ingreso:* ${origin}/login\n• *Identificador:* ${email}\n• *Clave provisional:* ${pass}\n• *Perfil asignado:* ${roleLabel}\n\n_Al ingresar por primera vez podrás cambiar tu contraseña desde tu configuración de perfil._`;
+  };
 
   const [newCode, setNewCode] = useState<{ maxUses: string; expiresAt: string; roles: string[] }>({
     maxUses: '',
@@ -124,7 +152,7 @@ export function InvitacionesPanel({
     rolTerritorial: 'api_residente',
     comuna: '',
   });
-  const [cuentaCreada, setCuentaCreada] = useState<{ email: string; password: string; role: string } | null>(null);
+  const [cuentaCreada, setCuentaCreada] = useState<{ email: string; password: string; role: string; fullName?: string } | null>(null);
 
   type BffInvitation = InvitationCodeRow & {
     invitation_redemptions?: Array<{
@@ -303,6 +331,7 @@ export function InvitacionesPanel({
         email: nuevaCuenta.email,
         password: nuevaCuenta.password,
         role: nuevaCuenta.role,
+        fullName: nuevaCuenta.fullName,
       });
       toast(json.message ?? 'Cuenta creada', { type: 'success' });
       setNuevaCuenta({
@@ -390,15 +419,13 @@ export function InvitacionesPanel({
         icon={<Users size={22} />}
       />
 
-      <RedeemInviteForm compact />
-
-      {activeTab !== 'cuentas' && activeTab !== 'roles' && (
+      {activeTab === 'invitaciones' && (
         <div className="stats-grid">
           {[
-            { icon: <Ticket size={18} />, val: codes.length, label: 'Invitaciones', accent: '' },
+            { icon: <Ticket size={18} />, val: codes.length, label: 'Invitaciones Emitidas', accent: '' },
             { icon: <CheckCircle2 size={18} />, val: codes.filter(c => c.active).length, label: 'Activas', accent: 'text-success' },
-            { icon: <Clock size={18} />, val: redemptions.length, label: 'Canjes', accent: 'text-accent' },
-            { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos', accent: '' },
+            { icon: <Clock size={18} />, val: redemptions.length, label: 'Activaciones Registradas', accent: 'text-accent' },
+            { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos Totales', accent: '' },
           ].map((s, i) => (
             <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
               <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
@@ -416,18 +443,17 @@ export function InvitacionesPanel({
           layoutId="invitaciones-tabs"
           tabs={[
             { id: 'cuentas', label: 'Directorio de Cuentas', icon: <Users size={16} /> },
-            { id: 'roles', label: 'Roles & Permisos', icon: <Shield size={16} /> },
-            { id: 'codigos', label: 'Códigos', icon: <Ticket size={16} /> },
-            { id: 'canjes', label: 'Canjes', icon: <CheckCircle2 size={16} />, badge: redemptions.length || undefined },
+            { id: 'roles', label: 'Matriz de Roles & Herramientas', icon: <Shield size={16} /> },
+            { id: 'invitaciones', label: 'Invitaciones & Activaciones', icon: <Ticket size={16} />, badge: codes.filter(c => c.active).length || undefined },
           ]}
           activeId={activeTab}
-          onChange={(id) => setActiveTab(id as 'cuentas' | 'roles' | 'codigos' | 'canjes')}
+          onChange={(id) => setActiveTab(id as 'cuentas' | 'roles' | 'invitaciones')}
         />
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setShowCrearCuenta(true)} className="btn btn-outline flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
             <UserPlus size={16} />Crear Cuenta
           </button>
-          {activeTab === 'codigos' && (
+          {activeTab === 'invitaciones' && (
             <button onClick={() => setShowCreate(true)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
               <Plus size={16} />Nueva Invitación
             </button>
@@ -491,15 +517,12 @@ export function InvitacionesPanel({
             ))}
           </div>
           <p className="text-[0.6rem] text-muted-foreground mt-1">
-            El rol de plataforma primario (prioridad: admin → apicultor → territorial → rep → …) se escribe en{' '}
-            <code className="text-[0.6rem]">profiles.role</code> al canjear. Patio = <strong>apicultor</strong>; red/censo ={' '}
-            <strong>territorial</strong>.
+            El perfil de plataforma principal (prioridad: administrador → apicultor de patio → actor territorial → etc.) se activa automáticamente en la cuenta al validar el código.
           </p>
           {invitationIncludesAdmin(newCode.roles) && (
             <p className="text-[0.65rem] text-warning mt-2 p-2 rounded-md bg-warning/10 border border-warning/20">
-              <strong>Seguridad:</strong> códigos con <code className="text-[0.65rem]">admin</code> se limitan a{' '}
-              <strong>1 uso</strong> y caducidad máxima <strong>7 días</strong> (forzado en UI y BFF). Preferí crear cuenta
-              directa para admins.
+              <strong>Seguridad:</strong> Las invitaciones con perfil <code className="text-[0.65rem]">admin</code> se limitan estrictamente a{' '}
+              <strong>1 uso</strong> y caducidad máxima de <strong>7 días</strong>. Se recomienda crear cuentas directas para administradores.
             </p>
           )}
         </div>
@@ -518,79 +541,170 @@ export function InvitacionesPanel({
         <RolesPersonalizadosTab />
       )}
 
-      {/* Tab: Códigos */}
-      {activeTab === 'codigos' && (
-        <div className="card">
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-            {codes.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic py-8 text-center">No hay códigos de invitación.</p>
-            ) : codes.map(c => (
-              <div key={c.id} className={`p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-accent/20 transition-all ${!c.active ? 'opacity-50' : ''}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <button
-                        type="button"
-                        onClick={() => copyCode(c.code)}
-                        aria-label={`Copiar código ${c.code}`}
-                        className="inline-flex min-h-11 items-center gap-1 text-xs font-mono bg-accent/15 border border-accent/10 px-3 py-2 rounded-md hover:bg-accent/25 transition-colors"
-                      >
-                        {copiedCode === c.code ? <Check size={12} className="text-success" /> : <Copy size={12} className="text-accent" />}
-                        <span className="text-accent font-bold">{c.code}</span>
-                      </button>
-                      {!c.active && <span className="text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">inactivo</span>}
-                    </div>
-                    <div className="flex items-center gap-4 mt-2 flex-wrap">
-                      <span className="text-[0.65rem] text-muted-foreground">Usos: <strong>{c.current_uses}{c.max_uses ? `/${c.max_uses}` : ''}</strong></span>
-                      {c.expires_at && <span className="text-[0.65rem] text-muted-foreground">Expira: {new Date(c.expires_at).toLocaleDateString('es-CL')}</span>}
-                      <span className="text-[0.65rem] text-muted-foreground">Roles: {c.roles?.join(', ') || '—'}</span>
-                      <span className="text-[0.65rem] text-muted-foreground">Creado por: {c.creatorName || '—'}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      disabled={actionLoading === c.id}
-                      onClick={() => toggleCodeActive(c.id, c.active)}
-                      className={`min-h-11 min-w-11 h-11 w-11 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${c.active ? 'bg-warning/10 text-warning hover:bg-warning hover:text-foreground' : 'bg-success/10 text-success hover:bg-success hover:text-foreground'}`}
-                      title={c.active ? 'Desactivar' : 'Activar'}
-                    >
-                      {actionLoading === c.id ? <Loader2 className="animate-spin" size={16} /> : c.active ? <Clock size={16} /> : <Check size={16} />}
-                    </button>
-                    <button
-                      disabled={actionLoading === c.id}
-                      onClick={() => deleteCode(c.id)}
-                      className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
-                      title="Eliminar"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
+      {/* Tab: Invitaciones & Activaciones (Unificado) */}
+      {activeTab === 'invitaciones' && (
+        <div className="space-y-8">
+          {/* Sección 1: Códigos Activos */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Ticket size={16} className="text-primary" />
+                  Códigos de Activación e Invitación
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Emite invitaciones para apicultores, operadores o colaboradores y compártelas directamente vía WhatsApp.
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+              <button
+                onClick={() => setShowCreate(true)}
+                className="btn btn-gold text-xs py-1.5 px-3 flex items-center gap-1.5 shrink-0"
+              >
+                <Plus size={14} /> Nueva Invitación
+              </button>
+            </div>
 
-      {/* Tab: Canjes */}
-      {activeTab === 'canjes' && (
-        <div className="card">
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-            {redemptions.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic py-8 text-center">No hay canjes registrados.</p>
-            ) : redemptions.map(r => (
-              <div key={r.id} className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06]">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 size={14} className="text-success" />
-                  <p className="font-bold text-sm text-primary">{r.userName || 'Usuario'}</p>
-                  <span className="text-xs text-muted-foreground">{r.userEmail}</span>
-                </div>
-                <div className="flex items-center gap-4 mt-1">
-                  <span className="text-[0.65rem] text-muted-foreground">Código: <strong className="font-mono text-accent">{r.invitation_codes?.code}</strong></span>
-                  <span className="text-[0.65rem] text-muted-foreground">{new Date(r.redeemed_at).toLocaleDateString('es-CL')}</span>
-                </div>
+            <div className="card">
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {codes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic py-8 text-center">No hay códigos de invitación emitidos.</p>
+                ) : codes.map(c => {
+                  const shareText = getInviteCodeShareText(c.code, c.roles, c.expires_at);
+                  return (
+                    <div key={c.id} className={`p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-accent/20 transition-all ${!c.active ? 'opacity-50' : ''}`}>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => copyCode(c.code)}
+                              aria-label={`Copiar código ${c.code}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-mono bg-accent/15 border border-accent/20 px-2.5 py-1 rounded-md hover:bg-accent/25 transition-colors"
+                              title="Copiar código alfanumérico"
+                            >
+                              {copiedCode === c.code ? <Check size={12} className="text-success" /> : <Copy size={12} className="text-accent" />}
+                              <span className="text-accent font-bold tracking-wider">{c.code}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(shareText, `Ficha de invitación ${c.code} copiada`)}
+                              className="inline-flex items-center gap-1 text-[11px] bg-muted/60 hover:bg-muted border border-border px-2 py-1 rounded-md transition-colors text-muted-foreground hover:text-foreground"
+                              title="Copiar tarjeta completa para portapapeles"
+                            >
+                              <Copy size={11} />
+                              <span>Ficha</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => shareViaWhatsApp(shareText)}
+                              className="inline-flex items-center gap-1 text-[11px] bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-md transition-colors"
+                              title="Compartir invitación por WhatsApp"
+                            >
+                              <MessageCircle size={11} />
+                              <span>WhatsApp</span>
+                            </button>
+
+                            {!c.active && <span className="text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">inactivo</span>}
+                          </div>
+
+                          <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
+                            <span>Usos: <strong>{c.current_uses}{c.max_uses ? `/${c.max_uses}` : ''}</strong></span>
+                            <span>•</span>
+                            <span>Expira: {c.expires_at ? new Date(c.expires_at).toLocaleDateString('es-CL') : 'Sin expiración'}</span>
+                            <span>•</span>
+                            <span>Perfiles: <strong className="text-foreground">{c.roles?.join(', ') || '—'}</strong></span>
+                            {c.creatorName && (
+                              <>
+                                <span>•</span>
+                                <span>Emitido por: {c.creatorName}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                          <button
+                            disabled={actionLoading === c.id}
+                            onClick={() => toggleCodeActive(c.id, c.active)}
+                            className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 ${c.active ? 'bg-warning/10 text-warning hover:bg-warning hover:text-foreground' : 'bg-success/10 text-success hover:bg-success hover:text-foreground'}`}
+                            title={c.active ? 'Desactivar invitación' : 'Activar invitación'}
+                          >
+                            {actionLoading === c.id ? <Loader2 className="animate-spin" size={14} /> : c.active ? <Clock size={14} /> : <Check size={14} />}
+                          </button>
+                          <button
+                            disabled={actionLoading === c.id}
+                            onClick={() => deleteCode(c.id)}
+                            className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                            title="Eliminar invitación"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Sección 2: Registro de Activaciones (Canjes) */}
+          <div className="space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-success" />
+                Registro de Activaciones e Incorporaciones
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Historial cronológico de cuentas que han activado invitaciones en la plataforma.
+              </p>
+            </div>
+
+            <div className="card">
+              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {redemptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic py-8 text-center">No hay activaciones registradas aún.</p>
+                ) : redemptions.map(r => (
+                  <div key={r.id} className="p-3.5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-success/15 text-success border border-success/20 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={14} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-xs text-foreground truncate">{r.userName || 'Usuario registrado'}</p>
+                        <p className="text-[11px] text-muted-foreground font-mono truncate">{r.userEmail}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-[11px] text-muted-foreground">
+                        Código: <strong className="font-mono text-accent">{r.invitation_codes?.code}</strong>
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {new Date(r.redeemed_at).toLocaleDateString('es-CL', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sección 3: Prueba o validación manual */}
+          <div className="rounded-2xl border border-dashed border-border/70 p-5 bg-card/40 space-y-2">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Prueba o validación manual de código
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              Herramienta técnica para verificar o probar el canje de un código de invitación.
+            </p>
+            <RedeemInviteForm compact />
           </div>
         </div>
       )}
@@ -622,15 +736,35 @@ export function InvitacionesPanel({
           </p>
 
           {cuentaCreada && (
-            <div className="p-4 rounded-xl bg-success/10 border border-success/20 space-y-2 mb-4 animate-in">
+            <div className="p-4 rounded-xl bg-success/10 border border-success/20 space-y-3 mb-4 animate-in">
               <p className="text-sm font-bold text-success flex items-center gap-2">
                 <CheckCircle2 size={16} /> Cuenta creada exitosamente
               </p>
               <p className="text-xs text-muted-foreground">Comparte estas credenciales de forma segura con el usuario:</p>
-              <div className="font-mono text-xs bg-background/50 rounded-lg p-3 space-y-1">
+              <div className="font-mono text-xs bg-background/50 rounded-lg p-3 space-y-1.5 border border-success/15">
+                <p><span className="text-muted-foreground">Nombre:</span> <strong className="text-foreground">{cuentaCreada.fullName || 'Usuario'}</strong></p>
                 <p><span className="text-muted-foreground">Email:</span> <strong className="text-foreground">{cuentaCreada.email}</strong></p>
-                <p><span className="text-muted-foreground">Contraseña:</span> <strong className="text-foreground">{cuentaCreada.password}</strong></p>
-                <p><span className="text-muted-foreground">Rol:</span> <strong className="text-primary">{cuentaCreada.role}</strong></p>
+                <p><span className="text-muted-foreground">Contraseña inicial:</span> <strong className="text-foreground">{cuentaCreada.password}</strong></p>
+                <p><span className="text-muted-foreground">Rol asignado:</span> <strong className="text-primary">{INVITABLE_ROLE_META[cuentaCreada.role as InvitablePlatformRole]?.label || cuentaCreada.role}</strong></p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-success/20">
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(getAccountShareText(cuentaCreada.fullName || 'Usuario', cuentaCreada.email, cuentaCreada.password, cuentaCreada.role), 'Ficha de acceso copiada al portapapeles')}
+                  className="btn btn-outline text-xs py-1.5 px-3 flex items-center gap-1.5"
+                >
+                  <Copy size={13} />
+                  Copiar Ficha de Acceso
+                </button>
+                <button
+                  type="button"
+                  onClick={() => shareViaWhatsApp(getAccountShareText(cuentaCreada.fullName || 'Usuario', cuentaCreada.email, cuentaCreada.password, cuentaCreada.role))}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
+                >
+                  <MessageCircle size={13} />
+                  Compartir por WhatsApp
+                </button>
               </div>
             </div>
           )}
