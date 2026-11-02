@@ -22,7 +22,7 @@ import {
   Tag,
   Clock,
 } from 'lucide-react';
-import { ViewLoading, toast, Skeleton } from '@enjambre/ui';
+import { toast, Skeleton } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
 import type { Proveedor } from '@/components/logistica/types';

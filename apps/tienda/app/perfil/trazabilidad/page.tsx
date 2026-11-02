@@ -79,31 +79,29 @@ export default async function TrazabilidadPage({
       const apiario = (c.apiarios ?? {}) as Record<string, unknown>;
       const colmenaId = String(c.id || '');
 
-      // Traer último pesaje real ingresado por el apicultor
+      // Concurrencia I/O: traer último pesaje y última bitácora en paralelo
       let latestPesoKg: number | null = null;
+      let latestNote: string | null = null;
       if (colmenaId) {
-        const { data: pesoRow } = await supabase
-          .from('peso_records')
-          .select('kg')
-          .eq('colmena_id', colmenaId)
-          .order('date', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const [{ data: pesoRow }, { data: inspRow }] = await Promise.all([
+          supabase
+            .from('peso_records')
+            .select('kg')
+            .eq('colmena_id', colmenaId)
+            .order('date', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from('inspecciones')
+            .select('notes')
+            .eq('colmena_id', colmenaId)
+            .order('date', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
         if (pesoRow && typeof pesoRow.kg === 'number') {
           latestPesoKg = pesoRow.kg;
         }
-      }
-
-      // Traer última observación de campo (bitácora)
-      let latestNote: string | null = null;
-      if (colmenaId) {
-        const { data: inspRow } = await supabase
-          .from('inspecciones')
-          .select('notes')
-          .eq('colmena_id', colmenaId)
-          .order('date', { ascending: false })
-          .limit(1)
-          .maybeSingle();
         if (inspRow?.notes) {
           latestNote = String(inspRow.notes);
         }
@@ -138,28 +136,27 @@ export default async function TrazabilidadPage({
       const centinelaId = centinelaData.id;
 
       let latestPesoKg: number | null = null;
+      let latestNote: string | null = null;
       if (centinelaId) {
-        const { data: pesoRow } = await supabase
-          .from('peso_records')
-          .select('kg')
-          .eq('colmena_id', centinelaId)
-          .order('date', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const [{ data: pesoRow }, { data: inspRow }] = await Promise.all([
+          supabase
+            .from('peso_records')
+            .select('kg')
+            .eq('colmena_id', centinelaId)
+            .order('date', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from('inspecciones')
+            .select('notes')
+            .eq('colmena_id', centinelaId)
+            .order('date', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
         if (pesoRow && typeof pesoRow.kg === 'number') {
           latestPesoKg = pesoRow.kg;
         }
-      }
-
-      let latestNote: string | null = null;
-      if (centinelaId) {
-        const { data: inspRow } = await supabase
-          .from('inspecciones')
-          .select('notes')
-          .eq('colmena_id', centinelaId)
-          .order('date', { ascending: false })
-          .limit(1)
-          .maybeSingle();
         if (inspRow?.notes) {
           latestNote = String(inspRow.notes);
         }

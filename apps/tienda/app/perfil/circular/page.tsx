@@ -18,21 +18,21 @@ export default async function CircularPage() {
     redirect('/login');
   }
 
-  // 1. Consultar eventos canónicos en loyalty_events_ledger
-  const { data: canonicalEvents } = await supabase
-    .from('loyalty_events_ledger')
-    .select('id, created_at, delta_puntos, metadata, canal')
-    .eq('user_id', user.id)
-    .eq('tipo_evento', 'frasco_retornado')
-    .order('created_at', { ascending: false });
-
-  // 2. Consultar transacciones legacy en loyalty_transactions por compatibilidad
-  const { data: legacyTxs } = await supabase
-    .from('loyalty_transactions')
-    .select('id, created_at, points, description')
-    .eq('user_id', user.id)
-    .eq('action_type', 'retorno_envase')
-    .order('created_at', { ascending: false });
+  // 1. Consultar eventos canónicos y legacy concurrentemente (I/O Concurrency)
+  const [{ data: canonicalEvents }, { data: legacyTxs }] = await Promise.all([
+    supabase
+      .from('loyalty_events_ledger')
+      .select('id, created_at, delta_puntos, metadata, canal')
+      .eq('user_id', user.id)
+      .eq('tipo_evento', 'frasco_retornado')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('loyalty_transactions')
+      .select('id, created_at, points, description')
+      .eq('user_id', user.id)
+      .eq('action_type', 'retorno_envase')
+      .order('created_at', { ascending: false }),
+  ]);
 
   const retornos: RetornoItem[] = [];
   let totalFrascos = 0;

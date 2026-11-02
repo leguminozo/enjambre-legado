@@ -16,7 +16,7 @@ import {
   MapPin,
   UserCheck,
 } from 'lucide-react';
-import { ViewLoading, toast, SkeletonTable } from '@enjambre/ui';
+import { toast, SkeletonTable } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
 import type { StockCenter } from '@/components/logistica/types';

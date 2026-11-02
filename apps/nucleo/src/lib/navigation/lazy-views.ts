@@ -13,6 +13,8 @@ import {
   DespachoEnviosSkeleton,
   BancoChileSkeleton,
   ClubLegadoSkeleton,
+  CuadernoCampoSkeleton,
+  EscenaHojaSkeleton,
   ModuloGenericoSkeleton,
 } from '@/components/shared/skeletons';
 
@@ -123,12 +125,12 @@ export const LazyCuadernoCampoView = named(
   () => import('@/views/apicultor/CuadernoCampoView'),
   'CuadernoCampoView',
   'Cuaderno Campo',
-  () => createElement(ColmenasDashboardSkeleton),
+  () => createElement(CuadernoCampoSkeleton),
 );
 export const LazyEscenaHojaView = lazyView<{ id: string }>(
   () => import('@/views/apicultor/EscenaHojaView').then((m) => ({ default: m.EscenaHojaView })),
   'Hoja',
-  () => createElement(ColmenasDashboardSkeleton),
+  () => createElement(EscenaHojaSkeleton),
 );
 export const LazyEnviosView = named(
   () => import('@/views/despacho/EnviosView'),

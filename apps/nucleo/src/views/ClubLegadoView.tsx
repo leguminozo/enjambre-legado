@@ -27,8 +27,8 @@ const TABS: readonly TabDef[] = [
   },
   {
     id: 'tiers',
-    label: 'Tiers de Guardián',
-    description: 'Configuración dinámica de rangos, nombres públicos, íconos y umbrales de lealtad',
+    label: 'Niveles de Membresía',
+    description: 'Configuración centralizada de niveles, nombres públicos, íconos y umbrales de fidelidad',
     icon: Shield,
   },
   {
@@ -56,7 +56,7 @@ export function ClubLegadoView(_props: ClubLegadoViewProps = {}) {
         variant="compact"
         eyebrow="Fidelización & Membresías"
         title="Club Legado"
-        subtitle="Reglas de incentivo, tiers de guardián, sellos y asignación de colmenas"
+        subtitle="Reglas de incentivo, niveles de membresía, sellos y asignación de colmenas"
         icon={<Crown size={20} />}
       />
 

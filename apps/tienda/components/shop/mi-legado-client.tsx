@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight, ArrowUpRight, Wallet, Compass, MapPin, Bell } from 'lucide-react';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
-import { formatCLP } from '@enjambre/ui';
+import { formatCLP, ClubTierIcon } from '@enjambre/ui';
 import {
   REPOSICION_PATH,
 } from '@/lib/shop/store-routes';
@@ -206,7 +206,7 @@ export function MiLegadoClient({
                 : currentTierCode === 'REINA'
                   ? 'Círculo de la Reina'
                   : currentTierCode === 'COLMENA'
-                    ? 'Guardián Legado'
+                    ? 'Socio Legado'
                     : tierData?.tier || 'Iniciador');
           const displayTierIcon = tierData?.tier_icono || matchingConfig?.icono || null;
           const displayTierNarrative = tierData?.tier_narrativa || matchingConfig?.etiqueta_narrativa || null;
@@ -226,13 +226,13 @@ export function MiLegadoClient({
                   {String(cmsInicio?.member_label || 'Miembro Activo')}
                 </span>
                 <span className="text-border" aria-hidden>·</span>
-                <span>
-                  {String(cmsInicio?.tier_label || 'Rango de fidelidad')}:{' '}
-                  <strong className="text-foreground font-medium uppercase tracking-wide">
-                    {displayTierIcon ? `${displayTierIcon} ` : ''}
-                    {displayTierName}
-                  </strong>{' '}
-                  ({tierData?.ciclos_historicos || 0} ciclos acumulados)
+                <span className="inline-flex items-center gap-1.5">
+                  <span>{String(cmsInicio?.tier_label || 'Rango de fidelidad')}:</span>
+                  <strong className="text-foreground font-medium uppercase tracking-wide inline-flex items-center gap-1.5">
+                    <ClubTierIcon icon={displayTierIcon} size={14} className="text-accent inline-block shrink-0" />
+                    <span>{displayTierName}</span>
+                  </strong>
+                  <span>({tierData?.ciclos_historicos || 0} ciclos acumulados)</span>
                 </span>
               </div>
 

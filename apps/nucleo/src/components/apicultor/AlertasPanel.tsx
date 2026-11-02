@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Button, Spinner, toast } from '@enjambre/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Button, Skeleton, SkeletonCard, Spinner, toast } from '@enjambre/ui';
 import { RefreshCw, AlertTriangle, CheckCircle2, PlayCircle, XCircle } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
@@ -103,9 +103,18 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
   };
   if (isLoading) {
     return (
-      <Card className="bg-card border-border">
-        <CardContent className="py-12 flex justify-center items-center">
-          <Spinner className="h-6 w-6 text-primary" />
+      <Card className="bg-card border-border" aria-busy="true" aria-label="Cargando avisos preventivos">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4">
+          <div className="space-y-2">
+            <Skeleton variant="text" className="w-56 h-5" />
+            <Skeleton variant="text" className="w-80 max-w-full h-3.5" />
+          </div>
+          <Skeleton variant="rectangular" className="w-24 h-8 rounded-lg" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i} lines={2} />
+          ))}
         </CardContent>
       </Card>
     );

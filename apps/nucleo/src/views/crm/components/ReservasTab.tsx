@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, Button, SkeletonKpi, SkeletonTable } from '@enjambre/ui';
+import { friendlyError, toast, Button, SkeletonKpi, SkeletonTable } from '@enjambre/ui';
 import { Calendar, CheckCircle2, Clock, DollarSign, Package, PhoneCall, Search, Download, AlertCircle } from 'lucide-react';
 
 interface PreOrderItem {

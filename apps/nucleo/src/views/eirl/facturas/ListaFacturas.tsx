@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
-import { HexagonLoader, ViewLoading, SkeletonTable } from '@enjambre/ui';
+import { HexagonLoader, SkeletonTable } from '@enjambre/ui';
 import { FileText, Eye, Edit, Trash2, Plus, Send } from "lucide-react";
 import { formatDate, formatCurrency } from '@/lib/format';
 import { deleteFacturaEmitida } from '@/lib/actions/facturas';

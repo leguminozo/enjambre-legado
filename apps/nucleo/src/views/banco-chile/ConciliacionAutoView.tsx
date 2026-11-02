@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Button, Badge, HexagonLoader, ViewLoading, LoadingOverlay,
+  Button, Badge, HexagonLoader, LoadingOverlay,
   Skeleton, SkeletonTable,
   toast, formatCLP, formatCalendarDate,
 } from '@enjambre/ui';

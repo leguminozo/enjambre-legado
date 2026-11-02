@@ -1,16 +1,19 @@
 import dynamic from 'next/dynamic';
+import { Skeleton } from '@enjambre/ui';
 
 const MapaTerritorialBase = dynamic(
   () => import('./MapaTerritorialBase').then((mod) => mod.MapaTerritorial),
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full min-h-[500px] bg-card border border-border rounded-lg flex items-center justify-center animate-pulse">
-        <div className="text-muted-foreground font-datos text-sm flex items-center gap-2">
-          <span>📍</span> Cargando visor territorial...
+      <div className="w-full h-full min-h-[500px] bg-card border border-border rounded-2xl p-4 flex flex-col gap-3 animate-in" aria-busy="true" aria-label="Cargando visor territorial">
+        <div className="flex items-center justify-between">
+          <Skeleton variant="text" className="w-48 h-4" />
+          <Skeleton variant="rectangular" className="w-24 h-8 rounded-lg" />
         </div>
+        <Skeleton variant="rectangular" className="w-full flex-1 min-h-[420px] rounded-xl" />
       </div>
-    )
+    ),
   }
 );
 

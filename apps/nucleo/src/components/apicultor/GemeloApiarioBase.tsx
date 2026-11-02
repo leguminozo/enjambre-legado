@@ -128,12 +128,12 @@ function ColmenaHud({ state, selected, hovered, mode, hudY, onSelect }: ColmenaH
           onSelect();
         }}
         className={cn(
-          'transition-all duration-300 rounded-xl p-2.5 backdrop-blur-md cursor-pointer border shadow-2xl min-w-[170px] max-w-[230px]',
+          'transition-all duration-300 rounded-xl p-2.5 cursor-pointer border shadow-2xl min-w-[170px] max-w-[230px]',
           selected
-            ? 'bg-card/95 border-accent ring-2 ring-accent/40 shadow-accent/20 scale-105'
+            ? 'bg-card border-accent ring-2 ring-accent/40 shadow-accent/20 scale-105'
             : hovered
-              ? 'bg-card/90 border-accent/70 scale-102'
-              : 'bg-card/85 border-border/70 hover:border-accent/50',
+              ? 'bg-card border-accent/70 scale-102'
+              : 'bg-card/95 border-border/80 hover:border-accent/50',
         )}
       >
         {/* Cabecera: Nombre y Estado Sanitario */}
@@ -542,6 +542,21 @@ export function GemeloApiario({
   // Las métricas aparecen al hacer hover o seleccionar. Sin solapamiento.
   const [hudMode, setHudMode] = useState<HudMode>('compact');
   const controlsRef = useRef<React.ComponentRef<typeof OrbitControls> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(true);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry?.isIntersecting ?? true);
+      },
+      { threshold: 0.05 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -583,6 +598,7 @@ export function GemeloApiario({
 
   return (
     <div
+      ref={containerRef}
       className="card animate-in delay-2 relative w-full h-[580px] overflow-hidden rounded-2xl border border-accent/20 bg-background/95"
     >
       {/* Cabecera flotante: Título y Contexto */}
@@ -640,6 +656,7 @@ export function GemeloApiario({
         </div>
       ) : (
         <Canvas
+          frameloop={isInView ? 'always' : 'never'}
           shadows="percentage"
           gl={{
             antialias: true,

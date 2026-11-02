@@ -8,7 +8,7 @@ import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { formatCLP } from '@/lib/shop/format';
-import { ViewLoadingPlaceholder } from '@enjambre/ui';
+import { CarritoTiendaSkeleton } from '@/components/shop/carrito-skeleton';
 import {
   SHIPPING_REGION_STORAGE_KEY,
   readCommerceStorage,
@@ -75,11 +75,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
   const unlockedMsg = cart.free_shipping_unlocked_text || 'Despacho de cortesía incluido';
 
   if (!hydrated) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16">
-        <ViewLoadingPlaceholder label="Carrito" />
-      </div>
-    );
+    return <CarritoTiendaSkeleton />;
   }
 
   if (lines.length === 0) {
@@ -295,6 +291,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
         </Link>
         <Link
           href="/checkout"
+          prefetch={true}
           data-testid="proceed-checkout"
           className="rounded-full bg-primary px-10 py-4 text-center text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 min-h-[48px] flex items-center justify-center"
         >
@@ -305,6 +302,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
       <div className="mt-6 flex items-center justify-center md:hidden">
         <Link
           href="/catalogo"
+          prefetch={true}
           className="inline-flex min-h-11 items-center justify-center text-center text-sm text-accent underline underline-offset-2 hover:text-accent/80"
         >
           Seguir comprando
@@ -361,7 +359,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
             </p>
             <p className="tienda-sticky-cta-price">{formatCLP(estimatedTotal)}</p>
           </div>
-          <Link href="/checkout" data-testid="proceed-checkout" className="tienda-sticky-cta-btn text-center">
+          <Link href="/checkout" prefetch={true} data-testid="proceed-checkout" className="tienda-sticky-cta-btn text-center">
             {cart.cta_label}
           </Link>
         </div>

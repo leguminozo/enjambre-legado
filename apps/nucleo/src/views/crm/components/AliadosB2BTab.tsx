@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, Button, SkeletonTable } from '@enjambre/ui';
+import { friendlyError, toast, Button, SkeletonTable } from '@enjambre/ui';
 import { Users, Check, X, Loader2, FileText, Copy } from 'lucide-react';
 import { generateWholesaleAgreementMarkdown } from '@enjambre/pricing';
 

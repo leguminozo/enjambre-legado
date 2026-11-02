@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, friendlyError } from '@enjambre/ui';
+import { toast, friendlyError, SkeletonCard } from '@enjambre/ui';
 import { FlaskConical, FileUp, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 interface AnalisisRow {
@@ -203,7 +203,10 @@ export function AnalisisLaboratorioPanel({ loteId }: { loteId: string }) {
       )}
 
       {loading ? (
-        <p className="text-xs text-muted-foreground italic">Cargando análisis…</p>
+        <div className="space-y-2" aria-busy="true" aria-label="Cargando análisis">
+          <SkeletonCard lines={2} />
+          <SkeletonCard lines={2} />
+        </div>
       ) : rows.length === 0 ? (
         <p className="text-xs text-muted-foreground italic">Sin análisis formales para este lote.</p>
       ) : (

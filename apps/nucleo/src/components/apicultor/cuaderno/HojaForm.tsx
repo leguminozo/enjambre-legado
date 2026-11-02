@@ -138,6 +138,7 @@ export function HojaForm({
   };
 
   const handleSave = async () => {
+    if (saving) return;
     if (!colmenaId) {
       setFormError('Selecciona una colmena para la hoja.');
       return;

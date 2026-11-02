@@ -199,30 +199,65 @@ export function CatalogoView({ products, ratings = {} }: Props) {
     [pathname, router, searchParams],
   );
 
+  // Pre-indexar tokens de búsqueda, formato, categoría e impacto una sola vez por referencia de productos (Space-Time Tradeoff)
+  const indexedProducts = useMemo(() => {
+    return products.map((p) => {
+      const searchTokens = [
+        p.name,
+        p.format ?? '',
+        p.formatLabel ?? '',
+        p.category ?? '',
+        p.categoryLabel ?? '',
+        p.description ?? '',
+        p.shortDescription ?? '',
+        ...p.tags,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      const formatLower = p.format?.toLowerCase() ?? '';
+      const formatLabelLower = p.formatLabel?.toLowerCase() ?? '';
+      const categoryLower = p.category?.toLowerCase() ?? '';
+      const categoryLabelLower = p.categoryLabel?.toLowerCase() ?? '';
+
+      const isHighImpact =
+        (p.irr_referencia ?? 0) > 0 ||
+        (p.co2_evitado_kg ?? 0) > 0 ||
+        p.tags.some((t) => {
+          const tl = t.toLowerCase();
+          return tl.includes('bosque') || tl.includes('regenerativ') || tl.includes('nativo');
+        });
+
+      const impactScore = (p.irr_referencia ?? 0) * 10 + (p.co2_evitado_kg ?? 0);
+      const envasadoTime = p.fecha_envasado ? new Date(p.fecha_envasado).getTime() : 0;
+
+      return {
+        product: p,
+        searchTokens,
+        formatLower,
+        formatLabelLower,
+        categoryLower,
+        categoryLabelLower,
+        isHighImpact,
+        impactScore,
+        envasadoTime,
+      };
+    });
+  }, [products]);
+
   const filtered = useMemo(() => {
-    let list = products;
+    let list = indexedProducts;
     const s = q.trim().toLowerCase();
     if (s) {
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(s) ||
-          (p.format?.toLowerCase().includes(s) ?? false) ||
-          (p.formatLabel?.toLowerCase().includes(s) ?? false) ||
-          (p.category?.toLowerCase().includes(s) ?? false) ||
-          (p.categoryLabel?.toLowerCase().includes(s) ?? false) ||
-          (p.description?.toLowerCase().includes(s) ?? false) ||
-          (p.shortDescription?.toLowerCase().includes(s) ?? false) ||
-          p.tags.some((t) => t.toLowerCase().includes(s)),
-      );
+      list = list.filter((item) => item.searchTokens.includes(s));
     }
     if (formato) {
       const tokens = formato
         .split(',')
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean);
-      list = list.filter((p) => {
-        const pf = p.format?.toLowerCase() ?? '';
-        const pfl = p.formatLabel?.toLowerCase() ?? '';
+      list = list.filter((item) => {
+        const { formatLower: pf, formatLabelLower: pfl } = item;
         if (!pf && !pfl) return false;
         return tokens.some(
           (tok) =>
@@ -236,44 +271,30 @@ export function CatalogoView({ products, ratings = {} }: Props) {
     if (categoria) {
       const cLower = categoria.trim().toLowerCase();
       list = list.filter(
-        (p) =>
-          p.category?.toLowerCase() === cLower ||
-          p.categoryLabel?.toLowerCase() === cLower ||
-          p.category?.toLowerCase().includes(cLower) ||
-          cLower.includes(p.category?.toLowerCase() ?? ''),
+        (item) =>
+          item.categoryLower === cLower ||
+          item.categoryLabelLower === cLower ||
+          item.categoryLower.includes(cLower) ||
+          cLower.includes(item.categoryLower),
       );
     }
-    if (soloStock) list = list.filter((p) => (p.stock ?? 0) > 0);
+    if (soloStock) list = list.filter((item) => (item.product.stock ?? 0) > 0);
     if (altoImpacto) {
-      list = list.filter(
-        (p) =>
-          (p.irr_referencia ?? 0) > 0 ||
-          (p.co2_evitado_kg ?? 0) > 0 ||
-          p.tags.some((t) => {
-            const tl = t.toLowerCase();
-            return tl.includes('bosque') || tl.includes('regenerativ') || tl.includes('nativo');
-          }),
-      );
+      list = list.filter((item) => item.isHighImpact);
     }
 
     const next = [...list];
-    if (sort === 'price-asc') next.sort((a, b) => a.price - b.price);
-    if (sort === 'price-desc') next.sort((a, b) => b.price - a.price);
-    if (sort === 'name') next.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    if (sort === 'price-asc') next.sort((a, b) => a.product.price - b.product.price);
+    if (sort === 'price-desc') next.sort((a, b) => b.product.price - a.product.price);
+    if (sort === 'name') next.sort((a, b) => a.product.name.localeCompare(b.product.name, 'es'));
     if (sort === 'impacto') {
-      next.sort((a, b) => {
-        const scoreA = (a.irr_referencia ?? 0) * 10 + (a.co2_evitado_kg ?? 0);
-        const scoreB = (b.irr_referencia ?? 0) * 10 + (b.co2_evitado_kg ?? 0);
-        return scoreB - scoreA;
-      });
+      next.sort((a, b) => b.impactScore - a.impactScore);
     }
-    if (sort === 'newest') next.sort((a, b) => {
-      const tA = a.fecha_envasado ? new Date(a.fecha_envasado).getTime() : 0;
-      const tB = b.fecha_envasado ? new Date(b.fecha_envasado).getTime() : 0;
-      return tB - tA;
-    });
-    return next;
-  }, [products, q, formato, categoria, soloStock, altoImpacto, sort]);
+    if (sort === 'newest') {
+      next.sort((a, b) => b.envasadoTime - a.envasadoTime);
+    }
+    return next.map((item) => item.product);
+  }, [indexedProducts, q, formato, categoria, soloStock, altoImpacto, sort]);
 
   const hasFilters = Boolean(q || formato || categoria || soloStock || altoImpacto);
 

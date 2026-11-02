@@ -87,6 +87,10 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
   });
 
   const direcciones = direccionesData?.data ?? [];
+  const clientesMap = React.useMemo(() => {
+    return new Map(dashboard.clientes.map((c) => [c.id, c]));
+  }, [dashboard.clientes]);
+
   const interaccionesToShow = selectedClienteId 
     ? dashboard.interacciones.filter(i => i.cliente_id === selectedClienteId)
     : dashboard.interacciones;
@@ -231,7 +235,7 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
 
       <div className="space-y-2 pt-2">
         {interaccionesToShow.map((inter) => {
-          const cliente = dashboard.clientes.find((c) => c.id === inter.cliente_id);
+          const cliente = clientesMap.get(inter.cliente_id);
           return (
             <div
               key={inter.id}

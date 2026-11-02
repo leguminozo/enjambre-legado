@@ -9,7 +9,6 @@ import {
   resolvePlatformRole,
   type RoleKey,
 } from '@enjambre/auth/role-redirect';
-import { ViewLoading } from '@enjambre/ui';
 import {
   LazyDashboardEjecutivo,
   LazyInicioApicultorView,
@@ -88,5 +87,5 @@ export function HomeView() {
   if (role === 'admin') return <LazyDashboardEjecutivo />;
 
   // Redirigiendo a tienda/campo
-  return <ViewLoading label="Redirigiendo" variant="view" />;
+  return <DashboardEjecutivoSkeleton />;
 }

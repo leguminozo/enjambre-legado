@@ -27,12 +27,32 @@ export function HojaCard({ hoja, onVer, onEditar, onEliminar }: HojaCardProps) {
             <span className={cn('size-2 rounded-full', hoja.fase === 'alza' ? 'bg-success' : hoja.fase === 'cosecha' ? 'bg-warning' : 'bg-primary')} />
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{hoja.fase ? faseLabel(hoja.fase) : 'Sin fase'}</span>
           </div>
-          <div className="flex items-center gap-0.5">
-            <Button variant="ghost" className="h-8 w-8 text-muted-foreground/70 hover:text-foreground hover:bg-surface-raised" onClick={() => onEditar(hoja)}>
-              <Pencil className="size-4" />
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground hover:text-foreground hover:bg-surface-raised border border-transparent hover:border-border/60 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditar(hoja);
+              }}
+              aria-label={`Editar hoja de ${hoja.colmena?.name ?? 'colmena'} del ${hoja.date}`}
+              title="Editar hoja"
+            >
+              <Pencil className="size-3.5" />
             </Button>
-            <Button variant="ghost" className="h-8 w-8 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10" onClick={() => onEliminar(hoja)}>
-              <Trash2 className="size-4" />
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEliminar(hoja);
+              }}
+              aria-label={`Eliminar hoja de ${hoja.colmena?.name ?? 'colmena'} del ${hoja.date}`}
+              title="Eliminar hoja"
+            >
+              <Trash2 className="size-3.5" />
             </Button>
           </div>
         </div>
@@ -93,7 +113,13 @@ export function HojaCard({ hoja, onVer, onEditar, onEliminar }: HojaCardProps) {
         <span className="text-[10px] font-semibold text-muted-foreground">
           {hoja.cuadros_count} cuadro{hoja.cuadros_count === 1 ? '' : 's'} · {hoja.tratamientos_count} tratamiento{hoja.tratamientos_count === 1 ? '' : 's'}
         </span>
-        <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase tracking-widest font-bold text-primary" onClick={() => onVer(hoja.id)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 min-h-0 min-w-0 px-2.5 text-[10px] uppercase tracking-widest font-bold text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => onVer(hoja.id)}
+          aria-label={`Abrir detalle de hoja ${hoja.colmena?.name ?? 'colmena'}`}
+        >
           Abrir <ArrowUpRight className="size-3 ml-1" />
         </Button>
       </div>

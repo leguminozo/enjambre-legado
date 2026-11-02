@@ -2,11 +2,30 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { useLegacyDevice } from '@enjambre/ui';
+import { Skeleton, useLegacyDevice } from '@enjambre/ui';
 import { AlertTriangle } from 'lucide-react';
 import { buildHiveState } from '@/lib/hive-state';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import type { TerritorialAlertInput } from '@/lib/hive-state';
+
+function GemeloApiarioSkeleton() {
+  return (
+    <div
+      className="w-full h-[500px] rounded-2xl bg-surface-sunken border border-border p-4 flex flex-col justify-between animate-in"
+      aria-busy="true"
+      aria-label="Cargando entorno 3D"
+    >
+      <div className="flex items-center justify-between">
+        <Skeleton variant="text" className="w-44 h-5" />
+        <Skeleton variant="rectangular" className="w-28 h-8 rounded-full" />
+      </div>
+      <div className="flex items-end justify-between">
+        <Skeleton variant="rectangular" className="w-48 h-10 rounded-xl" />
+        <Skeleton variant="rectangular" className="w-32 h-8 rounded-lg" />
+      </div>
+    </div>
+  );
+}
 
 interface GemeloApiarioProps {
   colmenas?: ColmenaWithRelations[];
@@ -23,14 +42,7 @@ const GemeloApiarioBase = dynamic(
   () => import('./GemeloApiarioBase').then((mod) => mod.GemeloApiario),
   {
     ssr: false,
-    loading: () => (
-      <div className="card animate-pulse w-full h-[500px] bg-surface-sunken border border-accent/15 flex items-center justify-center">
-        <div className="text-muted-foreground text-sm font-datos flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
-          Cargando entorno 3D...
-        </div>
-      </div>
-    ),
+    loading: () => <GemeloApiarioSkeleton />,
   },
 );
 
@@ -206,14 +218,7 @@ export function GemeloApiario(props: GemeloApiarioProps) {
     return <GemeloApiario2D {...props} />;
   }
   if (webglOk === null) {
-    return (
-      <div className="card animate-pulse w-full h-[500px] bg-surface-sunken border border-accent/15 flex items-center justify-center">
-        <div className="text-muted-foreground text-sm font-datos flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
-          Cargando entorno 3D...
-        </div>
-      </div>
-    );
+    return <GemeloApiarioSkeleton />;
   }
   return <GemeloApiarioBase {...props} />;
 }

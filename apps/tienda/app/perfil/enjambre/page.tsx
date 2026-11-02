@@ -11,36 +11,34 @@ export const metadata: Metadata = {
 };
 
 export default async function EnjambrePage() {
-  const t = await getTranslations('perfil.enjambre');
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const rol = await resolveOyzRole(user);
+  const [t, { data: { user } }] = await Promise.all([
+    getTranslations('perfil.enjambre'),
+    supabase.auth.getUser(),
+  ]);
 
-  // RPC idempotente: acredita el bonus de bienvenida la primera vez y devuelve
-  // el saldo en las siguientes (el índice único lo serializa).
-  const { data: result } = await supabase.rpc('unirse_al_enjambre');
+  // Ejecución concurrente de rol, RPC de bienvenida, beneficios y suscripción activa (I/O Concurrency)
+  const [rol, { data: result }, { data: configRows }, { data: subs }] = await Promise.all([
+    resolveOyzRole(user),
+    supabase.rpc('unirse_al_enjambre'),
+    supabase.from('beneficios_enjambre').select('clave, valor_numerico'),
+    supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', user?.id ?? '')
+      .eq('status', 'active')
+      .limit(1),
+  ]);
+
   const status = typeof result?.status === 'string' ? result.status : 'error';
   const puntos = typeof result?.puntos === 'number' ? result.puntos : null;
 
   // Config central de beneficios: los MISMOS valores que aplica el checkout.
-  const { data: configRows } = await supabase
-    .from('beneficios_enjambre')
-    .select('clave, valor_numerico');
   const config: Record<string, number> = {};
   for (const row of configRows ?? []) {
     config[String(row.clave)] = Number(row.valor_numerico);
   }
 
-  // Club activo: condiciona el CTA del pasaporte (nunca un link a una página
-  // que no puede tener contenido — suscriptor_config es un huérfano conocido).
-  const { data: subs } = await supabase
-    .from('subscriptions')
-    .select('id')
-    .eq('user_id', user?.id ?? '')
-    .eq('status', 'active')
-    .limit(1);
   const hasClubActivo = (subs ?? []).length > 0;
 
   return (

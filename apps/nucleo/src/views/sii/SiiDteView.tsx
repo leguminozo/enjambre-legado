@@ -1,28 +1,25 @@
 'use client';
 
 import React, { useState, Suspense } from "react";
-import { ViewLoading } from "@enjambre/ui";
 import { FileText } from "lucide-react";
 import dynamic from "next/dynamic";
-import { viewLoadingFallback } from "@/lib/navigation/lazy-view";
 import { ViewShell } from "@/components/layout/ViewShell";
+import { FiscalSiiSkeleton } from "@/components/shared/skeletons";
 
 const DashboardTab = dynamic(() => import("./components/DashboardTab").then((m) => ({ default: m.DashboardTab })), {
-  loading: () => viewLoadingFallback("DTEs"),
+  loading: () => <FiscalSiiSkeleton />,
 });
 const FacturaCompraForm = dynamic(
   () => import("./components/FacturaCompraForm").then((m) => ({ default: m.FacturaCompraForm })),
-  { loading: () => viewLoadingFallback("Nueva factura") },
+  { loading: () => <FiscalSiiSkeleton /> },
 );
 const BandejaFiscalTab = dynamic(
   () => import("./components/BandejaFiscalTab").then((m) => ({ default: m.BandejaFiscalTab })),
-  { loading: () => viewLoadingFallback("Bandeja fiscal") },
+  { loading: () => <FiscalSiiSkeleton /> },
 );
 const SettingsTab = dynamic(() => import("./components/SettingsTab").then((m) => ({ default: m.SettingsTab })), {
-  loading: () => viewLoadingFallback("Configuración SII"),
+  loading: () => <FiscalSiiSkeleton />,
 });
-
-import { FiscalSiiSkeleton } from "@/components/shared/skeletons";
 
 type SiiMode = "list" | "manual" | "gasto" | "settings";
 

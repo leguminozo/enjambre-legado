@@ -451,7 +451,11 @@ export function BandejaFiscalTab() {
 
           <div className="flex flex-wrap gap-2">
             {proveedoresQuery.isLoading ? (
-              <HexagonLoader size="sm" />
+              <>
+                <Skeleton variant="rectangular" className="w-24 h-8 rounded-full" />
+                <Skeleton variant="rectangular" className="w-28 h-8 rounded-full" />
+                <Skeleton variant="rectangular" className="w-20 h-8 rounded-full" />
+              </>
             ) : (
               proveedores.map((p) => (
                 <button

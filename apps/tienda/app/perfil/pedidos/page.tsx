@@ -41,20 +41,28 @@ export default async function PedidosPage() {
 
     if (ventasData && ventasData.length > 0) {
       const ventaIds = ventasData.map((v) => `venta:${v.id}`);
-      const { data: dtes } = await supabase
-        .from('facturas_emitidas')
-        .select('id, numero, estado_sii, idempotency_key, tipo_dte, xml_disponible')
-        .in('idempotency_key', ventaIds);
+      const rawVentaIds = ventasData.map((v) => v.id);
 
-      const { data: resenasData } = await supabase
-        .from('resenas_producto')
-        .select('id, estado, rating, venta_id')
-        .in('venta_id', ventasData.map((v) => v.id))
-        .eq('user_id', user.id);
+      // Concurrencia I/O: consultar DTEs y reseñas en paralelo
+      const [{ data: dtes }, { data: resenasData }] = await Promise.all([
+        supabase
+          .from('facturas_emitidas')
+          .select('id, numero, estado_sii, idempotency_key, tipo_dte, xml_disponible')
+          .in('idempotency_key', ventaIds),
+        supabase
+          .from('resenas_producto')
+          .select('id, estado, rating, venta_id')
+          .in('venta_id', rawVentaIds)
+          .eq('user_id', user.id),
+      ]);
+
+      // Compromiso Espacio-Tiempo (O(1) lookups en vez de O(N) scans por pedido)
+      const dteMap = new Map((dtes ?? []).map((d) => [d.idempotency_key, d]));
+      const resenaMap = new Map((resenasData ?? []).map((r) => [r.venta_id, r]));
 
       orders = ventasData.map((v) => {
-        const dte = dtes?.find((d) => d.idempotency_key === `venta:${v.id}`);
-        const resena = resenasData?.find((r) => r.venta_id === v.id);
+        const dte = dteMap.get(`venta:${v.id}`);
+        const resena = resenaMap.get(v.id);
 
         const rawItems = Array.isArray(v.productos) ? (v.productos as VentaItemJson[]) : [];
         const items = rawItems.map((item) => ({

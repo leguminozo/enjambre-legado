@@ -10,8 +10,10 @@ export const metadata = {
 };
 
 export default async function DireccionesPage() {
-  const t = await getTranslations('perfil.nav.links');
-  const direcciones = await getDirecciones();
+  const [t, direcciones] = await Promise.all([
+    getTranslations('perfil.nav.links'),
+    getDirecciones(),
+  ]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

@@ -122,4 +122,11 @@ export { GlassPanel } from './components/glass-panel';
 export { PanelFocusToggle, type PanelFocus } from './components/panel-focus-toggle';
 export { ConfirmDialog, type ConfirmDialogProps } from './components/confirm-dialog';
 export { QrCameraScanner, type QrCameraScannerProps } from './components/qr-camera-scanner';
+export {
+  ClubTierIcon,
+  CLUB_TIER_ICONS,
+  CLUB_TIER_ICONS_MAP,
+  type ClubTierIconProps,
+  type ClubTierIconOption,
+} from './components/club-tier-icon';
 

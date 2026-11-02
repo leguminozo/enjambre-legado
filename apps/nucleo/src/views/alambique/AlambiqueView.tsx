@@ -6,7 +6,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent,
   DataTable, Badge, Button, Dialog, DialogContent, DialogHeader, DialogTitle,
-  ViewLoading, LoadingOverlay, QRCode, toast, formatCLP, formatCalendarDate, type ColumnDef,
+  LoadingOverlay, QRCode, toast, formatCLP, formatCalendarDate, type ColumnDef,
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';

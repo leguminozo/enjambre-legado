@@ -17,16 +17,13 @@ export default async function BilleteraPage() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  let initialSnapshot = null;
-  if (user && session?.access_token) {
-    try {
-      initialSnapshot = await fetchWalletSnapshot(session.access_token);
-    } catch {
-      // Fail-soft: fallback a carga en cliente
-    }
-  }
+  const token = session?.access_token;
 
-  const [loyalty, referral] = await Promise.all([
+  // Concurrencia I/O: snapshot de billetera, loyalty y referidos en paralelo
+  const [initialSnapshot, loyalty, referral] = await Promise.all([
+    user && token
+      ? fetchWalletSnapshot(token).catch(() => null)
+      : Promise.resolve(null),
     getLoyaltyDashboard(),
     getReferralDashboard(),
   ]);

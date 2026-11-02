@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, Plus, Search } from 'lucide-react';
-import { Button, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, EmptyState, Input, Select, toast } from '@enjambre/ui';
+import { Button, ConfirmDialog, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, EmptyState, Input, Select, Skeleton, SkeletonCard, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { HojaCuaderno, NodoRedCuaderno, RedCuaderno, TratamientoRow, MuestraRow, NodoManualRow } from '@/lib/bitacora-types';
 import type { VarroaRow } from '@/lib/apicultor-types';
@@ -20,7 +20,13 @@ import { TratamientoForm } from './TratamientoForm';
 import { MuestraForm } from './MuestraForm';
 import { NodoManualForm } from './NodoManualForm';
 import { AristaForm } from './AristaForm';
-import { LienzoSemantico, type LayoutRed } from './LienzoSemantico';
+import type { LayoutRed } from './LienzoSemantico';
+import dynamic from 'next/dynamic';
+
+const LienzoSemantico = dynamic(
+  () => import('./LienzoSemantico').then((m) => m.LienzoSemantico),
+  { ssr: false },
+);
 import { PanelDetalleNodo } from './PanelDetalleNodo';
 import { DockEscena } from './DockEscena';
 
@@ -123,6 +129,8 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
   // Colmena pre-seleccionada al crear hoja desde un nodo de la red
   const [colmenaSeleccionadaNuevaHoja, setColmenaSeleccionadaNuevaHoja] = useState<string | null>(null);
 
+  const anyFormOpen = hojaOpen || varroaOpen || tratamientoOpen || muestraOpen || nodoOpen || aristaOpen;
+
   const { data: hojasData, isLoading: cargandoHojas } = useQuery<HojasResponse>({
     queryKey: ['bitacora-hojas'],
     queryFn: async () => {
@@ -133,7 +141,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
     staleTime: 30_000,
   });
 
-  const { data: redData } = useQuery<RedCuaderno>({
+  const { data: redData, isLoading: cargandoRed } = useQuery<RedCuaderno>({
     queryKey: ['bitacora-red'],
     queryFn: async () => {
       const res = await apiFetch('/api/bitacora/red');
@@ -145,7 +153,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
     enabled: vista === 'red',
   });
 
-  // Consulta directa a supabase cuando el prop `colmenas` está vacío o ausente
+  // Consulta bajo demanda a supabase solo cuando un formulario de captura está abierto
   const { data: directColmenasData } = useQuery<{ id: string; name: string | null }[]>({
     queryKey: ['cuaderno-colmenas-direct'],
     queryFn: async () => {
@@ -154,7 +162,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
       return (data ?? []).map((c: { id: string; name: string | null }) => ({ id: c.id, name: c.name ?? null }));
     },
     staleTime: 30_000,
-    enabled: !colmenas || colmenas.length === 0,
+    enabled: (!colmenas || colmenas.length === 0) && anyFormOpen,
   });
 
   const { data: directApiariosData } = useQuery<{ id: string; name: string | null }[]>({
@@ -165,6 +173,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
       return (data ?? []).map((a: { id: string; name: string | null }) => ({ id: a.id, name: a.name ?? null }));
     },
     staleTime: 30_000,
+    enabled: anyFormOpen,
   });
 
   useEffect(() => {
@@ -223,15 +232,23 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
     setHojaOpen(true);
   };
 
-  const eliminarHoja = async (hoja: HojaCuaderno) => {
-    if (!confirm(`¿Eliminar la hoja del ${hoja.date} de "${hoja.colmena?.name ?? 'colmena'}"? Esta acción no se puede deshacer.`)) return;
-    const res = await apiFetch(`/api/bitacora/inspecciones/${hoja.id}`, { method: 'DELETE' });
+  const [hojaAEliminar, setHojaAEliminar] = useState<HojaCuaderno | null>(null);
+  const [nodoAEliminar, setNodoAEliminar] = useState<NodoRedCuaderno | null>(null);
+
+  const eliminarHoja = (hoja: HojaCuaderno) => {
+    setHojaAEliminar(hoja);
+  };
+
+  const ejecutarEliminarHoja = async () => {
+    if (!hojaAEliminar) return;
+    const res = await apiFetch(`/api/bitacora/inspecciones/${hojaAEliminar.id}`, { method: 'DELETE' });
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       toast(json.message ?? 'No se pudo eliminar la hoja', { type: 'error' });
       return;
     }
     toast('Hoja eliminada', { type: 'success' });
+    setHojaAEliminar(null);
     queryClient.invalidateQueries({ queryKey: ['bitacora-hojas'] });
     queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
   };
@@ -386,12 +403,40 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
       toast('Este nodo no se puede eliminar desde aquí', { type: 'info' });
       return;
     }
-    if (!confirm(`¿Eliminar "${nodo.label}"? Esta acción no se puede deshacer.`)) return;
-    eliminarRegistro.mutate({ tipo: nodo.kind, rid: nodo.id });
+    setNodoAEliminar(nodo);
   };
 
   const conteos = redLocal?.meta.conteos ?? {};
   const brechas = redLocal?.meta.brechas ?? [];
+
+  const controlesAcciones = (
+    <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
+        {(['hojas', 'red'] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setVista(v)}
+            className={cn(
+              'px-4 h-9 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+              vista === v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
+            )}
+          >
+            {v === 'hojas' ? 'Hojas' : 'Mapa vivo'}
+          </button>
+        ))}
+      </div>
+      <AccionesCuadernoMenu
+        onHoja={(p) => abrirNuevaHoja(p)}
+        onVarroa={() => abrirVarroa()}
+        onTratamiento={() => abrirTratamiento()}
+        onMuestra={() => abrirMuestra()}
+        onNodo={() => {
+          setNodoEditando(null);
+          setNodoOpen(true);
+        }}
+      />
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -401,62 +446,10 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
           variant="clean"
           title="Cuaderno de Campo"
           subtitle="La red viva de tus colmenas: cada hoja registra una visita y se conecta con su historia sanitaria, su linaje y lo que aún no se ha registrado."
-          actions={
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
-                {(['hojas', 'red'] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setVista(v)}
-                    className={cn(
-                      'px-4 h-9 text-[11px] font-semibold uppercase tracking-wider transition-colors',
-                      vista === v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
-                    )}
-                  >
-                    {v === 'hojas' ? 'Hojas' : 'Mapa vivo'}
-                  </button>
-                ))}
-              </div>
-              <AccionesCuadernoMenu
-                onHoja={(p) => abrirNuevaHoja(p)}
-                onVarroa={() => abrirVarroa()}
-                onTratamiento={() => abrirTratamiento()}
-                onMuestra={() => abrirMuestra()}
-                onNodo={() => {
-                  setNodoEditando(null);
-                  setNodoOpen(true);
-                }}
-              />
-            </div>
-          }
+          actions={controlesAcciones}
         />
       ) : (
-        <div className="flex justify-end gap-2 shrink-0">
-          <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
-            {(['hojas', 'red'] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => setVista(v)}
-                className={cn(
-                  'px-4 h-9 text-[11px] font-semibold uppercase tracking-wider transition-colors',
-                  vista === v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
-                )}
-              >
-                {v === 'hojas' ? 'Hojas' : 'Mapa vivo'}
-              </button>
-            ))}
-          </div>
-          <AccionesCuadernoMenu
-            onHoja={(p) => abrirNuevaHoja(p)}
-            onVarroa={() => abrirVarroa()}
-            onTratamiento={() => abrirTratamiento()}
-            onMuestra={() => abrirMuestra()}
-            onNodo={() => {
-              setNodoEditando(null);
-              setNodoOpen(true);
-            }}
-          />
-        </div>
+        <div className="flex justify-end">{controlesAcciones}</div>
       )}
 
       {/* HUD del mapa vivo */}
@@ -504,7 +497,11 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
           </div>
 
           {cargandoHojas ? (
-            <p className="text-sm text-muted-foreground py-12 text-center">Cargando hojas…</p>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="Cargando hojas de cuaderno">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={i} lines={4} />
+              ))}
+            </div>
           ) : hojasFiltradas.length === 0 ? (
             <EmptyState
               theme="bosque"
@@ -515,7 +512,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
                   : 'Prueba buscando con otros términos o limpia el filtro de búsqueda.'
               }
               suggestion={hojas.length === 0 ? 'Puedes iniciar con una revisión general del estado de la cría o las reservas de miel.' : undefined}
-              action={<Button onClick={() => abrirNuevaHoja(null)}><Plus className="size-4 mr-1" /> Nueva entrada de bitácora</Button>}
+              action={<Button onClick={() => abrirNuevaHoja(null)}><Plus className="size-4 mr-1" /> Nueva hoja de visita</Button>}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -535,6 +532,19 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
             </div>
           )}
         </>
+      ) : cargandoRed && !redLocal ? (
+        <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-background p-6 flex flex-col justify-between animate-in" aria-busy="true" aria-label="Cargando red semántica">
+          <div className="flex items-center justify-between">
+            <Skeleton variant="text" className="w-48 h-5" />
+            <Skeleton variant="rectangular" className="w-28 h-8 rounded-full" />
+          </div>
+          <div className="flex-1 flex items-center justify-center py-12">
+            <Skeleton variant="circular" className="w-36 h-36 opacity-30" />
+          </div>
+          <div className="flex items-center justify-center">
+            <Skeleton variant="rectangular" className="w-64 h-11 rounded-full" />
+          </div>
+        </div>
       ) : (
         /* Vista Mapa vivo: lienzo semántico global */
         <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-background overflow-hidden">
@@ -657,6 +667,40 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
           }}
         />
       )}
+
+      {/* Diálogos de confirmación sin alerts nativos */}
+      <ConfirmDialog
+        open={Boolean(hojaAEliminar)}
+        onOpenChange={(open) => !open && setHojaAEliminar(null)}
+        title="¿Eliminar hoja de visita?"
+        description={
+          hojaAEliminar
+            ? `Se eliminará la hoja del ${hojaAEliminar.date} de "${hojaAEliminar.colmena?.name ?? 'colmena'}". Esta acción no se puede deshacer.`
+            : ''
+        }
+        confirmLabel="Eliminar hoja"
+        variant="destructive"
+        onConfirm={ejecutarEliminarHoja}
+      />
+
+      <ConfirmDialog
+        open={Boolean(nodoAEliminar)}
+        onOpenChange={(open) => !open && setNodoAEliminar(null)}
+        title="¿Eliminar nodo de la red?"
+        description={
+          nodoAEliminar
+            ? `Se eliminará "${nodoAEliminar.label}". Esta acción no se puede deshacer.`
+            : ''
+        }
+        confirmLabel="Eliminar nodo"
+        variant="destructive"
+        onConfirm={() => {
+          if (nodoAEliminar) {
+            eliminarRegistro.mutate({ tipo: nodoAEliminar.kind, rid: nodoAEliminar.id });
+            setNodoAEliminar(null);
+          }
+        }}
+      />
     </div>
   );
 }

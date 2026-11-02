@@ -69,6 +69,10 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../..'),
   turbopack: {},
   experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
     optimizePackageImports: ['@enjambre/ui', 'lucide-react', 'sonner', 'date-fns'],
   },
   images: {

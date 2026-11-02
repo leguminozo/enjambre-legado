@@ -104,28 +104,38 @@ export function ShopHeader() {
     if (notifOpen) setOpen(false);
   }, [notifOpen]);
 
-  // Altura real renderizada (incluye safe-area + logo): el panel móvil usa
-  // --tienda-header-actual-h con fallback a la fórmula estática en CSS.
-  // ResizeObserver cubre cambios de slider CMS, rotación y Dynamic Island.
+  // Altura real renderizada: amortiguada por requestAnimationFrame para evitar layout thrashing
   useEffect(() => {
     const el = headerRef.current;
     if (!el || typeof window === 'undefined') return;
     const root = document.documentElement;
+    let rafId: number | null = null;
+    let lastH = -1;
+
     const update = () => {
-      const h = el.getBoundingClientRect().height;
-      if (Number.isFinite(h) && h > 0) {
-        root.style.setProperty('--tienda-header-actual-h', `${Math.round(h)}px`);
-      }
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const h = Math.round(el.getBoundingClientRect().height);
+        if (Number.isFinite(h) && h > 0 && h !== lastH) {
+          lastH = h;
+          root.style.setProperty('--tienda-header-actual-h', `${h}px`);
+        }
+      });
     };
+
     update();
-    window.addEventListener('resize', update);
-    window.addEventListener('orientationchange', update);
     let ro: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(update);
       ro.observe(el);
+    } else {
+      window.addEventListener('resize', update);
+      window.addEventListener('orientationchange', update);
     }
+
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       window.removeEventListener('resize', update);
       window.removeEventListener('orientationchange', update);
       ro?.disconnect();
@@ -302,6 +312,7 @@ export function ShopHeader() {
       {settings.show_account && (
         <Link
           href={isAuthenticated ? '/perfil' : loginTarget}
+          prefetch={true}
           className="min-h-[44px] min-w-[44px] px-1.5 text-muted-foreground hover:text-accent transition-colors inline-flex items-center justify-center"
           aria-label={isAuthenticated ? tNav('myAccount') : tNav('access')}
           title={isAuthenticated ? tNav('myAccount') : tNav('access')}
@@ -313,6 +324,7 @@ export function ShopHeader() {
       {settings.show_cart && (
         <Link
           href="/carrito"
+          prefetch={true}
           data-testid="cart-link"
           className="relative group min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
           aria-label={tNav('cart')}
@@ -525,6 +537,7 @@ export function ShopHeader() {
                   {settings.show_cart && (
                     <Link
                       href="/carrito"
+                      prefetch={true}
                       className="flex w-full shrink-0 min-h-11 items-center font-light text-foreground hover:text-accent transition-colors"
                       style={mobileExtraFontStyle}
                       onClick={closeMenu}
@@ -536,6 +549,7 @@ export function ShopHeader() {
                   {settings.show_account && (
                     <Link
                       href={isAuthenticated ? '/perfil' : loginTarget}
+                      prefetch={true}
                       className="flex w-full shrink-0 min-h-11 items-center font-light italic text-accent-text transition-colors"
                       style={mobileExtraFontStyle}
                       onClick={closeMenu}

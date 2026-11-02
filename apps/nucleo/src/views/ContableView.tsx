@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
-import { ViewLoading, SkeletonTable, parseIntegerCLP } from "@enjambre/ui";
+import { SkeletonTable, parseIntegerCLP } from "@enjambre/ui";
 import { TrendingUp, FileText, Plus, Loader2 } from "lucide-react";
 import { useAuthStore } from "@enjambre/auth";
 import { formatCurrency, formatCalendarDate } from "@/lib/format";

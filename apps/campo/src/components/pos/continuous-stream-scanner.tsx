@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/pos/cart-context';
 import { db, type ProductoLocal } from '@/lib/offline/db';
@@ -69,6 +69,11 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
     });
   }, [isOpen]);
 
+  // Índice en memoria para resolución O(1) de escaneo continuo (30-60 fps)
+  const productosById = useMemo(() => {
+    return new Map(productos.map((p) => [p.id.toLowerCase(), p]));
+  }, [productos]);
+
   const stopCamera = useCallback(() => {
     isScanningRef.current = false;
     if (rafRef.current != null) {
@@ -122,8 +127,8 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
       }
       lastCodeTimeRef.current = { code, time: now };
 
-      // Estrategia 1: Coincidencia por ID de producto (UUID)
-      const byId = productos.find((p) => p.id.toLowerCase() === code.toLowerCase());
+      // Estrategia 1: Coincidencia O(1) por ID de producto (UUID)
+      const byId = productosById.get(code.toLowerCase());
       if (byId) {
         handleProductResolved(byId, code);
         return;
@@ -167,7 +172,7 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
       triggerScanFeedback('error');
       setUnresolvedCode(code);
     },
-    [productos, handleProductResolved],
+    [productos, productosById, handleProductResolved],
   );
 
   // Escuchar pistola lectora física conectada por Bluetooth o USB

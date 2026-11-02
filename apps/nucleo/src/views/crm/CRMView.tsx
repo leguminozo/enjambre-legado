@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import { ViewLoading } from "@enjambre/ui";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
 import { ClientesTab } from "./components/ClientesTab";

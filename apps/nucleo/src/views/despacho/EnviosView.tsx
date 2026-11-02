@@ -10,7 +10,7 @@ import {
   RotateCcw,
   CheckCircle2,
 } from 'lucide-react';
-import { toast, ViewLoading, formatCLP, Skeleton } from '@enjambre/ui';
+import { toast, formatCLP, Skeleton } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   EnvioComposerModal,

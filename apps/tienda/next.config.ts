@@ -109,6 +109,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["maplibre-gl", "@maplibre/maplibre-gl-leaflet"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
     optimizePackageImports: [
       '@enjambre/ui',
       'lucide-react',

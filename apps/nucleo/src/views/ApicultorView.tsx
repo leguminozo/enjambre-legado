@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Hexagon, ThermometerSun, Droplets, Warehouse, TreePine, ChevronDown } from 'lucide-react';
 import type { ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
-import { ViewLoading, Button } from '@enjambre/ui';
+import { Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { fetchPronostico } from '@/lib/meteo';
 import { resolveComunaCoords } from '@/lib/cliente-coords';
@@ -19,7 +19,10 @@ const ColmenaFicha = dynamic(
 );
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 
-import { GemeloApiario } from '../components/apicultor/GemeloApiario';
+const GemeloApiario = dynamic(
+  () => import('../components/apicultor/GemeloApiario').then((mod) => mod.GemeloApiario),
+  { ssr: false },
+);
 import type { TerritorialAlertInput } from '@/lib/hive-state';
 
 type ViewTab = 'colmenas' | 'apiarios' | 'sanidad';
@@ -84,32 +87,48 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         let resolvedZone = 'Pureo';
         let resolvedCoords: { lat: number; lng: number } | null = null;
 
-        if (uid) {
-          const treesRes = await apiFetch('/api/produccion/arboles');
-          if (treesRes.ok) {
-            const treesJson = await treesRes.json();
-            const totalTrees = (treesJson.data ?? []).reduce(
-              (sum: number, r: { cantidad?: number }) => sum + (Number(r.cantidad) || 0),
-              0,
-            );
-            setTreesCount(totalTrees);
-          }
+        // Fase 1: Concurrencia de E/S — Peticiones independientes en paralelo (Batching)
+        const [
+          treesRes,
+          actorRes,
+          apiariosRes,
+          estadoRes,
+          alertasRes,
+          costosRes,
+        ] = await Promise.all([
+          uid ? apiFetch('/api/produccion/arboles').catch(() => null) : Promise.resolve(null),
+          uid
+            ? supabase
+                .from('actores_registro')
+                .select('comuna, region')
+                .eq('user_id', uid)
+                .maybeSingle()
+            : Promise.resolve({ data: null }),
+          supabase.from('apiarios').select('*'),
+          apiFetch('/api/registro-territorial/apiarios/estado-operativo').catch(() => null),
+          supabase
+            .from('alertas_fitosanitarias')
+            .select('lat_aproximada, lng_aproximada, radio_km, estado, fecha_programada')
+            .in('estado', ['activa', 'programada']),
+          apiFetch('/api/bitacora/costos').catch(() => null),
+        ]);
 
-          // Ubicación de registro del actor (comuna declarada al acceder a la infraestructura)
-          const { data: actor } = await supabase
-            .from('actores_registro')
-            .select('comuna, region')
-            .eq('user_id', uid)
-            .maybeSingle();
-
-          if (actor?.comuna && actor.comuna.toLowerCase() !== 'desconocida') {
-            resolvedZone = actor.comuna;
-            resolvedCoords = resolveComunaCoords(actor.comuna);
-          }
+        if (treesRes && 'ok' in treesRes && treesRes.ok) {
+          const treesJson = await treesRes.json();
+          const totalTrees = (treesJson.data ?? []).reduce(
+            (sum: number, r: { cantidad?: number }) => sum + (Number(r.cantidad) || 0),
+            0,
+          );
+          setTreesCount(totalTrees);
         }
 
-        const { data: apiariosData } = await supabase.from('apiarios').select('*');
-        const list = (apiariosData as Tables<'apiarios'>[] | null) ?? [];
+        const actor = actorRes?.data;
+        if (actor?.comuna && actor.comuna.toLowerCase() !== 'desconocida') {
+          resolvedZone = actor.comuna;
+          resolvedCoords = resolveComunaCoords(actor.comuna);
+        }
+
+        const list = (apiariosRes?.data as Tables<'apiarios'>[] | null) ?? [];
         setApiarios(list);
         const apiarioMap = new Map(list.map((a) => [a.id, a]));
 
@@ -123,7 +142,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           resolvedCoords = { lat: list[0].lat, lng: list[0].lng };
         }
 
-        // Cargar pronóstico hiper-local del territorio del usuario
+        // Pronóstico hiper-local (no bloqueante)
         fetchPronostico(resolvedCoords).then((data) => {
           if (!data?.temperature_2m?.length) return;
           const hour = new Date().getHours();
@@ -136,9 +155,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           }
         });
 
-        // Cruce bidireccional: estado de cada apiario en el Registro Territorial.
-        const estadoRes = await apiFetch('/api/registro-territorial/apiarios/estado-operativo');
-        if (estadoRes.ok) {
+        // Registro territorial map
+        if (estadoRes && 'ok' in estadoRes && estadoRes.ok) {
           const estadoJson = (await estadoRes.json()) as { data: RegistroApiarioEstado[] };
           const map: Record<string, RegistroApiarioEstado> = {};
           for (const r of estadoJson.data ?? []) {
@@ -147,7 +165,43 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           setRegistroMap(map);
         }
 
-        // Regla estricta: Si el apicultor no tiene apiarios (list.length === 0), NO tiene colmenas activas.
+        // Alertas fitosanitarias activas → radio del gemelo
+        setTerritorialAlerts(
+          alertasRes?.data ? (alertasRes.data as TerritorialAlertInput[]) : [],
+        );
+
+        // Costos reales por colmena
+        const costosMap = new Map<
+          string,
+          { horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }
+        >();
+        if (costosRes && 'ok' in costosRes && costosRes.ok) {
+          const cj = (await costosRes.json()) as {
+            data: { colmena_id: string | null; horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }[];
+          };
+          for (const r of cj.data ?? []) {
+            if (r.colmena_id) {
+              costosMap.set(r.colmena_id, {
+                horas_anuales: r.horas_anuales,
+                costo_hora: r.costo_hora,
+                amortizacion_cajon: r.amortizacion_cajon,
+                insumos_anuales: r.insumos_anuales,
+              });
+            }
+          }
+        }
+        const costosDe = (id: string | null) => {
+          const r = id ? costosMap.get(id) : undefined;
+          return {
+            horas_anuales: Number(r?.horas_anuales ?? 0),
+            costo_hora: Number(r?.costo_hora ?? 0),
+            amortizacion_cajon: Number(r?.amortizacion_cajon ?? 12000),
+            insumos_anuales: Number(r?.insumos_anuales ?? 0),
+            produccion_kg: 0,
+          };
+        };
+
+        // Fase 2: Carga proyectada y austera de colmenas (evitando over-fetching masivo)
         if (list.length === 0) {
           setLocalColmenas([]);
         } else {
@@ -156,10 +210,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             .from('colmenas')
             .select(`
               *,
-              inspecciones (*),
-              varroa_records (*),
-              peso_records (*),
-              tratamientos (*)
+              inspecciones (id, date, varroa, reina, enjambrazon_riesgo, poblacion, marcos_cria, marcos_miel),
+              varroa_records (id, level, date, created_at),
+              peso_records (id, peso, date, created_at),
+              tratamientos (id, fecha, tipo)
             `)
             .in('apiario_id', apiarioIds);
 
@@ -171,38 +225,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
               .in('apiario_id', apiarioIds);
             colmenasData = flat.data;
           }
-
-          // B3: costos reales por colmena (antes se fabricaban con ceros).
-          const costosRes = await apiFetch('/api/bitacora/costos');
-          const costosMap = new Map<
-            string,
-            { horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }
-          >();
-          if (costosRes.ok) {
-            const cj = (await costosRes.json()) as {
-              data: { colmena_id: string | null; horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }[];
-            };
-            for (const r of cj.data ?? []) {
-              if (r.colmena_id) {
-                costosMap.set(r.colmena_id, {
-                  horas_anuales: r.horas_anuales,
-                  costo_hora: r.costo_hora,
-                  amortizacion_cajon: r.amortizacion_cajon,
-                  insumos_anuales: r.insumos_anuales,
-                });
-              }
-            }
-          }
-          const costosDe = (id: string | null) => {
-            const r = id ? costosMap.get(id) : undefined;
-            return {
-              horas_anuales: Number(r?.horas_anuales ?? 0),
-              costo_hora: Number(r?.costo_hora ?? 0),
-              amortizacion_cajon: Number(r?.amortizacion_cajon ?? 12000),
-              insumos_anuales: Number(r?.insumos_anuales ?? 0),
-              produccion_kg: 0,
-            };
-          };
 
           if (colmenasData?.length) {
             const mapped = (colmenasData as Tables<'colmenas'>[])
@@ -222,15 +244,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             setLocalColmenas([]);
           }
         }
-
-        // Alertas fitosanitarias activas → radio del gemelo (HiveState)
-        const { data: alertasData, error: alertasErr } = await supabase
-          .from('alertas_fitosanitarias')
-          .select('lat_aproximada, lng_aproximada, radio_km, estado, fecha_programada')
-          .in('estado', ['activa', 'programada']);
-        setTerritorialAlerts(
-          !alertasErr && alertasData ? (alertasData as TerritorialAlertInput[]) : [],
-        );
 
         // Auto-entrada: un solo apiario → entrar; id guardado inválido → limpiar
         if (list.length === 1 && list[0]) {

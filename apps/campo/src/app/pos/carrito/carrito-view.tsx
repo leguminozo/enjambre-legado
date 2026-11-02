@@ -10,7 +10,8 @@ import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult, CartLine } from '@/components/pos/types';
-import { HexagonLoader, ViewLoadingPlaceholder, formatCLP, friendlyError, parseNumberCLP, parseIntegerCLP } from '@enjambre/ui';
+import { HexagonLoader, formatCLP, friendlyError, parseNumberCLP, parseIntegerCLP } from '@enjambre/ui';
+import { CarritoSkeleton } from '@/components/pos/CarritoSkeleton';
 import { buildClaimUrl, getTiendaOrigin } from '@/lib/public-urls';
 import { generateWhatsAppReceiptText, buildWhatsAppShareUrl } from '@/lib/pos-receipt';
 import { db } from '@/lib/offline/db';
@@ -234,10 +235,12 @@ export function CarritoView() {
 
   const isSessionOpen = session?.session_status === 'open';
 
-  const consignacionIssues = getConsignacionIssues(lines, consignaciones, {
-    channel,
-    eventoActivo: feriaActiva,
-  });
+  const consignacionIssues = useMemo(() => {
+    return getConsignacionIssues(lines, consignaciones, {
+      channel,
+      eventoActivo: feriaActiva,
+    });
+  }, [lines, consignaciones, channel, feriaActiva]);
   const hasConsignacionBlock = consignacionIssues.length > 0;
 
   const confirmarVenta = useCallback(async () => {
@@ -406,7 +409,7 @@ export function CarritoView() {
   }, [setTerminalStep]);
 
   if (!ready) {
-    return <ViewLoadingPlaceholder label="Sincronizando carrito" className="py-20" />;
+    return <CarritoSkeleton />;
   }
 
   if (successData) {

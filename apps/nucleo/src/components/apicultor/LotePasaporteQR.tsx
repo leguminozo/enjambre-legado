@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ExternalLink, QrCode, ShieldAlert, ShieldCheck } from 'lucide-react';
-import { Badge, Button, QRCode, Spinner, toast, friendlyError } from '@enjambre/ui';
+import { Badge, Button, QRCode, Skeleton, Spinner, toast, friendlyError } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface QrData {
@@ -63,8 +63,12 @@ export function LotePasaporteQR({ loteId, compact = false }: { loteId: string; c
 
   if (loading && qr === undefined) {
     return (
-      <div className="flex justify-center py-3">
-        <Spinner size="sm" />
+      <div className={`flex items-center gap-3 ${compact ? '' : 'mt-2'}`} aria-busy="true">
+        <Skeleton variant="rectangular" className={`${compact ? 'w-[72px] h-[72px]' : 'w-24 h-24'} rounded-lg shrink-0`} />
+        <div className="flex flex-col gap-2 flex-1">
+          <Skeleton variant="text" className="w-24 h-4" />
+          <Skeleton variant="text" className="w-32 h-3" />
+        </div>
       </div>
     );
   }

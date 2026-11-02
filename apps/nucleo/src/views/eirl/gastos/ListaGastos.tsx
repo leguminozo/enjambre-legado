@@ -8,7 +8,7 @@ import { Badge } from "@enjambre/ui";
 import { ShoppingCart, Eye, Edit, Trash2, Plus, X } from "lucide-react";
 import { formatDate } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, ViewLoading, SkeletonTable } from '@enjambre/ui';
+import { toast, ImmersiveModal, SkeletonTable } from '@enjambre/ui';
 import { mapGastoFromApi, type Gasto } from './gasto-types';
 
 export type { Gasto };

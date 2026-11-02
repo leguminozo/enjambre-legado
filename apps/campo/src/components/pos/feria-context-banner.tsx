@@ -2,16 +2,16 @@
 
 import { Package, Store, AlertTriangle } from 'lucide-react';
 import { useFeriaContext } from './feria-context';
-import { ViewLoading } from '@enjambre/ui';
+import { Skeleton } from '@enjambre/ui';
 
 export function FeriaContextBanner() {
   const { loading, active, evento, consignaciones } = useFeriaContext();
 
   if (loading) {
     return (
-      <div className="border-b border-border bg-card/30 px-6 py-2">
-        <div className="max-w-5xl mx-auto flex justify-center">
-          <ViewLoading variant="inline" label="Contexto feria" hideLabel />
+      <div className="border-b border-border bg-card/30 px-6 py-2.5" aria-busy="true" aria-label="Cargando evento de feria">
+        <div className="max-w-5xl mx-auto flex items-center gap-2">
+          <Skeleton variant="text" className="w-56 h-3.5" />
         </div>
       </div>
     );

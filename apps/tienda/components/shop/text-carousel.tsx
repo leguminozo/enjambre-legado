@@ -121,14 +121,28 @@ export function TextCarousel() {
   ]);
 
   useEffect(() => {
-    if (dismissed || paused) {
+    if (
+      dismissed ||
+      paused ||
+      !isVisibilityActive ||
+      !announcement.enabled ||
+      slides.length <= 1
+    ) {
       stopTimers();
       return;
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     startTimers();
     return stopTimers;
-  }, [dismissed, paused, startTimers, stopTimers]);
+  }, [
+    dismissed,
+    paused,
+    isVisibilityActive,
+    announcement.enabled,
+    slides.length,
+    startTimers,
+    stopTimers,
+  ]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -148,8 +162,24 @@ export function TextCarousel() {
   }, []);
 
   useEffect(() => {
-    if (dismissed) return;
+    if (
+      dismissed ||
+      !isVisibilityActive ||
+      !announcement.enabled ||
+      slides.length <= 1
+    ) {
+      return;
+    }
     function handleKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
       if (e.key === 'ArrowRight') {
         setIndex((prev) => (prev + 1) % slideCount);
         stopTimers();
@@ -162,7 +192,15 @@ export function TextCarousel() {
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [dismissed, startTimers, stopTimers, slideCount]);
+  }, [
+    dismissed,
+    isVisibilityActive,
+    announcement.enabled,
+    slides.length,
+    startTimers,
+    stopTimers,
+    slideCount,
+  ]);
 
   const handleDismiss = () => {
     if (!announcement.dismissible) return;

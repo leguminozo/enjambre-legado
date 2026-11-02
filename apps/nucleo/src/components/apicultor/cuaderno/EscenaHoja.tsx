@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Pencil, FileText, History, Network, Hexagon, ChevronLeft, ChevronRight, Printer, Trash2, MoreVertical } from 'lucide-react';
-import { Button, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, toast } from '@enjambre/ui';
+import { Button, ConfirmDialog, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, toast } from '@enjambre/ui';
+import { EscenaHojaSkeleton } from '@/components/shared/skeletons';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { HojaDetalle, HojaCuaderno, NodoRedCuaderno, RedCuaderno, TratamientoRow, MuestraRow, NodoManualRow } from '@/lib/bitacora-types';
 import type { VarroaRow } from '@/lib/apicultor-types';
@@ -59,6 +60,8 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
   const [nodoOpen, setNodoOpen] = useState(false);
   const [nodoEditando, setNodoEditando] = useState<Omit<NodoManualRow, 'user_id'> | null>(null);
   const [aristaOpen, setAristaOpen] = useState(false);
+  const [nodoAEliminar, setNodoAEliminar] = useState<NodoRedCuaderno | null>(null);
+  const [confirmarEliminarHojaOpen, setConfirmarEliminarHojaOpen] = useState(false);
 
   const { data: detalle, isLoading } = useQuery<HojaDetalle>({
     queryKey: ['bitacora-hoja', id],
@@ -138,13 +141,11 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
   });
 
   const confirmarEliminar = (nodo: NodoRedCuaderno) => {
-    if (!confirm(`¿Eliminar "${nodo.label}"? Esta acción no se puede deshacer.`)) return;
-    if (nodo.kind === 'hoja') eliminarRegistro.mutate({ tipo: 'hoja', rid: nodo.id });
-    else if (nodo.kind === 'tratamiento') eliminarRegistro.mutate({ tipo: 'tratamiento', rid: nodo.id });
-    else if (nodo.kind === 'varroa') eliminarRegistro.mutate({ tipo: 'varroa', rid: nodo.id });
-    else if (nodo.kind === 'muestra') eliminarRegistro.mutate({ tipo: 'muestra', rid: nodo.id });
-    else if (nodo.kind === 'manual') eliminarRegistro.mutate({ tipo: 'nodo', rid: nodo.id });
-    else toast('Este nodo no se puede eliminar directamente', { type: 'info' });
+    if (!ENDPOINT_ELIMINAR[nodo.kind === 'manual' ? 'nodo' : nodo.kind]) {
+      toast('Este nodo no se puede eliminar directamente', { type: 'info' });
+      return;
+    }
+    setNodoAEliminar(nodo);
   };
 
   const editarNodo = (nodo: NodoRedCuaderno) => {
@@ -241,7 +242,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground py-16 text-center animate-pulse">Abriendo la hoja…</p>;
+    return <EscenaHojaSkeleton />;
   }
   if (!detalle) {
     return (
@@ -352,11 +353,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               destructive
-              onSelect={() => {
-                if (confirm(`¿Eliminar la hoja de visita del ${hoja.date}? Esta acción no se puede deshacer.`)) {
-                  eliminarRegistro.mutate({ tipo: 'hoja', rid: id });
-                }
-              }}
+              onSelect={() => setConfirmarEliminarHojaOpen(true)}
             >
               <Trash2 className="size-3.5 mr-2" /> Eliminar hoja
             </DropdownMenuItem>
@@ -816,6 +813,40 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
           onSaved={() => setPendienteArista(null)}
         />
       )}
+
+      {/* Diálogos de confirmación sin alerts nativos */}
+      <ConfirmDialog
+        open={confirmarEliminarHojaOpen}
+        onOpenChange={setConfirmarEliminarHojaOpen}
+        title="¿Eliminar hoja de visita?"
+        description={`Se eliminará la hoja de visita del ${detalle?.hoja.date ?? ''}. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar hoja"
+        variant="destructive"
+        onConfirm={() => {
+          eliminarRegistro.mutate({ tipo: 'hoja', rid: id });
+          setConfirmarEliminarHojaOpen(false);
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(nodoAEliminar)}
+        onOpenChange={(open) => !open && setNodoAEliminar(null)}
+        title="¿Eliminar registro de la red?"
+        description={
+          nodoAEliminar
+            ? `Se eliminará "${nodoAEliminar.label}". Esta acción no se puede deshacer.`
+            : ''
+        }
+        confirmLabel="Eliminar"
+        variant="destructive"
+        onConfirm={() => {
+          if (nodoAEliminar) {
+            const tipo = (nodoAEliminar.kind === 'manual' ? 'nodo' : nodoAEliminar.kind) as keyof typeof ENDPOINT_ELIMINAR;
+            eliminarRegistro.mutate({ tipo, rid: nodoAEliminar.id });
+            setNodoAEliminar(null);
+          }
+        }}
+      />
     </div>
   );
 }

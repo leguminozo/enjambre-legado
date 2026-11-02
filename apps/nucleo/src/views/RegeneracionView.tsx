@@ -21,7 +21,7 @@ import {
   X,
 } from 'lucide-react';
 
-import { toast, friendlyError, ViewLoading, ImmersiveModal, cn } from '@enjambre/ui';
+import { toast, friendlyError, ImmersiveModal, cn } from '@enjambre/ui';
 import { ModuloGenericoSkeleton } from '@/components/shared/skeletons';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';

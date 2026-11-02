@@ -26,10 +26,19 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
   const [realtimeOn, setRealtimeOn] = useState(false);
   const pathname = usePathname();
   const { itemCount: cartItemCount } = useCartLines();
+  const mainContentRef = React.useRef<HTMLElement>(null);
 
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
     enableRealtime: realtimeOn,
   });
+
+  // Restaurar scroll del contenedor interno al intercambiar pestañas/secciones
+  React.useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    setSidebarOpen(false);
+  }, [pathname]);
 
   React.useEffect(() => {
     document.body.classList.add('perfil-shell-active');
@@ -72,6 +81,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
           <div className="flex items-center gap-3">
             <Link
               href="/catalogo"
+              prefetch={true}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border/60 bg-surface-raised/40 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
             >
               <Grid3X3 size={15} />
@@ -80,6 +90,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
 
             <Link
               href="/carrito"
+              prefetch={true}
               className="relative inline-flex items-center justify-center p-2 min-h-[36px] min-w-[36px] text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Bolsa de compras"
             >
@@ -104,7 +115,10 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar relative z-10 perfil-shell-content">
+        <main
+          ref={mainContentRef}
+          className="flex-1 overflow-y-auto custom-scrollbar relative z-10 perfil-shell-content"
+        >
           <div className="max-w-6xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 w-full animate-in">
             {children}
           </div>

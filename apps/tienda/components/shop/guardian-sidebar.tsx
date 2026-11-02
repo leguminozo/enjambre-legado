@@ -41,6 +41,13 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // Precargar rutas críticas del menú de cuenta
+  React.useEffect(() => {
+    router.prefetch('/perfil/ajustes');
+    router.prefetch('/perfil/direcciones');
+    router.prefetch('/perfil/logros');
+  }, [router]);
+
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
@@ -167,6 +174,8 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                     <Link
                       key={link.href}
                       href={link.href}
+                      prefetch={true}
+                      scroll={false}
                       onClick={onClose}
                       aria-current={active ? 'page' : undefined}
                       className={`guardian-nav-link group ${active ? 'is-active' : ''}`}

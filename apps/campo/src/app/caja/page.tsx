@@ -105,6 +105,7 @@ function CajaContent() {
             </div>
             <Link
               href="/pos"
+              prefetch={true}
               className="inline-flex items-center gap-1.5 min-h-11 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all shrink-0"
             >
               <Store size={14} />
@@ -124,6 +125,7 @@ function CajaContent() {
           </div>
           <Link
             href="/pos/historial?tab=sessions"
+            prefetch={true}
             className="text-xs text-primary hover:underline font-medium"
           >
             Ver historial completo &rarr;

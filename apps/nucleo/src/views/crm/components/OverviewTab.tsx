@@ -18,6 +18,10 @@ interface OverviewTabProps {
 export function OverviewTab({ dashboard }: OverviewTabProps) {
   const stats = dashboard.stats;
 
+  const clientesMap = React.useMemo(() => {
+    return new Map(dashboard.clientes.map((c) => [c.id, c]));
+  }, [dashboard.clientes]);
+
   const channelData = Object.entries(stats.channelRevenue).map(([ch, rev]) => ({
     name: ch,
     revenue: Number(rev),
@@ -189,7 +193,7 @@ export function OverviewTab({ dashboard }: OverviewTabProps) {
           </div>
           <div className="space-y-2">
             {dashboard.interacciones.slice(0, 8).map((inter) => {
-              const cliente = dashboard.clientes.find((c) => c.id === inter.cliente_id);
+              const cliente = clientesMap.get(inter.cliente_id);
               return (
                 <div
                   key={inter.id}

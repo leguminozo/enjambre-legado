@@ -48,12 +48,14 @@ export function InventarioView() {
 
   const loadAlertas = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/inventario/alertas');
+      const [res, { supabase }] = await Promise.all([
+        apiFetch('/api/inventario/alertas'),
+        import('@/lib/supabase'),
+      ]);
       const json = res.ok ? await res.json() : { meta: { total: 0, por_clase: {} } };
       const porClase = { ...((json.meta?.por_clase as Record<string, number>) ?? {}) };
 
       try {
-        const { supabase } = await import('@/lib/supabase');
         const { data: prods } = await supabase
           .from('productos')
           .select('id, stock')
@@ -76,7 +78,7 @@ export function InventarioView() {
 
   useEffect(() => {
     void loadAlertas();
-  }, [loadAlertas, clase, refreshKey]);
+  }, [loadAlertas, refreshKey]);
 
   const meta = INVENTARIO_CLASES.find((c) => c.id === clase)!;
 

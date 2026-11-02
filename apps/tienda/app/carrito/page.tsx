@@ -3,14 +3,14 @@ import dynamic from 'next/dynamic';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { ViewLoadingFallback } from '@enjambre/ui';
+import { CarritoTiendaSkeleton } from '@/components/shop/carrito-skeleton';
 import { getSiteContent } from '@/lib/cms';
 import { shippingRatesConfigFromRaw } from '@enjambre/logistica';
 
 const CarritoClient = dynamic(
   () => import('./ui').then((m) => m.CarritoClient),
   {
-    loading: () => <ViewLoadingFallback label="Carrito" />,
+    loading: () => <CarritoTiendaSkeleton />,
   },
 );
 

@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading, Skeleton, parseIntegerCLP, parseNumberCLP } from '@enjambre/ui';
+import { toast, ImmersiveModal, DatePicker, formatCLP, Skeleton, parseIntegerCLP, parseNumberCLP } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useShellLayout } from '@/hooks/use-shell-layout';

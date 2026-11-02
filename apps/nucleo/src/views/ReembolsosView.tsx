@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { RotateCcw, Plus, CheckCircle, AlertCircle, Clock, FileText, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -88,9 +88,31 @@ export function ReembolsosView(_props: ReembolsosViewProps = {}) {
   const reembolsos = data?.data || [];
   const ventasCandidatas = candidatasData?.data || [];
 
+  const stats = useMemo(() => {
+    let totalCompletado = 0;
+    let pendientesCount = 0;
+    let completadosCount = 0;
+
+    for (const r of reembolsos) {
+      if (r.estado === 'completado') {
+        totalCompletado += r.monto_reembolso;
+        completadosCount++;
+      } else if (r.estado === 'pendiente') {
+        pendientesCount++;
+      }
+    }
+
+    const tasaExito = reembolsos.length ? Math.round((completadosCount / reembolsos.length) * 100) : 0;
+    return { totalCompletado, pendientesCount, tasaExito };
+  }, [reembolsos]);
+
+  const ventasCandidatasById = useMemo(() => {
+    return new Map(ventasCandidatas.map((v) => [v.id, v]));
+  }, [ventasCandidatas]);
+
   const handleSelectVenta = (ventaId: string) => {
     setSelectedVentaId(ventaId);
-    const venta = ventasCandidatas.find((v) => v.id === ventaId);
+    const venta = ventasCandidatasById.get(ventaId);
     if (venta) {
       setMontoReembolso(venta.total);
       if (venta.dte) {
@@ -180,28 +202,19 @@ export function ReembolsosView(_props: ReembolsosViewProps = {}) {
         <div className="bg-card border border-border p-4 rounded-xl">
           <p className="text-sm text-muted-foreground font-medium">Reembolsado este mes</p>
           <p className="text-2xl font-bold mt-1 text-foreground">
-            {formatCLP(
-              reembolsos
-                .filter((r) => r.estado === 'completado')
-                .reduce((acc, r) => acc + r.monto_reembolso, 0),
-            )}
+            {formatCLP(stats.totalCompletado)}
           </p>
         </div>
         <div className="bg-card border border-border p-4 rounded-xl">
           <p className="text-sm text-muted-foreground font-medium">Pendientes de proceso</p>
           <p className="text-2xl font-bold mt-1 text-foreground">
-            {reembolsos.filter((r) => r.estado === 'pendiente').length}
+            {stats.pendientesCount}
           </p>
         </div>
         <div className="bg-card border border-border p-4 rounded-xl">
           <p className="text-sm text-muted-foreground font-medium">Tasa de éxito</p>
           <p className="text-2xl font-bold mt-1 text-foreground">
-            {reembolsos.length
-              ? Math.round(
-                  (reembolsos.filter((r) => r.estado === 'completado').length / reembolsos.length) * 100,
-                )
-              : 0}
-            %
+            {stats.tasaExito}%
           </p>
         </div>
       </div>

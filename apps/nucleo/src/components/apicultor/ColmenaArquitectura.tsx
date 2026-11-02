@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Crown, Sparkles, Layers, X } from 'lucide-react';
 import type { ColmenaWithRelations, VarroaRow, InspeccionRow } from '@/lib/apicultor-types';
 import type { InspeccionCuadrosEnHistorial, InspeccionCuadroRow, TipoCuadro, CuerpoCuadro } from '@/lib/bitacora-types';
@@ -71,9 +71,18 @@ export function ColmenaArquitectura({
                 ? { label: `${varroaLevel}% · Vigilancia`, colorClass: 'text-amber-500', dotClass: 'bg-amber-500' }
                 : { label: `${varroaLevel}% · Umbral crítico`, colorClass: 'text-destructive', dotClass: 'bg-destructive' };
 
+    // Mapa indexado O(1) para resolver la biología de cada cuadro sin escanear arrays en cada frame
+    const cuadrosMap = useMemo(() => {
+        const m = new Map<string, InspeccionCuadroRow>();
+        for (const c of cuadrosRegistrados) {
+            m.set(`${c.cuerpo}_${c.posicion}`, c);
+        }
+        return m;
+    }, [cuadrosRegistrados]);
+
     // Helper para determinar el tipo de un cuadro en la cámara de cría
     const getCuadroCamaraInfo = (pos: number): { tipo: string; label: string; isSelected: boolean } => {
-        const found = cuadrosRegistrados.find(c => c.cuerpo === 'camara' && c.posicion === pos);
+        const found = cuadrosMap.get(`camara_${pos}`);
         let tipo = found?.tipo ?? '';
         if (!tipo) {
             if (pos === 1 || pos === 10) {
@@ -92,7 +101,7 @@ export function ColmenaArquitectura({
     // Helper para determinar el tipo de un cuadro en un alza melaria
     const getCuadroAlzaInfo = (alzaIdx: number, pos: number): { tipo: string; label: string; isSelected: boolean } => {
         const cuerpoKey = `alza_${alzaIdx}` as const;
-        const found = cuadrosRegistrados.find(c => c.cuerpo === cuerpoKey && c.posicion === pos);
+        const found = cuadrosMap.get(`${cuerpoKey}_${pos}`);
         let tipo = found?.tipo ?? '';
         if (!tipo) {
             if (marcosMiel != null && pos <= marcosMiel) {

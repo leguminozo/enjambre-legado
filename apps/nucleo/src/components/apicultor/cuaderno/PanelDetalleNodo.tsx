@@ -67,7 +67,13 @@ export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaH
             {KIND_ICON[nodo.kind]}
             {NODO_KIND_LABEL[nodo.kind]}
           </span>
-          <Button variant="ghost" className="h-8 w-8" onClick={onClose}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onClose}
+            aria-label="Cerrar panel de detalle"
+            title="Cerrar"
+          >
             <X className="size-4" />
           </Button>
         </div>
@@ -122,7 +128,12 @@ export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaH
               {nodo.blockchain_hash && (
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[10px] text-muted-foreground bg-background/80 border border-border/60 rounded px-1.5 py-0.5">{hashCorto}</span>
-                  <button onClick={copiarHash} className="text-muted-foreground hover:text-foreground transition-colors" title="Copiar hash">
+                  <button
+                    onClick={copiarHash}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    title="Copiar sello de autenticidad"
+                    aria-label="Copiar sello de autenticidad"
+                  >
                     {copiado ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
                   </button>
                 </div>

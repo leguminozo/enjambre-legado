@@ -16,7 +16,8 @@ import { CalendarioCiclico } from '@/components/apicultor/CalendarioCiclico';
 import { createClient } from '@enjambre/auth/browser';
 import { useAuthStore } from '@enjambre/auth';
 import { useEmpresaId } from '@/hooks/use-empresa-id';
-import { ViewLoading, toast, friendlyError } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
+import { CalendarioSkeleton } from '@/components/shared/skeletons';
 import {
   startOfMonth,
   endOfMonth,
@@ -281,7 +282,7 @@ export default function CalendarioPage() {
       ) : (
         <div className="min-w-0">
           {isLoading && events.length === 0 ? (
-            <ViewLoading label="Sincronizando calendario..." />
+            <CalendarioSkeleton />
           ) : (
             <Calendario
               events={events}

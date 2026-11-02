@@ -2,6 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import { ViewLoading, BrandWordmark } from '@enjambre/ui';
+import { CarritoTiendaSkeleton } from '@/components/shop/carrito-skeleton';
+import ClubLegadoLoading from './club-legado-del-bosque/loading';
 
 const ROUTE_LABELS: Record<string, string> = {
   '/catalogo': 'Abriendo el catálogo',
@@ -35,6 +37,14 @@ export default function TiendaLoading() {
 
   if (pathname === '/catalogo') {
     return <CatalogSkeleton />;
+  }
+
+  if (pathname === '/carrito') {
+    return <CarritoTiendaSkeleton />;
+  }
+
+  if (pathname === '/club-legado-del-bosque') {
+    return <ClubLegadoLoading />;
   }
 
   return (

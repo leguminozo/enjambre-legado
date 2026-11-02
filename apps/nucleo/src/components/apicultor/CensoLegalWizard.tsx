@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
-import { Badge, Button, Spinner, toast } from '@enjambre/ui';
+import { Badge, Button, Skeleton, SkeletonCard, Spinner, toast } from '@enjambre/ui';
 import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 
 const COMUNAS_CHILOE_CENSO = [
@@ -611,7 +611,10 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
               {id === 'apiarios' && (
                 <div className="space-y-4">
                   {loadingApiarios ? (
-                    <div className="flex justify-center py-6"><Spinner /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3" aria-busy="true">
+                      <SkeletonCard lines={2} />
+                      <SkeletonCard lines={2} />
+                    </div>
                   ) : apiarios.length === 0 ? (
                     <p className="text-sm text-muted-foreground border border-dashed border-border/60 rounded-xl p-4 text-center">
                       Aún no has declarado apiarios. Agrega el primero: la ley exige la ubicación (sector o paraje) y el número de colmenas de cada uno.
@@ -827,7 +830,10 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                         Registro con un clic (el número de colmenas se cuenta en vivo).
                       </p>
                       {loadingPendientes ? (
-                        <div className="flex justify-center py-3"><Spinner /></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2" aria-busy="true">
+                          <Skeleton variant="rectangular" className="h-12 rounded-xl" />
+                          <Skeleton variant="rectangular" className="h-12 rounded-xl" />
+                        </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {pendientes.map((op) => (

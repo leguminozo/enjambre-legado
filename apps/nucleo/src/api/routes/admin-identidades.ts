@@ -43,6 +43,7 @@ const CrearCuentaSchema = z.object({
     "creador",
     "disenador",
   ]),
+  perfil_acceso_id: z.string().uuid().nullable().optional(),
   rolTerritorial: RolTerritorialSchema.optional(),
   comuna: z.string().optional(),
 });
@@ -85,7 +86,7 @@ adminIdentidadesRoutes.post(
   "/crear-cuenta",
   zValidator("json", CrearCuentaSchema),
   async (c) => {
-    const { email, password, fullName, role, rolTerritorial, comuna } =
+    const { email, password, fullName, role, perfil_acceso_id, rolTerritorial, comuna } =
       c.req.valid("json");
 
     const admin = createAdminClient();
@@ -107,9 +108,11 @@ adminIdentidadesRoutes.post(
           ? "nucleo_apicultor"
           : role === "operador"
             ? "nucleo_operador"
-            : role === "disenador"
-              ? "nucleo_disenador"
-              : "nucleo_admin_created";
+            : role === "colaborador"
+              ? "nucleo_colaborador"
+              : role === "disenador"
+                ? "nucleo_disenador"
+                : "nucleo_admin_created";
 
     const { data: authData, error: authError } =
       await admin.auth.admin.createUser({
@@ -133,10 +136,17 @@ adminIdentidadesRoutes.post(
       });
 
     if (authError) {
+      let friendlyMsg = authError.message || "No se pudo crear la cuenta";
+      const lower = friendlyMsg.toLowerCase();
+      if (lower.includes("already been registered") || lower.includes("already registered")) {
+        friendlyMsg = "Ya existe una cuenta registrada con este correo electrónico.";
+      } else if (lower.includes("password") && lower.includes("characters")) {
+        friendlyMsg = "La contraseña debe tener al menos 8 caracteres.";
+      }
       return c.json(
         {
           code: "auth_create_failed",
-          message: authError.message || "No se pudo crear la cuenta",
+          message: friendlyMsg,
         },
         400
       );
@@ -153,6 +163,7 @@ adminIdentidadesRoutes.post(
           email,
           full_name: fullName,
           role,
+          perfil_acceso_id: role === "colaborador" ? (perfil_acceso_id ?? null) : null,
         },
         { onConflict: "id" }
       );
@@ -164,8 +175,8 @@ adminIdentidadesRoutes.post(
       );
     }
 
-    // 3. Vincular a la empresa del admin: admin, operador, apicultor o rep
-    if (role === "admin" || role === "apicultor" || role === "rep_ventas" || role === "operador") {
+    // 3. Vincular a la empresa del admin: admin, operador, colaborador, apicultor o rep
+    if (role === "admin" || role === "apicultor" || role === "rep_ventas" || role === "operador" || role === "colaborador") {
       const empresaId = c.get("empresaId");
       if (empresaId) {
         const empresaRol = role === "admin" ? "admin" : "operador";
@@ -231,7 +242,10 @@ adminIdentidadesRoutes.get("/usuarios", async (c) => {
   }
 
   if (q) {
-    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
+    const cleanQ = q.replace(/[,()]/g, " ").trim();
+    if (cleanQ) {
+      query = query.or(`full_name.ilike.%${cleanQ}%,email.ilike.%${cleanQ}%`);
+    }
   }
 
   const { data, error, count } = await query;
@@ -295,8 +309,20 @@ adminIdentidadesRoutes.patch(
   "/usuarios/:id/rol",
   zValidator("json", CambiarRolSchema),
   async (c) => {
-    const id = c.req.param("id");
+    const currentUserId = c.get("user")?.id;
+    const targetId = c.req.param("id");
     const { role: newRole, perfil_acceso_id } = c.req.valid("json");
+
+    // 1. Impedir auto-democión de cuenta administradora activa
+    if (currentUserId && currentUserId === targetId && newRole !== "admin") {
+      return c.json(
+        {
+          code: "cannot_demote_self",
+          message: "No puedes degradar tu propia cuenta administradora activa. Solicita el cambio a otro administrador.",
+        },
+        400
+      );
+    }
 
     const admin = createAdminClient();
     if (!admin) {
@@ -306,11 +332,11 @@ adminIdentidadesRoutes.patch(
       );
     }
 
-    // 1. Obtener perfil actual
+    // 2. Obtener perfil actual
     const { data: profile, error: profileErr } = await admin
       .from("profiles")
       .select("id, email, full_name, role")
-      .eq("id", id)
+      .eq("id", targetId)
       .maybeSingle();
 
     if (profileErr || !profile) {
@@ -320,16 +346,34 @@ adminIdentidadesRoutes.patch(
       );
     }
 
-    // 2. Actualizar profiles.role y perfil_acceso_id
-    const updatePayload: Record<string, unknown> = { role: newRole };
-    if (perfil_acceso_id !== undefined) {
-      updatePayload.perfil_acceso_id = perfil_acceso_id;
+    // 3. Impedir degradar al único administrador del sistema
+    if (profile.role === "admin" && newRole !== "admin") {
+      const { count: adminCount, error: countErr } = await admin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+
+      if (!countErr && (adminCount ?? 0) <= 1) {
+        return c.json(
+          {
+            code: "cannot_demote_last_admin",
+            message: "No es posible degradar al único administrador de la plataforma.",
+          },
+          400
+        );
+      }
     }
 
-    const { error: updateErr } = await (admin)
+    // 4. Actualizar profiles.role y perfil_acceso_id (limpiar perfil si no es colaborador)
+    const updatePayload: Record<string, unknown> = {
+      role: newRole,
+      perfil_acceso_id: newRole === "colaborador" ? (perfil_acceso_id ?? null) : null,
+    };
+
+    const { error: updateErr } = await admin
       .from("profiles")
       .update(updatePayload)
-      .eq("id", id);
+      .eq("id", targetId);
 
     if (updateErr) {
       return c.json(
@@ -338,28 +382,45 @@ adminIdentidadesRoutes.patch(
       );
     }
 
-    // 3. Sincronizar membresía de empresa si es admin, operador, colaborador, apicultor o rep
+    // 5. Sincronizar auth.users.app_metadata.role para mantener el JWT y middleware alineados
+    try {
+      await admin.auth.admin.updateUserById(targetId, {
+        app_metadata: { role: newRole },
+      });
+    } catch (authSyncErr) {
+      console.warn("[admin-identidades] Advertencia sincronizando app_metadata.role:", authSyncErr);
+    }
+
+    // 6. Sincronizar membresía de empresa según el nuevo rol
     const empresaId = c.get("empresaId");
-    if (
-      empresaId &&
-      (newRole === "admin" ||
+    if (empresaId) {
+      if (
+        newRole === "admin" ||
         newRole === "operador" ||
         newRole === "colaborador" ||
         newRole === "apicultor" ||
-        newRole === "rep_ventas")
-    ) {
-      const empresaRol = newRole === "admin" ? "admin" : "operador";
-      await admin.from("usuarios_empresas").upsert(
-        { user_id: id, empresa_id: empresaId, rol: empresaRol },
-        { onConflict: "user_id,empresa_id" }
-      );
+        newRole === "rep_ventas"
+      ) {
+        const empresaRol = newRole === "admin" ? "admin" : "operador";
+        await admin.from("usuarios_empresas").upsert(
+          { user_id: targetId, empresa_id: empresaId, rol: empresaRol },
+          { onConflict: "user_id,empresa_id" }
+        );
+      } else {
+        // Si el usuario pasa a cliente o creador, removerlo de la gestión interna de la empresa
+        await admin
+          .from("usuarios_empresas")
+          .delete()
+          .eq("user_id", targetId)
+          .eq("empresa_id", empresaId);
+      }
     }
 
-    // 4. Si es rep_ventas, asegurar rep_profiles
+    // 7. Si es rep_ventas, asegurar rep_profiles
     if (empresaId && newRole === "rep_ventas") {
       await admin.from("rep_profiles").upsert(
         {
-          user_id: id,
+          user_id: targetId,
           empresa_id: empresaId,
           display_name: profile.full_name || profile.email || "Representante",
           active: true,
@@ -370,9 +431,9 @@ adminIdentidadesRoutes.patch(
 
     return c.json({
       ok: true,
-      id,
+      id: targetId,
       role: newRole,
-      perfil_acceso_id: perfil_acceso_id ?? null,
+      perfil_acceso_id: newRole === "colaborador" ? (perfil_acceso_id ?? null) : null,
       message: `Rol actualizado correctamente a ${newRole} para ${profile.full_name || profile.email}`,
     });
   }
@@ -383,79 +444,168 @@ adminIdentidadesRoutes.patch(
 // ---------------------------------------------------------------------------
 
 adminIdentidadesRoutes.delete("/usuarios/:id", async (c) => {
-  const currentUserId = c.get("user")?.id;
-  const targetId = c.req.param("id");
+  try {
+    const currentUserId = c.get("user")?.id;
+    const targetId = c.req.param("id");
 
-  if (currentUserId && currentUserId === targetId) {
-    return c.json(
-      {
-        code: "cannot_delete_self",
-        message: "No puedes eliminar tu propia cuenta administradora con la sesión activa.",
-      },
-      400
-    );
-  }
-
-  const admin = createAdminClient();
-  if (!admin) {
-    return c.json(
-      { code: "admin_client_unavailable", message: "Servicio administrativo no disponible" },
-      503
-    );
-  }
-
-  // 1. Obtener datos del usuario a eliminar
-  const { data: targetProfile, error: profileErr } = await admin
-    .from("profiles")
-    .select("id, email, full_name, role")
-    .eq("id", targetId)
-    .maybeSingle();
-
-  if (profileErr) {
-    return c.json({ code: "fetch_failed", message: profileErr.message }, 500);
-  }
-
-  if (!targetProfile) {
-    return c.json({ code: "user_not_found", message: "Usuario no encontrado" }, 404);
-  }
-
-  // 2. Si el usuario es admin, impedir borrar el último admin del sistema
-  if (targetProfile.role === "admin") {
-    const { count: adminCount, error: countErr } = await admin
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
-
-    if (!countErr && (adminCount ?? 0) <= 1) {
+    if (currentUserId && currentUserId === targetId) {
       return c.json(
         {
-          code: "cannot_delete_last_admin",
-          message: "No es posible eliminar al único administrador del sistema.",
+          code: "cannot_delete_self",
+          message: "No puedes eliminar tu propia cuenta administradora con la sesión activa.",
         },
         400
       );
     }
-  }
 
-  // 3. Eliminar de Supabase Auth (el cascade de Postgres limpia profiles, usuarios_empresas, etc.)
-  const { error: deleteAuthErr } = await admin.auth.admin.deleteUser(targetId);
-  if (deleteAuthErr && !deleteAuthErr.message.toLowerCase().includes("not found")) {
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch (clientErr) {
+      console.error("[admin-identidades] Error inicializando createAdminClient:", clientErr);
+      return c.json(
+        { code: "admin_client_unavailable", message: "Servicio administrativo no disponible" },
+        503
+      );
+    }
+
+    if (!admin) {
+      return c.json(
+        { code: "admin_client_unavailable", message: "Servicio administrativo no disponible" },
+        503
+      );
+    }
+
+    // 1. Obtener datos del perfil a eliminar
+    const { data: targetProfile, error: profileErr } = await admin
+      .from("profiles")
+      .select("id, email, full_name, role")
+      .eq("id", targetId)
+      .maybeSingle();
+
+    if (profileErr) {
+      console.error("[admin-identidades] Error consultando targetProfile:", profileErr);
+      return c.json({ code: "fetch_failed", message: "Error al consultar la cuenta a eliminar" }, 500);
+    }
+
+    // 2. Si el usuario es admin, impedir borrar el último admin del sistema
+    if (targetProfile?.role === "admin") {
+      const { count: adminCount, error: countErr } = await admin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+
+      if (!countErr && (adminCount ?? 0) <= 1) {
+        return c.json(
+          {
+            code: "cannot_delete_last_admin",
+            message: "No es posible eliminar al único administrador del sistema.",
+          },
+          400
+        );
+      }
+    }
+
+    // 3. Desarmar dependencias de Foreign Key en cascada previa antes de borrar auth.users
+    // (Previene errores 23503 foreign_key_violation en tablas que no tienen ON DELETE CASCADE)
+    try {
+      // A. Tablas donde debemos reasignar al admin activo (custodia y ledger criptográfico no-nulo)
+      if (currentUserId) {
+        await Promise.allSettled([
+          admin.from("invitation_codes").update({ created_by: currentUserId }).eq("created_by", targetId),
+          admin.from("bitacora_eventos").update({ created_by: currentUserId }).eq("created_by", targetId),
+        ]);
+      }
+
+      // B. Tablas históricas/transaccionales donde se debe anonimizar (SET NULL) para preservar auditoría legal
+      await Promise.allSettled([
+        admin.from("ventas").update({ cliente_id: null }).eq("cliente_id", targetId),
+        admin.from("ventas").update({ vendedor_id: null }).eq("vendedor_id", targetId),
+        admin.from("ventas").update({ claimed_by: null }).eq("claimed_by", targetId),
+        admin.from("notification_events").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("apiarios").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("source_files").update({ uploaded_by: null }).eq("uploaded_by", targetId),
+        admin.from("sii_sync_runs").update({ executed_by: null }).eq("executed_by", targetId),
+        admin.from("tickets_fidelizacion").update({ cliente_id: null }).eq("cliente_id", targetId),
+        admin.from("conciliaciones").update({ conciliado_por: null }).eq("conciliado_por", targetId),
+        admin.from("gastos_extranjeros").update({ reviewed_by: null }).eq("reviewed_by", targetId),
+        admin.from("gastos_extranjeros").update({ conciliado_por: null }).eq("conciliado_por", targetId),
+        admin.from("cash_sessions").update({ reconciled_by: null }).eq("reconciled_by", targetId),
+        admin.from("commission_records").update({ paid_by: null }).eq("paid_by", targetId),
+        admin.from("creador_comisiones").update({ creado_por: null }).eq("creado_por", targetId),
+        admin.from("creador_retiros").update({ revisado_por: null }).eq("revisado_por", targetId),
+        admin.from("creador_solicitudes").update({ revisado_por: null }).eq("revisado_por", targetId),
+        admin.from("crm_interacciones").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("descuentos").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("incentivo_ledger").update({ aprobado_por: null }).eq("aprobado_por", targetId),
+        admin.from("participante_arqueo").update({ cerrado_por: null }).eq("cerrado_por", targetId),
+        admin.from("price_observations").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("puntos_transacciones").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("qr_audit_trail").update({ usuario_id: null }).eq("usuario_id", targetId),
+        admin.from("qr_codes").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("store_seasons").update({ created_by: null }).eq("created_by", targetId),
+        admin.from("logistica_envios").update({ user_id: null }).eq("user_id", targetId),
+        admin.from("stock_centers").update({ user_id: null }).eq("user_id", targetId),
+        admin.from("proveedores").update({ user_id: null }).eq("user_id", targetId),
+        admin.from("marketing_posts").update({ user_id: null }).eq("user_id", targetId),
+        admin.from("marketing_campaigns").update({ user_id: null }).eq("user_id", targetId),
+        admin.from("reflexiones").update({ user_id: null }).eq("user_id", targetId),
+        admin.from("arco_solicitudes").update({ revisado_por: null }).eq("revisado_por", targetId),
+      ]);
+
+      // C. Tablas personales del usuario que deben eliminarse
+      await Promise.allSettled([
+        admin.from("security_events").delete().eq("user_id", targetId),
+        admin.from("alerts").delete().eq("user_id", targetId),
+        admin.from("notification_events").delete().eq("recipient_user_id", targetId),
+        admin.from("invitation_redemptions").delete().eq("user_id", targetId),
+        admin.from("usuarios_empresas").delete().eq("user_id", targetId),
+        admin.from("user_roles").delete().eq("user_id", targetId),
+        admin.from("rep_profiles").delete().eq("user_id", targetId),
+        admin.from("revendedor_profile").delete().eq("user_id", targetId),
+        admin.from("actores_registro").delete().eq("user_id", targetId),
+        admin.from("arco_solicitudes").delete().eq("user_id", targetId),
+        admin.from("reembolsos").delete().or(`solicitado_por.eq.${targetId},cliente_id.eq.${targetId}`),
+        admin.from("pedidos_cliente").delete().eq("user_id", targetId),
+        admin.from("reviews").delete().eq("cliente_id", targetId),
+        admin.from("web_push_subscriptions").delete().eq("user_id", targetId),
+        admin.from("creador_solicitudes").delete().eq("user_id", targetId),
+      ]);
+    } catch (cleanupErr) {
+      console.warn("[admin-identidades] Advertencia en limpieza previa:", cleanupErr);
+    }
+
+    // 4. Eliminar el registro en profiles explícitamente
+    const { error: profileDeleteErr } = await admin.from("profiles").delete().eq("id", targetId);
+    if (profileDeleteErr) {
+      console.warn("[admin-identidades] Advertencia al eliminar profiles:", profileDeleteErr.message);
+    }
+
+    // 5. Eliminar usuario en Supabase Auth
+    const { error: deleteAuthErr } = await admin.auth.admin.deleteUser(targetId);
+    if (deleteAuthErr && !deleteAuthErr.message.toLowerCase().includes("not found")) {
+      console.error("[admin-identidades] Error en deleteUser:", deleteAuthErr);
+      return c.json(
+        {
+          code: "auth_delete_failed",
+          message: deleteAuthErr.message || "No se pudo eliminar el usuario en autenticación",
+        },
+        500
+      );
+    }
+
+    const userName = targetProfile?.full_name || targetProfile?.email || "Usuario";
+    return c.json({
+      ok: true,
+      message: `Cuenta de «${userName}» eliminada correctamente`,
+    });
+  } catch (error) {
+    console.error("[admin-identidades] Error inesperado en DELETE /usuarios/:id:", error);
     return c.json(
-      {
-        code: "auth_delete_failed",
-        message: deleteAuthErr.message || "No se pudo eliminar el usuario en autenticación",
-      },
+      { code: "internal_error", message: "Error interno al procesar la eliminación de la cuenta." },
       500
     );
   }
-
-  // 4. Asegurar que profiles se limpie si no ocurrió cascade inmediato
-  await admin.from("profiles").delete().eq("id", targetId);
-
-  return c.json({
-    ok: true,
-    message: `Cuenta de «${targetProfile.full_name || targetProfile.email}» eliminada correctamente`,
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -511,12 +661,16 @@ adminIdentidadesRoutes.post(
     }
 
     const { nombre, descripcion, color, modulos } = c.req.valid("json");
-    const slug = nombre
+    let slug = nombre
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
+
+    if (!slug) {
+      slug = `rol-${Date.now().toString(36)}`;
+    }
 
     const { data, error } = await (admin)
       .from("roles_personalizados")
@@ -533,6 +687,15 @@ adminIdentidadesRoutes.post(
       .single();
 
     if (error) {
+      if (error.code === "23505" || error.message.includes("uq_roles_personalizados_empresa_slug")) {
+        return c.json(
+          {
+            code: "duplicate_role",
+            message: `Ya existe un rol personalizado con el nombre «${nombre}» en tu empresa.`,
+          },
+          409
+        );
+      }
       return c.json({ code: "insert_failed", message: error.message }, 500);
     }
 
@@ -556,12 +719,14 @@ adminIdentidadesRoutes.patch(
     };
     if (body.nombre) {
       updatePayload.nombre = body.nombre;
-      updatePayload.slug = body.nombre
+      let slug = body.nombre
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
+      if (!slug) slug = `rol-${Date.now().toString(36)}`;
+      updatePayload.slug = slug;
     }
     if (body.descripcion !== undefined) updatePayload.descripcion = body.descripcion;
     if (body.color !== undefined) updatePayload.color = body.color;
@@ -575,6 +740,15 @@ adminIdentidadesRoutes.patch(
       .single();
 
     if (error) {
+      if (error.code === "23505" || error.message.includes("uq_roles_personalizados_empresa_slug")) {
+        return c.json(
+          {
+            code: "duplicate_role",
+            message: `Ya existe un rol personalizado con ese nombre en tu empresa.`,
+          },
+          409
+        );
+      }
       return c.json({ code: "update_failed", message: error.message }, 500);
     }
 

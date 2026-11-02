@@ -8,6 +8,10 @@ interface FeriasTabProps {
 }
 
 export function FeriasTab({ dashboard }: FeriasTabProps) {
+  const repsMap = React.useMemo(() => {
+    return new Map(dashboard.reps.map((r) => [r.rep_id, r]));
+  }, [dashboard.reps]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -53,7 +57,7 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
                   </span>
                   <div className="grid gap-1.5">
                     {assignedReps.map((a) => {
-                      const rep = dashboard.reps.find((r) => r.rep_id === a.rep_id);
+                      const rep = repsMap.get(a.rep_id);
                       return (
                         <div key={a.id} className="flex items-center gap-2 text-xs text-foreground font-medium">
                           <span>{rep?.display_name ?? a.rep_id.slice(0, 8)}</span>

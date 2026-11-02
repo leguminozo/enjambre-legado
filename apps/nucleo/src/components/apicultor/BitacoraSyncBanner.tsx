@@ -77,14 +77,14 @@ export function BitacoraSyncBanner() {
         {pending > 0 && (
           <span className="inline-flex items-center gap-1.5 text-muted-foreground">
             <CloudOff className="size-3.5" />
-            {pending} ítem{pending === 1 ? '' : 's'} de bitácora pendiente
-            {pending === 1 ? '' : 's'} de sync
+            {pending} {pending === 1 ? 'registro' : 'registros'} de visitas pendiente
+            {pending === 1 ? '' : 's'} de sincronización
           </span>
         )}
         {errors > 0 && (
           <span className="inline-flex items-center gap-1.5 text-destructive">
             <AlertTriangle className="size-3.5" />
-            {errors} error{errors === 1 ? '' : 'es'}
+            {errors} {errors === 1 ? 'pendiente con reintento' : 'pendientes con reintento'}
             {counts?.lastError ? `: ${counts.lastError}` : ''}
           </span>
         )}

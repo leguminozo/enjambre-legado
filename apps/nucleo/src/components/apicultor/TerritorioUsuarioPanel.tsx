@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Map, Plus, MapPin, Tent, Lock, Warehouse, CheckCircle2, LogOut } from 'lucide-react';
-import { Button, HexagonLoader, toast } from '@enjambre/ui';
+import { Button, Skeleton, SkeletonCard, toast } from '@enjambre/ui';
 import { CENSO_WRITE_LOCK_MESSAGE } from '@/lib/territorial-rol';
 import { PredioForm } from './PredioForm';
 import { ApiarioExternoForm } from './ApiarioExternoForm';
@@ -228,8 +228,28 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <HexagonLoader size="md" />
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando territorio y trashumancia">
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <Skeleton variant="text" className="w-56 h-5" />
+            <Skeleton variant="rectangular" className="w-36 h-9 rounded-xl" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <Skeleton variant="text" className="w-56 h-5" />
+            <Skeleton variant="rectangular" className="w-36 h-9 rounded-xl" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+          </div>
+        </div>
       </div>
     );
   }

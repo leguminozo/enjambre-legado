@@ -135,7 +135,7 @@ export function ApiarioManager({
 
             setLocalColmenas((prev) =>
                 prev.map((c) =>
-                    ids.includes(c.id)
+                    selectedColmenaIds.has(c.id)
                         ? { ...c, apiario_id: targetApiarioId, apiario_name: targetApiario?.name ?? 'Sin apiario' }
                         : c,
                 ),
@@ -202,11 +202,12 @@ export function ApiarioManager({
     const activeApiario = apiarios.find((a) => a.id === activeApiarioId) ?? null;
     const workspaceMode = Boolean(activeApiario);
 
-    const colmenasWorkspace = activeApiario
-        ? localColmenas.filter(
+    const colmenasWorkspace = useMemo(() => {
+        if (!activeApiario) return [];
+        return localColmenas.filter(
             (c) => c.apiario_id === activeApiario.id || c.apiario_name === activeApiario.name,
-          )
-        : [];
+        );
+    }, [localColmenas, activeApiario]);
 
     const workspaceCtx = useMemo<HiveStateContext>(
         () => ({
@@ -1021,6 +1022,7 @@ export function ApiarioManager({
                         return (
                             <div
                                 key={c.id}
+                                style={{ contentVisibility: 'auto', containIntrinsicSize: '0 160px' }}
                                 className={cn(
                                     "group rounded-2xl border bg-card overflow-hidden flex flex-col transition-all duration-300 relative shadow-sm hover:shadow-lg",
                                     isSelected

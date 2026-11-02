@@ -40,3 +40,6 @@ graphify-out/
 # Python (generadores de oficina)
 __pycache__/
 *.pyc
+
+# Microsoft Office temporary files
+~$*

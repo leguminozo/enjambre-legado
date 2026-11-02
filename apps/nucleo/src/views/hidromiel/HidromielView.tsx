@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Search, Wine } from 'lucide-react';
-import { Badge, Button, Card, CardContent, EmptyState, Input, Select, ViewLoading } from '@enjambre/ui';
+import { Badge, Button, Card, CardContent, EmptyState, Input, Select } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ProduccionDashboardSkeleton } from '@/components/shared/skeletons';
 import { useHidromielLotes } from '@/components/hidromiel/use-hidromiel-data';

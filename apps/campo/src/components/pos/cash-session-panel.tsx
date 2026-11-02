@@ -6,7 +6,7 @@ import { RepTierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
 import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc, RefreshCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { ViewLoading, formatCLP, toast, friendlyError } from '@enjambre/ui';
+import { Skeleton, formatCLP, toast, friendlyError } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 import { ClpCurrencyInput } from './clp-currency-input';
 
@@ -50,7 +50,18 @@ export function CashSessionPanel() {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Sesión de caja" hideLabel />;
+    return (
+      <div className="card-glow p-6 space-y-4 animate-in" aria-busy="true" aria-label="Cargando sesión de caja">
+        <div className="flex items-center gap-3">
+          <Skeleton variant="rectangular" className="w-10 h-10 rounded-xl" />
+          <div className="space-y-1.5 flex-1">
+            <Skeleton variant="text" className="w-36 h-5" />
+            <Skeleton variant="text" className="w-64 max-w-full h-3" />
+          </div>
+        </div>
+        <Skeleton variant="rectangular" className="w-full h-11 rounded-xl" />
+      </div>
+    );
   }
 
   if (!session) {

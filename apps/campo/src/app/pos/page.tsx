@@ -6,7 +6,7 @@ import { SessionVoidsPanel } from '@/components/pos/session-voids-panel';
 import { useCashSession } from '@/components/pos/cash-context';
 import { PackageSearch, TrendingUp, ShoppingCart, Store } from 'lucide-react';
 import Link from 'next/link';
-import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
+import { useClientViewLoading, Skeleton } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useAuthStore } from '@enjambre/auth';
 
@@ -21,7 +21,18 @@ export default function PosIndex() {
   const greeting = `${timeGreeting}${firstName ? `, ${firstName}` : ''}!`;
 
   if (showLoading) {
-    return <ViewLoading variant="view" label="Terminal POS" hideLabel />;
+    return (
+      <div className="space-y-6 animate-in" aria-busy="true" aria-label="Cargando terminal de venta">
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-3">
+          <Skeleton variant="text" className="w-48 h-6" />
+          <Skeleton variant="text" className="w-80 h-4" />
+        </div>
+        <div className="p-6 rounded-2xl border border-border bg-card space-y-4">
+          <Skeleton variant="text" className="w-40 h-5" />
+          <Skeleton variant="rectangular" className="w-full h-36 rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   return (

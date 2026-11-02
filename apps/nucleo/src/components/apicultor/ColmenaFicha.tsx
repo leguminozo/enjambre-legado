@@ -70,7 +70,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
     const [resenasLote, setResenasLote] = useState<{ total: number; promedio: number | null; familias: string[] } | null>(null);
     useEffect(() => {
         setResenasLote(null);
-        if (!loteActivoUuid || !realId) return;
+        if (!loteActivoUuid || !realId || tab !== 'origen') return;
         apiFetch(`/api/resenas/lote-agregado?lote_id=${colmena.lote_activo}`)
             .then(async (res) => {
                 if (!res.ok) return;
@@ -78,7 +78,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                 setResenasLote(j.data ?? null);
             })
             .catch(() => undefined);
-    }, [colmena.lote_activo, loteActivoUuid, realId, apiFetch]);
+    }, [colmena.lote_activo, loteActivoUuid, realId, apiFetch, tab]);
 
     const hiveState = useMemo(
         () =>
@@ -115,7 +115,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
             const json = await res.json();
             return (json.data ?? []) as VarroaRow[];
         },
-        enabled: realId,
+        enabled: realId && tab === 'sanidad',
     });
     const varroaList = varroaFromApi ?? colmena.varroa_records ?? [];
 
@@ -221,17 +221,6 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
     const [verificando, setVerificando] = useState(false);
     const [verificacion, setVerificacion] = useState<{ confirmed?: boolean; block_number?: number; block_timestamp?: string } | null>(null);
 
-    const { data: anclas = [], refetch: refetchAnclas } = useQuery<Array<{ id: string; tx_hash: string | null; chain: string | null; block_number: number | null; block_timestamp: string | null; data_hash: string | null; created_at: string | null }>>({
-        queryKey: ['blockchain-anclas', colmena.id],
-        queryFn: async () => {
-            const res = await apiFetch(`/api/blockchain/anchors/colmena/${colmena.id}`);
-            if (!res.ok) throw new Error('Error cargando anclas');
-            const json = await res.json();
-            return (json.data ?? []) as Array<{ id: string; tx_hash: string | null; chain: string | null; block_number: number | null; block_timestamp: string | null; data_hash: string | null; created_at: string | null }>;
-        },
-        enabled: realId,
-    });
-
     const handleAnclar = async () => {
         setAnclando(true);
         setAnclaError(null);
@@ -244,7 +233,6 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
             const json = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(json.message ?? json.code ?? 'No se pudo generar el sello digital');
             setAnclaOk(json.data);
-            await refetchAnclas();
             onUpdate({ ...colmena, blockchain_hash: json.data?.tx_hash ?? colmena.blockchain_hash });
             toast('Sello digital de autenticidad emitido exitosamente', { type: 'success' });
         } catch (err) {
