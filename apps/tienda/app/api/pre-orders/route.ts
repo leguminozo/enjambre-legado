@@ -8,8 +8,6 @@ const PreOrderSchema = z.object({
   producto_id: z.string().uuid().optional(),
   email: z.string().email().optional(),
   quantity: z.number().int().min(1).max(10).default(1),
-  floracion_slug: z.string().max(100).optional(),
-  temporada: z.string().max(100).optional(),
   notas: z.string().max(500).optional(),
   edicion_id: z.string().uuid().optional(),
 });
@@ -44,7 +42,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { producto_id, email, quantity, floracion_slug, temporada, notas, edicion_id } = parsed.data;
+  const { producto_id, email, quantity, notas, edicion_id } = parsed.data;
   const userId = user?.id ?? null;
 
   if (!userId && !email) {
@@ -94,8 +92,6 @@ export async function POST(request: NextRequest) {
     email: email ?? (user?.email ?? null),
     quantity,
     status: 'reserved',
-    floracion_slug: floracion_slug ?? null,
-    temporada: temporada ?? null,
     prioridad_club: prioridadClub,
     notas: notas ?? null,
   };

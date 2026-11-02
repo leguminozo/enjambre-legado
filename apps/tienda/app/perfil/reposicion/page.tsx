@@ -1,5 +1,6 @@
 import { getSubscriptionDashboard, getReservasDashboard } from '@/app/actions/perfil-experiences';
 import { getDirecciones } from '@/app/actions/direcciones';
+import { listVisibleProducts } from '@/lib/shop/products';
 import { ReposicionClient } from '@/components/perfil/reposicion-client';
 import { resolveClubPlanId } from '@/lib/shop/club-cosecha';
 
@@ -8,11 +9,12 @@ type Props = {
 };
 
 export default async function ReposicionPage({ searchParams }: Props) {
-  const [data, direcciones, reservasData, params] = await Promise.all([
+  const [data, direcciones, reservasData, params, products] = await Promise.all([
     getSubscriptionDashboard(),
     getDirecciones(),
     getReservasDashboard(),
     searchParams,
+    listVisibleProducts(),
   ]);
 
   const planKey = params?.plan?.trim();
@@ -28,6 +30,7 @@ export default async function ReposicionPage({ searchParams }: Props) {
       <ReposicionClient
         subscription={data.subscription}
         plans={data.plans}
+        products={products}
         deliveries={data.deliveries}
         initialPlanId={initialPlanId}
         direcciones={direcciones}

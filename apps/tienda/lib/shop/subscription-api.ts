@@ -8,7 +8,7 @@ export type SubscriptionPatchResult =
   | { ok: false; code: 'not_found' | 'db_error'; message: string };
 
 const SUBSCRIPTION_SELECT =
-  'id, status, current_period_start, current_period_end, next_selection, pause_scheduled_until, metadata, subscription_plans(id, name, key, price_clp, frequency, description)';
+  'id, status, current_period_start, current_period_end, next_selection, pause_scheduled_until, metadata, subscription_plans(id, name, key, price_clp, frequency, description, product_id, quantity)';
 
 const SUBSCRIPTION_SELECT_AGENT =
   'id, status, subscription_plans(name, frequency, price_clp), current_period_end, pause_scheduled_until';

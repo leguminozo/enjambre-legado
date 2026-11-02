@@ -6,11 +6,13 @@ import { useTranslations } from 'next-intl';
 import { Repeat, Calendar, ArrowRight } from 'lucide-react';
 import { toast, ConfirmDialog, cn } from '@enjambre/ui';
 import type { SubscriptionDelivery, SubscriptionPlan, UserSubscription, PreOrderRow } from '@/app/actions/perfil-experiences';
+import type { ShopProduct } from '@/lib/shop/products';
 import { ReservasClient } from '@/components/perfil/reservas-client';
 import { ReplenishmentActiveCard } from '@/components/perfil/replenishment-active-card';
 import { ReplenishmentOverview } from '@/components/perfil/replenishment-overview';
 import { SubscriptionDeliveriesPreview } from '@/components/perfil/subscription-deliveries-preview';
 import { PlanIntervalPicker } from '@/components/shop/plan-interval-picker';
+import { ReplenishmentSheet } from '@/components/shop/replenishment-sheet';
 import { ReplenishmentAddressField } from '@/components/shop/replenishment-address-field';
 import { defaultPlanId } from '@/lib/shop/replenishment';
 import {
@@ -26,6 +28,7 @@ import type { TextAlign } from '@/lib/shop/store-chrome';
 type ReposicionClientProps = {
   subscription: UserSubscription | null;
   plans: SubscriptionPlan[];
+  products?: ShopProduct[];
   deliveries?: SubscriptionDelivery[];
   /** Prefill desde Club Legado del Bosque (?plan=club_ulmo). */
   initialPlanId?: string | null;
@@ -49,6 +52,7 @@ type ReposicionClientProps = {
 export function ReposicionClient({
   subscription,
   plans,
+  products = [],
   deliveries = [],
   initialPlanId = null,
   direcciones = [],
@@ -75,6 +79,8 @@ export function ReposicionClient({
   const [selectedPlanId, setSelectedPlanId] = useState(
     () => initialPlanId || subscription?.subscription_plans?.id || defaultPlanId(plans),
   );
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [manageLoading, setManageLoading] = useState(false);
@@ -295,7 +301,67 @@ export function ReposicionClient({
             <div className="p-10 rounded-3xl bg-card border border-border space-y-8">
               <h3 className="font-display text-2xl text-foreground">{t('interval')}</h3>
 
-              {plans.length === 0 ? (
+              {products.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Suscribirse a un producto
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <select
+                        value={selectedProductId ?? ''}
+                        onChange={(e) => setSelectedProductId(e.target.value || null)}
+                        className="flex-1 min-h-11 rounded-xl border border-border bg-card px-3 text-sm"
+                      >
+                        <option value="">Elegir producto…</option>
+                        {products
+                          .filter((p) => (p.stock ?? 1) > 0)
+                          .map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        type="button"
+                        disabled={!selectedProductId}
+                        onClick={() => setSheetOpen(true)}
+                        className="px-6 py-3 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl disabled:opacity-50"
+                      >
+                        Suscribirse
+                      </button>
+                    </div>
+                  </div>
+
+                  {plans.length > 0 ? (
+                    <div className="border-t border-border pt-6 space-y-4">
+                      <h4 className="font-display text-lg text-foreground">Planes curados</h4>
+                      <PlanIntervalPicker
+                        plans={plans}
+                        selectedPlanId={selectedPlanId}
+                        onSelect={setSelectedPlanId}
+                        variant="profile"
+                      />
+                      <ReplenishmentAddressField
+                        value={address}
+                        onChange={setAddress}
+                        direcciones={direcciones}
+                      />
+                      <div>
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() => void handleSubscribe()}
+                          className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
+                        >
+                          {loading ? t('processing') : t('confirm')} <ArrowRight size={16} />
+                        </button>
+                        <p className="text-xs text-muted-foreground mt-4">{t('billingNote')}</p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : plans.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('intervalEmpty')}</p>
               ) : (
                 <>
@@ -346,6 +412,14 @@ export function ReposicionClient({
           )}
         </div>
       )}
+
+      {selectedProductId && sheetOpen ? (
+        <ReplenishmentSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          product={products.find((p) => p.id === selectedProductId)!}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={cancelConfirmOpen}

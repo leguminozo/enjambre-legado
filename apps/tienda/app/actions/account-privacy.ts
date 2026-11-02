@@ -72,7 +72,11 @@ export async function requestAccountDeletion(): Promise<{ ok: true }> {
 
   if (error) throw new Error('No se pudo registrar la solicitud');
 
-  await supabase.from('carrito_items').delete().eq('user_id', user.id);
+  const { error: cartError } = await supabase.from('carrito_items').delete().eq('user_id', user.id);
+  if (cartError) {
+    console.error('[account-privacy] error limpiando carrito:', cartError.message);
+    throw new Error('No se pudo completar la solicitud de supresión');
+  }
 
   return { ok: true };
 }
@@ -85,6 +89,11 @@ export async function deleteAccountInstantly(): Promise<{ ok: true }> {
   if (!user) throw new Error('Debes iniciar sesión');
 
   const userId = user.id;
+  const { createAdminClient } = await import('@/utils/supabase/admin');
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error('Servicio de administración no disponible');
+  }
 
   // 1. Limpieza de datos personales en profiles (anonimización obligatoria por Código Tributario)
   const prefs = {
@@ -93,45 +102,111 @@ export async function deleteAccountInstantly(): Promise<{ ok: true }> {
     sistema: { email: false, in_app: false },
   };
 
-  await supabase
+  const { error: profileError } = await admin
     .from('profiles')
     .update({
       full_name: 'Titular Eliminado',
+      email: `anon_${userId}@eliminado.local`,
       notification_preferences: prefs,
       deletion_requested_at: new Date().toISOString(),
     })
     .eq('id', userId);
 
-  // 2. Limpiar elementos volátiles y disociar ventas (se conservan anonimizadas
-  // por deber tributario; best-effort: las políticas RLS mandan).
-  await Promise.all([
-    supabase.from('carrito_items').delete().eq('user_id', userId),
-    supabase.from('cliente_direcciones').delete().eq('user_id', userId),
-    supabase
-      .from('ventas')
-      .update({ buyer_email: `anon_${userId}@eliminado.local`, direccion_envio: null })
-      .eq('user_id', userId)
-      .then(() => undefined, () => undefined),
-  ]);
-
-  // 3. Registrar en arco_solicitudes si la tabla existe
-  try {
-    await supabase.from('arco_solicitudes').insert({
-      user_id: userId,
-      tipo: 'supresion',
-      estado: 'ejecutada',
-      motivo: 'Supresión instantánea solicitada por el titular',
-      ejecutada_at: new Date().toISOString(),
-    });
-  } catch {
-    /* ignore si aún no migrado */
+  if (profileError) {
+    console.error('[account-privacy] error anonimizando perfil:', profileError.message);
+    throw new Error('No se pudo registrar la supresión');
   }
 
-  // 4. Borrar el usuario de Supabase Auth para revocar acceso inmediato
-  const { createAdminClient } = await import('@/utils/supabase/admin');
-  const admin = createAdminClient();
-  if (admin) {
-    await admin.auth.admin.deleteUser(userId);
+  // 2. Limpiar elementos volátiles y disociar ventas (se conservan anonimizadas
+  // por deber tributario). Un fallo detiene la revocación de Auth para permitir reintento.
+  const results = await Promise.allSettled([
+    admin.from('carrito_items').delete().eq('user_id', userId),
+    admin.from('cliente_direcciones').delete().eq('user_id', userId),
+    admin
+      .from('ventas')
+      .update({
+        buyer_email: `anon_${userId}@eliminado.local`,
+        direccion_envio: null,
+        cliente_id: null,
+        vendedor_id: null,
+        claimed_by: null,
+      })
+      .eq('user_id', userId),
+    admin.from('ventas').update({ cliente_id: null }).eq('cliente_id', userId),
+    admin.from('ventas').update({ vendedor_id: null }).eq('vendedor_id', userId),
+    admin.from('ventas').update({ claimed_by: null }).eq('claimed_by', userId),
+    admin.from('security_events').delete().eq('user_id', userId),
+    admin.from('tickets_fidelizacion').delete().eq('cliente_id', userId),
+  ]);
+  const cleanupErrors: unknown[] = [];
+  for (const r of results) {
+    if (r.status === 'rejected') {
+      cleanupErrors.push(r.reason);
+    } else if (r.value.error) {
+      cleanupErrors.push(r.value.error);
+    }
+  }
+  if (cleanupErrors.length > 0) {
+    console.error('[account-privacy] limpieza incompleta; no se revoca Auth:', cleanupErrors);
+    throw new Error('No se pudo completar la supresión de datos');
+  }
+
+  // 3. Borrar el usuario de Supabase Auth. Esto revoca los refresh tokens;
+  // los access tokens ya emitidos caducan según su exp y no pueden revocarse retroactivamente.
+  const { data: existingArco, error: arcoLookupError } = await admin
+    .from('arco_solicitudes')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('tipo', 'supresion')
+    .in('estado', ['pendiente', 'en_revision'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (arcoLookupError) {
+    console.error('[account-privacy] no se pudo localizar la solicitud ARCO:', arcoLookupError.message);
+    throw new Error('No se pudo registrar la supresión');
+  }
+
+  let arcoSolicitudId = existingArco?.id ?? null;
+  if (arcoSolicitudId) {
+    const { error: arcoUpdateError } = await admin
+      .from('arco_solicitudes')
+      .update({ estado: 'ejecutada', ejecutada_at: new Date().toISOString() })
+      .eq('id', arcoSolicitudId);
+    if (arcoUpdateError) {
+      console.error('[account-privacy] no se pudo cerrar la solicitud ARCO:', arcoUpdateError.message);
+      throw new Error('No se pudo registrar la supresión');
+    }
+  } else {
+    const { data: insertedArco, error: arcoInsertError } = await admin
+      .from('arco_solicitudes')
+      .insert({
+        user_id: userId,
+        tipo: 'supresion',
+        estado: 'ejecutada',
+        motivo: 'Supresión instantánea solicitada por el titular',
+        ejecutada_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+    if (arcoInsertError || !insertedArco) {
+      console.error('[account-privacy] no se pudo registrar la solicitud ARCO:', arcoInsertError?.message);
+      throw new Error('No se pudo registrar la supresión');
+    }
+    arcoSolicitudId = insertedArco.id;
+  }
+
+  const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
+  if (deleteError) {
+    console.error('[account-privacy] deleteUser falló:', deleteError.message);
+    if (arcoSolicitudId) {
+      await admin
+        .from('arco_solicitudes')
+        .update({ estado: 'en_revision', notas_admin: 'La limpieza se completó, pero Auth no pudo revocar el acceso.' })
+        .eq('id', arcoSolicitudId);
+    }
+    throw new Error('No se pudo completar la eliminación de la cuenta');
   }
 
   return { ok: true };

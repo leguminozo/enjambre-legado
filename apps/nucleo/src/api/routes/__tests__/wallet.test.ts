@@ -257,3 +257,32 @@ describe('POST /api/wallet/qr/resolve', () => {
     expect(json.puntos).toBe(150);
   });
 });
+
+describe('POST /api/wallet/cards/enroll-init', () => {
+  it('requires auth', async () => {
+    const res = await app.request('/api/wallet/cards/enroll-init', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'http://localhost:3001',
+      },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('devuelve 503 si FLOW_API_KEY no está configurada', async () => {
+    const res = await app.request('/api/wallet/cards/enroll-init', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'http://localhost:3001',
+        Authorization: 'Bearer valid-token',
+      },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.code).toBe('flow_not_configured');
+  });
+});

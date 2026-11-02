@@ -35,7 +35,6 @@ function revalidateSecret(): string {
   return (
     process.env.INTERNAL_API_SECRET?.trim() ||
     process.env.CMS_REVALIDATE_SECRET?.trim() ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
     ''
   );
 }
@@ -91,7 +90,7 @@ export async function revalidateTiendaCms(): Promise<RevalidateTiendaResult> {
  * Invalida el layout completo de la Tienda (revalidatePath('/', 'layout')).
  * Se dispara tras mutaciones que cambian el catálogo visible: stock, precio,
  * fotos, visible, lotes públicos y ventas (stock decrementado).
- * Auth: el endpoint de la Tienda exige Bearer INTERNAL_API_SECRET / SUPABASE_SERVICE_ROLE_KEY / CMS_REVALIDATE_SECRET.
+ * Auth: el endpoint de la Tienda exige Bearer INTERNAL_API_SECRET / CMS_REVALIDATE_SECRET.
  * Fail-open: nunca bloquea la mutación original.
  */
 export async function revalidateTiendaLayout(): Promise<RevalidateTiendaResult> {
@@ -106,7 +105,7 @@ export async function revalidateTiendaLayout(): Promise<RevalidateTiendaResult> 
   const secret = revalidateSecret();
 
   if (!secret) {
-    console.warn('[revalidate-tienda] Ningún secreto de revalidación configurado (INTERNAL_API_SECRET / CMS_REVALIDATE_SECRET / SUPABASE_SERVICE_ROLE_KEY)');
+    console.warn('[revalidate-tienda] Ningún secreto de revalidación configurado (INTERNAL_API_SECRET / CMS_REVALIDATE_SECRET)');
     return { ok: false, reason: 'missing_secret' };
   }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { createRouteRateLimiter } from '@/lib/ratelimit-route';
 
 const AgentOrderSchema = z.object({
   product_slug: z.string().min(1),
@@ -14,7 +15,12 @@ const AgentOrderSchema = z.object({
   }),
 });
 
+const agentOrderLimiter = createRouteRateLimiter({ windowMs: 60 * 1000, maxRequests: 30 });
+
 export async function POST(request: NextRequest) {
+  const rateLimitBlock = agentOrderLimiter(request);
+  if (rateLimitBlock) return rateLimitBlock;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,13 +34,12 @@ export async function POST(request: NextRequest) {
   }
 
   const delegation = request.headers.get('x-agent-delegation');
-  if (!delegation) {
+  if (!delegation || delegation.trim().length < 16) {
     return NextResponse.json(
-      { error: 'Missing agent delegation header' },
+      { error: 'Missing or invalid agent delegation header' },
       { status: 400 },
     );
   }
-
   let body: unknown;
   try {
     body = await request.json();

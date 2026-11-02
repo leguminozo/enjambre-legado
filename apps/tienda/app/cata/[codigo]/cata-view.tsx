@@ -13,12 +13,16 @@ import {
   ChevronRight,
   Compass,
   ShieldCheck,
+  MapPin,
+  TreePine,
+  Leaf,
+  BookOpen,
   Wallet,
 } from 'lucide-react';
+import { WalletButtons } from '@/components/shop/wallet-buttons';
 import { Button, Input, toast, friendlyError, Badge, HexagonLoader, cn } from '@enjambre/ui';
 import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import type { ShopProduct } from '@/lib/shop/products';
-import { WalletButtons } from '@/components/shop/wallet-buttons';
 
 import {
   PARES_SEMANTICOS_POR_CATEGORIA,
@@ -39,34 +43,145 @@ export interface CataVarianteOption {
   activo?: boolean;
 }
 
+export interface MielGeograficaOption {
+  key: string;
+  nombre: string;
+  nombreCientifico: string;
+  macroZona: string;
+  tagline: string;
+  perfilResumido: string;
+  floracionSlug: string;
+}
+
+export const MIELES_GEOGRAFICAS_CHILE: MielGeograficaOption[] = [
+  // Norte & Atacama
+  {
+    key: 'chanar',
+    nombre: 'Chañar de Atacama',
+    nombreCientifico: 'Geoffroea decorticans',
+    macroZona: 'Norte (Desierto & Oasis)',
+    tagline: 'Oasis desérticos y quebradas áridas de Atacama.',
+    perfilResumido: 'Notas tostadas a arrope, caramelo profundo y mineralidad salina.',
+    floracionSlug: 'chanar',
+  },
+  {
+    key: 'algarrobo',
+    nombre: 'Algarrobo del Desierto',
+    nombreCientifico: 'Prosopis chilensis',
+    macroZona: 'Norte (Desierto & Oasis)',
+    tagline: 'Valles secos y floración resistente.',
+    perfilResumido: 'Densidad espesa, notas a melaza y frutos secos confitados.',
+    floracionSlug: 'algarrobo',
+  },
+  // Zona Centro
+  {
+    key: 'quillay',
+    nombre: 'Quillay de la Zona Central',
+    nombreCientifico: 'Quillaja saponaria',
+    macroZona: 'Zona Centro (Bosque Esclerófilo)',
+    tagline: 'Bosque mediterráneo de floración estival.',
+    perfilResumido: 'Floral puro y limpio, notas herbáceas secas y final refrescante.',
+    floracionSlug: 'quillay',
+  },
+  {
+    key: 'peumo',
+    nombre: 'Peumo de Quebrada Central',
+    nombreCientifico: 'Cryptocarya alba',
+    macroZona: 'Zona Centro (Bosque Esclerófilo)',
+    tagline: 'Follaje aromático y sotobosque esclerófilo.',
+    perfilResumido: 'Balsámico limpio, resina vegetal y retrogusto fresco.',
+    floracionSlug: 'peumo',
+  },
+  {
+    key: 'corontillo',
+    nombre: 'Corontillo Silvestre',
+    nombreCientifico: 'Escallonia virgata',
+    macroZona: 'Zona Centro (Bosque Esclerófilo)',
+    tagline: 'Laderas soleadas y floración nativa.',
+    perfilResumido: 'Herbal silvestre, matiz resinoso y dulzor sobrio.',
+    floracionSlug: 'corontillo',
+  },
+  // Zona Sur & Austral
+  {
+    key: 'ulmo',
+    nombre: 'Ulmo del Bosque Nativo',
+    nombreCientifico: 'Eucryphia cordifolia',
+    macroZona: 'Zona Sur & Austral (Chiloé)',
+    tagline: 'Árbol nodriza del dosel templado lluvioso.',
+    perfilResumido: 'Benzaldehído puro, almendra amarga, flor de azahar y textura cremosa.',
+    floracionSlug: 'ulmo',
+  },
+  {
+    key: 'tiaca',
+    nombre: 'Tiaca de Quebradas Húmedas',
+    nombreCientifico: 'Caldcluvia paniculata',
+    macroZona: 'Zona Sur & Austral (Chiloé)',
+    tagline: 'Riberas y cuencas de alta pluviosidad.',
+    perfilResumido: 'Herbal balsámico vivaz, mentol y acidez cítrica natural.',
+    floracionSlug: 'tiaca',
+  },
+  {
+    key: 'meli',
+    nombre: 'Melí de Bosque Profundo',
+    nombreCientifico: 'Amomyrtus meli',
+    macroZona: 'Zona Sur & Austral (Chiloé)',
+    tagline: 'Mirtácea endémica aromática de Chiloé.',
+    perfilResumido: 'Rico en eugenol, clavo de olor, pimienta dulce y madera húmeda.',
+    floracionSlug: 'meli',
+  },
+  {
+    key: 'tepu',
+    nombre: 'Tepú de Turberas Milenarias',
+    nombreCientifico: 'Tepualia stipularis',
+    macroZona: 'Zona Sur & Austral (Chiloé)',
+    tagline: 'Suelos fósiles y turbales insulares.',
+    perfilResumido: 'Amaderado resinoso profundo, color cobrizo y alta mineralidad.',
+    floracionSlug: 'tepu',
+  },
+];
+
 const DEGUSTACION_VARIEDADES = [
   {
     id: 'crema-virgen',
     name: 'Miel Virgen con Trocito de Panal (25g)',
     icon: Droplet,
-    note: 'Con trozo de panal natural intacto',
+    note: 'Con trozo de panal natural intacto de Pureo',
     fortificante: 'panal_virgen' as const,
+  },
+  {
+    id: 'crema-pura',
+    name: 'Crema de Miel Batida en Frío (25g)',
+    icon: Droplet,
+    note: 'Batido mecánico en frío, textura sedosa sin calor',
+    fortificante: 'ninguno' as const,
   },
   {
     id: 'crema-polen',
     name: 'Crema de Miel con Polen Floral (25g)',
     icon: Flower2,
-    note: 'Polen floral seleccionado',
+    note: 'Polen floral silvestre seleccionado',
     fortificante: 'polen_floral' as const,
   },
   {
     id: 'crema-avellanas',
     name: 'Crema de Miel con Avellana Chilena (25g)',
     icon: Nut,
-    note: 'Avellana tostada y molida',
+    note: 'Avellana tostada y molida de bosque templado',
     fortificante: 'avellana_chilena' as const,
   },
   {
     id: 'crema-cacao',
     name: 'Crema de Miel con Nibs de Cacao Crudo (25g)',
     icon: Sparkle,
-    note: 'Nibs de cacao crudo (Santander, Colombia)',
+    note: 'Nibs de cacao crudo de origen',
     fortificante: 'cacao_crudo' as const,
+  },
+  {
+    id: 'prototipo-porvenir',
+    name: 'Prototipo / Nueva Creación por Venir (25g)',
+    icon: Sparkle,
+    note: 'Despensa viva: formulaciones de autor y barrica por venir',
+    fortificante: 'ninguno' as const,
   },
 ];
 
@@ -121,6 +236,10 @@ export function CataView({
     foundInitialVariant?.nombre_variante ?? foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name,
   );
 
+  const [pabellon, setPabellon] = useState<'casa' | 'geografias'>('casa');
+  const [esGeografica, setEsGeografica] = useState<boolean>(false);
+  const [selectedFloracionSlug, setSelectedFloracionSlug] = useState<string | null>(null);
+
   const [step, setStep] = useState<'intro' | 'producto' | 'pares' | 'chips' | 'user' | 'success'>(
     'intro',
   );
@@ -139,11 +258,15 @@ export function CataView({
     varId: string | null,
     name: string,
     category: CategoriaSensorial = 'miel',
+    floracionSlug?: string,
+    geografica: boolean = false,
   ) => {
     setSelectedProductId(prodId);
     setSelectedVarianteId(varId);
     setSelectedProductName(name);
     setTipoSensorial(category);
+    setSelectedFloracionSlug(floracionSlug || null);
+    setEsGeografica(geografica);
     setParesState({});
     setSelectedChips(new Set());
     setStep('pares');
@@ -211,7 +334,7 @@ export function CataView({
         const match = products.find((p) =>
           p.name.toLowerCase().includes(selectedProductName.toLowerCase()),
         );
-        if (match) finalProductId = match.id;
+        finalProductId = match?.id ?? products[0]?.id ?? '146073e1-ac90-45d9-9fb3-9ece4a4e877d';
       }
 
       const nucleoUrl = requireNucleoApiUrl();
@@ -222,6 +345,7 @@ export function CataView({
           codigo_punto: codigo,
           producto_id: finalProductId,
           variante_id: selectedVarianteId || undefined,
+          floracion_slug: selectedFloracionSlug || undefined,
           tipo_sensorial: tipoSensorial,
           email: email.trim(),
           consentimiento: true,
@@ -274,29 +398,13 @@ export function CataView({
                   : 'Experiencia Inmersiva'}
           </span>
           <h1 className="text-3xl sm:text-4xl font-display font-medium text-foreground tracking-tight">
-            {punto.tipo === 'feria_evento'
-              ? 'Ritual de Cata en Vivo'
-              : punto.tipo === 'hotel'
-                ? 'Cata de Origen Austral'
-                : 'Cata Sensorial'}
+            Ritual de Cata Sensorial
           </h1>
           <p className="text-muted-foreground leading-relaxed text-pretty max-w-lg mx-auto">
-            {punto.tipo === 'feria_evento' ? (
-              <>
-                Bienvenido a nuestro mesón en{' '}
-                <strong className="text-foreground font-medium">{punto.nombre}</strong>. Degusta
-                libremente con tu revolvedor de bambú, evalúa las notas sensoriales que percibes y activa
-                tu <strong className="text-foreground font-medium">Pase Digital del Bosque</strong> en
-                tu teléfono.
-              </>
-            ) : (
-              <>
-                Bienvenido al ritual de cata en{' '}
-                <strong className="text-foreground font-medium">{punto.nombre}</strong>. Evalúa la miel
-                que estás probando, acumula sellos de lealtad y crea tu propio{' '}
-                <strong className="text-foreground font-medium">Pasaporte Sensorial</strong> del bosque.
-              </>
-            )}
+            Bienvenido al ritual de cata en{' '}
+            <strong className="text-foreground font-medium">{punto.nombre}</strong>. Degusta con tu
+            revolvedor o copa técnica, calibra lo que tu paladar percibe en tiempo real y sé testigo directo
+            del balance botánico y sensorial del bosque chileno.
           </p>
           <Button
             variant="primary"
@@ -316,126 +424,79 @@ export function CataView({
               Paso 1 de 3
             </span>
             <h2 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
-              {punto.tipo === 'feria_evento'
-                ? '¿Qué variedad acabas de probar?'
-                : '¿Qué miel estás probando?'}
+              ¿Qué miel estás probando?
             </h2>
             <p className="text-sm text-muted-foreground">
-              {punto.tipo === 'feria_evento'
-                ? 'Selecciona la miel que degustaste con tu revolvedor de bambú en el mesón.'
-                : 'Selecciona el formato o infusión que tienes en mesa.'}
+              Selecciona el pabellón correspondiente a la muestra que tienes en mano.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            {/* Si hay variantes configuradas en Núcleo para este o varios productos */}
-            {variantes.length > 0 ? (
-              variantes.map((v) => {
-                const IconComponent = getVariantIcon(v.ingrediente_fortificante);
-                const parentProduct = products.find((p) => p.id === v.producto_id);
-                const category: CategoriaSensorial = v.ingrediente_fortificante
-                  ? 'miel_fortificada'
-                  : parentProduct?.category === 'hidromiel'
-                    ? 'hidromiel'
-                    : 'miel';
-                const note = v.ingrediente_fortificante
-                  ? `✦ Inclusión: ${FORTIFICANTES_LABELS[v.ingrediente_fortificante as FortificanteCanonico] ?? v.ingrediente_fortificante}`
-                  : v.peso_neto_g
-                    ? `Formato ${v.peso_neto_g}g`
-                    : 'Miel Pura de Origen';
+          {/* Selector de Doble Pabellón */}
+          <div className="grid grid-cols-2 p-1 bg-surface-sunken rounded-2xl border border-border/60">
+            <button
+              type="button"
+              onClick={() => setPabellon('casa')}
+              className={cn(
+                "py-3 px-3 rounded-xl text-xs font-medium transition-all text-center flex flex-col items-center justify-center gap-0.5",
+                pabellon === 'casa'
+                  ? "bg-card text-foreground shadow-sm border border-border/80"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <span className="font-medium text-xs sm:text-sm">Nuestros Productos</span>
+              <span className="text-[10px] text-primary font-mono">Pureo · Chiloé</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPabellon('geografias')}
+              className={cn(
+                "py-3 px-3 rounded-xl text-xs font-medium transition-all text-center flex flex-col items-center justify-center gap-0.5",
+                pabellon === 'geografias'
+                  ? "bg-card text-foreground shadow-sm border border-border/80"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <span className="font-medium text-xs sm:text-sm">Mieles de Chile</span>
+              <span className="text-[10px] text-accent-text font-mono">Atlas Botánico</span>
+            </button>
+          </div>
 
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() =>
-                      selectProductOrVariant(
-                        v.producto_id,
-                        v.id,
-                        v.nombre_variante,
-                        category,
-                      )
-                    }
-                    className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  >
-                    <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
-                      <IconComponent className="w-5 h-5" strokeWidth={1.75} />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm leading-snug">{v.nombre_variante}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{note}</p>
-                    </div>
-                    <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      Catar <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  </button>
-                );
-              })
-            ) : (
-              /* Fallback canónico de degustación */
-              DEGUSTACION_VARIEDADES.map((v) => {
-                const IconComponent = v.icon;
-                const matchedProduct = products.find((p) =>
-                  p.name.toLowerCase().includes(v.name.toLowerCase()),
-                );
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() =>
-                      selectProductOrVariant(
-                        matchedProduct?.id ?? null,
-                        null,
-                        v.name,
-                        v.fortificante === 'panal_virgen' || (v.fortificante as string) === 'virgen'
-                          ? 'miel'
-                          : 'miel_fortificada',
-                      )
-                    }
-                    className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  >
-                    <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
-                      <IconComponent className="w-5 h-5" strokeWidth={1.75} />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm leading-snug">{v.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{v.note}</p>
-                    </div>
-                    <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      Catar <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  </button>
-                );
-              })
-            )}
-
-            {/* Otros productos del catálogo (ej. Hidromiel, Extractos, etc.) */}
-            {products.length > 0 &&
-              products
-                .filter(
-                  (p) =>
-                    !variantes.some((v) => v.producto_id === p.id) &&
-                    !DEGUSTACION_VARIEDADES.some((v) => p.name.includes(v.name)),
-                )
-                .slice(0, 4)
-                .map((p) => {
-                  const cat: CategoriaSensorial =
-                    p.category === 'hidromiel' ? 'hidromiel' : 'miel';
+          {pabellon === 'casa' ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground px-1">
+                Creaciones de autor de Predio Pureo. Su evaluación calibra directamente la{' '}
+                <strong className="text-foreground">ficha del producto en la tienda oficial</strong>.
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                {DEGUSTACION_VARIEDADES.map((v) => {
+                  const IconComponent = v.icon;
+                  const matchedProduct = products.find((p) =>
+                    p.name.toLowerCase().includes(v.name.toLowerCase()),
+                  );
                   return (
                     <button
-                      key={p.id}
+                      key={v.id}
                       type="button"
-                      onClick={() => selectProductOrVariant(p.id, null, p.name, cat)}
-                      className="flex items-center gap-4 p-4 rounded-2xl border border-border/80 bg-card/60 hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      onClick={() =>
+                        selectProductOrVariant(
+                          matchedProduct?.id ?? null,
+                          null,
+                          v.name,
+                          v.fortificante === 'panal_virgen' || (v.fortificante as string) === 'ninguno'
+                            ? 'miel'
+                            : 'miel_fortificada',
+                          'ulmo',
+                          false,
+                        )
+                      }
+                      className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
-                        <Droplet className="w-5 h-5" strokeWidth={1.75} />
+                        <IconComponent className="w-5 h-5" strokeWidth={1.75} />
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground text-sm leading-snug">{p.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {p.format || 'Edición Territorial'}
-                        </p>
+                        <p className="font-medium text-foreground text-sm leading-snug">{v.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{v.note}</p>
                       </div>
                       <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         Catar <ChevronRight className="w-3.5 h-3.5" />
@@ -443,7 +504,56 @@ export function CataView({
                     </button>
                   );
                 })}
-          </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground px-1">
+                Mieles monoflorales en copa técnica. Su evaluación alimenta directamente la{' '}
+                <strong className="text-foreground">Biblioteca de Floraciones pública</strong> de Chile.
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                {MIELES_GEOGRAFICAS_CHILE.map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() =>
+                      selectProductOrVariant(
+                        products[0]?.id ?? '146073e1-ac90-45d9-9fb3-9ece4a4e877d',
+                        null,
+                        m.nombre,
+                        'miel',
+                        m.floracionSlug,
+                        true,
+                      )
+                    }
+                    className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-accent/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-accent-text group-hover:scale-105 transition-transform shrink-0">
+                      <Compass className="w-5 h-5" strokeWidth={1.75} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-foreground text-sm leading-snug">{m.nombre}</p>
+                        <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-surface-sunken border border-border/50 text-muted-foreground">
+                          {m.macroZona}
+                        </span>
+                      </div>
+                      <p className="text-xs text-accent-text/90 italic font-serif mt-0.5">
+                        {m.nombreCientifico}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                        {m.perfilResumido}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-accent-text inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      Catar <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -793,38 +903,66 @@ export function CataView({
             )}
           </div>
 
-          {/* Pase Digital Apple Wallet / Google Wallet */}
-          <div className="bg-card border border-primary/30 p-6 rounded-2xl text-center space-y-4 shadow-sm">
-            <div className="mx-auto w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-              <Wallet className="w-5 h-5" strokeWidth={1.75} />
+          {/* Doble Destino de Reseña */}
+          {esGeografica ? (
+            <div className="bg-card border border-accent/40 p-6 rounded-2xl text-center space-y-4 shadow-sm">
+              <div className="mx-auto w-11 h-11 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text">
+                <Compass className="w-5 h-5" strokeWidth={1.75} />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent-text">
+                  Inscripción en el Atlas Botánico
+                </span>
+                <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
+                  Reseña Derivada a la Biblioteca de Floraciones
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  Tu evaluación sensorial ha quedado inscrita en el registro botánico público de{' '}
+                  <strong className="text-foreground">{selectedProductName}</strong>. Has aportado a la calibración del atlas melífero vivo de Chile.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Link
+                  href={`/ciencia/${selectedFloracionSlug || 'ulmo'}`}
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-8 text-xs uppercase tracking-[0.2em] font-medium text-accent-foreground transition-all hover:bg-accent/90 w-full active:scale-[0.99] shadow-sm"
+                >
+                  Ver Ficha en la Biblioteca de Floraciones →
+                </Link>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
-                Instala tu Pase de Guardián en Wallet
-              </h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                Guarda tu credencial en Apple Wallet o Google Wallet para respaldar tus sellos de origen y recibir privilegios exclusivos en tu teléfono.
-              </p>
+          ) : (
+            <div className="bg-card border border-primary/30 p-6 rounded-2xl text-center space-y-4 shadow-sm">
+              <div className="mx-auto w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary">
+                  Calibración Oficial de Producto
+                </span>
+                <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
+                  Huella Sensorial Incorporada a la Tienda
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  Tu evaluación calibra directamente la ficha comercial de{' '}
+                  <strong className="text-foreground">{selectedProductName}</strong> en la tienda oficial para futuros compradores.
+                </p>
+              </div>
             </div>
-            <div className="pt-2 flex justify-center">
-              <WalletButtons compact />
-            </div>
-          </div>
+          )}
 
+          {/* Salida Diferida Respetuosa (Sin datáfonos ni transacciones en mesa) */}
           <div className="bg-surface-raised border border-border p-6 rounded-2xl text-center space-y-4">
             <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
-              Lleva esta experiencia a tu casa
+              {esGeografica ? 'Despensa Austral de Pureo' : 'Lleva esta experiencia a tu casa'}
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Puedes canjear tus sellos y puntos acumulados en la tienda oficial o explorar otras
-              recolecciones de{' '}
-              <strong className="text-foreground font-medium">{selectedProductName}</strong>.
+              La cata se disfruta sin prisa ni transacciones en mesa. Puedes revisar nuestras creaciones de temporada con despacho en frío a domicilio en 48 a 72 horas desde Chiloé.
             </p>
             <Link
               href="/catalogo"
               className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-8 text-xs uppercase tracking-[0.2em] font-medium text-primary-foreground transition-all hover:bg-primary/90 w-full active:scale-[0.99] shadow-sm"
             >
-              Explorar Catálogo Oficial
+              Explorar Catálogo Oficial (Salida Diferida)
             </Link>
           </div>
         </div>

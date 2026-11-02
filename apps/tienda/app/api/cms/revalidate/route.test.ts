@@ -47,6 +47,15 @@ describe('POST /api/cms/revalidate', () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
+  it('401 aunque se presente la service role key', async () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-123';
+    process.env.INTERNAL_API_SECRET = 'internal-secret-456';
+    vi.stubEnv('NODE_ENV', 'production');
+    const res = await POST(req({ auth: 'Bearer service-role-123' }));
+    expect(res.status).toBe(401);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
   it('503 en production sin secret configurado', async () => {
     delete process.env.CMS_REVALIDATE_SECRET;
     delete process.env.INTERNAL_API_SECRET;

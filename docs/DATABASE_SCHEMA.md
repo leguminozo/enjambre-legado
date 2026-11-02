@@ -857,7 +857,12 @@ Sesiones de checkout persistentes para el flujo de pago web (Transbank + Flow.cl
 Cambios de médula posteriores al censo anterior. Verificado contra `main` el 2026-08-22.
 
 ### ARCO — Supresión (20260814210000)
-- `profiles.deletion_requested_at` TIMESTAMPTZ. Marca de solicitud; ventas/DTE se conservan. **Gap: sin writer en UI/BFF aún.**
+- `profiles.deletion_requested_at` TIMESTAMPTZ. Marca de solicitud; ventas/DTE se conservan anonimizadas. La solicitud se registra desde Tienda y Núcleo.
+
+### Retención de auditoría ARCO al eliminar Auth (20261102141000)
+- `arco_solicitudes.user_id` y `revisado_por` son anulables y usan `ON DELETE SET NULL`.
+- La solicitud queda como rastro administrativo aun cuando el perfil titular deja de existir.
+- Las ejecuciones pendientes siguen exigiendo `user_id` antes de anonimizar o revocar Auth.
 
 ### Integración Google Ads (20260815000000)
 - Row en `integrations` (`key='google_ads'`, disabled por defecto). Kill-switch GUI Núcleo (`admin-system.ts`, `SistemaSection.tsx`); Tienda lee estado vía `/api/integrations/status`. Cableado.

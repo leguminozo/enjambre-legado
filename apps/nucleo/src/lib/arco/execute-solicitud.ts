@@ -33,14 +33,33 @@ export async function executeArcoSolicitud(
   // Ventas: se conservan por deber tributario pero disociadas del titular.
   const { error: ventasError } = await admin
     .from("ventas")
-    .update({ buyer_email: anonEmail, direccion_envio: null })
+    .update({
+      buyer_email: anonEmail,
+      direccion_envio: null,
+      cliente_id: null,
+      vendedor_id: null,
+      claimed_by: null,
+    })
     .eq("user_id", solicitud.user_id);
   if (ventasError) throw ventasError;
 
+  const linkedSalesResults = await Promise.all([
+    admin.from("ventas").update({ cliente_id: null }).eq("cliente_id", solicitud.user_id),
+    admin.from("ventas").update({ vendedor_id: null }).eq("vendedor_id", solicitud.user_id),
+    admin.from("ventas").update({ claimed_by: null }).eq("claimed_by", solicitud.user_id),
+  ]);
+  const linkedSalesError = linkedSalesResults.find((result) => result.error)?.error ?? null;
+  if (linkedSalesError) throw linkedSalesError;
+
   // Datos volátiles del titular.
-  await admin.from("security_events").delete().eq("user_id", solicitud.user_id);
-  await admin.from("cliente_direcciones").delete().eq("user_id", solicitud.user_id);
-  await admin.from("carrito_items").delete().eq("user_id", solicitud.user_id);
+  const volatileResults = await Promise.all([
+    admin.from("security_events").delete().eq("user_id", solicitud.user_id),
+    admin.from("cliente_direcciones").delete().eq("user_id", solicitud.user_id),
+    admin.from("carrito_items").delete().eq("user_id", solicitud.user_id),
+    admin.from("tickets_fidelizacion").delete().eq("cliente_id", solicitud.user_id),
+  ]);
+  const volatileError = volatileResults.find((result) => result.error)?.error ?? null;
+  if (volatileError) throw volatileError;
 
   const { error: updateError } = await admin
     .from("arco_solicitudes")
@@ -63,6 +82,7 @@ export async function processArcoExpirations(
     .from("arco_solicitudes")
     .select("id, user_id")
     .in("estado", ["pendiente", "en_revision"])
+    .not("user_id", "is", null)
     .lt("fecha_limite", new Date().toISOString())
     .order("fecha_limite", { ascending: true })
     .limit(ARCO_EXPIRY_BATCH_LIMIT);
@@ -76,8 +96,18 @@ export async function processArcoExpirations(
       if (deleteAuthUser) {
         try {
           await deleteAuthUser((solicitud as ArcoSolicitudRow).user_id);
-        } catch {
-          // La anonimización ya quedó; la revocación Auth reintenta mañana.
+        } catch (err) {
+          // La anonimización ya quedó; dejar la solicitud en revisión permite
+          // que el siguiente ciclo reintente la revocación de Auth.
+          console.error("[arco] auth revocation failed:", solicitud, err);
+          await admin
+            .from("arco_solicitudes")
+            .update({
+              estado: "en_revision",
+              notas_admin: "La anonimización terminó, pero Auth no pudo revocar el acceso.",
+            })
+            .eq("id", (solicitud as ArcoSolicitudRow).id);
+          continue;
         }
       }
       executed += 1;

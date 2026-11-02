@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { randomUUID } from 'node:crypto';
 import { validarRUT, formatearRUT } from '@/lib/shop/rut';
 import { guardMutation } from '@/lib/api-guard';
 import { friendlyError } from '@enjambre/ui';
+import { getSegmentKitById, isValidSegment, type B2BKitItem } from '@/lib/b2b/segment-content';
+import { resolveB2BOnboardingPricing } from '@/lib/b2b/onboarding-pricing';
+import { parseB2BSegmentContent } from '@enjambre/shop-chrome';
+
+function createB2BAccessCode(): string {
+  return randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase();
+}
 
 export async function POST(request: NextRequest) {
   const csrfBlock = guardMutation(request);
@@ -28,7 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Formato JSON inválido' }, { status: 400 });
   }
 
-  const segmentSlug = typeof body.segmentSlug === 'string' ? body.segmentSlug : 'cafeterias';
+  const segmentSlug = typeof body.segmentSlug === 'string' ? body.segmentSlug.trim() : 'cafeterias';
   const razonSocial = typeof body.razonSocial === 'string' ? body.razonSocial.trim() : '';
   const rut = typeof body.rut === 'string' ? body.rut.trim() : '';
   const giro = typeof body.giro === 'string' ? body.giro.trim() : '';
@@ -39,10 +47,10 @@ export async function POST(request: NextRequest) {
   const telefonoRecepcion = typeof body.telefonoRecepcion === 'string' ? body.telefonoRecepcion.trim() : '';
   const horarioEntrega = typeof body.horarioEntrega === 'string' ? body.horarioEntrega.trim() : '';
   const kitId = typeof body.kitId === 'string' ? body.kitId.trim() : '';
-  const totalFacturable = typeof body.totalFacturable === 'number' ? body.totalFacturable : 0;
-  const subtotalNeto = typeof body.subtotalNeto === 'number' ? body.subtotalNeto : 0;
-  const iva = typeof body.iva === 'number' ? body.iva : 0;
   const notasAdicionales = typeof body.notasAdicionales === 'string' ? body.notasAdicionales.trim() : '';
+  let subtotalNeto = 0;
+  let iva = 0;
+  let totalFacturable = 0;
 
   if (!razonSocial || !rut || !direccion || !comuna || !region) {
     return NextResponse.json(
@@ -58,15 +66,57 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const rutFormateado = formatearRUT(rut);
-  const adminClient = createAdminClient();
+  if (!isValidSegment(segmentSlug) || !kitId) {
+    return NextResponse.json({ error: 'El segmento y el kit seleccionado no son válidos.' }, { status: 400 });
+  }
 
+  const rutFormateado = formatearRUT(rut);
+  let adminClient: ReturnType<typeof createAdminClient>;
+  try {
+    adminClient = createAdminClient();
+  } catch (error) {
+    console.error('[b2b/onboarding-order] cliente administrativo no disponible:', error);
+    return NextResponse.json(
+      { error: 'Servicio de procesamiento temporalmente no disponible.' },
+      { status: 503 },
+    );
+  }
   if (!adminClient) {
     return NextResponse.json(
       { error: 'Servicio de procesamiento temporalmente no disponible.' },
       { status: 503 },
     );
   }
+
+  // Recalcular montos en servidor: no confiar en cifras enviadas por el navegador.
+  // Resolver el kit en CMS (y fallback estático) para usar su precio neto canónico.
+  let cmsKits: B2BKitItem[] | undefined;
+  try {
+    const sectionKey = `b2b_${segmentSlug.replace(/-/g, '_')}`;
+    const { data: cmsRow } = await adminClient
+      .from('site_content')
+      .select('content')
+      .eq('section_key', sectionKey)
+      .eq('is_active', true)
+      .order('item_order', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const cmsContent = (cmsRow?.content as Record<string, unknown>) ?? null;
+    const parsed = parseB2BSegmentContent(cmsContent, segmentSlug);
+    cmsKits = parsed.kits;
+  } catch (e) {
+    console.warn('[b2b/onboarding-order] no se pudo leer kits CMS:', e);
+  }
+
+  const kit = getSegmentKitById(segmentSlug, kitId, cmsKits);
+  const pricing = resolveB2BOnboardingPricing(kit);
+  if (!pricing) {
+    return NextResponse.json({ error: 'El kit seleccionado ya no está disponible.' }, { status: 400 });
+  }
+
+  subtotalNeto = pricing.subtotalNeto;
+  iva = pricing.iva;
+  totalFacturable = pricing.totalFacturable;
 
   try {
     // 1. Localizar o asociar punto_venta / revendedor
@@ -87,7 +137,7 @@ export async function POST(request: NextRequest) {
           .update({ estado: 'activo' })
           .eq('id', rev.id);
       } else {
-        const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const codigo = createB2BAccessCode();
         const { data: nuevoRev } = await adminClient
           .from('b2b_revendedores')
           .insert({
@@ -122,7 +172,7 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', pv.id);
       } else {
-        const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const codigo = createB2BAccessCode();
         const { data: nuevoPv } = await adminClient
           .from('b2b_puntos_venta')
           .insert({

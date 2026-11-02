@@ -11,10 +11,13 @@ export type SubscriptionCheckoutResult =
 
 export type SubscriptionCheckoutOptions = {
   deliveryAddress?: string;
+  productId?: string;
+  frequency?: 'monthly' | 'quarterly' | 'annual';
+  quantity?: number;
 };
 
 export async function startSubscriptionCheckout(
-  planId: string,
+  planId?: string,
   options?: SubscriptionCheckoutOptions,
 ): Promise<SubscriptionCheckoutResult> {
   const { createClient } = await import('@/utils/supabase/client');
@@ -47,7 +50,10 @@ export async function startSubscriptionCheckout(
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        planId,
+        planId: planId || undefined,
+        productId: options?.productId,
+        frequency: options?.frequency,
+        quantity: options?.quantity,
         returnUrl,
         deliveryAddress: options?.deliveryAddress?.trim() || undefined,
       }),

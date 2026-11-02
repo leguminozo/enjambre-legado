@@ -40,9 +40,18 @@ describe('POST /api/revalidate', () => {
   });
 
   it('401 si secret configurado y token no coincide', async () => {
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'valid-service-key';
+    process.env.INTERNAL_API_SECRET = 'valid-internal-key';
     vi.stubEnv('NODE_ENV', 'production');
     const res = await POST(req({ auth: 'Bearer wrong-key' }));
+    expect(res.status).toBe(401);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('401 aunque el token sea SUPABASE_SERVICE_ROLE_KEY (ya no aceptado)', async () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-123';
+    process.env.INTERNAL_API_SECRET = 'internal-secret-456';
+    vi.stubEnv('NODE_ENV', 'production');
+    const res = await POST(req({ auth: 'Bearer service-role-123' }));
     expect(res.status).toBe(401);
     expect(revalidatePath).not.toHaveBeenCalled();
   });
@@ -56,11 +65,11 @@ describe('POST /api/revalidate', () => {
     expect(res.status).toBe(503);
   });
 
-  it('200 con Bearer SUPABASE_SERVICE_ROLE_KEY e invalida layout por defecto', async () => {
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-123';
+  it('200 con Bearer INTERNAL_API_SECRET e invalida layout por defecto', async () => {
+    process.env.INTERNAL_API_SECRET = 'internal-secret-456';
     vi.stubEnv('NODE_ENV', 'production');
     const res = await POST(req({
-      auth: 'Bearer service-role-123',
+      auth: 'Bearer internal-secret-456',
       body: { path: '/', type: 'layout' },
     }));
     expect(res.status).toBe(200);
@@ -81,7 +90,6 @@ describe('POST /api/revalidate', () => {
   });
 
   it('200 en dev sin secret configurado', async () => {
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.INTERNAL_API_SECRET;
     delete process.env.CMS_REVALIDATE_SECRET;
     vi.stubEnv('NODE_ENV', 'development');

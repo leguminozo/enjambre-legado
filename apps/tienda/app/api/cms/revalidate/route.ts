@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * - `/api/cms/revalidate` (este archivo): Revalidación masiva tras publicación en el editor CMS.
  * - `/api/revalidate`: Revalidación puntual de rutas por cambios de stock, catálogo o precio.
  * 
- * Auth: Bearer INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET | SUPABASE_SERVICE_ROLE_KEY
+ * Auth: Bearer INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET
  * En development sin secret: permitido (preview local).
  */
 
@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
   const configured =
     process.env.CMS_REVALIDATE_SECRET?.trim() ||
     process.env.INTERNAL_API_SECRET?.trim() ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
     '';
 
   const authHeader = req.headers.get('authorization') ?? '';

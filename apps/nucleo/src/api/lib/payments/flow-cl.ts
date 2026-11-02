@@ -28,6 +28,15 @@ const FlowRecurringCreateResponseSchema = z.object({
   token: z.union([z.string(), z.number()]),
 });
 
+const FlowCustomerCreateResponseSchema = z.object({
+  customerId: z.string().min(1),
+});
+
+const FlowCustomerRegisterResponseSchema = z.object({
+  url: z.string().min(1),
+  token: z.union([z.string(), z.number()]),
+});
+
 const FlowRecurringStatusSchema = z.object({
   status: z.number(),
   commerceOrder: z.string().optional(),
@@ -275,5 +284,60 @@ export class FlowClProvider implements PaymentProvider {
       console.warn('[flow-cl] cancelRecurring:', message);
       return { ok: false, error: message };
     }
+  }
+
+  /**
+   * Registra un cliente en la API de Clientes de Flow (Cobro Automático).
+   */
+  async registerCustomer(name: string, email: string, externalId: string): Promise<string> {
+    const params: Record<string, string> = {
+      apiKey: getFlowApiKey(),
+      name: name.trim() || 'Cliente Mi Legado',
+      email: email.trim(),
+      externalId: externalId.trim(),
+    };
+
+    try {
+      const raw = await flowPost<unknown>('/customer/create', params);
+      const parsed = FlowCustomerCreateResponseSchema.safeParse(raw);
+      if (parsed.success) {
+        return parsed.data.customerId;
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('104') || msg.includes('exist') || msg.includes('ya existe') || msg.includes('duplicate')) {
+        try {
+          const existing = await flowGet<{ customerId: string }>('/customer/getByExternalId', {
+            apiKey: getFlowApiKey(),
+            externalId,
+          });
+          if (existing?.customerId) return existing.customerId;
+        } catch {
+          // Si falla getByExternalId, relanzar error original
+        }
+      }
+      throw err;
+    }
+    throw new Error('No fue posible registrar el cliente en Flow');
+  }
+
+  /**
+   * Inicia el registro de una tarjeta en la bóveda de Flow para un customerId.
+   * Flow responde con url y token hacia el formulario de ingreso de tarjeta Webpay.
+   */
+  async registerCard(customerId: string, returnUrl: string): Promise<{ url: string; token: string }> {
+    const params: Record<string, string> = {
+      apiKey: getFlowApiKey(),
+      customerId,
+      url_return: returnUrl,
+    };
+
+    const raw = await flowPost<unknown>('/customer/register', params);
+    const parsed = FlowCustomerRegisterResponseSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error(`Flow.cl customer register schema mismatch: ${parsed.error.flatten()}`);
+    }
+
+    return { url: parsed.data.url, token: String(parsed.data.token) };
   }
 }

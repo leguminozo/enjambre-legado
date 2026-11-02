@@ -13,7 +13,7 @@ type BilleteraPageProps = {
   searchParams?: Promise<{ modal?: string }>;
 };
 
-export default async function BilleteraPage({ searchParams }: BilleteraPageProps = {}) {
+export default async function BilleteraPage({ searchParams }: BilleteraPageProps) {
   const supabase = await createClient();
   const {
     data: { user },

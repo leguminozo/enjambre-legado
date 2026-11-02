@@ -201,6 +201,14 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
       display_name: cleanDisplayName,
       anon_hash: createHash("sha256").update(`percepcion:${sesion.id}`).digest("hex"),
       percepcion_sesion_id: sesion.id,
+      notas_personales: input.abierta ?? null,
+      atributos_sensoriales: {
+        floracion_slug: input.floracion_slug ?? null,
+        pares: input.pares,
+        chips: input.chips,
+        codigo_punto: input.codigo_punto,
+        punto_nombre: punto.nombre,
+      },
     });
   }
 

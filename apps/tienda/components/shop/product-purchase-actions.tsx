@@ -13,7 +13,7 @@ import { ReplenishmentSheet } from '@/components/shop/replenishment-sheet';
 
 type ProductPurchaseActionsProps = {
   product: ShopProduct;
-  plans: ReplenishmentPlan[];
+  plans?: ReplenishmentPlan[];
   inStock: boolean;
   /** Oculta el botón primario (p.ej. en móvil cuando hay sticky CTA) */
   hidePrimaryAdd?: boolean;
@@ -21,7 +21,6 @@ type ProductPurchaseActionsProps = {
 
 export function ProductPurchaseActions({
   product,
-  plans,
   inStock,
   hidePrimaryAdd = false,
 }: ProductPurchaseActionsProps) {
@@ -33,7 +32,7 @@ export function ProductPurchaseActions({
   const [quantity, setQuantity] = useState(1);
 
   const maxAvailable = product.stock != null && product.stock > 0 ? Math.min(product.stock, 24) : 24;
-  const canReplenish = inStock && plans.length > 0;
+  const canReplenish = inStock;
 
   const decrement = () => setQuantity((q) => Math.max(1, q - 1));
   const increment = () => setQuantity((q) => Math.min(maxAvailable, q + 1));
@@ -155,7 +154,6 @@ export function ProductPurchaseActions({
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         product={product}
-        plans={plans}
       />
     </>
   );

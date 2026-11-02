@@ -52,6 +52,26 @@ describe('@enjambre/database migrations', () => {
     expect(joined).toMatch(/ola0_loyalty|loyalty/);
   });
 
+  it('mantiene el hardening de tiers después de la última redefinición dinámica', () => {
+    const tierMigration = readFileSync(
+      join(MIGRATIONS_DIR, '20261102140000_tier_rpc_auth_hardening.sql'),
+      'utf8',
+    );
+    expect(tierMigration).toContain('auth.uid() IS NOT NULL');
+    expect(tierMigration).toContain("SET search_path = ''");
+    expect(tierMigration).toContain('REVOKE ALL ON FUNCTION public.evaluar_tier_cliente(UUID)');
+    expect(tierMigration).toContain('GRANT EXECUTE ON FUNCTION public.tier_progress_cliente(UUID) TO authenticated, service_role');
+  });
+
+  it('preserva el rastro ARCO cuando se elimina el perfil', () => {
+    const arcoMigration = readFileSync(
+      join(MIGRATIONS_DIR, '20261102141000_arco_solicitudes_delete_retention.sql'),
+      'utf8',
+    );
+    expect(arcoMigration).toContain('ALTER COLUMN user_id DROP NOT NULL');
+    expect(arcoMigration).toContain('ON DELETE SET NULL');
+  });
+
   it('nombres solo [a-z0-9_.]', () => {
     for (const file of files) {
       expect(file).toMatch(/^[a-z0-9_.]+\.sql$/i);

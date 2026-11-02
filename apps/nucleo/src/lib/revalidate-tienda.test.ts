@@ -127,7 +127,6 @@ describe('revalidateTiendaLayout', () => {
 
   it('no llama fetch sin secreto de revalidación y devuelve ok:false', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test';
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.CMS_REVALIDATE_SECRET;
     delete process.env.INTERNAL_API_SECRET;
     const { revalidateTiendaLayout } = await import('./revalidate-tienda');
@@ -136,9 +135,8 @@ describe('revalidateTiendaLayout', () => {
     expect(result).toEqual({ ok: false, reason: 'missing_secret' });
   });
 
-  it('usa INTERNAL_API_SECRET para revalidateTiendaLayout si no hay SUPABASE_SERVICE_ROLE_KEY', async () => {
+  it('usa INTERNAL_API_SECRET para revalidateTiendaLayout', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test';
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.CMS_REVALIDATE_SECRET;
     process.env.INTERNAL_API_SECRET = 'internal-sec-123';
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -182,7 +180,7 @@ describe('revalidateTiendaLayout', () => {
 
   it('POST /api/revalidate con Bearer service role y body layout', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test/';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc-key';
+    process.env.INTERNAL_API_SECRET = 'svc-key';
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -206,7 +204,7 @@ describe('revalidateTiendaLayout', () => {
 
   it('no lanza si fetch falla; ok:false network', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc-key';
+    process.env.INTERNAL_API_SECRET = 'svc-key';
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network'));
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -218,7 +216,7 @@ describe('revalidateTiendaLayout', () => {
 
   it('http no-OK → ok:false con status', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc-key';
+    process.env.INTERNAL_API_SECRET = 'svc-key';
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,
       status: 401,

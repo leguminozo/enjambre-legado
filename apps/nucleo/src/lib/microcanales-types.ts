@@ -466,6 +466,7 @@ export const sesionPercepcionSchema = z.object({
   codigo_punto: z.string().min(4).max(20),
   producto_id: z.string().uuid().optional().nullable(),
   variante_id: z.string().uuid().optional().nullable(),
+  floracion_slug: optStr(60),
   tipo_sensorial: z.string().optional().default('miel'),
   email: z.string().email().optional().or(z.literal('')),
   whatsapp: optStr(40),

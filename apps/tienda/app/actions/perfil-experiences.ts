@@ -19,6 +19,8 @@ export type SubscriptionPlan = {
   price_clp: number
   frequency: string
   description: string | null
+  product_id?: string | null
+  quantity?: number | null
 }
 
 export type UserSubscription = {

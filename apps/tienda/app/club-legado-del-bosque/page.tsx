@@ -511,7 +511,7 @@ export default async function ClubCosechaPage() {
                 <li>• <strong>5 ciclos</strong> por cada reseña sensorial validada de lote.</li>
                 <li>• <strong>1 ciclo</strong> por cada $1.000 en compras acumuladas.</li>
                 <li>• Los ciclos <strong>no se descuentan</strong> al canjear puntos de saldo.</li>
-                <li>• Fijan tu acceso a reservas de floraciones escasas y fondos forestales.</li>
+                <li>• Fijan tu prioridad en reservas de la próxima recolección y en ediciones limitadas.</li>
               </ul>
             </div>
 

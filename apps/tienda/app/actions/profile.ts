@@ -218,12 +218,16 @@ export async function updateProfileCompleteData(
 
   if (profileErr) {
     console.error('[profile] Error actualizando tabla profiles:', profileErr.message);
+    throw new Error('No se pudo guardar el perfil');
   }
 
-  // 2. Guardar metadata auth
-  void supabase.auth.updateUser({
+  // 2. Guardar metadata auth (esperar resultado para no perder sincronía)
+  const { error: authMetaError } = await supabase.auth.updateUser({
     data: { full_name: trimmedName, phone: cleanPhone || undefined },
   });
+  if (authMetaError) {
+    console.error('[profile] auth metadata update failed:', authMetaError.message);
+  }
 
   // 3. Dirección de despacho predeterminada (si viene dirección)
   let savedAddressId = formData.direccion_id;

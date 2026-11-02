@@ -15,7 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * - `/api/revalidate` (este archivo): Invalida rutas específicas por cambios en datos operativos.
  * - `/api/cms/revalidate`: Invalida la suite editorial completa (18 páginas + layout) tras guardar en el editor CMS.
  * 
- * Auth: Bearer SUPABASE_SERVICE_ROLE_KEY | INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET
+ * Auth: Bearer INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET
  */
 
 function timingSafeEqualString(a: string, b: string): boolean {
@@ -27,7 +27,6 @@ function timingSafeEqualString(a: string, b: string): boolean {
 
 export async function POST(req: NextRequest) {
   const allowedSecrets = [
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
     process.env.INTERNAL_API_SECRET?.trim(),
     process.env.CMS_REVALIDATE_SECRET?.trim(),
   ].filter((s): s is string => Boolean(s && s.length > 0));

@@ -304,6 +304,78 @@ walletRoutes.post('/apple/register', authMiddleware, async (c) => {
   return c.json({ ok: true });
 });
 
+walletRoutes.post('/cards/enroll-init', async (c) => {
+  const token = c.req.header('Authorization')?.replace('Bearer ', '') ?? null;
+  const user = await resolveUserFromToken(token);
+  if (!user) return c.json({ code: 'unauthorized', message: 'Debes iniciar sesión' }, 401);
+
+  const body = (await c.req.json().catch(() => ({}))) as { returnUrl?: string };
+  const returnUrl =
+    body.returnUrl ||
+    `${process.env.NEXT_PUBLIC_TIENDA_URL || 'https://obrerayzangano.cl'}/perfil/billetera`;
+
+  try {
+    const flowApiKey = process.env.FLOW_API_KEY;
+    const flowSecret = process.env.FLOW_SECRET;
+
+    if (!flowApiKey || !flowSecret) {
+      return c.json(
+        {
+          code: 'flow_not_configured',
+          message: 'La pasarela Flow no está configurada en este entorno.',
+        },
+        503,
+      );
+    }
+
+    const { FlowClProvider } = await import('@/api/lib/payments/flow-cl');
+    const flowProvider = new FlowClProvider();
+
+    const customerId = await flowProvider.registerCustomer(
+      user.user_metadata?.full_name || user.email || 'Miembro El Legado',
+      user.email || '',
+      user.id,
+    );
+
+    const registration = await flowProvider.registerCard(customerId, returnUrl);
+
+    return c.json({
+      ok: true,
+      url: registration.url,
+      token: registration.token,
+    });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[wallet cards enroll-init] Error al iniciar registro de tarjeta:', msg);
+
+    if (
+      msg.includes('105') ||
+      msg.includes('no contratado') ||
+      msg.includes('no habilitado') ||
+      msg.includes('Cobro Automático')
+    ) {
+      return c.json(
+        {
+          code: 'flow_service_not_contracted',
+          message:
+            'El módulo de Cobro Automático / Tarjetas Registradas de Flow no está activo en tu cuenta comercial. Debes solicitar su activación en flow.cl.',
+        },
+        400,
+      );
+    }
+
+    return c.json(
+      {
+        code: 'enroll_init_failed',
+        message:
+          'No fue posible conectar con Flow para registrar la tarjeta. Verifica que el servicio de Cobro Automático esté activo en tu cuenta de Flow.',
+        error: process.env.NODE_ENV === 'development' ? msg : undefined,
+      },
+      500,
+    );
+  }
+});
+
 async function rateLimitMiddleware(c: {
   req: { header: (name: string) => string | undefined; ip?: string };
   json: (data: unknown, status: number) => Response;

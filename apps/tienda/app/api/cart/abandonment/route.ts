@@ -3,8 +3,13 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { CartAbandonmentBodySchema } from '@/lib/cart/schemas';
 import { NextRequest, NextResponse } from 'next/server';
 import { guardMutation } from '@/lib/api-guard';
+import { createRouteRateLimiter } from '@/lib/ratelimit-route';
+
+const abandonmentLimiter = createRouteRateLimiter({ windowMs: 60 * 1000, maxRequests: 30 });
 
 export async function POST(request: NextRequest) {
+  const rateLimitBlock = abandonmentLimiter(request);
+  if (rateLimitBlock) return rateLimitBlock;
   const csrfBlock = guardMutation(request);
   if (csrfBlock) return csrfBlock;
 

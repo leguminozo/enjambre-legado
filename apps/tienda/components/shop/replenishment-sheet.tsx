@@ -1,19 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CreditCard, Repeat, Activity } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/client';
 import type { ShopProduct } from '@/lib/shop/products';
-import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
 import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
-import { suggestPlanForProduct } from '@/lib/shop/replenishment';
-import { translateFrequency } from '@/lib/shop/replenishment-i18n';
 import { formatCLP } from '@/lib/shop/format';
 import { TiendaModal } from '@/components/shop/tienda-modal';
-import { PlanIntervalPicker } from '@/components/shop/plan-interval-picker';
 import { ReplenishmentAddressField } from '@/components/shop/replenishment-address-field';
 import {
   loadReplenishmentAddress,
@@ -25,25 +20,28 @@ type ReplenishmentSheetProps = {
   open: boolean;
   onClose: () => void;
   product: ShopProduct;
-  plans: ReplenishmentPlan[];
 };
 
-export function ReplenishmentSheet({ open, onClose, product, plans }: ReplenishmentSheetProps) {
+const FREQUENCIES: { key: 'monthly' | 'quarterly' | 'annual'; label: string }[] = [
+  { key: 'monthly', label: 'Mensual' },
+  { key: 'quarterly', label: 'Trimestral' },
+  { key: 'annual', label: 'Anual' },
+];
+
+export function ReplenishmentSheet({ open, onClose, product }: ReplenishmentSheetProps) {
   const t = useTranslations('perfil.reposicion');
   const tSheet = useTranslations('perfil.reposicion.sheet');
 
-  const suggested = useMemo(
-    () => suggestPlanForProduct(product.id, plans),
-    [product.id, plans],
-  );
-  const [selectedPlanId, setSelectedPlanId] = useState(suggested?.id ?? plans[0]?.id ?? '');
+  const [frequency, setFrequency] = useState<'monthly' | 'quarterly' | 'annual'>('monthly');
+  const [quantity, setQuantity] = useState(1);
   const [address, setAddress] = useState('');
   const [direcciones, setDirecciones] = useState<ClienteDireccion[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setSelectedPlanId(suggested?.id ?? plans[0]?.id ?? '');
+    setFrequency('monthly');
+    setQuantity(1);
 
     const supabase = createClient();
     supabase
@@ -67,15 +65,12 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
       .catch(() => {
         setAddress(loadReplenishmentAddress());
       });
-  }, [open, suggested?.id, plans]);
+  }, [open]);
 
-  const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? null;
+  const unitPrice = product.price ?? 0;
+  const total = unitPrice * quantity;
 
   const handleConfirm = async () => {
-    if (!selectedPlanId) {
-      toast(t('selectInterval'), { type: 'error' });
-      return;
-    }
     const trimmed = address.trim();
     if (trimmed.length < 5) {
       toast(t('addressRequired'), { type: 'error' });
@@ -84,7 +79,12 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
 
     saveReplenishmentAddress(trimmed);
     setLoading(true);
-    const result = await startSubscriptionCheckout(selectedPlanId, { deliveryAddress: trimmed });
+    const result = await startSubscriptionCheckout(undefined, {
+      productId: product.id,
+      frequency,
+      quantity,
+      deliveryAddress: trimmed,
+    });
     if (!result.ok) {
       toast(result.message, { type: 'error' });
       setLoading(false);
@@ -93,21 +93,14 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
 
   const footer = (
     <div className="space-y-3">
-      {selectedPlan ? (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">{tSheet('total')}</span>
-          <span className="font-display text-lg text-accent-text">{formatCLP(selectedPlan.price_clp)}</span>
-        </div>
-      ) : null}
       <button
         type="button"
-        disabled={loading || plans.length === 0}
         onClick={() => void handleConfirm()}
-        className="w-full min-h-12 rounded-xl bg-primary px-6 py-3.5 text-[0.65rem] font-bold uppercase tracking-[0.3em] text-primary-foreground transition hover:shadow-glow disabled:opacity-50"
+        disabled={loading}
+        className="w-full min-h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm py-3 disabled:opacity-50"
       >
         {loading ? t('processing') : t('confirm')}
       </button>
-      <p className="text-center text-[0.65rem] text-muted-foreground">{t('billingNote')}</p>
     </div>
   );
 
@@ -115,95 +108,102 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
     <TiendaModal
       open={open}
       onClose={onClose}
-      size="lg"
-      kicker={tSheet('kicker')}
-      testId="replenishment-sheet"
-      title={tSheet('title')}
-      subtitle={product.name}
+      title={tSheet('title') ?? 'Programar reposición'}
       footer={footer}
+      data-testid="replenishment-sheet"
     >
-      {plans.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{tSheet('unavailable')}</p>
-      ) : (
-        <div className="space-y-8">
-          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-accent/10 border border-accent/25 text-xs text-accent-text leading-relaxed">
-            <Activity size={16} className="shrink-0 mt-0.5" />
-            <span>Tu reposición incluye asignación de una colmena viva en el apiario de Chiloé con seguimiento de peso y floración en tiempo real en tu perfil.</span>
+      <div className="space-y-6">
+        <section>
+          <h4 className="tienda-replenishment-section-label">{tSheet('product')}</h4>
+          <div className="mt-3 rounded-xl border border-border bg-secondary/30 p-4">
+            <p className="font-display text-foreground">{product.name}</p>
+            {product.format ? (
+              <p className="mt-1 text-xs text-muted-foreground">{product.format}</p>
+            ) : null}
+            <p className="mt-2 text-sm text-accent-text">{formatCLP(product.price)}</p>
           </div>
+        </section>
 
-          <section>
-            <h4 className="tienda-replenishment-section-label">{tSheet('product')}</h4>
-            <div className="mt-3 rounded-xl border border-border bg-secondary/30 p-4">
-              <p className="font-display text-foreground">{product.name}</p>
-              {product.format ? (
-                <p className="mt-1 text-xs text-muted-foreground">{product.format}</p>
-              ) : null}
-              <p className="mt-2 text-sm text-accent-text">{formatCLP(product.price)}</p>
+        <section>
+          <h4 className="tienda-replenishment-section-label">{tSheet('interval')}</h4>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {FREQUENCIES.map((f) => {
+              const active = f.key === frequency;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFrequency(f.key)}
+                  className={`min-h-11 rounded-xl border p-4 text-left transition-all ${
+                    active
+                      ? 'border-accent bg-accent/10 ring-2 ring-accent shadow-sm'
+                      : 'border-border bg-card hover:border-accent/25'
+                  }`}
+                >
+                  <span className="block uppercase tracking-[0.2em] text-accent-text font-bold text-[0.6rem]">
+                    {f.label}
+                  </span>
+                  <span className="block mt-2 text-sm text-foreground font-semibold">
+                    {formatCLP(total)} <span className="text-xs text-muted-foreground font-normal">/ ciclo</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="inline-flex items-center gap-2 text-sm font-medium">
+              <Calendar size={14} className="text-accent" />
+              Cantidad por entrega
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border"
+            >
+              -
+            </button>
+            <span className="w-8 text-center font-mono text-sm font-semibold">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.min(24, q + 1))}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border"
+            >
+              +
+            </button>
+          </div>
+        </section>
+
+        <ReplenishmentAddressField value={address} onChange={setAddress} direcciones={direcciones} />
+
+        <section className="rounded-xl border border-border/80 bg-secondary/20 p-4">
+          <h4 className="tienda-replenishment-section-label mb-3">{tSheet('summary')}</h4>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{tSheet('reference')}</dt>
+              <dd className="text-foreground text-right">{product.name}</dd>
             </div>
-          </section>
-
-          <section>
-            <h4 className="tienda-replenishment-section-label">{tSheet('interval')}</h4>
-            <div className="mt-3">
-              <PlanIntervalPicker
-                plans={plans}
-                selectedPlanId={selectedPlanId}
-                onSelect={setSelectedPlanId}
-                variant="compact"
-              />
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{tSheet('interval')}</dt>
+              <dd className="text-foreground text-right">
+                {FREQUENCIES.find((f) => f.key === frequency)?.label}
+              </dd>
             </div>
-          </section>
-
-          <ReplenishmentAddressField value={address} onChange={setAddress} direcciones={direcciones} />
-
-          <section>
-            <h4 className="tienda-replenishment-section-label">
-              <span className="inline-flex items-center gap-2">
-                <CreditCard size={14} className="text-accent" />
-                {tSheet('payment')}
-              </span>
-            </h4>
-            <div className="mt-3 rounded-xl border border-border bg-card/60 p-4 space-y-2">
-              <p className="text-sm text-foreground">{tSheet('paymentMethods')}</p>
-              <p className="text-xs text-muted-foreground">{tSheet('paymentNote')}</p>
-              <Link
-                href="/perfil/trazabilidad"
-                className="inline-flex min-h-11 items-center gap-1.5 text-xs text-accent-text hover:underline"
-                onClick={onClose}
-              >
-                <Repeat size={12} />
-                {tSheet('passport')}
-              </Link>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Cantidad</dt>
+              <dd className="text-foreground text-right">{quantity}</dd>
             </div>
-          </section>
-
-          {selectedPlan ? (
-            <section className="rounded-xl border border-border/80 bg-secondary/20 p-4">
-              <h4 className="tienda-replenishment-section-label mb-3">{tSheet('summary')}</h4>
-              <dl className="space-y-2 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">{tSheet('reference')}</dt>
-                  <dd className="text-foreground text-right">{product.name}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">{tSheet('plan')}</dt>
-                  <dd className="text-foreground text-right">{selectedPlan.name}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">{tSheet('interval')}</dt>
-                  <dd className="text-foreground text-right">
-                    {translateFrequency(t, selectedPlan.frequency)}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4 border-t border-border pt-2">
-                  <dt className="text-muted-foreground font-medium">{tSheet('total')}</dt>
-                  <dd className="font-display text-accent-text">{formatCLP(selectedPlan.price_clp)}</dd>
-                </div>
-              </dl>
-            </section>
-          ) : null}
-        </div>
-      )}
+            <div className="flex justify-between gap-4 border-t border-border pt-2">
+              <dt className="text-muted-foreground font-medium">{tSheet('total')}</dt>
+              <dd className="font-display text-accent-text">{formatCLP(total)}</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
     </TiendaModal>
   );
 }

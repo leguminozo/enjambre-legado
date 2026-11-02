@@ -42,9 +42,14 @@ async function rateLimitMiddleware(
 }
 
 const InitBodySchema = z.object({
-  planId: z.string().uuid(),
+  planId: z.string().uuid().optional(),
+  productId: z.string().uuid().optional(),
+  frequency: z.enum(['monthly', 'quarterly', 'annual']).optional(),
+  quantity: z.number().int().min(1).max(24).optional(),
   returnUrl: z.string().url().optional(),
   deliveryAddress: z.string().min(5).max(500).optional(),
+}).refine((d) => Boolean(d.planId) || (Boolean(d.productId) && Boolean(d.frequency)), {
+  message: 'Se requiere planId o productId+frequency',
 });
 
 const CommitBodySchema = z.object({
@@ -76,8 +81,70 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       return c.json({ code: 'unauthorized', message: 'Debes iniciar sesión' }, 401);
     }
 
-    const { planId, returnUrl: rawReturnUrl, deliveryAddress } = c.req.valid('json');
+    const { planId: rawPlanId, productId, frequency, quantity, returnUrl: rawReturnUrl, deliveryAddress } = c.req.valid('json');
     const admin = createAdminClient({ persistSession: false });
+
+    let planId = rawPlanId;
+
+    // Camino B: suscripción a un producto arbitrario del catálogo.
+    if (!planId && productId && frequency) {
+      const qty = quantity ?? 1;
+      const { data: product, error: productError } = await admin
+        .from('productos')
+        .select('id, nombre, precio, stock, visible')
+        .eq('id', productId)
+        .single();
+
+      if (productError || !product || !product.visible) {
+        return c.json({ code: 'product_not_found', message: 'Producto no encontrado' }, 404);
+      }
+      if (typeof product.stock === 'number' && product.stock <= 0) {
+        return c.json({ code: 'out_of_stock', message: 'Producto sin stock' }, 409);
+      }
+
+      const unitPrice = Math.max(1, Math.round(product.precio ?? 0));
+      const total = unitPrice * qty;
+
+      // Buscar plan existente para (producto, frecuencia); si no, crearlo.
+      const { data: existingPlan } = await admin
+        .from('subscription_plans')
+        .select('id')
+        .eq('product_id', productId)
+        .eq('frequency', frequency)
+        .maybeSingle();
+
+      if (existingPlan?.id) {
+        planId = existingPlan.id as string;
+      } else {
+        const { data: newPlan, error: planInsertError } = await admin
+          .from('subscription_plans')
+          .insert({
+            name: product.nombre ?? 'Producto',
+            key: `product_${productId}_${frequency}`,
+            price_clp: total,
+            frequency,
+            description: `Reposición de ${product.nombre}`,
+            included_items: [{ product_id: productId, quantity: qty }],
+            active: true,
+            product_id: productId,
+            quantity: qty,
+          })
+          .select('id')
+          .single();
+
+        if (planInsertError || !newPlan?.id) {
+          console.error('[subscriptions-checkout] plan insert failed:', planInsertError);
+          return c.json({ code: 'plan_create_failed', message: 'No se pudo crear el plan' }, 500);
+        }
+        planId = newPlan.id as string;
+      }
+
+      // Asegurar precio actualizado si el producto cambió de precio.
+      await admin
+        .from('subscription_plans')
+        .update({ price_clp: total, name: product.nombre ?? 'Producto' })
+        .eq('id', planId);
+    }
 
     const { data: plan, error: planError } = await admin
       .from('subscription_plans')

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { guardMutation } from '@/lib/api-guard';
+import { createRouteRateLimiter } from '@/lib/ratelimit-route';
 import { MetaTrackBodySchema } from '@/lib/tracking/meta/schema';
 import { dispatchMetaCapiEvent } from '@/lib/tracking/meta/capi';
 import {
@@ -22,7 +23,11 @@ function clientIpOf(request: NextRequest): string | undefined {
   return request.headers.get('x-real-ip')?.trim() || undefined;
 }
 
+const trackingLimiter = createRouteRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
+
 export async function POST(request: NextRequest) {
+  const rateLimitBlock = trackingLimiter(request);
+  if (rateLimitBlock) return rateLimitBlock;
   const csrfBlock = guardMutation(request);
   if (csrfBlock) return csrfBlock;
 

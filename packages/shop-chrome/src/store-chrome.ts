@@ -3004,9 +3004,9 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   hero_card_title: 'Tu espacio reservado en el enjambre',
   hero_card_title_en: 'Your dedicated place in the swarm',
   hero_card_text:
-    'Al crear tu cuenta en la tienda accedes a reposición flexible a tu ritmo, reservas prioritarias de floraciones escasas, pasaporte botánico en cada entrega y retorno circular de frascos con saldo a favor.',
+    'Al crear tu cuenta en la tienda accedes a reposición flexible a tu ritmo, reservas prioritarias de la recolección de temporada, pasaporte botánico en cada entrega y retorno circular de frascos con saldo a favor.',
   hero_card_text_en:
-    'By creating your store account you access flexible replenishment at your pace, priority reservations for scarce blooms, a botanical passport with every delivery, and circular jar returns with store credit.',
+    'By creating your store account you access flexible replenishment at your pace, priority reservations for the seasonal harvest, a botanical passport with every delivery, and circular jar returns with store credit.',
   hero_card_badge_bottom: 'Registro Libre',
   hero_card_badge_bottom_en: 'Free Registration',
   hero_card_link_label: 'Ver 4 Ciclos →',
@@ -3083,9 +3083,9 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   step1_text_en:
     'Free store registration: By creating your account you automatically join the Forest Legacy Club with no fees or lock-ins.',
   step2_text:
-    'Reposición y reservas a tu medida: Configura entregas periódicas para tus variedades favoritas a tu propio ritmo, o asegura cupos preferentes en floraciones limitadas.',
+    'Reposición y reservas a tu medida: Configura entregas periódicas para tus variedades favoritas a tu propio ritmo, o reserva con precio preferente tu cuota de la recolección del próximo verano.',
   step2_text_en:
-    'Replenishment and reservations tailored to you: Set periodic deliveries for your favorite honeys at your own pace, or secure priority spots in limited seasonal blooms.',
+    "Replenishment and reservations tailored to you: Set periodic deliveries for your favorite honeys at your own pace, or reserve your share of next summer's harvest at a preferential price.",
   step3_text:
     'Entrega directa con pasaporte de lote: Cada frasco llega directamente desde Chiloé acompañado de su pasaporte digital, análisis de laboratorio y relato de colmena.',
   step3_text_en:
@@ -3129,9 +3129,9 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   tier_2_title: 'Guardián Zángano',
   tier_2_title_en: 'Drone Guardian',
   tier_2_desc:
-    'Presencia recurrente en el territorio. Acceso preferente y anticipado a floraciones escasas de temporada (Ulmo puro de altura y Tiaca silvestre) antes de cualquier apertura general.',
+    'Presencia recurrente en el territorio. Reserva anticipada de la recolección de temporada y acceso preferente a ediciones limitadas antes de cualquier apertura general.',
   tier_2_desc_en:
-    'Recurring presence in the territory. Preferred early access to scarce seasonal blooms (high-altitude pure Ulmo and wild Tiaca) before any general opening.',
+    'Recurring presence in the territory. Early reservation of the seasonal harvest and preferred access to limited editions before any general opening.',
   tier_2_foot: 'Reserva prioritaria en recolecciones de baja producción',
   tier_2_foot_en: 'Priority reservations in low-yield harvests',
   tier_3_badge: 'Ciclo III',
@@ -5568,7 +5568,7 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
       icon: 'Award',
       title: 'Programa de tiers',
       description:
-        'Avanza en la red de guardianes según tu volumen y regularidad de reposición. Desbloquea mayores márgenes y acceso prioritario a floraciones limitadas.',
+        'Avanza en la red de guardianes según tu volumen y regularidad de reposición. Desbloquea mayores márgenes y reserva anticipado de la recolección anual.',
     },
   ],
   stats: [

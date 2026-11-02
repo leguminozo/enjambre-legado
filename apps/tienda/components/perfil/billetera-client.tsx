@@ -81,6 +81,7 @@ export function BilleteraClient({
   const [balance, setBalance] = useState(loyalty.balance);
   const [showCatalogModal, setShowCatalogModal] = useState(initialOpenModal);
   const [showCardModal, setShowCardModal] = useState(false);
+  const [isEnrollingCard, setIsEnrollingCard] = useState(false);
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -227,6 +228,71 @@ export function BilleteraClient({
       router.refresh();
     } catch {
       toast('Error al actualizar dirección predeterminada', { type: 'error' });
+    }
+  };
+
+  const handleEnrollCard = async () => {
+    setIsEnrollingCard(true);
+    try {
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        toast('Inicia sesión para vincular tu tarjeta', { type: 'error' });
+        setIsEnrollingCard(false);
+        return;
+      }
+
+      const { getNucleoApiUrl } = await import('@/lib/shop/nucleo-url');
+      const nucleoUrl = getNucleoApiUrl();
+      if (!nucleoUrl) {
+        toast('Servicio de pasarela no disponible temporalmente', { type: 'error' });
+        setIsEnrollingCard(false);
+        return;
+      }
+
+      const res = await fetch(`${nucleoUrl}/api/wallet/cards/enroll-init`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          returnUrl: `${window.location.origin}/perfil/billetera`,
+        }),
+      });
+
+      const json = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        url?: string;
+        token?: string;
+        code?: string;
+        message?: string;
+      };
+
+      if (res.ok && json.url && json.token) {
+        window.location.href = `${json.url}?token=${json.token}`;
+        return;
+      }
+
+      if (json.code === 'flow_service_not_contracted') {
+        toast(
+          'La cuenta de Flow requiere activar el módulo de Cobro Automático para tarjetas independientes. Puedes usar Reposición de Miel mientras tanto.',
+          { type: 'error' },
+        );
+      } else {
+        toast(json.message || 'No fue posible conectar con Flow en este momento.', {
+          type: 'error',
+        });
+      }
+    } catch {
+      toast('Error al comunicarse con la pasarela bancaria', { type: 'error' });
+    } finally {
+      setIsEnrollingCard(false);
     }
   };
 
@@ -589,20 +655,41 @@ export function BilleteraClient({
             </div>
 
             <div className="pt-2 flex flex-col gap-2.5">
+              <button
+                type="button"
+                disabled={isEnrollingCard}
+                onClick={handleEnrollCard}
+                className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-mono uppercase tracking-wider font-semibold text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                <span>
+                  {isEnrollingCard
+                    ? 'Conectando con Pasarela Flow...'
+                    : 'Ir a Pasarela Oficial y Vincular Tarjeta'}
+                </span>
+                <ExternalLink size={14} />
+              </button>
+
+              <div className="relative my-1 text-center">
+                <span className="text-[10px] font-mono text-muted-foreground uppercase px-2 bg-card">
+                  o también
+                </span>
+              </div>
+
               <Link
                 href="/perfil/reposicion"
                 onClick={() => setShowCardModal(false)}
-                className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-mono uppercase tracking-wider font-semibold text-center hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-xl border border-border text-xs font-mono uppercase tracking-wider text-foreground hover:border-accent/40 hover:text-accent transition-colors flex items-center justify-center gap-2 text-center"
               >
-                <span>Gestionar en Reposición Continua</span>
+                <span>Vincular mediante Reposición de Miel</span>
                 <ArrowRight size={14} />
               </Link>
+
               <button
                 type="button"
                 onClick={() => setShowCardModal(false)}
-                className="w-full py-2.5 px-4 rounded-xl border border-border text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                className="w-full py-2 px-4 rounded-xl text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
               >
-                Entendido, volver
+                Cerrar
               </button>
             </div>
           </div>

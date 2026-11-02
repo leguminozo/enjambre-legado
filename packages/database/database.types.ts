@@ -620,7 +620,7 @@ export type Database = {
           notas_admin: string | null
           revisado_por: string | null
           tipo: 'supresion' | 'portabilidad' | 'rectificacion' | 'oposicion'
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -633,7 +633,7 @@ export type Database = {
           notas_admin?: string | null
           revisado_por?: string | null
           tipo: 'supresion' | 'portabilidad' | 'rectificacion' | 'oposicion'
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -646,7 +646,7 @@ export type Database = {
           notas_admin?: string | null
           revisado_por?: string | null
           tipo?: 'supresion' | 'portabilidad' | 'rectificacion' | 'oposicion'
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

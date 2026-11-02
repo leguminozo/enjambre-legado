@@ -283,6 +283,8 @@ async function resolveShippingRates(
 }
 
 checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
+  if (rateLimitResult) return rateLimitResult;
   try {
     const body = c.req.valid("json");
     const courierCode = resolveCourierCode(body.courierCode);

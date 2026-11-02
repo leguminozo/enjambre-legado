@@ -79,13 +79,55 @@ arcoRoutes.delete('/me', async (c) => {
       userAgent: c.req.header('user-agent'),
     });
 
-    // Usar admin client para borrar el usuario de Auth (cascading borra profile y actor)
+    // La supresión debe ser consistente con el flujo ARCO administrativo:
+    // primero se anonimizan los datos y se conserva la solicitud, luego se revoca Auth.
     const adminAuth = createAdminClient();
+    const { data: existingSolicitud, error: lookupError } = await adminAuth
+      .from('arco_solicitudes')
+      .select('id, user_id')
+      .eq('user_id', user.id)
+      .eq('tipo', 'supresion')
+      .in('estado', ['pendiente', 'en_revision'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error('[ARCO Delete] No se pudo localizar la solicitud:', lookupError);
+      return c.json({ code: 'request_failed', message: 'No se pudo registrar la solicitud.' }, 500);
+    }
+
+    let solicitudId = existingSolicitud?.id ?? null;
+    if (!solicitudId) {
+      const { data: insertedSolicitud, error: insertError } = await adminAuth
+        .from('arco_solicitudes')
+        .insert({
+          user_id: user.id,
+          tipo: 'supresion',
+          estado: 'pendiente',
+          motivo: 'Supresión instantánea solicitada por el titular',
+        })
+        .select('id')
+        .single();
+
+      if (insertError || !insertedSolicitud) {
+        console.error('[ARCO Delete] No se pudo crear la solicitud:', insertError);
+        return c.json({ code: 'request_failed', message: 'No se pudo registrar la solicitud.' }, 500);
+      }
+      solicitudId = insertedSolicitud.id;
+    }
+
+    await executeArcoSolicitud(adminAuth, { id: solicitudId, user_id: user.id });
+
     const { error: deleteError } = await adminAuth.auth.admin.deleteUser(user.id);
 
     if (deleteError) {
       console.error('[ARCO Delete] Error de Supabase Admin:', deleteError);
-      return c.json({ code: 'delete_failed', message: 'No se pudo eliminar la cuenta.' }, 500);
+      await adminAuth
+        .from('arco_solicitudes')
+        .update({ estado: 'en_revision', notas_admin: 'La anonimización terminó, pero Auth no pudo revocar el acceso.' })
+        .eq('id', solicitudId);
+      return c.json({ code: 'delete_failed', message: 'La anonimización terminó, pero no se pudo revocar el acceso.' }, 502);
     }
 
     return c.json({ success: true, message: 'Cuenta eliminada permanentemente.' });
@@ -162,16 +204,25 @@ arcoRoutes.post('/admin/solicitudes/:id/ejecutar', requireProfileRole('admin'), 
       return c.json({ code: 'not_found', message: 'Solicitud no encontrada' }, 404);
     }
 
+    if (!solicitud.user_id) {
+      return c.json({ code: 'already_anonymized', message: 'La solicitud ya no tiene un titular activo.' }, 409);
+    }
+
     // Anonimiza perfil + disocia ventas (contabilidad intacta) + limpia volátiles.
     // Service role: el admin opera sobre datos de otro titular.
     const adminAuth = createAdminClient();
-    await executeArcoSolicitud(adminAuth, solicitud);
+    await executeArcoSolicitud(adminAuth, { id: solicitud.id, user_id: solicitud.user_id });
 
     // Revocar acceso Auth (extra: no revierte la anonimización si falla).
     const { error: deleteError } = await adminAuth.auth.admin.deleteUser(solicitud.user_id);
 
     if (deleteError) {
       console.error('[ARCO Execute] Auth delete error:', deleteError);
+      await adminAuth
+        .from('arco_solicitudes')
+        .update({ estado: 'en_revision', notas_admin: 'La anonimización terminó, pero Auth no pudo revocar el acceso.' })
+        .eq('id', solicitud.id);
+      return c.json({ code: 'auth_delete_failed', message: 'La anonimización terminó, pero no se pudo revocar el acceso.' }, 502);
     }
 
     return c.json({ success: true, message: 'Anonimización ejecutada.' });

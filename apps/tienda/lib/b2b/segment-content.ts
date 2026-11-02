@@ -480,7 +480,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
         icon: "Award",
         title: "Programa de tiers",
         description:
-          "Avanza en la red de guardianes según tu volumen y regularidad de reposición. Desbloquea mayores márgenes y acceso prioritario a floraciones limitadas.",
+          "Avanza en la red de guardianes según tu volumen y regularidad de reposición. Desbloquea mayores márgenes y reserva anticipado de la recolección anual.",
       },
     ],
     stats: [

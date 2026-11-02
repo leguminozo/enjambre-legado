@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { deleteAccountInstantly } from '@/app/actions/account-privacy';
 import { createClient } from '@/utils/supabase/server';
+import { guardMutation } from '@/lib/api-guard';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const csrfBlock = guardMutation(req);
+    if (csrfBlock) return csrfBlock;
+
     const supabase = await createClient();
     const {
       data: { user },
