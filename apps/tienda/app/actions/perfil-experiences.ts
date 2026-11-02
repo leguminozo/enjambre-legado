@@ -74,6 +74,15 @@ export async function getLoyaltyDashboard(): Promise<{
     return { balance: 0, tier: emptyTier.loyaltyNivel, tierDisplay: emptyTier, rewards: [] }
   }
 
+  // Auto-acredita puntos de bienvenida si aún no han sido depositados (idempotente vía uq_loyalty_bienvenida)
+  if (typeof supabase.rpc === 'function') {
+    try {
+      await supabase.rpc('unirse_al_enjambre');
+    } catch {
+      /* fail-soft */
+    }
+  }
+
   const [pointsResult, rewardsResult, guardianResult] = await Promise.all([
     supabase
       .from('puntos_fidelizacion')

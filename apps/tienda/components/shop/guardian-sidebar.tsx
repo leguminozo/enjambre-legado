@@ -82,24 +82,57 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between shrink-0 pt-[max(1rem,calc(var(--safe-top)+0.5rem))] lg:pt-4">
           <Link href="/" className="group flex items-center gap-3 min-w-0" onClick={onClose}>
             {(() => {
-              const logoSrc = brand.logo_perfil_url || headerBrand.logoSrc;
-              const logoHeight = brand.logo_perfil_url
+              const darkLogoSrc = brand.logo_perfil_dark_url || brand.logo_perfil_url || headerBrand.logoSrc;
+              const lightLogoSrc = brand.logo_perfil_light_url || darkLogoSrc;
+              const logoHeight = (brand.logo_perfil_dark_url || brand.logo_perfil_url || brand.logo_perfil_light_url)
                 ? (brand.logo_perfil_height_px ?? 36)
                 : Math.min(headerBrand.heightMobilePx, 40);
-              return logoSrc ? (
+              const maxWidth = headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px';
+              const altText = brand.brand_name || settings.brand_line1 || tHeader('brandLine1') || 'Logo';
+
+              if (!darkLogoSrc && !lightLogoSrc) return null;
+
+              if (darkLogoSrc && lightLogoSrc && darkLogoSrc !== lightLogoSrc) {
+                return (
+                  <>
+                    <img
+                      src={darkLogoSrc}
+                      alt={altText}
+                      style={{
+                        height: `${logoHeight}px`,
+                        maxWidth,
+                        width: 'auto',
+                      }}
+                      className="object-contain shrink-0 max-w-full hidden dark:block"
+                    />
+                    <img
+                      src={lightLogoSrc}
+                      alt={altText}
+                      style={{
+                        height: `${logoHeight}px`,
+                        maxWidth,
+                        width: 'auto',
+                      }}
+                      className="object-contain shrink-0 max-w-full block dark:hidden"
+                    />
+                  </>
+                );
+              }
+
+              return (
                 <img
-                  src={logoSrc}
-                  alt={brand.brand_name || settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
+                  src={(darkLogoSrc || lightLogoSrc) ?? undefined}
+                  alt={altText}
                   style={{
                     height: `${logoHeight}px`,
-                    maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
+                    maxWidth,
                     width: 'auto',
                   }}
                   className="object-contain shrink-0 max-w-full"
                 />
-              ) : null;
+              );
             })()}
-            {headerBrand.showText || (!brand.logo_perfil_url && !headerBrand.logoSrc) ? (
+            {headerBrand.showText || (!brand.logo_perfil_dark_url && !brand.logo_perfil_light_url && !brand.logo_perfil_url && !headerBrand.logoSrc) ? (
               <span className="flex flex-col min-w-0">
                 <span
                   className="font-display font-bold text-accent group-hover:text-accent-text transition-colors leading-tight"

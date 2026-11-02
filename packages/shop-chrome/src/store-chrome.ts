@@ -246,9 +246,13 @@ export type BrandAssets = {
   logo_height_desktop_px?: number;
   /** Max width in header (px); 0 = auto (natural aspect ratio). */
   logo_max_width_px: number;
-  /** Logotipo dedicado para el shell de perfil / Mi Legado / cliente. Si está vacío, hereda logo_url de cabecera. */
+  /** Logotipo dedicado para el shell de perfil / Mi Legado / cliente (compatibilidad legacy). Si está vacío, hereda logo_url de cabecera. */
   logo_perfil_url?: string;
-  /** Altura del logo de perfil en píxeles (px). Default 36. */
+  /** Logotipo dedicado para el perfil en modo oscuro. Si está vacío, hereda logo_perfil_url o logo_url de cabecera. */
+  logo_perfil_dark_url?: string;
+  /** Logotipo dedicado para el perfil en modo claro. Si está vacío, hereda logo_perfil_dark_url o logo_url de cabecera. */
+  logo_perfil_light_url?: string;
+  /** Altura del logo de perfil en píxeles (px). Default 96. */
   logo_perfil_height_px?: number;
   /** Display height in footer (px) — legacy/fallback. */
   logo_footer_height_px: number;
@@ -276,6 +280,9 @@ export const DEFAULT_BRAND_ASSETS: BrandAssets = {
     'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/c7fddd33-3601-4093-b9cd-957ee28f7f98.png',
   logo_perfil_url:
     'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/0afbcc2a-23f4-43eb-b234-31c98fcf6164.png',
+  logo_perfil_dark_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/0afbcc2a-23f4-43eb-b234-31c98fcf6164.png',
+  logo_perfil_light_url: '',
   logo_perfil_height_px: 96,
   logo_footer_url:
     'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/e3cac2a1-9cb1-4317-bd39-2c86d3e21026.png',
@@ -438,8 +445,21 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
     brand_tagline_size_desktop_px: brandTaglineSizeDesktop,
     show_logo_header: showLogoHeader,
     logo_url: logoUrl,
-    logo_perfil_url: typeof raw.logo_perfil_url === 'string' ? raw.logo_perfil_url : (d.logo_perfil_url ?? ''),
-    logo_perfil_height_px: asNumber(raw.logo_perfil_height_px, d.logo_perfil_height_px ?? 36, 16, 120),
+    logo_perfil_url:
+      typeof raw.logo_perfil_dark_url === 'string'
+        ? raw.logo_perfil_dark_url
+        : typeof raw.logo_perfil_url === 'string'
+          ? raw.logo_perfil_url
+          : (d.logo_perfil_dark_url ?? d.logo_perfil_url ?? ''),
+    logo_perfil_dark_url:
+      typeof raw.logo_perfil_dark_url === 'string'
+        ? raw.logo_perfil_dark_url
+        : typeof raw.logo_perfil_url === 'string'
+          ? raw.logo_perfil_url
+          : (d.logo_perfil_dark_url ?? d.logo_perfil_url ?? ''),
+    logo_perfil_light_url:
+      typeof raw.logo_perfil_light_url === 'string' ? raw.logo_perfil_light_url : (d.logo_perfil_light_url ?? ''),
+    logo_perfil_height_px: asNumber(raw.logo_perfil_height_px, d.logo_perfil_height_px ?? 96, 16, 120),
     logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,
     favicon_url: asString(raw.favicon_url, d.favicon_url) || d.favicon_url,
     og_image_url: typeof raw.og_image_url === 'string' ? raw.og_image_url : d.og_image_url,

@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
-import { toast, friendlyError } from '@enjambre/ui';
+import { toast, friendlyError, ClubTierIcon } from '@enjambre/ui';
 import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { GuardianStampsSection } from '@/components/shop/guardian-stamps-section';
 import { redeemLoyaltyReward, type LoyaltyReward, type ReferralStats } from '@/app/actions/perfil-experiences';
@@ -166,8 +166,8 @@ export function BilleteraClient({
         <div className="pt-4 border-t border-border/40 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground font-mono">
           <span className="flex items-center gap-1.5">
             <span>Rango de fidelidad:</span>
-            <strong className="text-foreground font-semibold inline-flex items-center gap-1">
-              {loyalty.tierDisplay.tierIcono && <span>{loyalty.tierDisplay.tierIcono}</span>}
+            <strong className="text-foreground font-semibold inline-flex items-center gap-1.5">
+              <ClubTierIcon icon={loyalty.tierDisplay.tierIcono} size={14} className="text-accent inline-block shrink-0" />
               <span>{loyalty.tierDisplay.tierNombre || loyalty.tierDisplay.guardianTier}</span>
             </strong>
           </span>

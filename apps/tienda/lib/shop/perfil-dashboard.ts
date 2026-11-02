@@ -132,6 +132,15 @@ export async function loadPerfilDashboard(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<PerfilDashboardData> {
+  // Asegura bienvenida si el cliente supabase tiene rpc (idempotente)
+  if (typeof supabase.rpc === 'function') {
+    try {
+      await supabase.rpc('unirse_al_enjambre');
+    } catch {
+      /* fail-soft */
+    }
+  }
+
   const [
     profileRes,
     tierRes,

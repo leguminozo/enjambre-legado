@@ -6,7 +6,7 @@ import { fetchWalletSnapshot } from '@/lib/shop/wallet-api';
 import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
 import { IosInstallGuide } from './ios-install-guide';
-import { QRCode, EmptyState, toast } from '@enjambre/ui';
+import { QRCode, EmptyState, toast, ClubTierIcon } from '@enjambre/ui';
 import { Shield, Award, Gift, Check, Copy, QrCode, ShieldAlert } from 'lucide-react';
 
 interface GuardianStampsSectionProps {
@@ -213,8 +213,8 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
               <p className="font-display text-lg text-foreground font-light leading-tight">
                 {snapshot?.displayName || 'Miembro del Legado'}
               </p>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.65rem] font-mono font-bold uppercase tracking-wider">
-                {snapshot?.tierIcono ? <span>{snapshot.tierIcono}</span> : <Award size={12} />}
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.65rem] font-mono font-bold uppercase tracking-wider">
+                <ClubTierIcon icon={snapshot?.tierIcono} size={12} className="text-accent-text shrink-0" />
                 <span>{snapshot?.tierNombre || snapshot?.tier || 'Iniciador'}</span>
               </div>
             </div>

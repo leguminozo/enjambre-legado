@@ -29,6 +29,9 @@ describe('parseBrandAssets', () => {
       logo_height_px: 56,
       logo_max_width_px: 220,
       logo_footer_height_px: 64,
+      logo_perfil_dark_url: 'https://cdn.example/perfil-dark.svg',
+      logo_perfil_light_url: 'https://cdn.example/perfil-light.svg',
+      logo_perfil_height_px: 48,
     });
     expect(brand.logo_url).toBe('https://cdn.example/logo.png');
     expect(brand.logo_footer_url).toBe('https://cdn.example/footer.png');
@@ -37,6 +40,10 @@ describe('parseBrandAssets', () => {
     expect(brand.logo_height_px).toBe(56);
     expect(brand.logo_max_width_px).toBe(220);
     expect(brand.logo_footer_height_px).toBe(64);
+    expect(brand.logo_perfil_dark_url).toBe('https://cdn.example/perfil-dark.svg');
+    expect(brand.logo_perfil_url).toBe('https://cdn.example/perfil-dark.svg');
+    expect(brand.logo_perfil_light_url).toBe('https://cdn.example/perfil-light.svg');
+    expect(brand.logo_perfil_height_px).toBe(48);
   });
 
   it('clampa logo_height_px al rango 16–256', () => {

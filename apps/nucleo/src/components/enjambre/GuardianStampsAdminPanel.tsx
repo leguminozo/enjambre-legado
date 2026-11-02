@@ -180,7 +180,7 @@ export function GuardianStampsAdminPanel() {
         <div className="flex items-center gap-2">
           <Stamp size={16} className="text-accent-text" />
           <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-foreground">
-            Sellos por Formato / Tarjeta Obrera (D2C)
+            Programas de Sellos por Formato (Billetera D2C)
           </h3>
         </div>
         {!isCreating && !editingId && (

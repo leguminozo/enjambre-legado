@@ -7,16 +7,30 @@ describe('parseBrandAssets', () => {
     expect(parseBrandAssets(null).logo_url).toBe(DEFAULT_BRAND_ASSETS.logo_url);
     expect(parseBrandAssets({ logo_url: '' }).logo_url).toBe('');
     expect(parseBrandAssets(null).logo_perfil_url).toBe(DEFAULT_BRAND_ASSETS.logo_perfil_url);
+    expect(parseBrandAssets(null).logo_perfil_dark_url).toBe(DEFAULT_BRAND_ASSETS.logo_perfil_dark_url);
+    expect(parseBrandAssets(null).logo_perfil_light_url).toBe('');
     expect(parseBrandAssets(null).logo_perfil_height_px).toBe(DEFAULT_BRAND_ASSETS.logo_perfil_height_px);
   });
 
-  it('parsea y clampa logo_perfil', () => {
+  it('parsea y clampa logo_perfil oscuro y claro', () => {
     const custom = parseBrandAssets({
       logo_perfil_url: 'https://cdn.example/logo-perfil.svg',
       logo_perfil_height_px: 42,
     });
     expect(custom.logo_perfil_url).toBe('https://cdn.example/logo-perfil.svg');
+    expect(custom.logo_perfil_dark_url).toBe('https://cdn.example/logo-perfil.svg');
+    expect(custom.logo_perfil_light_url).toBe('');
     expect(custom.logo_perfil_height_px).toBe(42);
+
+    const dual = parseBrandAssets({
+      logo_perfil_dark_url: 'https://cdn.example/logo-perfil-dark.svg',
+      logo_perfil_light_url: 'https://cdn.example/logo-perfil-light.svg',
+      logo_perfil_height_px: 50,
+    });
+    expect(dual.logo_perfil_dark_url).toBe('https://cdn.example/logo-perfil-dark.svg');
+    expect(dual.logo_perfil_url).toBe('https://cdn.example/logo-perfil-dark.svg');
+    expect(dual.logo_perfil_light_url).toBe('https://cdn.example/logo-perfil-light.svg');
+    expect(dual.logo_perfil_height_px).toBe(50);
 
     const clampedLow = parseBrandAssets({ logo_perfil_height_px: 5 });
     expect(clampedLow.logo_perfil_height_px).toBe(16);

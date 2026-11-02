@@ -1121,21 +1121,25 @@ function TransparentPreview({
   alt,
   heightPx,
   maxWidthPx,
+  tone,
 }: {
   src: string;
   alt: string;
   heightPx: number;
   maxWidthPx?: number;
+  tone?: 'dark' | 'light';
 }) {
+  const isLight = tone === 'light';
   return (
     <div
       className="rounded-lg border border-border p-2 flex items-center justify-center min-h-[56px] w-full"
       style={{
-        backgroundImage:
-          'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)',
+        backgroundImage: isLight
+          ? 'linear-gradient(45deg, hsl(var(--enj-crema-h, 35) 20% 82%) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--enj-crema-h, 35) 20% 82%) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--enj-crema-h, 35) 20% 82%) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--enj-crema-h, 35) 20% 82%) 75%)'
+          : 'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)',
         backgroundSize: '12px 12px',
         backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
-        backgroundColor: 'hsl(var(--muted) / 0.5)',
+        backgroundColor: isLight ? 'hsl(var(--enj-crema-h, 35) 30% 94%)' : 'hsl(var(--muted) / 0.5)',
       }}
     >
       <img
@@ -1160,6 +1164,7 @@ function BrandAssetUploadField({
   previewHeight,
   previewMaxWidth,
   acceptTransparent,
+  previewTone,
   onUrlChange,
   onClear,
   onImageUpload,
@@ -1171,6 +1176,7 @@ function BrandAssetUploadField({
   previewHeight: number;
   previewMaxWidth?: number;
   acceptTransparent?: boolean;
+  previewTone?: 'dark' | 'light';
   onUrlChange: (v: string) => void;
   onClear?: () => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
@@ -1217,6 +1223,7 @@ function BrandAssetUploadField({
           alt={label}
           heightPx={previewHeight}
           maxWidthPx={previewMaxWidth}
+          tone={previewTone}
         />
       ) : (
         <div className="h-14 rounded-lg border border-dashed border-border flex items-center justify-center text-muted-foreground gap-2">
@@ -1324,6 +1331,11 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
     const url = await Promise.resolve(onImageUpload(file, fieldName));
     if (typeof url !== 'string' || !url) return '';
     const next = { ...localRef.current, [fieldName]: url } as BrandAssets;
+    if (fieldName === 'logo_perfil_dark_url') {
+      next.logo_perfil_url = url;
+    } else if (fieldName === 'logo_perfil_url') {
+      next.logo_perfil_dark_url = url;
+    }
     setLocal(next);
     await flush(next); // upload -> guardado inmediato (sin debounce)
     return url;
@@ -2061,22 +2073,113 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             Logotipo del Perfil de Cliente (Mi Legado / Guardián)
           </p>
           <p className="text-[11px] text-muted-foreground">
-            Archivo gráfico dedicado para la barra lateral y bienvenida del portal de clientes. Si no se sube un logo específico para esta sección, se utiliza el logotipo de cabecera como respaldo.
+            Archivos gráficos dedicados para la barra lateral y bienvenida del portal de clientes. Sube un logo específico para modo oscuro y otro para modo claro. Si no se sube un logo para algún modo, se utiliza el otro o el logotipo de cabecera como respaldo.
           </p>
         </div>
 
-        <BrandAssetUploadField
-          label="Archivo del logo de perfil de cliente"
-          hint="PNG transparente o SVG recomendado (ideal sin recuadros ni fondos opacos)"
-          fieldName="logo_perfil_url"
-          value={local.logo_perfil_url ?? ''}
-          previewHeight={local.logo_perfil_height_px ?? 36}
-          previewMaxWidth={local.logo_max_width_px}
-          acceptTransparent
-          onUrlChange={(v) => patch('logo_perfil_url', v)}
-          onClear={() => patch('logo_perfil_url', '')}
-          onImageUpload={uploadBrandField}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <BrandAssetUploadField
+            label="Logo de perfil — Modo Oscuro"
+            hint="PNG transparente o SVG recomendado para fondos oscuros (sidebar nocturna / tema default)."
+            fieldName="logo_perfil_dark_url"
+            value={local.logo_perfil_dark_url || local.logo_perfil_url || ''}
+            previewHeight={local.logo_perfil_height_px ?? 36}
+            previewMaxWidth={local.logo_max_width_px}
+            acceptTransparent
+            previewTone="dark"
+            onUrlChange={(v) => {
+              patch('logo_perfil_dark_url', v);
+              patch('logo_perfil_url', v);
+            }}
+            onClear={() => {
+              patch('logo_perfil_dark_url', '');
+              patch('logo_perfil_url', '');
+            }}
+            onImageUpload={uploadBrandField}
+          />
+
+          <BrandAssetUploadField
+            label="Logo de perfil — Modo Claro"
+            hint="PNG transparente o SVG recomendado para fondos claros (tema diurno / contraste sobre crema)."
+            fieldName="logo_perfil_light_url"
+            value={local.logo_perfil_light_url ?? ''}
+            previewHeight={local.logo_perfil_height_px ?? 36}
+            previewMaxWidth={local.logo_max_width_px}
+            acceptTransparent
+            previewTone="light"
+            onUrlChange={(v) => patch('logo_perfil_light_url', v)}
+            onClear={() => patch('logo_perfil_light_url', '')}
+            onImageUpload={uploadBrandField}
+          />
+        </div>
+
+        {/* Vista previa comparativa en barra lateral */}
+        <div className="space-y-2 pt-2 border-t border-border/60">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Vista previa comparativa en barra lateral
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Dark preview */}
+            <div className="rounded-xl border border-border/80 bg-surface-sunken p-3 flex flex-col justify-between min-h-[90px]">
+              <div className="flex items-center justify-between pb-1.5 border-b border-border/40">
+                <span className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                  Modo Oscuro
+                </span>
+                <span className="text-[9px] text-muted-foreground/70">Fondo nocturno</span>
+              </div>
+              <div className="flex items-center min-w-0 py-2">
+                {(() => {
+                  const darkSrc = local.logo_perfil_dark_url || local.logo_perfil_url || local.logo_url;
+                  const h = local.logo_perfil_height_px ?? 36;
+                  return darkSrc ? (
+                    <img
+                      src={darkSrc}
+                      alt="Vista previa perfil oscuro"
+                      style={{ height: `${h}px`, width: 'auto', maxWidth: '180px' }}
+                      className="object-contain shrink-0"
+                    />
+                  ) : (
+                    <span className="font-display font-bold text-accent text-sm tracking-wider">
+                      {local.brand_name || 'Enjambre Legado'}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Light preview */}
+            <div className="rounded-xl border border-border/80 bg-crema-natural text-negro-tinta p-3 flex flex-col justify-between min-h-[90px]">
+              <div className="flex items-center justify-between pb-1.5 border-b border-negro-tinta/10">
+                <span className="text-[10px] font-mono tracking-widest uppercase text-negro-tinta/80 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-oro-miel-dark" />
+                  Modo Claro
+                </span>
+                <span className="text-[9px] text-negro-tinta/60">
+                  {local.logo_perfil_light_url ? 'Logo claro dedicado' : 'Usando respaldo'}
+                </span>
+              </div>
+              <div className="flex items-center min-w-0 py-2">
+                {(() => {
+                  const lightSrc = local.logo_perfil_light_url || local.logo_perfil_dark_url || local.logo_perfil_url || local.logo_url;
+                  const h = local.logo_perfil_height_px ?? 36;
+                  return lightSrc ? (
+                    <img
+                      src={lightSrc}
+                      alt="Vista previa perfil claro"
+                      style={{ height: `${h}px`, width: 'auto', maxWidth: '180px' }}
+                      className="object-contain shrink-0"
+                    />
+                  ) : (
+                    <span className="font-display font-bold text-oro-miel-dark text-sm tracking-wider">
+                      {local.brand_name || 'Enjambre Legado'}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <SliderField
           label="Altura del logo en perfil"
