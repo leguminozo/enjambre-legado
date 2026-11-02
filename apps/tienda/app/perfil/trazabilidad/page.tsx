@@ -509,7 +509,7 @@ export default async function TrazabilidadPage({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-12 pb-16 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-12 sm:space-y-16 pb-20 animate-in fade-in duration-300">
       <header className="space-y-4 border-b border-border/40 pb-8">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/25 flex items-center justify-center text-accent">

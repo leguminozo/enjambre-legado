@@ -170,7 +170,7 @@ export function MiLegadoClient({
     : '—';
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-12 pb-16 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-12 sm:space-y-16 pb-20 animate-in fade-in duration-300">
       {/* ── HERO & IDENTIDAD ── */}
       <header className="space-y-5 border-b border-border/40 pb-8">
         <div className="flex flex-wrap items-center justify-between gap-3">

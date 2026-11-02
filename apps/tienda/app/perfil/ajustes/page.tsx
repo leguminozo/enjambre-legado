@@ -31,7 +31,7 @@ export default async function AjustesPage() {
 
       <AjustesThemeSection initialTheme={profileData?.theme_preference} />
 
-      <div className="max-w-3xl space-y-14">
+      <div className="max-w-5xl space-y-14">
         <section className="space-y-6">
           <div className="flex items-center gap-2.5 text-accent-text">
             <ShieldCheck size={18} />

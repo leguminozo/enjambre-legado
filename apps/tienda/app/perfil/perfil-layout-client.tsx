@@ -119,7 +119,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
           ref={mainContentRef}
           className="flex-1 overflow-y-auto custom-scrollbar relative z-10 perfil-shell-content"
         >
-          <div className="max-w-6xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 w-full animate-in">
+          <div className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-10 w-full animate-in">
             {children}
           </div>
         </main>

@@ -38,10 +38,10 @@ export function ReplenishmentAddressField({
           </span>
         </h4>
         <Link
-          href="/perfil/direcciones"
+          href="/perfil/billetera"
           className="text-xs text-accent-text hover:underline inline-flex items-center gap-1 font-medium"
         >
-          <span>Libreta de Direcciones</span>
+          <span>Libreta en Billetera</span>
           <ExternalLink size={12} />
         </Link>
       </div>

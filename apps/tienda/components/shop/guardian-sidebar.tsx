@@ -36,7 +36,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
 
   const sections = useMemo(() => buildSidebarSections(participacion), [participacion]);
 
-  const isAccountRoute = ['/perfil/ajustes', '/perfil/direcciones', '/perfil/logros'].some(
+  const isAccountRoute = ['/perfil/ajustes', '/perfil/logros'].some(
     (route) => pathname?.startsWith(route),
   );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -44,7 +44,6 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   // Precargar rutas críticas del menú de cuenta
   React.useEffect(() => {
     router.prefetch('/perfil/ajustes');
-    router.prefetch('/perfil/direcciones');
     router.prefetch('/perfil/logros');
   }, [router]);
 
@@ -299,17 +298,6 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                     <span>{tPerfil('accountMenu.settings')}</span>
                     <span className="text-xs text-muted-foreground/80 leading-none mt-0.5">{tPerfil('accountMenu.settingsHint')}</span>
                   </div>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  className="gap-2.5 cursor-pointer text-sm"
-                  onSelect={() => {
-                    router.push('/perfil/direcciones');
-                    onClose();
-                  }}
-                >
-                  <MapPin size={16} className="text-muted-foreground shrink-0" />
-                  <span>{tPerfil('accountMenu.addresses')}</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem

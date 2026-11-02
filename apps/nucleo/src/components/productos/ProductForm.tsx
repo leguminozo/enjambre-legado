@@ -642,6 +642,34 @@ export function ProductForm({
     }
   };
 
+  const handleDeleteAllVariantes = async () => {
+    if (!initialData?.id || variantes.length === 0) return;
+    if (
+      !window.confirm(
+        `¿Deseas desvincular y eliminar las ${variantes.length} variantes de este producto para dejarlo en modo neutro?`,
+      )
+    ) {
+      return;
+    }
+    try {
+      setLoadingVariantes(true);
+      for (const v of variantes) {
+        if (v.id) {
+          await apiFetch(`/api/variantes/${v.id}?hard=true&desvincular_bidireccional=true`, {
+            method: 'DELETE',
+          });
+        }
+      }
+      toast('Todas las variantes fueron eliminadas. El producto quedó en modo neutro.', { type: 'success' });
+      await loadVariantes();
+      await loadCatalogProducts();
+    } catch (err) {
+      toast(friendlyError(err, 'Error al limpiar variantes'), { type: 'error' });
+    } finally {
+      setLoadingVariantes(false);
+    }
+  };
+
   const filteredCatalogProducts = catalogProducts.filter((p) => {
     if (!productSearchTerm.trim()) return true;
     const term = productSearchTerm.toLowerCase();
@@ -1893,6 +1921,18 @@ export function ProductForm({
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        {variantes.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleDeleteAllVariantes}
+                            className="inline-flex items-center gap-1.5 text-xs text-destructive hover:bg-destructive/10"
+                            title="Eliminar todas las variantes asociadas para dejar el producto en modo neutro"
+                          >
+                            <Trash2 size={13} /> Limpiar todas ({variantes.length})
+                          </Button>
+                        )}
                         <Button
                           type="button"
                           variant="primary"

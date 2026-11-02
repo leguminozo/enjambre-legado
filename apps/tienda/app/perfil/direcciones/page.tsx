@@ -1,31 +1,5 @@
-import React from 'react';
-import { getDirecciones } from '@/app/actions/direcciones';
-import { DireccionesClient } from '@/components/perfil/direcciones-client';
-import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
-import { MapPin } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 
-export const metadata = {
-  title: 'Libreta de Direcciones | La Obrera y el Zángano',
-};
-
-export default async function DireccionesPage() {
-  const [t, direcciones] = await Promise.all([
-    getTranslations('perfil.nav.links'),
-    getDirecciones(),
-  ]);
-
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <PerfilPageHeader
-        icon={<MapPin size={20} />}
-        title={t('direcciones')}
-        mission="Gestiona dónde recibes la miel de bosque nativo — predeterminada, editar y eliminar."
-      />
-
-      <section>
-        <DireccionesClient initialData={direcciones} />
-      </section>
-    </div>
-  );
+export default function DireccionesPage() {
+  redirect('/perfil/billetera');
 }
