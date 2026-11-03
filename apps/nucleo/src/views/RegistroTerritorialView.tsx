@@ -21,7 +21,7 @@ import dynamic from 'next/dynamic';
 
 const MapaTerritorial = dynamic(
   () => import('@/components/apicultor/MapaTerritorial').then((mod) => mod.MapaTerritorial),
-  { ssr: false, loading: () => <div className="h-[500px] flex items-center justify-center bg-card rounded-xl border border-border"><Spinner /></div> }
+  { ssr: false, loading: () => <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex items-center justify-center bg-card rounded-2xl border border-border"><Spinner /></div> }
 );
 
 import { PredioForm } from '@/components/apicultor/PredioForm';

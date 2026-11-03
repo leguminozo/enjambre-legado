@@ -68,22 +68,26 @@ export function MapaChiloePublicoBase({
           <Fragment key={a.id}>
             <Circle
               center={[a.lat, a.lng]}
-              radius={1000}
+              radius={1200}
               pathOptions={{
-                color: a.tipo === 'externo' ? MAP_BOSQUE : MAP_MIEL,
-                fillColor: a.tipo === 'externo' ? MAP_BOSQUE : MAP_MIEL,
-                fillOpacity: 0.22,
-                weight: 1.5,
+                color: a.tipo === 'predio' ? MAP_MIEL : MAP_BOSQUE,
+                fillColor: a.tipo === 'predio' ? MAP_MIEL : MAP_BOSQUE,
+                fillOpacity: 0.18,
+                weight: 1.2,
               }}
             />
             <Marker
               position={[a.lat, a.lng]}
-              icon={a.tipo === 'externo' ? ICON_EXT : ICON_PREDIO}
+              icon={a.tipo === 'predio' ? ICON_PREDIO : ICON_EXT}
             >
               <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
                 <div className="text-sm space-y-1">
                   <p className="font-bold">
-                    {a.tipo === 'externo' ? 'Apiario declarado' : 'Predio facilitador'}
+                    {a.tipo === 'local'
+                      ? '🐝 Asentamiento de la red'
+                      : a.tipo === 'externo'
+                        ? '🚚 Apiario trashumante'
+                        : '🏞️ Predio facilitador'}
                   </p>
                   <p>
                     <strong>Comuna:</strong> {a.comuna}
@@ -93,20 +97,18 @@ export function MapaChiloePublicoBase({
                       <strong>Zona:</strong> {a.zona}
                     </p>
                   )}
-                  {a.tipo === 'externo' && (
-                    <>
-                      <p>
-                        <strong>Colmenas:</strong> {a.colmenas_banda}
-                      </p>
-                      {a.comuna_origen && (
-                        <p>
-                          <strong>Origen:</strong> {a.comuna_origen}
-                        </p>
-                      )}
-                    </>
+                  {a.tipo !== 'predio' && (
+                    <p>
+                      <strong>Colmenas:</strong> {a.colmenas_banda}
+                    </p>
+                  )}
+                  {a.tipo === 'externo' && a.comuna_origen && (
+                    <p>
+                      <strong>Origen:</strong> {a.comuna_origen}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ubicación aproximada (±1 km)
+                    Zona de pecoreo protegida (±1.5 km · Ley 21.489)
                   </p>
                 </div>
               </Popup>

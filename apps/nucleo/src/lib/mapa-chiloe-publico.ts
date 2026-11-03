@@ -35,7 +35,7 @@ export function publicCoords(
 
 export type PuntoApiarioPublico = {
   id: string;
-  tipo: 'externo' | 'predio';
+  tipo: 'externo' | 'predio' | 'local';
   comuna: string;
   zona: string | null;
   lat: number;
@@ -105,6 +105,15 @@ export function buildMapaChiloePublico(input: {
     lng_aproximada?: number | null;
     estado?: string | null;
   }>;
+  apiariosRegistro?: Array<{
+    id: string;
+    comuna?: string | null;
+    zona?: string | null;
+    lat_aproximada?: number | null;
+    lng_aproximada?: number | null;
+    n_colmenas?: number | null;
+    activo?: boolean | null;
+  }>;
   predios: Array<{
     id: string;
     comuna?: string | null;
@@ -165,6 +174,21 @@ export function buildMapaChiloePublico(input: {
       lat: coords.lat,
       lng: coords.lng,
       colmenas_banda: 's/d',
+    });
+  }
+
+  for (const r of input.apiariosRegistro ?? []) {
+    if (r.activo === false) continue;
+    const coords = publicCoords(r.lat_aproximada, r.lng_aproximada);
+    if (!coords) continue;
+    apiarios.push({
+      id: `reg-${r.id}`,
+      tipo: 'local',
+      comuna: r.comuna?.trim() || 'Chiloé',
+      zona: r.zona?.trim() || null,
+      lat: coords.lat,
+      lng: coords.lng,
+      colmenas_banda: bandNColmenas(r.n_colmenas),
     });
   }
 

@@ -8,6 +8,7 @@ import { Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { fetchPronostico } from '@/lib/meteo';
 import { resolveComunaCoords } from '@/lib/cliente-coords';
+import { nombreCanonicoComuna } from '@/lib/chiloe-comunas';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ColmenasDashboardSkeleton } from '@/components/shared/skeletons';
@@ -130,11 +131,11 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           (actorComuna && actorComuna.toLowerCase() !== 'desconocida' ? actorComuna : null) ||
           (metaComuna && metaComuna.toLowerCase() !== 'desconocida' ? metaComuna : null);
         if (derivedComuna) {
-          setUserComuna(derivedComuna);
+          setUserComuna(nombreCanonicoComuna(derivedComuna));
         }
 
         if (actor?.comuna && actor.comuna.toLowerCase() !== 'desconocida') {
-          resolvedZone = actor.comuna;
+          resolvedZone = nombreCanonicoComuna(actor.comuna);
           resolvedCoords = resolveComunaCoords(actor.comuna);
         }
 

@@ -74,7 +74,7 @@ export default function ApiarioPickerMapBase({
   const initialZoom = hasCoords ? 14 : comunaCoords ? 12 : 9;
 
   return (
-    <div className="w-full h-64 sm:h-72 rounded-xl overflow-hidden border border-border relative z-0 shadow-inner">
+    <div className="w-full h-72 sm:h-80 lg:h-[380px] xl:h-[420px] rounded-xl overflow-hidden border border-border relative z-0 shadow-inner">
       <MapContainer
         center={activeCenter}
         zoom={initialZoom}

@@ -14,7 +14,7 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
   try {
     const admin = createAdminClient();
 
-    const [extRes, prediosRes, alertasRes, actoresRes, florRes] = await Promise.all([
+    const [extRes, regRes, prediosRes, alertasRes, actoresRes, florRes] = await Promise.all([
       admin
         .from("apiarios_externos")
         .select(
@@ -22,6 +22,15 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
         )
         .in("estado", ["declarado", "activo"])
         .limit(500),
+      admin
+        .from("apiarios_registro")
+        .select(
+          "id, n_colmenas, comuna, zona, lat_aproximada, lng_aproximada, activo, actores_registro(consentimientos)",
+        )
+        .eq("activo", true)
+        .not("lat_aproximada", "is", null)
+        .not("lng_aproximada", "is", null)
+        .limit(2000),
       admin
         .from("predios_facilitadores")
         .select("id, comuna, zona, lat_aproximada, lng_aproximada, activo")
@@ -83,8 +92,33 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
         (f) => f.lat != null && f.lng != null && Number.isFinite(f.lat) && Number.isFinite(f.lng),
       );
 
+    const apiariosRegistroConsentidos = ((regRes.data ?? []) as unknown as Array<{
+      id: string;
+      n_colmenas?: number | null;
+      comuna?: string | null;
+      zona?: string | null;
+      lat_aproximada?: number | null;
+      lng_aproximada?: number | null;
+      activo?: boolean | null;
+      actores_registro?: { consentimientos?: Record<string, unknown> } | null;
+    }>)
+      .filter((r) => {
+        const c = r.actores_registro?.consentimientos?.mapa_comunitario;
+        return c === true || c === "true";
+      })
+      .map((r) => ({
+        id: r.id,
+        n_colmenas: r.n_colmenas,
+        comuna: r.comuna,
+        zona: r.zona,
+        lat_aproximada: r.lat_aproximada,
+        lng_aproximada: r.lng_aproximada,
+        activo: r.activo,
+      }));
+
     const payload = buildMapaChiloePublico({
       apiariosExternos: extRes.data ?? [],
+      apiariosRegistro: apiariosRegistroConsentidos,
       predios: prediosRes.data ?? [],
       alertas: alertasRes.data ?? [],
       actores: actoresRes.data ?? [],

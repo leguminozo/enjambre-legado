@@ -83,6 +83,40 @@ describe('buildMapaChiloePublico', () => {
     expect(m.privacidad.nivel).toBe('publico_anonimizado');
   });
 
+  it('incluye apiarios del registro local anonimizados con banda de colmenas', () => {
+    const m = buildMapaChiloePublico({
+      apiariosExternos: [],
+      apiariosRegistro: [
+        {
+          id: 'reg1',
+          comuna: 'Ancud',
+          zona: 'Chacao',
+          lat_aproximada: -41.8312,
+          lng_aproximada: -73.5189,
+          n_colmenas: 10,
+          activo: true,
+        },
+        {
+          id: 'reg2',
+          comuna: 'Castro',
+          lat_aproximada: null,
+          lng_aproximada: null,
+          n_colmenas: 5,
+          activo: true,
+        },
+      ],
+      predios: [],
+      alertas: [],
+    });
+
+    expect(m.apiarios).toHaveLength(1);
+    expect(m.apiarios[0]?.tipo).toBe('local');
+    expect(m.apiarios[0]?.comuna).toBe('Ancud');
+    expect(m.apiarios[0]?.colmenas_banda).toBe('6-20');
+    expect(m.apiarios[0]?.lat).toBe(-41.83);
+    expect(m.apiarios[0]?.lng).toBe(-73.52);
+  });
+
   it('omite puntos sin coords', () => {
     const m = buildMapaChiloePublico({
       apiariosExternos: [{ id: 'x', n_colmenas: 2, comuna_destino: 'Ancud' }],

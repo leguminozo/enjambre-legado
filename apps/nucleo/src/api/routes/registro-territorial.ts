@@ -963,12 +963,36 @@ registroTerritorialRoutes.post(
 );
 
 // ---------------------------------------------------------------------------
+// UTILITARIO DE PRIVACIDAD ESPACIAL
+// ---------------------------------------------------------------------------
+
+/**
+ * Degrada coordenadas exactas a ~1 km (2 decimales) para no exponer la
+ * ubicación real de las colmenas en el mapa comunitario del registro.
+ */
+function degradarCoordenadas(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): { lat_aproximada: number | null; lng_aproximada: number | null } {
+  const finita = (v: number | null | undefined) =>
+    typeof v === "number" && Number.isFinite(v);
+  if (!finita(lat) || !finita(lng)) {
+    return { lat_aproximada: null, lng_aproximada: null };
+  }
+  return {
+    lat_aproximada: Math.round((lat as number) * 100) / 100,
+    lng_aproximada: Math.round((lng as number) * 100) / 100,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // APIARIOS DEL REGISTRO (declaración censal de apiarios propios del actor)
 // ---------------------------------------------------------------------------
 
 /** GET /api/registro-territorial/apiarios — apiarios visibles para el usuario.
  *  La RLS aplica la escalera de visibilidad: los propios siempre; los de otros
- *  actores solo si consintieron el mapa comunitario. */
+ *  actores solo si consintieron el mapa comunitario.
+ *  Las coordenadas siempre se degradan a ~1 km para blindar la privacidad comunitaria. */
 registroTerritorialRoutes.get("/apiarios", async (c) => {
   const supabase = c.get("supabase");
   const { comuna, categoria, actor_id } = c.req.query();
@@ -987,7 +1011,16 @@ registroTerritorialRoutes.get("/apiarios", async (c) => {
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);
 
-  return c.json({ data });
+  const sanitized = (data ?? []).map((a) => {
+    const deg = degradarCoordenadas(a.lat_aproximada, a.lng_aproximada);
+    return {
+      ...a,
+      lat_aproximada: deg.lat_aproximada,
+      lng_aproximada: deg.lng_aproximada,
+    };
+  });
+
+  return c.json({ data: sanitized });
 });
 
 /** POST /api/registro-territorial/apiarios — declarar un apiario propio */
@@ -1013,6 +1046,8 @@ registroTerritorialRoutes.post(
       );
     }
 
+    const degradadas = degradarCoordenadas(body.lat_aproximada, body.lng_aproximada);
+
     const { data, error } = await supabase
       .from("apiarios_registro")
       .insert({
@@ -1020,8 +1055,8 @@ registroTerritorialRoutes.post(
         nombre: body.nombre ?? null,
         comuna: body.comuna,
         zona: body.zona,
-        lat_aproximada: body.lat_aproximada ?? null,
-        lng_aproximada: body.lng_aproximada ?? null,
+        lat_aproximada: degradadas.lat_aproximada,
+        lng_aproximada: degradadas.lng_aproximada,
         n_colmenas: body.n_colmenas,
         categoria: body.categoria,
         observaciones: body.observaciones ?? null,
@@ -1048,6 +1083,13 @@ registroTerritorialRoutes.patch(
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
 
+    const patchPayload = { ...body, updated_at: new Date().toISOString() };
+    if (body.lat_aproximada !== undefined || body.lng_aproximada !== undefined) {
+      const deg = degradarCoordenadas(body.lat_aproximada, body.lng_aproximada);
+      patchPayload.lat_aproximada = deg.lat_aproximada;
+      patchPayload.lng_aproximada = deg.lng_aproximada;
+    }
+
     // Asegurar que el apiario pertenece al actor del usuario (o admin)
     if (profileRole !== "admin") {
       const { data: miActor } = await supabase
@@ -1060,7 +1102,7 @@ registroTerritorialRoutes.patch(
       }
       const { data, error } = await supabase
         .from("apiarios_registro")
-        .update({ ...body, updated_at: new Date().toISOString() })
+        .update(patchPayload)
         .eq("id", id)
         .eq("actor_id", miActor.id)
         .select()
@@ -1072,7 +1114,7 @@ registroTerritorialRoutes.patch(
 
     const { data, error } = await supabase
       .from("apiarios_registro")
-      .update({ ...body, updated_at: new Date().toISOString() })
+      .update(patchPayload)
       .eq("id", id)
       .select()
       .maybeSingle();
@@ -1087,25 +1129,6 @@ registroTerritorialRoutes.patch(
 // ---------------------------------------------------------------------------
 // CRUCE BIDIRECCIONAL APIARIO OPERATIVO <-> REGISTRO TERRITORIAL
 // ---------------------------------------------------------------------------
-
-/**
- * Degrada coordenadas exactas a ~1 km (2 decimales) para no exponer la
- * ubicación real de las colmenas en el mapa comunitario del registro.
- */
-function degradarCoordenadas(
-  lat: number | null | undefined,
-  lng: number | null | undefined,
-): { lat_aproximada: number | null; lng_aproximada: number | null } {
-  const finita = (v: number | null | undefined) =>
-    typeof v === "number" && Number.isFinite(v);
-  if (!finita(lat) || !finita(lng)) {
-    return { lat_aproximada: null, lng_aproximada: null };
-  }
-  return {
-    lat_aproximada: Math.round((lat as number) * 100) / 100,
-    lng_aproximada: Math.round((lng as number) * 100) / 100,
-  };
-}
 
 const SyncApiarioOperativoSchema = z
   .object({
@@ -1384,7 +1407,19 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
     );
   }
 
-  return c.json({ data: rows });
+  const sanitizedRows = rows.map((row) => {
+    const deg = degradarCoordenadas(
+      row.lat_aproximada as number | null | undefined,
+      row.lng_aproximada as number | null | undefined,
+    );
+    return {
+      ...row,
+      lat_aproximada: deg.lat_aproximada,
+      lng_aproximada: deg.lng_aproximada,
+    };
+  });
+
+  return c.json({ data: sanitizedRows });
 });
 
 /** POST /api/registro-territorial/apiarios-externos — declarar ingreso trashumante */
@@ -1492,6 +1527,8 @@ registroTerritorialRoutes.post(
       }
     }
 
+    const degradadas = degradarCoordenadas(body.lat_aproximada, body.lng_aproximada);
+
     // fromLoose: distancia_* aún no está en el typegen (migración 20260808030000).
     const { data, error } = await fromLoose(supabase, "apiarios_externos")
       .insert({
@@ -1502,8 +1539,8 @@ registroTerritorialRoutes.post(
         comuna_origen: body.comuna_origen,
         comuna_destino: body.comuna_destino,
         zona_destino: body.zona_destino,
-        lat_aproximada: body.lat_aproximada ?? null,
-        lng_aproximada: body.lng_aproximada ?? null,
+        lat_aproximada: degradadas.lat_aproximada,
+        lng_aproximada: degradadas.lng_aproximada,
         fecha_ingreso: body.fecha_ingreso,
         fecha_salida: body.fecha_salida ?? null,
         cert_sanitaria_url: body.cert_sanitaria_url ?? null,

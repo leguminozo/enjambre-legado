@@ -37,7 +37,7 @@ const MapaTerritorial = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[500px] flex items-center justify-center bg-card rounded-xl border border-border">
+      <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex items-center justify-center bg-card rounded-2xl border border-border">
         <Spinner />
       </div>
     ),
@@ -254,9 +254,21 @@ export function TerritorioHomeView() {
               <Award size={14} className="mr-1.5 text-primary" /> Credencial Digital
             </Button>
           ) : tab === 'mapa' ? (
-            <span className="text-[11px] font-mono text-muted-foreground/80 bg-surface-raised px-3 py-1.5 rounded-xl border border-border/60">
-              Pecoreo ±1 km · GPS protegido
-            </span>
+            <div className="flex items-center gap-2">
+              {miActor && !miActor.completo && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/territorio')}
+                  className="text-xs h-8 rounded-xl border-warning/40 text-warning bg-warning/10 hover:bg-warning/20 font-medium"
+                >
+                  <ClipboardList size={13} className="mr-1.5" /> Completar Censo
+                </Button>
+              )}
+              <span className="text-[11px] font-mono text-muted-foreground/80 bg-surface-raised px-3 py-1.5 rounded-xl border border-border/60">
+                Pecoreo ±1.5 km · GPS protegido
+              </span>
+            </div>
           ) : undefined
         }
       />
@@ -369,8 +381,8 @@ export function TerritorioHomeView() {
         </div>
       )}
 
-      {/* Censo legal pendiente (solo cuando ya está inscrito pero no ha completado el censo, y no está en la pestaña de registro) */}
-      {miActor && !miActor.completo && tab !== 'registro' && (
+      {/* Censo legal pendiente (solo en pestañas que no son registro ni mapa para no quebrar el viewport) */}
+      {miActor && !miActor.completo && tab !== 'registro' && tab !== 'mapa' && (
         <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <ClipboardList className="w-5 h-5 text-warning shrink-0 mt-0.5" />
