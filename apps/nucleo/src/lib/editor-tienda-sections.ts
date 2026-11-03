@@ -122,6 +122,7 @@ export const CMS_SECTION_KEYS = [
   'perfil_resenas_settings',
   'perfil_retorno_settings',
   'perfil_billetera_settings',
+  'territorio_header',
   'territorio_layout',
   'territorio_hero',
   'territorio_herramientas',
@@ -351,6 +352,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
     label: 'Registro Territorial',
     hint: 'Landing comunitaria, orden de bloques, herramientas apícolas, privacidad, origen, carta territorial y preguntas frecuentes',
     nodes: [
+      { id: 'territorio_header', label: 'Cabecera y Navegación', sectionKey: 'territorio_header', previewPath: '/' },
       { id: 'territorio_layout', label: 'Orden de Bloques', sectionKey: 'territorio_layout', previewPath: '/' },
       { id: 'territorio_hero', label: 'Cabecera (Hero)', sectionKey: 'territorio_hero', previewPath: '/' },
       { id: 'territorio_herramientas', label: 'Herramientas Apícolas', sectionKey: 'territorio_herramientas', previewPath: '/#herramientas' },

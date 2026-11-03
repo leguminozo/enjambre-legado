@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Spinner, toast, formatCalendarDate } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
 import { Printer, CheckCircle2 } from 'lucide-react';
 
 interface ActorSag {
@@ -157,21 +158,34 @@ export function DeclaracionSagView() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between print:hidden">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Declaración SAG pre-llenada</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Res. Exenta 8.196/2015 — registro anual de apicultores y apiarios. Revisa, completa y firma.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => window.print()}>
-          <Printer className="w-4 h-4 mr-2" />
-          Imprimir / Guardar PDF
-        </Button>
-        <Button size="sm" onClick={() => void registrarPresentacion()} disabled={registrando}>
-          <CheckCircle2 className="w-4 h-4 mr-2" />
-          {registrando ? 'Registrando…' : 'Registrar presentación'}
-        </Button>
+      <div className="print:hidden">
+        <ViewShell
+          variant="clean"
+          title="Declaración SAG Anual"
+          subtitle="Borrador pre-llenado de apoyo (Res. Exenta SAG N° 8.196/2015 y Ley N° 21.489). Revisa tus apiarios y exporta tu documento oficial."
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.print()}
+                className="h-9 text-xs rounded-xl"
+              >
+                <Printer className="w-3.5 h-3.5 mr-1.5" />
+                Imprimir / Guardar PDF
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => void registrarPresentacion()}
+                disabled={registrando}
+                className="h-9 text-xs rounded-xl"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                {registrando ? 'Registrando…' : 'Registrar presentación'}
+              </Button>
+            </div>
+          }
+        />
       </div>
 
       {/* Documento A4. Colores slate explícitos (no tokens semánticos): el

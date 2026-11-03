@@ -618,25 +618,57 @@ export function ApiarioManager({
     if (!workspaceMode) {
         return (
             <div className="animate-in delay-2">
-                <div className="flex justify-end mb-4">
-                    <button type="button" className="btn btn-primary btn-sm shrink-0" onClick={openNewApiario}>
-                        <MapPin size={14} /> Nuevo apiario
-                    </button>
-                </div>
-
                 {apiarios.length === 0 ? (
-                    <div className="text-center py-12 px-4">
-                        <Warehouse size={36} className="mx-auto mb-3 text-muted-foreground/40" />
-                        <p className="font-medium text-foreground mb-1">Aún no hay apiarios</p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Crea el primero: nombre, GPS y estado sanitario. Luego suma colmenas adentro.
+                    <div className="max-w-2xl mx-auto my-6 sm:my-10 rounded-2xl border border-dashed border-border/80 bg-card/60 p-8 sm:p-12 text-center backdrop-blur-sm relative overflow-hidden shadow-sm">
+                        <div className="size-14 sm:size-16 rounded-2xl bg-surface-raised border border-border/70 flex items-center justify-center mx-auto mb-5 text-accent shadow-sm">
+                            <Warehouse size={28} className="text-accent" />
+                        </div>
+                        <h2 className="font-display text-2xl sm:text-3xl font-normal text-foreground mb-2">
+                            Sin asentamientos apícolas registrados
+                        </h2>
+                        <p className="text-sm text-muted-foreground max-w-lg mx-auto mb-6 leading-relaxed">
+                            Registra tu primer apiario con coordenadas GPS y estado sanitario para desplegar el gemelo territorial y la bitácora biológica del bosque nativo.
                         </p>
-                        <button type="button" className="btn btn-primary" onClick={openNewApiario}>
-                            <Plus size={14} className="mr-1" /> Registrar primer apiario
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-xl mx-auto mb-8 text-left">
+                            <div className="p-3 rounded-xl bg-surface-sunken/60 border border-border/50 flex flex-col gap-1">
+                                <span className="text-[11px] font-semibold text-accent uppercase tracking-wider">01. Georreferencia</span>
+                                <span className="text-xs text-foreground/80">Coordenadas GPS y comuna en Chiloé</span>
+                            </div>
+                            <div className="p-3 rounded-xl bg-surface-sunken/60 border border-border/50 flex flex-col gap-1">
+                                <span className="text-[11px] font-semibold text-accent uppercase tracking-wider">02. Colmenas & Reina</span>
+                                <span className="text-xs text-foreground/80">Cajones activos, marcos y genética</span>
+                            </div>
+                            <div className="p-3 rounded-xl bg-surface-sunken/60 border border-border/50 flex flex-col gap-1">
+                                <span className="text-[11px] font-semibold text-accent uppercase tracking-wider">03. Bitácora Viva</span>
+                                <span className="text-xs text-foreground/80">Monitoreo de varroa, pecoreo y miel</span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="btn btn-primary px-6 py-2.5 text-sm font-medium shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2"
+                            onClick={openNewApiario}
+                        >
+                            <Plus size={16} /> Registrar primer apiario
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    <>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                                Asentamientos activos ({apiarios.length})
+                            </h2>
+                            <button
+                                type="button"
+                                className="btn btn-primary btn-sm shrink-0 gap-1.5"
+                                onClick={openNewApiario}
+                            >
+                                <Plus size={14} /> Nuevo apiario
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {apiarios.map((row) => {
                             const cols = localColmenas.filter(
                                 (c) => c.apiario_id === row.id || c.apiario_name === row.name,
@@ -809,6 +841,7 @@ export function ApiarioManager({
                             );
                         })}
                     </div>
+                    </>
                 )}
 
                 {editingApiario && (

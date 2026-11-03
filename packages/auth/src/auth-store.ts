@@ -278,23 +278,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     SessionVault.clearVault()
     broadcastSessionRevoke()
 
-    // 2. Optimistic UI update to remove lag feel
-    set({ user: null, session: null, isAuthenticated: false })
-
-    if (supabase) {
-      if (currentUser?.email) {
+    try {
+      if (supabase) {
+        if (currentUser?.email) {
+          try {
+            await logSecurityEvent(supabase, { eventType: 'session_revoked', email: currentUser.email, userId: currentUser.id, appSource: currentAppSource })
+          } catch (error) {
+            console.error('[auth-store] error logging session_revoked:', error)
+          }
+        }
         try {
-          await logSecurityEvent(supabase, { eventType: 'session_revoked', email: currentUser.email, userId: currentUser.id, appSource: currentAppSource })
+          // 2. Call API, but don't let network errors prevent local logout
+          await supabase.auth.signOut()
         } catch (error) {
-          console.error('[auth-store] error logging session_revoked:', error)
+          console.error('[auth-store] error during supabase.auth.signOut:', error)
         }
       }
-      try {
-        // 3. Call API, but don't let network errors prevent local logout
-        await supabase.auth.signOut()
-      } catch (error) {
-        console.error('[auth-store] error during supabase.auth.signOut:', error)
-      }
+    } finally {
+      // 3. Limpiar estado en memoria una vez completadas las peticiones remotas
+      set({ user: null, session: null, isAuthenticated: false })
     }
   },
 

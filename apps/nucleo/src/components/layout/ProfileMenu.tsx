@@ -1,16 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, Settings, Crown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  cn,
 } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { ConfigModal } from '@/views/configuracion/ConfigModal';
 import type { Section } from '@/views/configuracion/constants';
+
+const ROLE_NAMES: Record<string, string> = {
+  admin: 'Administrador',
+  territorial: 'Territorio',
+  apicultor: 'Patio Apícola',
+  operador: 'Operador',
+  colaborador: 'Colaborador',
+  rep_ventas: 'Representante',
+};
 
 type ProfileMenuProps = {
   /** Trigger visual: botón de avatar o icono del rail */
@@ -47,9 +57,22 @@ export function ProfileMenu({
   const signOut = useAuthStore((s) => s.signOut);
   const [menuOpen, setMenuOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [initialSection, setInitialSection] = useState<Section | undefined>(undefined);
 
+  // Congelar el último rol legítimo conocido para evitar parpadeos durante el cierre o deslogueo
+  const lastValidRoleRef = useRef<string | undefined>(
+    userRole && userRole !== 'cliente' ? userRole : undefined,
+  );
+  if (userRole && userRole !== 'cliente') {
+    lastValidRoleRef.current = userRole;
+  }
+  const effectiveRole =
+    userRole && userRole !== 'cliente' ? userRole : lastValidRoleRef.current;
+  const roleLabel = effectiveRole ? ROLE_NAMES[effectiveRole] : undefined;
+
   const handleLogout = async () => {
+    setLoggingOut(true);
     setMenuOpen(false);
     onNavigate?.();
     await signOut();
@@ -90,20 +113,10 @@ export function ProfileMenu({
               {userEmail}
             </p>
           )}
-          {userRole && (
+          {roleLabel && (
             <div className="mt-1.5 flex items-center">
               <span className="inline-flex items-center rounded-md bg-surface-raised px-2 py-0.5 text-[0.68rem] font-medium tracking-wide text-foreground/80 border border-border/60">
-                {userRole === 'admin'
-                  ? 'Administrador'
-                  : userRole === 'territorial'
-                  ? 'Territorio'
-                  : userRole === 'apicultor'
-                  ? 'Patio Apícola'
-                  : userRole === 'operador'
-                  ? 'Operador'
-                  : userRole === 'colaborador'
-                  ? 'Colaborador'
-                  : userRole}
+                {roleLabel}
               </span>
             </div>
           )}
@@ -137,14 +150,15 @@ export function ProfileMenu({
 
         <DropdownMenuItem
           destructive
+          disabled={loggingOut}
           onSelect={(e) => {
             e.preventDefault();
             void handleLogout();
           }}
           className="gap-2.5 cursor-pointer text-destructive focus:text-destructive"
         >
-          <LogOut size={16} className="shrink-0" />
-          Cerrar sesión
+          <LogOut size={16} className={cn('shrink-0', loggingOut && 'animate-spin')} />
+          {loggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
         </DropdownMenuItem>
       </DropdownMenu>
 

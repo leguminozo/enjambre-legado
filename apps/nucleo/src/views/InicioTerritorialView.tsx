@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Sprout, MapPin, Hexagon, BellRing, ScanLine, BookOpen,
-  CalendarDays, ShieldCheck, Truck, FileText, Users,
+  CalendarDays, ShieldCheck, Truck, FileText, Users, ArrowUpRight,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -189,11 +189,9 @@ export function InicioTerritorialView() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
-        variant="compact"
-        eyebrow={homeCopy.eyebrow}
+        variant="clean"
         title={editorial.greeting}
         subtitle={heroSubtitle}
-        icon={<Sprout size={20} />}
         actions={
           resumen?.actor ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -300,42 +298,54 @@ export function InicioTerritorialView() {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
           Herramientas y Servicios
         </span>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground font-mono">
           {tools.length} disponibles
         </span>
       </div>
 
       <div
-        className={`grid grid-cols-1 gap-3 ${tools.length >= 3 ? 'sm:grid-cols-2 xl:grid-cols-3' : tools.length === 2 ? 'sm:grid-cols-2' : ''}`}
+        className={`grid grid-cols-1 gap-4 ${tools.length >= 3 ? 'sm:grid-cols-2 xl:grid-cols-3' : tools.length === 2 ? 'sm:grid-cols-2' : ''}`}
       >
         {tools.map((t) => (
           <Link
             key={`${t.href}-${t.title}`}
             href={t.href}
-            className={`card p-4 border transition-all duration-150 active:scale-[0.98] ${
+            className={`group rounded-2xl border bg-card p-5 overflow-hidden flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 ${
               t.primary
                 ? 'border-accent/40 bg-accent/5 hover:border-accent/70 shadow-sm'
-                : 'border-border hover:border-accent/40 bg-card'
+                : 'border-border/60 hover:border-border/90'
             }`}
           >
-            <div className="flex items-start gap-3">
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                t.primary ? 'bg-accent/20 text-accent' : 'bg-surface-raised text-primary'
-              }`}>
-                {getToolIcon(t.href, t.title)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="section-title text-sm text-foreground font-medium">{t.title}</div>
-                  {t.primary && (
-                    <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-accent/20 text-accent shrink-0">
-                      Prioritario
-                    </span>
-                  )}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`size-2 rounded-full ${t.primary ? 'bg-accent' : 'bg-primary/80'}`} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                    {t.primary ? 'Prioritario' : 'Red Territorial'}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    t.primary ? 'bg-accent/15 text-accent' : 'bg-surface-raised text-muted-foreground group-hover:text-foreground'
+                  }`}
+                >
+                  {getToolIcon(t.href, t.title)}
+                </div>
               </div>
-              <span className="text-muted-foreground/40 shrink-0 self-center" aria-hidden>→</span>
+
+              <div>
+                <h3 className="font-display text-xl sm:text-2xl font-normal leading-tight text-foreground group-hover:text-primary transition-colors">
+                  {t.title}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-2">
+                  {t.desc}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground/70 group-hover:text-foreground transition-colors">
+              <span className="text-[11px] font-medium">Abrir herramienta</span>
+              <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </div>
           </Link>
         ))}

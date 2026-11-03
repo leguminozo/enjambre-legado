@@ -166,12 +166,14 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
               <span>{content?.cta_primary_label || 'Inscribirme y usar herramientas'}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href={content?.cta_secondary_href || '/planes-territoriales'}
-              className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {content?.cta_secondary_label || 'Ver planes avanzados'}
-            </Link>
+            {content?.cta_secondary_label ? (
+              <Link
+                href={content?.cta_secondary_href || '/planes-territoriales'}
+                className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {content.cta_secondary_label}
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>

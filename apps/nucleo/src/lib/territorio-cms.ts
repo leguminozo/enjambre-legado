@@ -13,6 +13,44 @@ function getSupabaseServerClient() {
 
 export type CensoFase = 'convocatoria' | 'validacion' | 'cerrado_consulta';
 
+export interface TerritorioHeaderContent {
+  show_carta: boolean;
+  carta_label: string;
+  carta_href: string;
+  show_mapa: boolean;
+  mapa_label: string;
+  mapa_href: string;
+  show_municipios: boolean;
+  municipios_label: string;
+  municipios_href: string;
+  show_theme_toggle: boolean;
+  show_login: boolean;
+  login_label: string;
+  login_href: string;
+  show_signup: boolean;
+  signup_label: string;
+  signup_href: string;
+}
+
+export const DEFAULT_TERRITORIO_HEADER: TerritorioHeaderContent = {
+  show_carta: true,
+  carta_label: 'Carta Territorial',
+  carta_href: '/carta',
+  show_mapa: true,
+  mapa_label: 'Mapa',
+  mapa_href: '/mapa-chiloe',
+  show_municipios: true,
+  municipios_label: 'Municipios',
+  municipios_href: '/municipalidades',
+  show_theme_toggle: true,
+  show_login: true,
+  login_label: 'Entrar',
+  login_href: '/login',
+  show_signup: true,
+  signup_label: 'Inscribirse',
+  signup_href: '/login?mode=signup',
+};
+
 export interface TerritorioHeroContent {
   eyebrow: string;
   title_line1: string;
@@ -113,8 +151,8 @@ export const DEFAULT_TERRITORIO_HERRAMIENTAS: TerritorioHerramientasContent = {
     'Cuaderno digital, fichas de colmenas y mapa de pecoreo disponibles desde el primer inicio de sesión.',
   cta_primary_label: 'Inscribirme y usar herramientas',
   cta_primary_href: '/login?mode=signup',
-  cta_secondary_label: 'Ver planes avanzados',
-  cta_secondary_href: '/planes-territoriales',
+  cta_secondary_label: '',
+  cta_secondary_href: '',
 };
 
 export interface TerritorioPrivacidadContent {
@@ -325,8 +363,8 @@ export interface TerritorioFaqSettings {
 export const DEFAULT_TERRITORIO_FAQ_SETTINGS: TerritorioFaqSettings = {
   badge: 'Resolución de dudas',
   title: 'Preguntas frecuentes',
-  link1_label: 'Ver planes avanzados',
-  link1_href: '/planes-territoriales',
+  link1_label: '',
+  link1_href: '',
   link2_label: 'Carta territorial',
   link2_href: '/carta',
 };
@@ -535,6 +573,7 @@ export function parseTerritorioLayout(raw: unknown): TerritorioLayoutSettings {
 }
 
 export interface TerritorioCmsData {
+  header: TerritorioHeaderContent;
   layout: TerritorioLayoutSettings;
   hero: TerritorioHeroContent;
   herramientas: TerritorioHerramientasContent;
@@ -551,6 +590,7 @@ export interface TerritorioCmsData {
 
 export async function getTerritorioCmsContent(options?: { draft?: boolean }): Promise<TerritorioCmsData> {
   const fallback: TerritorioCmsData = {
+    header: DEFAULT_TERRITORIO_HEADER,
     layout: DEFAULT_TERRITORIO_LAYOUT,
     hero: DEFAULT_TERRITORIO_HERO,
     herramientas: DEFAULT_TERRITORIO_HERRAMIENTAS,
@@ -575,6 +615,7 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
       .from('site_content')
       .select('section_key, content, draft_content, item_order')
       .in('section_key', [
+        'territorio_header',
         'territorio_layout',
         'territorio_hero',
         'territorio_herramientas',
@@ -610,6 +651,7 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
       return item.content as Record<string, unknown>;
     };
 
+    const headerRow = byKey.get('territorio_header')?.[0];
     const layoutRow = byKey.get('territorio_layout')?.[0];
     const heroRow = byKey.get('territorio_hero')?.[0];
     const herramientasRow = byKey.get('territorio_herramientas')?.[0];
@@ -623,6 +665,7 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
     const faqSettingsRow = byKey.get('territorio_faq_settings')?.[0];
     const faqRows = byKey.get('territorio_faq');
 
+    const headerContent = getContent(headerRow);
     const heroContent = getContent(heroRow);
     const herramientasContent = getContent(herramientasRow);
     const privacidadContent = getContent(privacidadRow);
@@ -647,6 +690,7 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
         : DEFAULT_TERRITORIO_FAQS;
 
     return {
+      header: { ...DEFAULT_TERRITORIO_HEADER, ...(headerContent as Partial<TerritorioHeaderContent>) },
       layout: parseTerritorioLayout(layoutContent),
       hero: { ...DEFAULT_TERRITORIO_HERO, ...(heroContent as Partial<TerritorioHeroContent>) },
       herramientas: {

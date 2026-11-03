@@ -178,7 +178,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
             align="start"
             userName={userName}
             userEmail={userEmail}
-            userRole={userRole}
+            userRole={authUser?.role ? resolveShellRoleKey(authUser.role) : undefined}
             onNavigate={variant === 'drawer' ? () => onToggle() : undefined}
             className="w-[min(16.5rem,calc(100vw-2rem))] p-1.5"
             trigger={

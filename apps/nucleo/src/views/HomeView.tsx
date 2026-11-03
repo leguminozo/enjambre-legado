@@ -46,11 +46,14 @@ function normalizeRole(raw: string): RoleKey | '' {
   return '';
 }
 
-const NUCLEO_HOME_ROLES: RoleKey[] = ['admin', 'territorial', 'apicultor'];
+const NUCLEO_HOME_ROLES: RoleKey[] = ['admin', 'territorial', 'apicultor', 'cliente'];
 
 export function HomeView() {
   const router = useRouter();
   const isLoading = useAuthStore((s) => s.isLoading);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+
   // profiles.role (SoT) — fallback app_metadata solo si store aún no hidrató user
   const profileRole = useAuthStore((s) => s.user?.role ?? '');
   const metaRole = useAuthStore((s) => {
@@ -63,14 +66,23 @@ export function HomeView() {
   const rawRole = resolvePlatformRole({ profileRole, jwtRole: metaRole, userMetadata });
   const role = useMemo(() => normalizeRole(String(rawRole)), [rawRole]);
 
+  // Si no hay sesión o se cerró, redirigir inmediatamente al login de Núcleo (nunca a tienda)
   useEffect(() => {
-    if (role === 'territorial' && profileRole !== 'territorial') {
+    if (!isLoading && (!isAuthenticated || !user)) {
+      router.replace('/login');
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  useEffect(() => {
+    if ((role === 'territorial' || role === 'cliente') && profileRole !== 'territorial') {
       void adoptTerritorialSession();
     }
   }, [role, profileRole]);
 
+  // En Núcleo solo se desvía a apps externas si es rep_ventas (Campo POS).
+  // Bajo ningún concepto se expulsa a la tienda.
   const externalHome =
-    !isLoading && role && !NUCLEO_HOME_ROLES.includes(role)
+    !isLoading && isAuthenticated && role === 'rep_ventas'
       ? getRoleRedirectPath(role, 'nucleo')
       : null;
 
@@ -78,14 +90,14 @@ export function HomeView() {
     if (externalHome) router.replace(externalHome);
   }, [externalHome, router]);
 
-  if (isLoading || !role) {
+  if (isLoading || !role || !isAuthenticated || !user) {
     return <DashboardEjecutivoSkeleton />;
   }
 
-  if (role === 'territorial') return <LazyInicioTerritorialView />;
+  if (role === 'territorial' || role === 'cliente') return <LazyInicioTerritorialView />;
   if (role === 'apicultor') return <LazyInicioApicultorView />;
   if (role === 'admin') return <LazyDashboardEjecutivo />;
 
-  // Redirigiendo a tienda/campo
+  // Roles delegados o en redirección a campo
   return <DashboardEjecutivoSkeleton />;
 }

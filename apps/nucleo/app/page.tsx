@@ -523,21 +523,29 @@ export default async function RedApicolaLanding({
               </details>
             ))}
           </div>
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            <Link
-              href={cms.faqSettings.link1_href || '/planes-territoriales'}
-              className="underline underline-offset-4 hover:text-foreground"
-            >
-              {cms.faqSettings.link1_label || 'Ver planes avanzados'}
-            </Link>
-            {' · '}
-            <Link
-              href={cms.faqSettings.link2_href || '/carta'}
-              className="underline underline-offset-4 hover:text-foreground"
-            >
-              {cms.faqSettings.link2_label || 'Carta territorial'}
-            </Link>
-          </p>
+          {(cms.faqSettings.link1_label || cms.faqSettings.link2_label) ? (
+            <p className="mt-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              {cms.faqSettings.link1_label ? (
+                <Link
+                  href={cms.faqSettings.link1_href || '/carta'}
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  {cms.faqSettings.link1_label}
+                </Link>
+              ) : null}
+              {cms.faqSettings.link1_label && cms.faqSettings.link2_label ? (
+                <span aria-hidden>·</span>
+              ) : null}
+              {cms.faqSettings.link2_label ? (
+                <Link
+                  href={cms.faqSettings.link2_href || '/carta'}
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  {cms.faqSettings.link2_label}
+                </Link>
+              ) : null}
+            </p>
+          ) : null}
         </div>
       </section>
     ),
@@ -618,7 +626,7 @@ export default async function RedApicolaLanding({
       >
         Saltar al contenido
       </a>
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
 
       <LandingAnimations>
         {orderedSections.map((sec) => (

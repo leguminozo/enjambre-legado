@@ -309,26 +309,6 @@ export function MapaIdentidadHero({
                   preserveAspectRatio="xMidYMid meet"
                 />
 
-                {/* Sutil línea punteada del Paralelo 42°S (y = 529) sin textos ruidosos */}
-                <line
-                  x1="0"
-                  y1="529"
-                  x2="1014"
-                  y2="529"
-                  stroke="hsl(44 85% 46% / 0.4)"
-                  strokeWidth="1.2"
-                  strokeDasharray="4 4"
-                />
-
-                {/* Arco conector punteado sutil que desciende hacia el recuadro inferior */}
-                <path
-                  d="M 267.3 536 C 267.3 560, 200 560, 160 560"
-                  fill="none"
-                  stroke="hsl(44 85% 46% / 0.3)"
-                  strokeWidth="1"
-                  strokeDasharray="3 3"
-                />
-
                 {/* Faro concéntrico con pulso oro miel sobre Chiloé (x=267.3, y=528.9) */}
                 <g className="pointer-events-auto">
                   {/* Aro expansivo con pulso CSS */}
@@ -371,7 +351,7 @@ export function MapaIdentidadHero({
                     letterSpacing="0.12em"
                     fontWeight="600"
                   >
-                    CHILOÉ · 42°S
+                    CHILOÉ
                   </text>
                 </g>
               </svg>
@@ -503,7 +483,7 @@ export function MapaIdentidadHero({
               >
                 <Globe className="w-3 h-3" />
                 <span className="hidden sm:inline">{locale === 'en' ? 'The Planet' : 'El Planeta'}</span>
-                <span className="sm:hidden">42°S</span>
+                <span className="sm:hidden">{locale === 'en' ? 'Planet' : 'Planeta'}</span>
               </button>
               <button
                 type="button"

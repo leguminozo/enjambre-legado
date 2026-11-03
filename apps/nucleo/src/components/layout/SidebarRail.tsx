@@ -173,7 +173,7 @@ export function SidebarRail({ onExpand, onOpenMenu }: SidebarRailProps) {
           align="end"
           userName={authUser?.full_name || authUser?.email?.split('@')[0] || 'Usuario'}
           userEmail={authUser?.email}
-          userRole={userRole}
+          userRole={authUser?.role ? resolveShellRoleKey(authUser.role) : undefined}
           className="w-52 p-1.5"
           trigger={
             <button

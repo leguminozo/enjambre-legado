@@ -976,7 +976,7 @@ registroTerritorialRoutes.get("/apiarios", async (c) => {
   let query = supabase
     .from("apiarios_registro")
     .select(
-      "id, nombre, comuna, zona, lat_aproximada, lng_aproximada, n_colmenas, categoria, activo, observaciones, created_at"
+      "id, nombre, comuna, zona, lat_aproximada, lng_aproximada, n_colmenas, categoria, activo, observaciones, created_at, predio_id"
     )
     .order("created_at", { ascending: false });
 
@@ -1148,7 +1148,7 @@ registroTerritorialRoutes.post(
     // Fail-closed: el apiario operativo debe pertenecer al usuario.
     const { data: apiario, error: apiarioErr } = await fromLoose(supabase, "apiarios")
       .select("id, name, lat, lng, apiario_registro_id")
-      .or(`created_by.eq.${user.id},user_id.eq.${user.id}`)
+      .eq("user_id", user.id)
       .eq("id", body.apiario_id)
       .maybeSingle();
     if (apiarioErr) return c.json({ error: apiarioErr.message }, 500);
@@ -1281,17 +1281,26 @@ registroTerritorialRoutes.get("/apiarios/operativos-pendientes", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
 
-  const miActor = await resolveMiActor(supabase, user.id);
-  if (!miActor) return c.json({ data: [] });
+  try {
+    const miActor = await resolveMiActor(supabase, user.id);
+    if (!miActor) return c.json({ data: [] });
 
-  const { data, error } = await fromLoose(supabase, "apiarios")
-    .select("id, name, lat, lng, apiario_registro_id")
-    .or(`created_by.eq.${user.id},user_id.eq.${user.id}`)
-    .is("apiario_registro_id", null)
-    .order("name", { ascending: true });
-  if (error) return c.json({ error: error.message }, 500);
+    const { data, error } = await fromLoose(supabase, "apiarios")
+      .select("id, name, lat, lng, apiario_registro_id")
+      .eq("user_id", user.id)
+      .is("apiario_registro_id", null)
+      .order("name", { ascending: true });
 
-  return c.json({ data: data ?? [] });
+    if (error) {
+      console.warn("apiarios/operativos-pendientes query error:", error.message);
+      return c.json({ data: [] });
+    }
+
+    return c.json({ data: data ?? [] });
+  } catch (err) {
+    console.warn("apiarios/operativos-pendientes unhandled:", err);
+    return c.json({ data: [] });
+  }
 });
 
 // ---------------------------------------------------------------------------

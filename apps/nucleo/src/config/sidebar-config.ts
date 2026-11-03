@@ -100,6 +100,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     // Campo: bitácora minuciosa del ciclo de la colmena
     key: 'campo',
     label: 'ENTORNO APÍCOLA',
+    icon: 'warehouse',
     collapsible: true,
     items: [
       {

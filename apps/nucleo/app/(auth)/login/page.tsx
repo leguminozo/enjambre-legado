@@ -131,17 +131,17 @@ function LoginContent() {
 
   async function goAfterNucleoAuth() {
     const roleNow = useAuthStore.getState().user?.role ?? 'cliente';
-    if (roleNow === 'admin' || roleNow === 'apicultor' || roleNow === 'rep_ventas' || roleNow === 'creador') {
+    if (roleNow === 'rep_ventas') {
       router.replace(getRoleRedirectPath(roleNow));
       return;
     }
+    if (roleNow === 'admin' || roleNow === 'apicultor' || roleNow === 'territorial') {
+      router.replace('/inicio');
+      return;
+    }
     await adoptTerritorialSession();
-    const role = useAuthStore.getState().user?.role ?? 'territorial';
-    router.replace(
-      role === 'territorial' || role === 'apicultor' || role === 'admin'
-        ? '/inicio'
-        : getRoleRedirectPath(role),
-    );
+    // En Núcleo el destino post-autenticación es siempre el Registro Territorial (/inicio)
+    router.replace('/inicio');
   }
 
   useEffect(() => {
@@ -154,14 +154,17 @@ function LoginContent() {
       if (cancelled) return;
       const role = useAuthStore.getState().user?.role;
       if (!role) return;
-      if (role === 'admin' || role === 'apicultor' || role === 'rep_ventas' || role === 'creador') {
+      if (role === 'rep_ventas') {
         router.replace(getRoleRedirectPath(role));
         return;
       }
-      if (role === 'territorial' || role === 'cliente') {
-        setLoading(true);
-        await goAfterNucleoAuth();
+      if (role === 'admin' || role === 'apicultor' || role === 'territorial' || role === 'operador' || role === 'colaborador') {
+        router.replace('/inicio');
+        return;
       }
+      // Cualquier otro usuario que ingrese a Núcleo adopta la sesión territorial y va a /inicio
+      setLoading(true);
+      await goAfterNucleoAuth();
     })();
     return () => {
       cancelled = true;

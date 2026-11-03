@@ -355,59 +355,86 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         title={inWorkspace ? activeApiario!.name || 'Apiario' : 'Colmenas'}
         subtitle={
           inWorkspace
-            ? 'Colmenas de este apiario · gestión y bitácora'
-            : 'Tus apiarios: entra a uno para ver colmenas. Con un solo apiario se abre solo.'
+            ? 'Colmenas de este apiario · gestión biológica y bitácora'
+            : 'Asentamientos apícolas activos, georreferenciación y monitoreo biológico en Chiloé'
         }
         variant="clean"
         icon={inWorkspace ? <Warehouse size={20} /> : <Hexagon size={20} />}
       />
 
-      <div className="animate-in delay-1 flex flex-wrap items-center gap-x-5 gap-y-1 px-1 py-2 text-xs text-muted-foreground border-b border-border mb-4">
-        {!inWorkspace ? (
-          <>
-            <span className="flex items-center gap-1.5">
-              <Warehouse size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{apiarios.length}</span>{' '}
-              {apiarios.length === 1 ? 'apiario' : 'apiarios'}
+      {!inWorkspace && apiarios.length === 0 ? (
+        <div className="animate-in delay-1 flex flex-wrap items-center justify-between gap-3 px-3.5 py-2.5 text-xs text-muted-foreground bg-surface-sunken/60 border border-border/70 rounded-xl mb-5">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-accent/70 animate-pulse" />
+            <span className="font-medium text-foreground/90">Condición agroclimática de Chiloé</span>
+          </div>
+          <div className="flex items-center gap-3.5 flex-wrap text-muted-foreground">
+            {territoryWeather.temp !== '—' && (
+              <span className="flex items-center gap-1.5" title={`Temperatura en ${territoryWeather.zone}`}>
+                <ThermometerSun size={13} className="shrink-0 text-accent" />
+                <span className="font-medium text-foreground">{territoryWeather.temp}</span> {territoryWeather.zone}
+              </span>
+            )}
+            {treesCount > 0 && (
+              <span className="flex items-center gap-1.5">
+                <TreePine size={13} className="shrink-0 text-primary" />
+                <span className="font-medium text-foreground">{treesCount}</span> árboles nativos en monitoreo
+              </span>
+            )}
+            <span className="text-muted-foreground/80 flex items-center gap-1">
+              <Droplets size={13} className="shrink-0 text-muted-foreground/60" />
+              <span>Temporada de floración activa</span>
             </span>
-            <span className="text-border select-none">·</span>
+          </div>
+        </div>
+      ) : (
+        <div className="animate-in delay-1 flex flex-wrap items-center gap-x-5 gap-y-1 px-1 py-2 text-xs text-muted-foreground border-b border-border mb-4">
+          {!inWorkspace ? (
+            <>
+              <span className="flex items-center gap-1.5">
+                <Warehouse size={13} className="shrink-0" />
+                <span className="font-medium text-foreground font-datos">{apiarios.length}</span>{' '}
+                {apiarios.length === 1 ? 'apiario' : 'apiarios'}
+              </span>
+              <span className="text-border select-none">·</span>
+              <span className="flex items-center gap-1.5">
+                <Hexagon size={13} className="shrink-0" />
+                <span className="font-medium text-foreground font-datos">{localColmenas.length}</span>{' '}
+                {localColmenas.length === 1 ? 'colmena activa' : 'colmenas activas'}
+              </span>
+            </>
+          ) : (
             <span className="flex items-center gap-1.5">
               <Hexagon size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{localColmenas.length}</span>{' '}
-              {localColmenas.length === 1 ? 'colmena activa' : 'colmenas activas'}
+              <span className="font-medium text-foreground font-datos">{colmenasEnApiario.length}</span>{' '}
+              {colmenasEnApiario.length === 1 ? 'colmena en este apiario' : 'colmenas en este apiario'}
             </span>
-          </>
-        ) : (
+          )}
+          <span className="text-border select-none">·</span>
           <span className="flex items-center gap-1.5">
-            <Hexagon size={13} className="shrink-0" />
-            <span className="font-medium text-foreground">{colmenasEnApiario.length}</span>{' '}
-            {colmenasEnApiario.length === 1 ? 'colmena en este apiario' : 'colmenas en este apiario'}
+            <Droplets size={13} className="shrink-0" />
+            <span className="font-medium text-foreground font-datos">{totalProduction} kg</span> temporada
           </span>
-        )}
-        <span className="text-border select-none">·</span>
-        <span className="flex items-center gap-1.5">
-          <Droplets size={13} className="shrink-0" />
-          <span className="font-medium text-foreground">{totalProduction} kg</span> temporada
-        </span>
-        {territoryWeather.temp !== '—' && (
-          <>
-            <span className="text-border select-none">·</span>
-            <span className="flex items-center gap-1.5" title={`Temperatura en ${territoryWeather.zone}`}>
-              <ThermometerSun size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{territoryWeather.temp}</span> {territoryWeather.zone}
-            </span>
-          </>
-        )}
-        {treesCount > 0 && (
-          <>
-            <span className="text-border select-none">·</span>
-            <span className="flex items-center gap-1.5">
-              <TreePine size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{treesCount}</span> árboles nativos
-            </span>
-          </>
-        )}
-      </div>
+          {territoryWeather.temp !== '—' && (
+            <>
+              <span className="text-border select-none">·</span>
+              <span className="flex items-center gap-1.5" title={`Temperatura en ${territoryWeather.zone}`}>
+                <ThermometerSun size={13} className="shrink-0" />
+                <span className="font-medium text-foreground">{territoryWeather.temp}</span> {territoryWeather.zone}
+              </span>
+            </>
+          )}
+          {treesCount > 0 && (
+            <>
+              <span className="text-border select-none">·</span>
+              <span className="flex items-center gap-1.5">
+                <TreePine size={13} className="shrink-0" />
+                <span className="font-medium text-foreground font-datos">{treesCount}</span> árboles nativos
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="animate-in delay-2 flex flex-col gap-6">
         <ApiarioManager

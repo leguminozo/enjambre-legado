@@ -81,8 +81,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // APIs y autenticación: siempre red directa
-  if (isAuthOrMutationPath(url.pathname)) {
+  // APIs: siempre red directa
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 
@@ -125,6 +125,23 @@ self.addEventListener('fetch', (event) => {
   const isDocument = request.mode === 'navigate' || accept.includes('text/html');
 
   if (isDocument) {
+    // Rutas de autenticación o mutación: consumir preloadResponse para no cancelar la promesa
+    // en el navegador, pero nunca almacenar en caché el documento resultante.
+    if (isAuthOrMutationPath(url.pathname)) {
+      event.respondWith(
+        (async () => {
+          try {
+            const preloadResponse = await event.preloadResponse;
+            if (preloadResponse) return preloadResponse;
+          } catch {
+            // Descartar errores de peticiones de preload abortadas
+          }
+          return fetch(request);
+        })(),
+      );
+      return;
+    }
+
     event.respondWith(
       (async () => {
         try {
@@ -150,6 +167,11 @@ self.addEventListener('fetch', (event) => {
         }
       })(),
     );
+    return;
+  }
+
+  // Rutas de autenticación o mutación no documentales: siempre red directa
+  if (isAuthOrMutationPath(url.pathname)) {
     return;
   }
 

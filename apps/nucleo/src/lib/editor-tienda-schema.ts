@@ -2480,6 +2480,48 @@ export const PERFIL_BILLETERA_SETTINGS_SCHEMA = {
 
 // ── Secciones del Registro Territorial Apícola ──────────────────────────────
 
+export const TERRITORIO_HEADER_SCHEMA = {
+  id: 'territorio_header',
+  label: 'Cabecera y Navegación',
+  short: 'Cabecera Menú',
+  hint: 'Visibilidad, enlaces y textos de los botones del menú superior público (Carta, Mapa, Municipios, Entrar, Inscribirse)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'PanelTop',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/',
+  fields: [
+    { type: 'header', content: 'Botón: Carta Territorial' },
+    { type: 'checkbox', id: 'show_carta', label: 'Mostrar botón Carta Territorial', default: true },
+    { type: 'text', id: 'carta_label', label: 'Texto', default: 'Carta Territorial' },
+    { type: 'url', id: 'carta_href', label: 'Enlace', default: '/carta' },
+
+    { type: 'header', content: 'Botón: Mapa' },
+    { type: 'checkbox', id: 'show_mapa', label: 'Mostrar botón Mapa', default: true },
+    { type: 'text', id: 'mapa_label', label: 'Texto', default: 'Mapa' },
+    { type: 'url', id: 'mapa_href', label: 'Enlace', default: '/mapa-chiloe' },
+
+    { type: 'header', content: 'Botón: Municipios' },
+    { type: 'checkbox', id: 'show_municipios', label: 'Mostrar botón Municipios', default: true },
+    { type: 'text', id: 'municipios_label', label: 'Texto', default: 'Municipios' },
+    { type: 'url', id: 'municipios_href', label: 'Enlace', default: '/municipalidades' },
+
+    { type: 'header', content: 'Tema y Acceso' },
+    { type: 'checkbox', id: 'show_theme_toggle', label: 'Mostrar selector de tema (claro / oscuro)', default: true },
+
+    { type: 'header', content: 'Botón: Entrar' },
+    { type: 'checkbox', id: 'show_login', label: 'Mostrar botón Entrar', default: true },
+    { type: 'text', id: 'login_label', label: 'Texto', default: 'Entrar' },
+    { type: 'url', id: 'login_href', label: 'Enlace', default: '/login' },
+
+    { type: 'header', content: 'Botón: Inscribirse' },
+    { type: 'checkbox', id: 'show_signup', label: 'Mostrar botón Inscribirse (destacado)', default: true },
+    { type: 'text', id: 'signup_label', label: 'Texto', default: 'Inscribirse' },
+    { type: 'url', id: 'signup_href', label: 'Enlace', default: '/login?mode=signup' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 export const TERRITORIO_LAYOUT_SCHEMA = {
   id: 'territorio_layout',
   label: 'Orden de Bloques',
@@ -2582,8 +2624,8 @@ export const TERRITORIO_HERRAMIENTAS_SCHEMA = {
     { type: 'textarea', id: 'cta_description', label: 'Descripción del llamado', rows: 2, default: 'Cuaderno digital, fichas de colmenas y mapa de pecoreo disponibles desde el primer inicio de sesión.' },
     { type: 'text', id: 'cta_primary_label', label: 'Botón Primario · Texto', default: 'Inscribirme y usar herramientas' },
     { type: 'url', id: 'cta_primary_href', label: 'Botón Primario · Enlace', default: '/login?mode=signup' },
-    { type: 'text', id: 'cta_secondary_label', label: 'Botón Secundario · Texto', default: 'Ver planes avanzados' },
-    { type: 'url', id: 'cta_secondary_href', label: 'Botón Secundario · Enlace', default: '/planes-territoriales' },
+    { type: 'text', id: 'cta_secondary_label', label: 'Botón Secundario · Texto', default: '' },
+    { type: 'url', id: 'cta_secondary_href', label: 'Botón Secundario · Enlace', default: '' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -2798,8 +2840,8 @@ export const TERRITORIO_FAQ_SETTINGS_SCHEMA = {
     { type: 'text', id: 'badge', label: 'Insignia', default: 'Resolución de dudas' },
     { type: 'text', id: 'title', label: 'Título', default: 'Preguntas frecuentes' },
     { type: 'header', content: 'Enlaces Inferiores' },
-    { type: 'text', id: 'link1_label', label: 'Enlace 1 · Texto', default: 'Ver planes avanzados' },
-    { type: 'url', id: 'link1_href', label: 'Enlace 1 · URL', default: '/planes-territoriales' },
+    { type: 'text', id: 'link1_label', label: 'Enlace 1 · Texto', default: '' },
+    { type: 'url', id: 'link1_href', label: 'Enlace 1 · URL', default: '' },
     { type: 'text', id: 'link2_label', label: 'Enlace 2 · Texto', default: 'Carta territorial' },
     { type: 'url', id: 'link2_href', label: 'Enlace 2 · URL', default: '/carta' },
   ],
@@ -2906,6 +2948,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   PERFIL_RETORNO_SETTINGS_SCHEMA,
   PERFIL_BILLETERA_SETTINGS_SCHEMA,
   // Registro Territorial Apícola
+  TERRITORIO_HEADER_SCHEMA,
   TERRITORIO_LAYOUT_SCHEMA,
   TERRITORIO_HERO_SCHEMA,
   TERRITORIO_HERRAMIENTAS_SCHEMA,

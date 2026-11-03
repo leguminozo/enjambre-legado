@@ -35,43 +35,48 @@ const RELATIVE_ROLE_HOME: Record<string, string> = {
   creador: '/perfil/creador',
   operador: '/inicio',
   rep_ventas: '/pos',
-  cliente: '/catalogo',
+  cliente: '/perfil',
   territorial: '/inicio',
   disenador: '/portal-imprenta',
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/inicio'])),
 }
 
 /**
- * Mapa usado por defecto (contexto núcleo): roles no-admin salen a tienda/campo
- * con URL absoluta si las env están definidas.
+ * Blindaje estricto entre entornos:
+ * - En Núcleo (Registro Territorial): el flujo de entrada, salida y navegación NUNCA
+ *   debe cruzar a Tienda. Cualquier usuario autenticado en Núcleo se mantiene en la
+ *   plataforma del territorio (/inicio o su portal respectivo).
+ * - En Tienda: los clientes sólo ven la tienda y sus perfiles (/perfil, /catalogo),
+ *   sin saltar a Núcleo.
  */
-export const ROLE_REDIRECT_MAP: Record<string, string> = {
+export const NUCLEO_ROLE_REDIRECT_MAP: Record<string, string> = {
   admin: '/inicio',
   apicultor: '/inicio',
   colaborador: '/inicio',
-  creador: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/perfil/creador'),
   operador: '/inicio',
-  rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
-  cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
   territorial: '/inicio',
   disenador: '/portal-imprenta',
+  // En Núcleo, clientes o creadores que ingresen adoptan o participan del entorno territorial;
+  // bajo ningún concepto se expulsan a la tienda (/catalogo).
+  cliente: '/inicio',
+  creador: '/inicio',
+  rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/inicio'])),
 }
 
-/** En núcleo, la redirección es estricta hacia las otras apps para roles no admin */
-export const NUCLEO_ROLE_REDIRECT_MAP: Record<string, string> = {
-  ...ROLE_REDIRECT_MAP,
+export const ROLE_REDIRECT_MAP: Record<string, string> = {
+  ...NUCLEO_ROLE_REDIRECT_MAP,
 }
 
 /**
- * @param app `tienda` → siempre path relativo (misma origin).
- *            `nucleo` → puede ser URL absoluta a tienda/campo.
+ * @param app `tienda` → siempre path relativo (misma origin de tienda).
+ *            `nucleo` → siempre dentro de Núcleo (o Campo si es rep_ventas).
  */
 export function getRoleRedirectPath(role: string, app: 'nucleo' | 'tienda' = 'nucleo'): string {
   if (app === 'tienda') {
     return RELATIVE_ROLE_HOME[role] ?? '/perfil'
   }
-  return NUCLEO_ROLE_REDIRECT_MAP[role] ?? '/perfil'
+  return NUCLEO_ROLE_REDIRECT_MAP[role] ?? '/inicio'
 }
 
 const NUCLEO_PLATFORM_ROLES: ReadonlySet<string> = new Set([

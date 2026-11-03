@@ -223,18 +223,16 @@ export function RegistroTerritorialView() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
       <ViewShell
-        variant="compact"
-        eyebrow="Red Apícola de Chiloé"
+        variant="clean"
         title="Registro Territorial Apícola"
-        subtitle="Cuidado comunitario del bosque nativo, las colmenas y la miel del archipiélago."
-        icon={<MapPin size={20} />}
+        subtitle="Cuidado comunitario del bosque nativo, las colmenas y la miel del archipiélago de Chiloé."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {comunas.length > 0 && (
               <select
                 value={comuna}
                 onChange={(e) => cambiarComuna(e.target.value)}
-                className="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-9"
+                className="rounded-xl border border-border/70 bg-surface-raised px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary h-9"
                 aria-label="Filtrar por comuna"
               >
                 <option value="">Todas las comunas ({comunas.length})</option>
@@ -246,7 +244,7 @@ export function RegistroTerritorialView() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-9 text-xs"
+              className="h-9 text-xs rounded-xl"
               onClick={() => setShowAlertaForm(true)}
             >
               <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-warning" />
@@ -255,7 +253,7 @@ export function RegistroTerritorialView() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-9 text-xs"
+              className="h-9 text-xs rounded-xl"
               onClick={() => setShowApiarioExterno(true)}
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
@@ -263,7 +261,7 @@ export function RegistroTerritorialView() {
             </Button>
             <Button
               size="sm"
-              className="min-h-9 text-xs"
+              className="h-9 text-xs rounded-xl"
               onClick={() => setShowInscripcion(true)}
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />

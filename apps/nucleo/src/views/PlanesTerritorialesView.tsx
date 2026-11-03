@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@enjambre/auth';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 import {
@@ -42,12 +44,16 @@ const PLAN_KEYS = [...TERRITORIAL_PAID_PLAN_KEYS];
 
 const formatCLP = (n: number) => n.toLocaleString('es-CL');
 
+export interface PlanesTerritorialesViewProps {
+  variant?: 'dashboard' | 'public';
+}
+
 /**
  * Vista de Planes y Servicios — Registro Territorial Apícola de Chiloé.
  * Inspirada en la interfaz de precios de Claude (Anthropic), adaptada
  * a la realidad de la apicultura regenerativa y territorial de Chiloé.
  */
-export function PlanesTerritorialesView() {
+export function PlanesTerritorialesView({ variant = 'dashboard' }: PlanesTerritorialesViewProps = {}) {
   const apiFetch = useApiFetch();
   const router = useRouter();
   const [planes, setPlanes] = useState<PlanTerritorial[]>([]);
@@ -93,6 +99,13 @@ export function PlanesTerritorialesView() {
       toast.error('Plan no disponible temporalmente');
       return;
     }
+
+    const session = useAuthStore.getState().session;
+    if (!session) {
+      router.push(`/login?mode=signup&redirect=${encodeURIComponent('/mis-planes')}`);
+      return;
+    }
+
     setContratando(targetPlan.id);
     try {
       const res = await apiFetch('/api/subscriptions/checkout/init', {
@@ -146,14 +159,24 @@ export function PlanesTerritorialesView() {
     <div className="min-h-[var(--vh-full)] bg-background text-foreground pb-20">
       {/* Barra superior de navegación */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={16} />
-          <span>Volver</span>
-        </button>
+        {variant === 'public' ? (
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Volver al inicio</span>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Volver</span>
+          </button>
+        )}
 
         <a
           href="https://wa.me/56940831358?text=Hola,%20tengo%20dudas%20sobre%20los%20planes%20de%20Enjambre%20Legado"
@@ -169,7 +192,7 @@ export function PlanesTerritorialesView() {
 
       {/* Hero Header */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center pt-8 pb-10 space-y-4">
-        <h1 className="text-3xl sm:text-5xl font-bold font-serif tracking-tight text-foreground text-balance">
+        <h1 className="text-3xl sm:text-5xl font-bold font-existencial tracking-tight text-foreground text-balance">
           Planes que crecen contigo
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
@@ -224,7 +247,7 @@ export function PlanesTerritorialesView() {
                     <Sprout size={22} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold font-serif text-foreground">Red Territorial</h3>
+                    <h3 className="text-xl font-bold font-existencial text-foreground">Red Territorial</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Participa y protege el territorio</p>
                   </div>
                   <div className="pt-2">
@@ -277,7 +300,7 @@ export function PlanesTerritorialesView() {
                     <QrCode size={22} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold font-serif text-foreground">Trazabilidad</h3>
+                    <h3 className="text-xl font-bold font-existencial text-foreground">Trazabilidad</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Diferenciación y valor para tu miel</p>
                   </div>
                   <div className="pt-2">
@@ -333,7 +356,7 @@ export function PlanesTerritorialesView() {
                     <BookOpen size={22} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold font-serif text-foreground">Apiario Pro</h3>
+                    <h3 className="text-xl font-bold font-existencial text-foreground">Apiario Pro</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Gestión técnica y cuaderno SAG digital</p>
                   </div>
                   <div className="pt-2">
@@ -404,7 +427,7 @@ export function PlanesTerritorialesView() {
                     </Badge>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold font-serif text-foreground">Cooperativa / Asociación</h3>
+                    <h3 className="text-2xl font-bold font-existencial text-foreground">Cooperativa / Asociación</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       Gestión centralizada de socios, apiarios y marcas colectivas.
                     </p>
@@ -457,7 +480,7 @@ export function PlanesTerritorialesView() {
                     </Badge>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold font-serif text-foreground">Convenio Institucional</h3>
+                    <h3 className="text-2xl font-bold font-existencial text-foreground">Convenio Institucional</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       Piloto de 90 días: censo comunal, panel y ordenanza. No sustituye al SIPEC.
                     </p>
@@ -507,7 +530,7 @@ export function PlanesTerritorialesView() {
 
         {/* Preguntas Frecuentes Desplegables */}
         <div className="max-w-3xl mx-auto mt-16 pt-10 border-t border-border/70 space-y-4">
-          <h4 className="text-center text-lg font-serif font-semibold text-foreground mb-6">
+          <h4 className="text-center text-lg font-existencial font-semibold text-foreground mb-6">
             Preguntas frecuentes sobre los planes
           </h4>
           <div className="space-y-2.5">

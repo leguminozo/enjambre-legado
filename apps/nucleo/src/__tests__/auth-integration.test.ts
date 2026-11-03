@@ -91,14 +91,8 @@ describe("Auth Integration Flow", () => {
       expect(getRoleRedirectPath("creador", "tienda")).toBe("/perfil/creador");
     });
 
-    it("redirects creador to external tienda URL in nucleo when configured", () => {
-      const path = getRoleRedirectPath("creador");
-      if (process.env.NEXT_PUBLIC_URL_TIENDA) {
-        const base = process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, "");
-        expect(path).toBe(`${base}/perfil/creador`);
-      } else {
-        expect(path).toBe("/perfil/creador");
-      }
+    it("keeps creador inside nucleo /inicio when in nucleo app (boundary isolation)", () => {
+      expect(getRoleRedirectPath("creador", "nucleo")).toBe("/inicio");
     });
 
     it("redirects rep_ventas to /pos (Campo, abs URL si NEXT_PUBLIC_URL_CAMPO)", () => {
@@ -111,18 +105,13 @@ describe("Auth Integration Flow", () => {
       }
     });
 
-    it("redirects cliente to /catalogo (abs URL si NEXT_PUBLIC_URL_TIENDA)", () => {
-      const path = getRoleRedirectPath("cliente");
-      const tienda = process.env.NEXT_PUBLIC_URL_TIENDA?.replace(/\/$/, "");
-      if (tienda) {
-        expect(path).toBe(`${tienda}/catalogo`);
-      } else {
-        expect(path).toBe("/catalogo");
-      }
+    it("keeps cliente inside nucleo /inicio (blindaje estricto: nunca expulsa a tienda)", () => {
+      expect(getRoleRedirectPath("cliente", "nucleo")).toBe("/inicio");
+      expect(getRoleRedirectPath("cliente", "tienda")).toBe("/perfil");
     });
 
-    it("redirects unknown role to /perfil", () => {
-      expect(getRoleRedirectPath("random")).toBe("/perfil");
+    it("redirects unknown role to /inicio in nucleo", () => {
+      expect(getRoleRedirectPath("random")).toBe("/inicio");
     });
 
     it("maps legacy roles to admin (apicultor is patio, not legacy elevación)", () => {

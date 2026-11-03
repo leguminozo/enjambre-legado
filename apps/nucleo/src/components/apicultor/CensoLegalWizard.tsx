@@ -163,10 +163,15 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   } = useQuery<{ data: { id: string; name?: string | null; lat?: number | null; lng?: number | null }[] }>({
     queryKey: ['censo-operativos', actor.id],
     queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/apiarios/operativos-pendientes');
-      if (!res.ok) throw new Error('Error cargando tus apiarios operativos');
-      return res.json();
+      try {
+        const res = await apiFetch('/api/registro-territorial/apiarios/operativos-pendientes');
+        if (!res.ok) return { data: [] };
+        return res.json();
+      } catch {
+        return { data: [] };
+      }
     },
+    retry: false,
   });
   const pendientes = pendientesData?.data ?? [];
 

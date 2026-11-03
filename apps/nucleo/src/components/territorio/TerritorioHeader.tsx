@@ -4,12 +4,22 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@enjambre/ui';
 import { TerritorioLogo } from './TerritorioLogo';
+import {
+  DEFAULT_TERRITORIO_HEADER,
+  type TerritorioHeaderContent,
+} from '@/lib/territorio-cms';
+
+export interface TerritorioHeaderProps {
+  content?: TerritorioHeaderContent;
+}
 
 /**
  * Header público del territorio — marca + entrar + inscribirse.
+ * Editable y configurable desde CMS (Registro Territorial -> Cabecera y Navegación).
  */
-export function TerritorioHeader() {
+export function TerritorioHeader({ content }: TerritorioHeaderProps = {}) {
   const [scrolled, setScrolled] = useState(false);
+  const cfg = { ...DEFAULT_TERRITORIO_HEADER, ...(content ?? {}) };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -20,6 +30,7 @@ export function TerritorioHeader() {
 
   return (
     <header
+      data-cms-section="territorio_header"
       className={`sticky top-0 z-50 h-14 sm:h-16 print:hidden flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-10 lg:px-16 xl:px-24 transition-[background-color,border-color,box-shadow] duration-300 ${
         scrolled
           ? 'bg-background/85 backdrop-blur-xl border-b border-border/50 shadow-sm'
@@ -39,37 +50,47 @@ export function TerritorioHeader() {
       </Link>
 
       <nav className="flex items-center gap-1 sm:gap-2 shrink-0" aria-label="Navegación pública">
-        <Link
-          href="/carta"
-          className="hidden sm:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Carta Territorial
-        </Link>
-        <Link
-          href="/mapa-chiloe"
-          className="hidden md:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Mapa
-        </Link>
-        <Link
-          href="/municipalidades"
-          className="hidden lg:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Municipios
-        </Link>
-        <ThemeToggle />
-        <Link
-          href="/login"
-          className="inline-flex min-h-11 items-center px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Entrar
-        </Link>
-        <Link
-          href="/login?mode=signup"
-          className="inline-flex min-h-10 sm:min-h-11 items-center justify-center rounded-md bg-primary px-3 sm:px-5 text-xs sm:text-sm font-medium text-primary-foreground transition-all hover:opacity-95 shadow-sm active:scale-[0.98]"
-        >
-          Inscribirse
-        </Link>
+        {cfg.show_carta && cfg.carta_label && (
+          <Link
+            href={cfg.carta_href || '/carta'}
+            className="hidden sm:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {cfg.carta_label}
+          </Link>
+        )}
+        {cfg.show_mapa && cfg.mapa_label && (
+          <Link
+            href={cfg.mapa_href || '/mapa-chiloe'}
+            className="hidden md:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {cfg.mapa_label}
+          </Link>
+        )}
+        {cfg.show_municipios && cfg.municipios_label && (
+          <Link
+            href={cfg.municipios_href || '/municipalidades'}
+            className="hidden lg:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {cfg.municipios_label}
+          </Link>
+        )}
+        {cfg.show_theme_toggle && <ThemeToggle />}
+        {cfg.show_login && cfg.login_label && (
+          <Link
+            href={cfg.login_href || '/login'}
+            className="inline-flex min-h-11 items-center px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {cfg.login_label}
+          </Link>
+        )}
+        {cfg.show_signup && cfg.signup_label && (
+          <Link
+            href={cfg.signup_href || '/login?mode=signup'}
+            className="inline-flex min-h-10 sm:min-h-11 items-center justify-center rounded-md bg-primary px-3 sm:px-5 text-xs sm:text-sm font-medium text-primary-foreground transition-all hover:opacity-95 shadow-sm active:scale-[0.98]"
+          >
+            {cfg.signup_label}
+          </Link>
+        )}
       </nav>
     </header>
   );

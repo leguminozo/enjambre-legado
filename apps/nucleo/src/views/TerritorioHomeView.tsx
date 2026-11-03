@@ -224,43 +224,39 @@ export function TerritorioHomeView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header Canónico */}
+      {/* Header Canónico (patrón limpio editorial de RSN) */}
       <ViewShell
-        variant="compact"
-        eyebrow={currentMeta.eyebrow}
+        variant="clean"
         title={currentMeta.title}
-        subtitle={currentMeta.desc}
-        icon={<MapPin size={20} />}
+        subtitle={
+          tab === 'alertas'
+            ? canEmit
+              ? 'Programa aplicaciones de plaguicidas y resguarda a los apicultores vecinos (radio 3 km). Confirma las ajenas que te afecten.'
+              : 'Alertas de aplicaciones de plaguicidas programadas en el territorio. Confirma las que te afecten para avisar al resto de la red.'
+            : currentMeta.desc
+        }
         actions={
-          miActor ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCredencial(true)}
-                className="text-xs h-8"
-              >
-                <Award size={13} className="mr-1.5 text-primary" />
-                Ver Credencial
-              </Button>
-              {credential && (
-                <span
-                  className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${credential.className}`}
-                  title={credential.desc}
-                >
-                  Credencial {credential.label}
-                </span>
-              )}
-              <span
-                className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${
-                  miActor.completo
-                    ? 'bg-success/15 text-success border border-success/30'
-                    : 'bg-warning/15 text-warning border border-warning/30'
-                }`}
-              >
-                Censo {miActor.completo ? 'completo' : 'pendiente'}
-              </span>
-            </div>
+          tab === 'alertas' && canEmit ? (
+            <Button
+              onClick={() => setShowAlertaForm(true)}
+              size="sm"
+              className="text-xs h-9 rounded-xl shadow-sm"
+            >
+              <Plus size={15} className="mr-1.5" /> Emitir Alerta Fitosanitaria
+            </Button>
+          ) : tab === 'registro' && miActor ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCredencial(true)}
+              className="text-xs h-9 rounded-xl border-border/80 hover:bg-surface-raised"
+            >
+              <Award size={14} className="mr-1.5 text-primary" /> Credencial Digital
+            </Button>
+          ) : tab === 'mapa' ? (
+            <span className="text-[11px] font-mono text-muted-foreground/80 bg-surface-raised px-3 py-1.5 rounded-xl border border-border/60">
+              Pecoreo ±1 km · GPS protegido
+            </span>
           ) : undefined
         }
       />
@@ -474,18 +470,6 @@ export function TerritorioHomeView() {
       {/* Alertas Fitosanitarias */}
       {tab === 'alertas' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 gap-3">
-            <p className="text-sm text-muted-foreground max-w-lg">
-              {canEmit
-                ? 'Programa aplicaciones de plaguicidas y avisa a los apicultores vecinos (radio 3 km). Confirma las ajenas que te afecten.'
-                : 'Alertas de aplicaciones de plaguicidas programadas en el territorio. Confirma las que te afecten para avisar al resto de la red.'}
-            </p>
-            {canEmit && (
-              <Button onClick={() => setShowAlertaForm(true)} size="sm" className="shrink-0">
-                <Plus size={16} className="mr-1" /> Emitir Alerta
-              </Button>
-            )}
-          </div>
           <AlertasPanel
             alertas={alertas}
             actorId={miActor?.id ?? null}
