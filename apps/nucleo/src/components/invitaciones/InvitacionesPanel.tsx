@@ -449,16 +449,13 @@ export function InvitacionesPanel({
           activeId={activeTab}
           onChange={(id) => setActiveTab(id as 'cuentas' | 'roles' | 'invitaciones')}
         />
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setShowCrearCuenta(true)} className="btn btn-outline flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
-            <UserPlus size={16} />Crear Cuenta
-          </button>
-          {activeTab === 'invitaciones' && (
-            <button onClick={() => setShowCreate(true)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
-              <Plus size={16} />Nueva Invitación
+        {activeTab === 'cuentas' && (
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setShowCrearCuenta(true)} className="btn btn-outline flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
+              <UserPlus size={16} />Crear Cuenta
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Modal Código de Invitación */}

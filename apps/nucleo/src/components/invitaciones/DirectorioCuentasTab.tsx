@@ -12,7 +12,6 @@ import {
   ShoppingBag,
   Store,
   Crown,
-  RefreshCw,
   Wrench,
   Trash2,
   Copy,
@@ -342,30 +341,6 @@ export function DirectorioCuentasTab({ onRequestCrearCuenta, onNavigateToRoles }
             >
               <X size={14} />
             </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void fetchDirectorio()}
-            disabled={loading}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-            Actualizar
-          </Button>
-
-          {onRequestCrearCuenta && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onRequestCrearCuenta}
-              className="gap-1.5 text-xs font-semibold"
-            >
-              + Nueva cuenta
-            </Button>
           )}
         </div>
       </div>

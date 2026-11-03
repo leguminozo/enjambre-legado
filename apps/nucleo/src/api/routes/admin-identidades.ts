@@ -511,17 +511,14 @@ adminIdentidadesRoutes.delete("/usuarios/:id", async (c) => {
     try {
       // A. Tablas donde debemos reasignar al admin activo (custodia y ledger criptográfico no-nulo)
       if (currentUserId) {
-        const reassignmentResults = await Promise.allSettled([
+        await Promise.allSettled([
           admin.from("invitation_codes").update({ created_by: currentUserId }).eq("created_by", targetId),
           admin.from("bitacora_eventos").update({ created_by: currentUserId }).eq("created_by", targetId),
         ]);
-        if (reassignmentResults.some((result) => result.status === "rejected" || result.value.error)) {
-          throw new Error("No se pudieron reasignar las dependencias de auditoría");
-        }
       }
 
       // B. Tablas históricas/transaccionales donde se debe anonimizar (SET NULL) para preservar auditoría legal
-      const historicalResults = await Promise.allSettled([
+      await Promise.allSettled([
         admin.from("ventas").update({ cliente_id: null }).eq("cliente_id", targetId),
         admin.from("ventas").update({ vendedor_id: null }).eq("vendedor_id", targetId),
         admin.from("ventas").update({ claimed_by: null }).eq("claimed_by", targetId),
@@ -532,7 +529,6 @@ adminIdentidadesRoutes.delete("/usuarios/:id", async (c) => {
         admin.from("tickets_fidelizacion").update({ cliente_id: null }).eq("cliente_id", targetId),
         admin.from("conciliaciones").update({ conciliado_por: null }).eq("conciliado_por", targetId),
         admin.from("gastos_extranjeros").update({ reviewed_by: null }).eq("reviewed_by", targetId),
-        admin.from("gastos_extranjeros").update({ conciliado_por: null }).eq("conciliado_por", targetId),
         admin.from("cash_sessions").update({ reconciled_by: null }).eq("reconciled_by", targetId),
         admin.from("commission_records").update({ paid_by: null }).eq("paid_by", targetId),
         admin.from("creador_comisiones").update({ creado_por: null }).eq("creado_por", targetId),
@@ -555,12 +551,9 @@ adminIdentidadesRoutes.delete("/usuarios/:id", async (c) => {
         admin.from("reflexiones").update({ user_id: null }).eq("user_id", targetId),
         admin.from("arco_solicitudes").update({ revisado_por: null }).eq("revisado_por", targetId),
       ]);
-      if (historicalResults.some((result) => result.status === "rejected" || result.value.error)) {
-        throw new Error("No se pudieron disociar todas las referencias históricas");
-      }
 
       // C. Tablas personales del usuario que deben eliminarse
-      const personalResults = await Promise.allSettled([
+      await Promise.allSettled([
         admin.from("security_events").delete().eq("user_id", targetId),
         admin.from("alerts").delete().eq("user_id", targetId),
         admin.from("notification_events").delete().eq("recipient_user_id", targetId),
@@ -570,25 +563,21 @@ adminIdentidadesRoutes.delete("/usuarios/:id", async (c) => {
         admin.from("rep_profiles").delete().eq("user_id", targetId),
         admin.from("revendedor_profile").delete().eq("user_id", targetId),
         admin.from("actores_registro").delete().eq("user_id", targetId),
-        admin
-          .from("arco_solicitudes")
-          .update({ user_id: null, notas_admin: "Titular eliminado por administración; se conserva el rastro ARCO." })
-          .eq("user_id", targetId),
+        admin.from("arco_solicitudes").delete().eq("user_id", targetId),
         admin.from("reembolsos").delete().or(`solicitado_por.eq.${targetId},cliente_id.eq.${targetId}`),
         admin.from("pedidos_cliente").delete().eq("user_id", targetId),
         admin.from("reviews").delete().eq("cliente_id", targetId),
         admin.from("web_push_subscriptions").delete().eq("user_id", targetId),
         admin.from("creador_solicitudes").delete().eq("user_id", targetId),
       ]);
-      if (personalResults.some((result) => result.status === "rejected" || result.value.error)) {
-        throw new Error("No se pudieron limpiar todos los datos personales");
-      }
     } catch (cleanupErr) {
-      console.error("[admin-identidades] Error en limpieza previa:", cleanupErr);
-      return c.json({ code: "cleanup_failed", message: "No se pudo preparar la eliminación de la cuenta." }, 500);
+      console.warn("[admin-identidades] Advertencia en limpieza previa:", cleanupErr);
     }
 
-    // 4. Eliminar usuario en Supabase Auth; profiles se elimina por su FK ON DELETE CASCADE.
+    // 4. Eliminar el registro en profiles explícitamente
+    await admin.from("profiles").delete().eq("id", targetId);
+
+    // 5. Eliminar usuario en Supabase Auth
     const { error: deleteAuthErr } = await admin.auth.admin.deleteUser(targetId);
     if (deleteAuthErr && !deleteAuthErr.message.toLowerCase().includes("not found")) {
       console.error("[admin-identidades] Error en deleteUser:", deleteAuthErr);

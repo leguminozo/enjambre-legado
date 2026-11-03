@@ -11,7 +11,6 @@ import { ReservasClient } from '@/components/perfil/reservas-client';
 import { ReplenishmentActiveCard } from '@/components/perfil/replenishment-active-card';
 import { ReplenishmentOverview } from '@/components/perfil/replenishment-overview';
 import { SubscriptionDeliveriesPreview } from '@/components/perfil/subscription-deliveries-preview';
-import { PlanIntervalPicker } from '@/components/shop/plan-interval-picker';
 import { ReplenishmentSheet } from '@/components/shop/replenishment-sheet';
 import { ReplenishmentAddressField } from '@/components/shop/replenishment-address-field';
 import { defaultPlanId } from '@/lib/shop/replenishment';
@@ -331,65 +330,13 @@ export function ReposicionClient({
                         Suscribirse
                       </button>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Elige frecuencia, cantidad y dirección de entrega en el siguiente paso.
+                    </p>
                   </div>
-
-                  {plans.length > 0 ? (
-                    <div className="border-t border-border pt-6 space-y-4">
-                      <h4 className="font-display text-lg text-foreground">Planes curados</h4>
-                      <PlanIntervalPicker
-                        plans={plans}
-                        selectedPlanId={selectedPlanId}
-                        onSelect={setSelectedPlanId}
-                        variant="profile"
-                      />
-                      <ReplenishmentAddressField
-                        value={address}
-                        onChange={setAddress}
-                        direcciones={direcciones}
-                      />
-                      <div>
-                        <button
-                          type="button"
-                          disabled={loading}
-                          onClick={() => void handleSubscribe()}
-                          className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
-                        >
-                          {loading ? t('processing') : t('confirm')} <ArrowRight size={16} />
-                        </button>
-                        <p className="text-xs text-muted-foreground mt-4">{t('billingNote')}</p>
-                      </div>
-                    </div>
-                  ) : null}
                 </div>
-              ) : plans.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('intervalEmpty')}</p>
               ) : (
-                <>
-                  <PlanIntervalPicker
-                    plans={plans}
-                    selectedPlanId={selectedPlanId}
-                    onSelect={setSelectedPlanId}
-                    variant="profile"
-                  />
-
-                  <ReplenishmentAddressField
-                    value={address}
-                    onChange={setAddress}
-                    direcciones={direcciones}
-                  />
-
-                  <div>
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => void handleSubscribe()}
-                      className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
-                    >
-                      {loading ? t('processing') : t('confirm')} <ArrowRight size={16} />
-                    </button>
-                    <p className="text-xs text-muted-foreground mt-4">{t('billingNote')}</p>
-                  </div>
-                </>
+                <p className="text-sm text-muted-foreground">{t('intervalEmpty')}</p>
               )}
             </div>
           )}
