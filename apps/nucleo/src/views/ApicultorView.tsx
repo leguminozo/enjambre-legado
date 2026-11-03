@@ -46,6 +46,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
   const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
   const [apiarios, setApiarios] = useState<Tables<'apiarios'>[]>([]);
   const [registroMap, setRegistroMap] = useState<Record<string, RegistroApiarioEstado>>({});
+  const [userComuna, setUserComuna] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
   const [territorialAlerts, setTerritorialAlerts] = useState<TerritorialAlertInput[]>([]);
@@ -123,6 +124,15 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         }
 
         const actor = actorRes?.data;
+        const actorComuna = actor?.comuna;
+        const metaComuna = (user?.user_metadata?.territorial_comuna as string | undefined) || null;
+        const derivedComuna =
+          (actorComuna && actorComuna.toLowerCase() !== 'desconocida' ? actorComuna : null) ||
+          (metaComuna && metaComuna.toLowerCase() !== 'desconocida' ? metaComuna : null);
+        if (derivedComuna) {
+          setUserComuna(derivedComuna);
+        }
+
         if (actor?.comuna && actor.comuna.toLowerCase() !== 'desconocida') {
           resolvedZone = actor.comuna;
           resolvedCoords = resolveComunaCoords(actor.comuna);
@@ -359,7 +369,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             : 'Asentamientos apícolas activos, georreferenciación y monitoreo biológico en Chiloé'
         }
         variant="clean"
-        icon={inWorkspace ? <Warehouse size={20} /> : <Hexagon size={20} />}
       />
 
       {!inWorkspace && apiarios.length === 0 ? (
@@ -448,6 +457,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           onLeaveApiario={leaveApiario}
           registroMap={registroMap}
           onRegistroChange={setRegistroMap}
+          userComuna={userComuna}
           hiveCtx={{
             ambientTempC:
               territoryWeather.temp !== '—'

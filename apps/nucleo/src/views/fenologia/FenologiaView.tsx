@@ -352,14 +352,12 @@ export function FenologiaView() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
-        variant="compact"
-        eyebrow="Bosque · Ciencia"
-        title="Oráculo Fenológico"
-        subtitle="Monitoreo térmico GDD, radar de floración y bitácora territorial de campo."
-        icon={<Sprout size={20} />}
+        variant="clean"
+        title="Fenología y Floración"
+        subtitle="Monitoreo térmico GDD, radar de floración y bitácora territorial en Chiloé."
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-primary px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 font-medium">
+            <span className="h-9 px-3.5 inline-flex items-center text-xs font-mono uppercase tracking-widest text-primary rounded-xl bg-primary/10 border border-primary/20 font-medium">
               {currentSeason.seasonName}
             </span>
           </div>

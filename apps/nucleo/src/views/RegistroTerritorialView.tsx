@@ -11,6 +11,7 @@ import {
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { cn } from '@/lib/cn';
 import { motion } from 'framer-motion';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
@@ -287,19 +288,34 @@ export function RegistroTerritorialView() {
         onChange={(id) => setTab(id as Tab)}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {[
-          { label: 'Actores registrados', value: stats.totalActores, color: 'text-foreground' },
-          { label: 'Apicultores locales', value: stats.residentes, color: 'text-primary' },
-          { label: 'Trashumantes activos', value: stats.trashumantes, color: 'text-muted-foreground' },
-          { label: 'Alertas activas', value: stats.alertasActivas, color: 'text-destructive' },
+          { label: 'Actores registrados', value: stats.totalActores, color: 'text-foreground', dot: 'bg-muted-foreground/40' },
+          { label: 'Apicultores locales', value: stats.residentes, color: 'text-primary', dot: 'bg-primary' },
+          { label: 'Trashumantes activos', value: stats.trashumantes, color: 'text-foreground', dot: 'bg-muted-foreground/40' },
+          {
+            label: 'Alertas activas',
+            value: stats.alertasActivas,
+            color: stats.alertasActivas > 0 ? 'text-destructive' : 'text-foreground',
+            dot: stats.alertasActivas > 0 ? 'bg-destructive' : 'bg-success',
+          },
         ].map((stat) => (
-          <Card key={stat.label} className="bg-card border-border">
-            <CardContent className="p-3 sm:p-4">
-              <p className="text-[11px] sm:text-xs text-muted-foreground">{stat.label}</p>
-              <p className={`text-xl sm:text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
-            </CardContent>
-          </Card>
+          <div
+            key={stat.label}
+            className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 flex flex-col justify-between hover:border-border/90 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-200"
+          >
+            <div className="flex items-center justify-between gap-1.5 mb-1.5">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/80 truncate">
+                {stat.label}
+              </span>
+              <span className={cn('size-1.5 rounded-full shrink-0', stat.dot)} />
+            </div>
+            <div className="flex items-baseline justify-between mt-1 gap-2">
+              <span className={cn('text-xl sm:text-2xl font-bold font-mono tabular-nums leading-none', stat.color)}>
+                {stat.value}
+              </span>
+            </div>
+          </div>
         ))}
       </div>
 

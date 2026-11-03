@@ -307,18 +307,9 @@ export function TerritorioHomeView() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowCredencial(true)}
-                  className="text-xs h-8"
-                >
-                  <Award size={13} className="mr-1.5 text-primary" />
-                  Credencial Digital
-                </Button>
                 <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
                 <span
-                  className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
+                  className={`badge px-2.5 py-1 rounded-lg text-xs font-semibold ${credential.className}`}
                   title={credential.desc}
                 >
                   Credencial {credential.label}

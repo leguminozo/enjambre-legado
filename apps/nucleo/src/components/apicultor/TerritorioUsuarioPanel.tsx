@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Map, Plus, MapPin, Tent, Lock, Warehouse, CheckCircle2, LogOut } from 'lucide-react';
-import { Button, Skeleton, SkeletonCard, toast } from '@enjambre/ui';
+import { Button, Badge, Skeleton, SkeletonCard, toast } from '@enjambre/ui';
 import { CENSO_WRITE_LOCK_MESSAGE } from '@/lib/territorial-rol';
 import { PredioForm } from './PredioForm';
 import { ApiarioExternoForm } from './ApiarioExternoForm';
@@ -262,7 +262,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
         <p className="text-muted-foreground mb-6 max-w-md text-sm mx-auto">
           Para registrar predios facilitadores o declarar apiarios trashumantes, primero debes activar tu perfil en el Registro Territorial desde tu Perfil de usuario.
         </p>
-        <Link href="/configuracion" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors text-sm">
+        <Link href="/configuracion" className="h-9 px-5 inline-flex items-center justify-center bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-colors text-xs">
           Ir a Mi Perfil
         </Link>
       </div>
@@ -295,9 +295,9 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <Button
             onClick={() => (inscripcionCompleta ? setShowApiarioForm(true) : bloquearPorCenso())}
             size="sm"
-            className="w-full sm:w-auto shrink-0 bg-accent text-accent-foreground hover:bg-accent/90"
+            className="w-full sm:w-auto shrink-0 h-9 rounded-xl text-xs font-medium"
           >
-            <Plus size={16} className="mr-1" /> Declarar Ingreso
+            <Plus size={15} className="mr-1.5" /> Declarar Ingreso
           </Button>
         </div>
 
@@ -311,14 +311,14 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
               <div key={a.id} className="p-4 bg-secondary/30 border border-border/50 rounded-xl space-y-2">
                 <div className="flex justify-between items-start">
                   <p className="font-semibold text-foreground text-sm">{a.nombre || 'Apiario sin nombre'}</p>
-                  <span className={`badge px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${a.estado === 'activo' ? 'badge-success' : 'badge-warning'}`}>
+                  <Badge variant={a.estado === 'activo' ? 'success' : 'warning'}>
                     {a.estado}
-                  </span>
+                  </Badge>
                 </div>
                 {a.estado === 'suspendido' && (
-                  <span className="badge px-2 py-0.5 rounded-md text-[10px] font-bold uppercase badge-warning">
+                  <Badge variant="warning">
                     Pendiente de revisión (distancia legal)
-                  </span>
+                  </Badge>
                 )}
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>📍 {a.comuna_destino} — {a.zona_destino}</p>
@@ -369,9 +369,10 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <Button
             onClick={() => (inscripcionCompleta ? setShowPredioForm(true) : bloquearPorCenso())}
             size="sm"
-            className="w-full sm:w-auto shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+            variant="outline"
+            className="w-full sm:w-auto shrink-0 h-9 rounded-xl text-xs font-medium border-border/80"
           >
-            <Plus size={16} className="mr-1" /> Registrar Predio
+            <Plus size={15} className="mr-1.5" /> Registrar Predio
           </Button>
         </div>
 
@@ -385,9 +386,9 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
               <div key={p.id} className="p-4 bg-secondary/30 border border-border/50 rounded-xl space-y-2">
                 <div className="flex justify-between items-start">
                   <p className="font-semibold text-foreground text-sm">{p.nombre || 'Predio sin nombre'}</p>
-                  <span className={`badge px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${p.activo ? 'badge-success' : 'badge-danger'}`}>
+                  <Badge variant={p.activo ? 'success' : 'destructive'}>
                     {p.activo ? 'Activo' : 'Inactivo'}
-                  </span>
+                  </Badge>
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>📍 {p.comuna} — {p.zona}</p>
@@ -415,9 +416,10 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <Button
             onClick={() => (inscripcionCompleta ? setShowAcopioForm(true) : bloquearPorCenso())}
             size="sm"
-            className="w-full sm:w-auto shrink-0 bg-accent text-accent-foreground hover:bg-accent/90"
+            variant="outline"
+            className="w-full sm:w-auto shrink-0 h-9 rounded-xl text-xs font-medium border-border/80"
           >
-            <Plus size={16} className="mr-1" /> Declarar intención
+            <Plus size={15} className="mr-1.5" /> Declarar intención
           </Button>
         </div>
 
@@ -431,9 +433,9 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
               <div key={ac.id} className="p-4 bg-secondary/30 border border-border/50 rounded-xl space-y-2">
                 <div className="flex justify-between items-start">
                   <p className="font-semibold text-foreground text-sm">{ac.temporada}</p>
-                  <span className={`badge px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${ac.estado === 'confirmada' ? 'badge-success' : ac.estado === 'cancelada' ? 'badge-danger' : 'badge-warning'}`}>
+                  <Badge variant={ac.estado === 'confirmada' ? 'success' : ac.estado === 'cancelada' ? 'destructive' : 'warning'}>
                     {ac.estado}
-                  </span>
+                  </Badge>
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>⚖️ {ac.volumen_kg} kg estimados</p>

@@ -13,6 +13,8 @@ import {
   resolveEventToolLink,
 } from '@enjambre/calendar';
 import { CalendarioCiclico } from '@/components/apicultor/CalendarioCiclico';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { cn } from '@/lib/cn';
 import { createClient } from '@enjambre/auth/browser';
 import { useAuthStore } from '@enjambre/auth';
 import { useEmpresaId } from '@/hooks/use-empresa-id';
@@ -239,43 +241,40 @@ export default function CalendarioPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-1 pb-12 sm:px-0">
-      <header className="shrink-0">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
-              Calendario
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias, ciclos de recolección y campañas operativas del ecosistema.
-            </p>
-          </div>
-          <div className="flex bg-background border border-border rounded-lg p-1">
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <ViewShell
+        variant="clean"
+        title="Calendario"
+        subtitle="Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias y campañas operativas del ecosistema."
+        actions={
+          <div className="flex items-center rounded-xl border border-border/60 overflow-hidden shrink-0">
             <button
               type="button"
               onClick={() => setViewMode('agenda')}
-              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+              className={cn(
+                'px-4 h-9 text-[11px] font-semibold uppercase tracking-wider transition-colors',
                 viewMode === 'agenda'
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
+              )}
             >
               Agenda
             </button>
             <button
               type="button"
               onClick={() => setViewMode('ciclo')}
-              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+              className={cn(
+                'px-4 h-9 text-[11px] font-semibold uppercase tracking-wider transition-colors',
                 viewMode === 'ciclo'
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
+              )}
             >
               Ciclo del Año
             </button>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {viewMode === 'ciclo' ? (
         <CalendarioCiclico />

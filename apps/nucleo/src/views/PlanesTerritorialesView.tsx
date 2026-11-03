@@ -12,6 +12,7 @@ import {
   toast,
   Badge,
 } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
 import {
   Check,
   ArrowLeft,
@@ -157,76 +158,115 @@ export function PlanesTerritorialesView({ variant = 'dashboard' }: PlanesTerrito
 
   return (
     <div className="min-h-[var(--vh-full)] bg-background text-foreground pb-20">
-      {/* Barra superior de navegación */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
-        {variant === 'public' ? (
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={16} />
-            <span>Volver al inicio</span>
-          </Link>
-        ) : (
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={16} />
-            <span>Volver</span>
-          </button>
-        )}
-
-        <a
-          href="https://wa.me/56940831358?text=Hola,%20tengo%20dudas%20sobre%20los%20planes%20de%20Enjambre%20Legado"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/80 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
-        >
-          <MessageCircle size={14} className="text-primary" />
-          <span className="hidden sm:inline">¿Dudas con los planes?</span>
-          <span>Contactar</span>
-        </a>
-      </div>
-
-      {/* Hero Header */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center pt-8 pb-10 space-y-4">
-        <h1 className="text-3xl sm:text-5xl font-bold font-existencial tracking-tight text-foreground text-balance">
-          Planes que crecen contigo
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-          El censo y la defensa territorial son gratuitos para siempre. Estos planes financian la tecnología para agregar valor a tu recolección y cumplir con la ley.
-        </p>
-
-        {/* Toggle Pill (Individual / Organizaciones) */}
-        <div className="pt-4 flex justify-center">
-          <div className="inline-flex p-1 rounded-xl bg-card border border-border/80 shadow-inner">
-            <button
-              type="button"
-              onClick={() => setTab('individual')}
-              className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
-                tab === 'individual'
-                  ? 'bg-surface-raised text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Individual (Apicultores)
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('organizaciones')}
-              className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
-                tab === 'organizaciones'
-                  ? 'bg-surface-raised text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Organizaciones (Cooperativas y Municipios)
-            </button>
+      {variant === 'dashboard' ? (
+        <div className="space-y-6">
+          <ViewShell
+            variant="clean"
+            title="Planes de la Red"
+            subtitle="El censo y la defensa territorial son gratuitos para siempre. Planes para agregar valor a tu recolección y trazabilidad legal."
+            actions={
+              <a
+                href="https://wa.me/56940831358?text=Hola,%20tengo%20dudas%20sobre%20los%20planes%20de%20Enjambre%20Legado"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-border/80 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-card transition-colors shrink-0"
+              >
+                <MessageCircle size={14} className="text-primary" />
+                <span className="hidden sm:inline">¿Dudas con los planes?</span>
+                <span>Contactar</span>
+              </a>
+            }
+          />
+          <div className="flex justify-center pb-2">
+            <div className="inline-flex p-1 rounded-xl bg-card border border-border/80 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setTab('individual')}
+                className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                  tab === 'individual'
+                    ? 'bg-surface-raised text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Individual (Apicultores)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('organizaciones')}
+                className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                  tab === 'organizaciones'
+                    ? 'bg-surface-raised text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Organizaciones (Cooperativas y Municipios)
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Barra superior de navegación */}
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2 flex items-center justify-between">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <ArrowLeft size={16} />
+              <span>Volver al inicio</span>
+            </Link>
+
+            <a
+              href="https://wa.me/56940831358?text=Hola,%20tengo%20dudas%20sobre%20los%20planes%20de%20Enjambre%20Legado"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/80 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
+            >
+              <MessageCircle size={14} className="text-primary" />
+              <span className="hidden sm:inline">¿Dudas con los planes?</span>
+              <span>Contactar</span>
+            </a>
+          </div>
+
+          {/* Hero Header */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center pt-8 pb-10 space-y-4">
+            <h1 className="text-3xl sm:text-5xl font-bold font-existencial tracking-tight text-foreground text-balance">
+              Planes que crecen contigo
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+              El censo y la defensa territorial son gratuitos para siempre. Estos planes financian la tecnología para agregar valor a tu recolección y cumplir con la ley.
+            </p>
+
+            {/* Toggle Pill (Individual / Organizaciones) */}
+            <div className="pt-4 flex justify-center">
+              <div className="inline-flex p-1 rounded-xl bg-card border border-border/80 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setTab('individual')}
+                  className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                    tab === 'individual'
+                      ? 'bg-surface-raised text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Individual (Apicultores)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab('organizaciones')}
+                  className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                    tab === 'organizaciones'
+                      ? 'bg-surface-raised text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Organizaciones (Cooperativas y Municipios)
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Contenido por pestaña */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6">

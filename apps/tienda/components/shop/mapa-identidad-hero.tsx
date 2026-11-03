@@ -309,41 +309,11 @@ export function MapaIdentidadHero({
                   preserveAspectRatio="xMidYMid meet"
                 />
 
-                {/* Faro concéntrico con pulso oro miel sobre Chiloé (x=267.3, y=528.9) */}
+                {/* Rótulo Chiloé sobre el círculo rojo oficial */}
                 <g className="pointer-events-auto">
-                  {/* Aro expansivo con pulso CSS */}
-                  <circle
-                    cx="267.3"
-                    cy="528.9"
-                    r="16"
-                    fill="hsl(44 85% 46% / 0.2)"
-                    stroke="hsl(44 85% 46% / 0.6)"
-                    strokeWidth="1.2"
-                    className="animate-ping"
-                    style={{ transformOrigin: '267.3px 528.9px', animationDuration: '2.8s' }}
-                  />
-                  {/* Halo medio */}
-                  <circle
-                    cx="267.3"
-                    cy="528.9"
-                    r="11"
-                    fill="hsl(44 85% 46% / 0.3)"
-                    stroke="hsl(44 85% 46% / 0.8)"
-                    strokeWidth="1.5"
-                  />
-                  {/* Núcleo dorado oro miel */}
-                  <circle
-                    cx="267.3"
-                    cy="528.9"
-                    r="4.5"
-                    fill="hsl(44 85% 46%)"
-                    stroke="#ffffff"
-                    strokeWidth="1.5"
-                  />
-                  {/* Rótulo superior sobre Chiloé */}
                   <text
-                    x="267.3"
-                    y="508"
+                    x="264"
+                    y="547"
                     textAnchor="middle"
                     fill="#f5f0e8"
                     fontSize="10"

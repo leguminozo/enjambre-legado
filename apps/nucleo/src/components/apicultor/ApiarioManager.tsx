@@ -1,16 +1,28 @@
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useQueryClient } from '@tanstack/react-query';
 import {
     MapPin, Plus, Trash2, ChevronRight, Droplets, LocateFixed,
     ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent,
-    CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil, Crown
+    CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil, Crown, Compass
 } from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado, InspeccionRow, VarroaRow } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
+import { resolveComunaCoords } from '@/lib/cliente-coords';
 import { cn } from '@/lib/cn';
+
+const ApiarioPickerMap = dynamic(() => import('./ApiarioPickerMapBase'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-64 sm:h-72 rounded-xl bg-surface-sunken border border-border animate-pulse flex flex-col items-center justify-center gap-2">
+            <span className="text-base">🐝</span>
+            <span className="text-xs text-muted-foreground font-mono">Cargando visor satelital de Chiloé…</span>
+        </div>
+    ),
+});
 
 const COMUNAS_CHILOE_APIARIOS = [
   'Castro',
@@ -49,14 +61,55 @@ interface ApiarioManagerProps {
     onRegistroChange?: (map: Record<string, RegistroApiarioEstado>) => void;
     /** Contexto compartido con el gemelo 3D (alertas, meteo de zona). */
     hiveCtx?: HiveStateContext;
+    /** Comuna de origen del usuario desde su registro inicial o perfil territorial */
+    userComuna?: string | null;
+}
+
+export function parseApiarioDetails(detailsStr?: string | null): {
+    comuna?: string;
+    sector?: string;
+    regimen?: 'fijo' | 'trashumante';
+    observaciones: string;
+} {
+    if (!detailsStr) return { observaciones: '' };
+    const match = detailsStr.match(/^\[Comuna:\s*([^|\]]+)(?:\|\s*Sector:\s*([^|\]]+))?(?:\|\s*Régimen:\s*([^|\]]+))?\]\s*(.*)$/is);
+    if (match) {
+        return {
+            comuna: match[1]?.trim() || undefined,
+            sector: match[2]?.trim() || undefined,
+            regimen: match[3]?.trim().toLowerCase() === 'trashumante' ? 'trashumante' : 'fijo',
+            observaciones: match[4]?.trim() || '',
+        };
+    }
+    return { observaciones: detailsStr };
+}
+
+export function formatApiarioDetails(data: {
+    comuna?: string;
+    sector?: string;
+    regimen?: 'fijo' | 'trashumante';
+    observaciones?: string;
+}): string {
+    const parts: string[] = [];
+    if (data.comuna) parts.push(`Comuna: ${data.comuna.trim()}`);
+    if (data.sector) parts.push(`Sector: ${data.sector.trim()}`);
+    if (data.regimen) parts.push(`Régimen: ${data.regimen}`);
+
+    const header = parts.length > 0 ? `[${parts.join(' | ')}]` : '';
+    const obs = data.observaciones?.trim() || '';
+    if (header && obs) return `${header}\n${obs}`;
+    return header || obs;
 }
 
 interface ApiarioDraft {
     id?: string;
     name: string;
+    comuna?: string;
+    sector?: string;
+    regimen?: 'fijo' | 'trashumante';
     lat: string;
     lng: string;
-    health: 'optimal' | 'attention' | 'risk';
+    health?: 'optimal' | 'attention' | 'risk';
     details: string;
 }
 
@@ -91,6 +144,7 @@ export function ApiarioManager({
     registroMap = {},
     onRegistroChange,
     hiveCtx,
+    userComuna,
 }: ApiarioManagerProps) {
     const apiFetch = useApiFetch();
     const queryClient = useQueryClient();
@@ -193,8 +247,9 @@ export function ApiarioManager({
     const abrirPublicar = (row: ApiarioRow) => {
         setApiarioError(null);
         const prev = registroMap[row.id];
-        setPubComuna(prev?.comuna ?? '');
-        setPubZona(prev?.zona ?? '');
+        const parsed = parseApiarioDetails(row.details);
+        setPubComuna(prev?.comuna ?? parsed.comuna ?? userComuna ?? '');
+        setPubZona(prev?.zona ?? parsed.sector ?? '');
         setPubCategoria(prev?.categoria ?? 'produccion');
         setPublicando(row);
     };
@@ -242,19 +297,34 @@ export function ApiarioManager({
 
     const openNewApiario = () => {
         setApiarioError(null);
-        setEditingApiario({ name: '', lat: '', lng: '', health: 'optimal', details: '' });
+        const initialComuna = userComuna || 'Castro';
+        const coords = resolveComunaCoords(initialComuna);
+        setEditingApiario({
+            name: '',
+            comuna: initialComuna,
+            sector: '',
+            regimen: 'fijo',
+            lat: coords ? coords.lat.toFixed(6) : '',
+            lng: coords ? coords.lng.toFixed(6) : '',
+            health: 'optimal',
+            details: '',
+        });
     };
 
     const openEditApiario = (row: ApiarioRow, e?: React.MouseEvent) => {
         e?.stopPropagation();
         setApiarioError(null);
+        const parsed = parseApiarioDetails(row.details);
         setEditingApiario({
             id: row.id,
             name: row.name ?? '',
+            comuna: parsed.comuna || userComuna || 'Castro',
+            sector: parsed.sector ?? '',
+            regimen: parsed.regimen ?? 'fijo',
             lat: row.lat != null ? String(row.lat) : '',
             lng: row.lng != null ? String(row.lng) : '',
             health: (row.health as ApiarioDraft['health']) || 'optimal',
-            details: row.details ?? '',
+            details: parsed.observaciones ?? '',
         });
     };
 
@@ -340,9 +410,16 @@ export function ApiarioManager({
         const lat = editingApiario.lat === '' ? 0 : parseFloat(editingApiario.lat);
         const lng = editingApiario.lng === '' ? 0 : parseFloat(editingApiario.lng);
         if (Number.isNaN(lat) || Number.isNaN(lng)) {
-            setApiarioError('Coordenadas inválidas: usa grados decimales (ej. -42.483123, -73.743195).');
+            setApiarioError('Coordenadas inválidas: usa grados decimales o selecciónalas en el mapa.');
             return;
         }
+
+        const detailsFormatted = formatApiarioDetails({
+            comuna: editingApiario.comuna,
+            sector: editingApiario.sector,
+            regimen: editingApiario.regimen,
+            observaciones: editingApiario.details,
+        });
 
         setApiarioError(null);
         try {
@@ -354,8 +431,8 @@ export function ApiarioManager({
                         name,
                         lat,
                         lng,
-                        health: editingApiario.health,
-                        details: editingApiario.details.trim() || null,
+                        health: 'optimal',
+                        details: detailsFormatted || null,
                     })
                     .eq('id', editingApiario.id)
                     .select('*')
@@ -380,8 +457,8 @@ export function ApiarioManager({
                 name,
                 lat,
                 lng,
-                health: editingApiario.health,
-                details: editingApiario.details.trim() || null,
+                health: 'optimal',
+                details: detailsFormatted || null,
                 user_id: user?.id ?? null,
             }).select('*').single();
             if (error) throw error;
@@ -853,6 +930,7 @@ export function ApiarioManager({
                         onUseGps={handleUseMyLocation}
                         onSave={() => void handleSaveApiario()}
                         onClose={() => setEditingApiario(null)}
+                        userComuna={userComuna}
                     />
                 )}
                 {publicando && (
@@ -1480,6 +1558,7 @@ export function ApiarioManager({
                     onUseGps={handleUseMyLocation}
                     onSave={() => void handleSaveApiario()}
                     onClose={() => setEditingApiario(null)}
+                    userComuna={userComuna}
                 />
             )}
             {publicando && (
@@ -1626,6 +1705,7 @@ function ApiarioFormModal({
     onUseGps,
     onSave,
     onClose,
+    userComuna,
 }: {
     draft: ApiarioDraft;
     setDraft: (d: ApiarioDraft | null) => void;
@@ -1634,13 +1714,37 @@ function ApiarioFormModal({
     onUseGps: () => void;
     onSave: () => void;
     onClose: () => void;
+    userComuna?: string | null;
 }) {
     const isEdit = Boolean(draft.id);
+    const latNum = draft.lat !== '' && !Number.isNaN(parseFloat(draft.lat)) ? parseFloat(draft.lat) : null;
+    const lngNum = draft.lng !== '' && !Number.isNaN(parseFloat(draft.lng)) ? parseFloat(draft.lng) : null;
+
+    const handleMapPick = (lat: number, lng: number) => {
+        setDraft({
+            ...draft,
+            lat: lat.toFixed(6),
+            lng: lng.toFixed(6),
+        });
+    };
+
+    const handleComunaChange = (newComuna: string) => {
+        const coords = resolveComunaCoords(newComuna);
+        setDraft({
+            ...draft,
+            comuna: newComuna,
+            lat: coords ? coords.lat.toFixed(6) : draft.lat,
+            lng: coords ? coords.lng.toFixed(6) : draft.lng,
+        });
+    };
+
+    const isUserOriginComuna = userComuna && draft.comuna === userComuna;
+
     return (
         <ImmersiveModal
             open
             onClose={onClose}
-            size="md"
+            size="lg"
             eyebrow="Campo"
             title={isEdit ? 'Editar apiario' : 'Registrar nuevo apiario'}
             footer={
@@ -1654,83 +1758,174 @@ function ApiarioFormModal({
                 </div>
             }
         >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+            <div className="space-y-4 text-foreground">
+                {/* Nombre del apiario */}
+                <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Nombre del apiario *
+                    </label>
+                    <input
+                        className="input-field w-full"
+                        value={draft.name}
+                        onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                        placeholder="Ej. Valle Sur, El Canelo, Molulco..."
+                        autoFocus
+                    />
+                </div>
+
+                {/* Comuna de Chiloé y Sector rural */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                            Nombre del apiario *
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-xs font-semibold text-foreground">
+                                Comuna de Chiloé
+                            </label>
+                            {isUserOriginComuna && (
+                                <span className="inline-flex items-center gap-1 text-[0.68rem] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium">
+                                    <MapPin size={10} />
+                                    Tu comuna
+                                </span>
+                            )}
+                        </div>
+                        <select
+                            className="input-field w-full"
+                            value={draft.comuna || userComuna || 'Castro'}
+                            onChange={(e) => handleComunaChange(e.target.value)}
+                        >
+                            {COMUNAS_CHILOE_APIARIOS.map((c) => (
+                                <option key={c} value={c}>
+                                    {c} {userComuna === c ? '— Comuna de tu registro' : ''}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-foreground mb-1.5">
+                            Sector / Paraje rural
                         </label>
                         <input
                             className="input-field w-full"
-                            value={draft.name}
-                            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                            placeholder="Ej. Valle Sur"
+                            value={draft.sector || ''}
+                            onChange={(e) => setDraft({ ...draft, sector: e.target.value })}
+                            placeholder="Ej. Terao, Huillinco, Chepu, Llingua..."
                         />
                     </div>
-                    <div>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                            Coordenadas GPS (grados decimales)
+                </div>
+
+                {/* Régimen del apiario */}
+                <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Régimen del apiario
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setDraft({ ...draft, regimen: 'fijo' })}
+                            className={cn(
+                                'px-3 py-2 text-xs rounded-lg border text-left transition-colors flex items-center justify-between',
+                                (draft.regimen ?? 'fijo') === 'fijo'
+                                    ? 'bg-primary/10 border-primary text-foreground font-medium'
+                                    : 'bg-card border-border text-muted-foreground hover:text-foreground'
+                            )}
+                        >
+                            <span className="flex items-center gap-2">
+                                <span>🌲</span>
+                                <span>Fijo / Permanente</span>
+                            </span>
+                            {(draft.regimen ?? 'fijo') === 'fijo' && <Check size={14} className="text-primary" />}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setDraft({ ...draft, regimen: 'trashumante' })}
+                            className={cn(
+                                'px-3 py-2 text-xs rounded-lg border text-left transition-colors flex items-center justify-between',
+                                draft.regimen === 'trashumante'
+                                    ? 'bg-primary/10 border-primary text-foreground font-medium'
+                                    : 'bg-card border-border text-muted-foreground hover:text-foreground'
+                            )}
+                        >
+                            <span className="flex items-center gap-2">
+                                <span>🚚</span>
+                                <span>Trashumante / Temporal</span>
+                            </span>
+                            {draft.regimen === 'trashumante' && <Check size={14} className="text-primary" />}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Visor Satelital Interactivo y Coordenadas */}
+                <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <Compass size={14} className="text-primary" />
+                            Ubicación satelital (haz click en el mapa para fijar el apiario)
                         </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-xs self-start sm:self-auto text-xs"
+                            onClick={onUseGps}
+                            disabled={locatingGps}
+                        >
+                            <LocateFixed size={12} className="inline mr-1" />
+                            {locatingGps ? 'Obteniendo GPS…' : 'Usar mi ubicación GPS'}
+                        </button>
+                    </div>
+
+                    <ApiarioPickerMap
+                        lat={latNum}
+                        lng={lngNum}
+                        comuna={draft.comuna || userComuna}
+                        onChange={handleMapPick}
+                    />
+
+                    {/* Inputs de coordenadas complementarios */}
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label className="block text-[0.7rem] text-muted-foreground mb-0.5">Latitud</label>
                             <input
-                                className="input-field w-full"
+                                className="input-field w-full text-xs font-mono"
                                 type="number"
                                 step="any"
-                                placeholder="Latitud"
+                                placeholder="-42.480000"
                                 value={draft.lat}
                                 onChange={(e) => setDraft({ ...draft, lat: e.target.value })}
                             />
+                        </div>
+                        <div>
+                            <label className="block text-[0.7rem] text-muted-foreground mb-0.5">Longitud</label>
                             <input
-                                className="input-field w-full"
+                                className="input-field w-full text-xs font-mono"
                                 type="number"
                                 step="any"
-                                placeholder="Longitud"
+                                placeholder="-73.760000"
                                 value={draft.lng}
                                 onChange={(e) => setDraft({ ...draft, lng: e.target.value })}
                             />
                         </div>
-                        <button
-                            type="button"
-                            className="btn btn-outline btn-sm"
-                            style={{ marginTop: 8 }}
-                            onClick={onUseGps}
-                            disabled={locatingGps}
-                        >
-                            <LocateFixed size={14} style={{ display: 'inline', marginRight: 6 }} />
-                            {locatingGps ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
-                        </button>
                     </div>
-                    <div>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                            Estado sanitario del apiario
-                        </label>
-                        <select
-                            className="input-field w-full"
-                            value={draft.health}
-                            onChange={(e) =>
-                                setDraft({ ...draft, health: e.target.value as ApiarioDraft['health'] })
-                            }
-                        >
-                            <option value="optimal">Óptima</option>
-                            <option value="attention">Atención</option>
-                            <option value="risk">Riesgo / Crítica</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                            Detalles
-                        </label>
-                        <textarea
-                            className="input-field w-full"
-                            rows={4}
-                            value={draft.details}
-                            onChange={(e) => setDraft({ ...draft, details: e.target.value })}
-                            placeholder="Entorno, flora, altitud, antecedentes sanitarios…"
-                        />
-                    </div>
-                    {error && (
-                        <div style={{ fontSize: '0.78rem', color: 'hsl(var(--destructive))' }}>{error}</div>
-                    )}
                 </div>
+
+                {/* Detalles y notas del entorno */}
+                <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                        Flora melífera y notas del entorno (opcional)
+                    </label>
+                    <textarea
+                        className="input-field w-full text-xs"
+                        rows={2}
+                        value={draft.details}
+                        onChange={(e) => setDraft({ ...draft, details: e.target.value })}
+                        placeholder="Flora predominante (Ulmo, Tiaca, Tepú, Bosque nativo), accesibilidad o acuerdos del predio..."
+                    />
+                </div>
+
+                {error && (
+                    <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-2.5">
+                        {error}
+                    </div>
+                )}
+            </div>
         </ImmersiveModal>
     );
 }

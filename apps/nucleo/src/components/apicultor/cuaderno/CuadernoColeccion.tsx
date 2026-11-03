@@ -12,7 +12,7 @@ import { FASES_BITACORA } from '@/lib/bitacora-types';
 import { FASE_LABEL } from '../bitacora-labels';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import { HOJA_PLANTILLAS } from './labels';
-import { EscenaHud } from './EscenaHud';
+import { EscenaHud, type Metric } from './EscenaHud';
 import { HojaCard } from './HojaCard';
 import { HojaForm } from './HojaForm';
 import { VarroaForm } from './VarroaForm';
@@ -69,7 +69,7 @@ function AccionesCuadernoMenu({
   return (
     <DropdownMenu
       trigger={
-        <Button className="rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest">
+        <Button className="h-9 rounded-xl text-[11px] font-semibold uppercase tracking-wider">
           <Plus className="size-3.5 mr-1" /> Nueva hoja <ChevronDown className="size-3 ml-1" />
         </Button>
       }
@@ -150,7 +150,6 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
       return json.data ?? json;
     },
     staleTime: 30_000,
-    enabled: vista === 'red',
   });
 
   // Consulta bajo demanda a supabase solo cuando un formulario de captura está abierto
@@ -409,6 +408,44 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
   const conteos = redLocal?.meta.conteos ?? {};
   const brechas = redLocal?.meta.brechas ?? [];
 
+  const metricasTelemetry: Metric[] = useMemo(
+    () => [
+      {
+        label: 'Colmenas',
+        value: conteos.colmenas ?? colmenasForm.length ?? 0,
+        tone: 'default',
+      },
+      {
+        label: 'Hojas',
+        value: conteos.hojas ?? hojas.length ?? 0,
+        tone: 'default',
+      },
+      {
+        label: 'Tratamientos',
+        value: conteos.tratamientos ?? 0,
+        tone: 'default',
+      },
+      {
+        label: 'Varroa',
+        value: conteos.varroa ?? 0,
+        tone: 'default',
+      },
+      {
+        label: 'Observaciones',
+        value: conteos.nodos_manuales ?? 0,
+        tone: 'default',
+      },
+      {
+        label: 'Sin visita reciente',
+        value: brechas.length,
+        tone: brechas.length > 0 ? 'warning' : 'success',
+        badge: brechas.length === 0 ? 'al día' : 'atención',
+        description: brechas.length === 0 ? 'Monitoreo al día' : 'Requieren inspección',
+      },
+    ],
+    [conteos, colmenasForm.length, hojas.length, brechas.length],
+  );
+
   const controlesAcciones = (
     <div className="flex items-center gap-2 shrink-0">
       <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
@@ -452,49 +489,38 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
         <div className="flex justify-end">{controlesAcciones}</div>
       )}
 
-      {/* HUD del mapa vivo */}
-      {vista === 'red' && (
-        <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">
-            Vista relacional de todas tus visitas, monitoreos y tratamientos. Usa el dock inferior para agregar registros o conectar nodos.
-          </p>
-          <EscenaHud
-            metricas={[
-              { label: 'Colmenas', value: String(conteos.colmenas ?? 0) },
-              { label: 'Hojas', value: String(conteos.hojas ?? 0) },
-              { label: 'Tratamientos', value: String(conteos.tratamientos ?? 0) },
-              { label: 'Varroa', value: String(conteos.varroa ?? 0) },
-              { label: 'Observaciones', value: String(conteos.nodos_manuales ?? 0) },
-              { label: 'Sin visita reciente', value: String(brechas.length), tone: brechas.length > 0 ? 'warning' : 'success' },
-            ]}
-          />
-        </div>
-      )}
-
-
+      {/* Telemetría ejecutiva permanente en ambas vistas (patrón sin layout shift) */}
+      <EscenaHud metricas={metricasTelemetry} />
 
       {vista === 'hojas' ? (
         <>
-          {/* Filtros */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Select
-              value={filtroFase}
-              onValueChange={setFiltroFase}
-              options={[{ value: '', label: 'Todas las fases' }, ...FASES_BITACORA.map((f) => ({ value: f, label: FASE_LABEL[f] }))]}
-              className="w-56"
-            />
-            <Select
-              value={filtroColmena}
-              onValueChange={setFiltroColmena}
-              options={[{ value: '', label: 'Todas las colmenas' }, ...colmenasForm.map((c) => ({ value: c.id, label: c.name ?? 'Sin nombre' }))]}
-              searchable
-              className="w-64"
-            />
-            <div className="relative flex-1 min-w-[14rem]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input className="pl-9" placeholder="Buscar por colmena, apiario o notas…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          {/* Filtros: sólo visibles cuando hay hojas registradas */}
+          {hojas.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={filtroFase}
+                onValueChange={setFiltroFase}
+                options={[{ value: '', label: 'Todas las fases' }, ...FASES_BITACORA.map((f) => ({ value: f, label: FASE_LABEL[f] }))]}
+                className="w-56"
+              />
+              <Select
+                value={filtroColmena}
+                onValueChange={setFiltroColmena}
+                options={[{ value: '', label: 'Todas las colmenas' }, ...colmenasForm.map((c) => ({ value: c.id, label: c.name ?? 'Sin nombre' }))]}
+                searchable
+                className="w-64"
+              />
+              <div className="relative flex-1 min-w-[14rem]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Buscar por colmena, apiario o notas…"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {cargandoHojas ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="Cargando hojas de cuaderno">
@@ -512,7 +538,25 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
                   : 'Prueba buscando con otros términos o limpia el filtro de búsqueda.'
               }
               suggestion={hojas.length === 0 ? 'Puedes iniciar con una revisión general del estado de la cría o las reservas de miel.' : undefined}
-              action={<Button onClick={() => abrirNuevaHoja(null)}><Plus className="size-4 mr-1" /> Nueva hoja de visita</Button>}
+              action={
+                hojas.length === 0 ? (
+                  <Button onClick={() => abrirNuevaHoja(null)} className="h-9 rounded-xl text-xs font-medium">
+                    <Plus className="size-4 mr-1.5" /> Registrar primera visita
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setBusqueda('');
+                      setFiltroFase('');
+                      setFiltroColmena('');
+                    }}
+                    className="h-9 rounded-xl text-xs font-medium"
+                  >
+                    Limpiar filtros
+                  </Button>
+                )
+              }
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -533,7 +577,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
           )}
         </>
       ) : cargandoRed && !redLocal ? (
-        <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-background p-6 flex flex-col justify-between animate-in" aria-busy="true" aria-label="Cargando red semántica">
+        <div className="relative h-[calc(var(--vh-full)-360px)] min-h-[460px] rounded-2xl border border-border/60 bg-background p-6 flex flex-col justify-between animate-in" aria-busy="true" aria-label="Cargando red semántica">
           <div className="flex items-center justify-between">
             <Skeleton variant="text" className="w-48 h-5" />
             <Skeleton variant="rectangular" className="w-28 h-8 rounded-full" />
@@ -547,7 +591,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
         </div>
       ) : (
         /* Vista Mapa vivo: lienzo semántico global */
-        <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-background overflow-hidden">
+        <div className="relative h-[calc(var(--vh-full)-360px)] min-h-[460px] rounded-2xl border border-border/60 bg-background overflow-hidden">
           <LienzoSemantico
             nodos={redLocal?.nodos ?? []}
             aristas={redLocal?.aristas ?? []}
