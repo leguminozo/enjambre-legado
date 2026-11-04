@@ -109,9 +109,10 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
     actor.metodo_control_varroa,
   ]);
 
-  // ---- Aceptación de Carta y política (suscritas en el alta) ----
-  const [aceptaCartaLocal] = useState(actor.acepta_carta ?? true);
-  const [aceptaPoliticaLocal] = useState(actor.acepta_politica_datos ?? true);
+  // ---- Aceptación de Carta y política (suscritas en el alta y ratificadas al completar) ----
+  const [aceptaCartaLocal] = useState(true);
+  const [aceptaPoliticaLocal] = useState(true);
+  const [savingCompletar, setSavingCompletar] = useState(false);
 
   // ---- Paso 3: Apiarios ----
   const [showApiarioForm, setShowApiarioForm] = useState(false);
@@ -234,7 +235,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   // ---- Estado de completitud ----
   const rutOk = validarRUT(rut);
   const tieneIdentidad = rutOk && telefono.trim().length >= 6 && declaracionExistencia;
-  const tieneActividad = practicas.trim().length > 0 && metodoVarroa.trim().length > 0;
+  const tieneActividad = practicas.trim().length >= 3 && metodoVarroa.trim().length >= 3;
   const tieneApiarios = apiarios.length > 0;
   const aceptaTodo = aceptaCartaLocal && aceptaPoliticaLocal;
   const todoListo = tieneIdentidad && tieneActividad && tieneApiarios && aceptaTodo;
@@ -287,6 +288,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
         declaracion_existencia_animal: declaracionExistencia,
       });
       toast.success('Identidad guardada');
+      setPasoAbierto('actividad');
       onSaved();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error guardando identidad');
@@ -296,12 +298,12 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   };
 
   const guardarActividad = async () => {
-    if (practicas.trim().length < 10) {
-      toast.error('Describe brevemente tus prácticas sanitarias');
+    if (practicas.trim().length < 3) {
+      toast.error('Indica tus prácticas sanitarias (mínimo 3 caracteres)');
       return;
     }
     if (metodoVarroa.trim().length < 3) {
-      toast.error('Indica tu método de control de varroa');
+      toast.error('Indica tu método de control de varroa (mínimo 3 caracteres)');
       return;
     }
     setSavingActividad(true);
@@ -311,6 +313,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
         metodo_control_varroa: metodoVarroa.trim(),
       });
       toast.success('Actividad y sanidad guardadas');
+      setPasoAbierto('apiarios');
       onSaved();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error guardando actividad');
@@ -402,11 +405,12 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
       toast.error('Faltan datos requeridos por el censo. Revisa los pasos anteriores.');
       return;
     }
+    setSavingCompletar(true);
     try {
       if (!actor.acepta_carta || !actor.acepta_politica_datos) {
         await guardarActor({
-          acepta_carta: aceptaCartaLocal,
-          acepta_politica_datos: aceptaPoliticaLocal,
+          acepta_carta: true,
+          acepta_politica_datos: true,
         });
       }
       const res = await apiFetch(`/api/registro-territorial/actores/${actor.id}/completar-censo`, {
@@ -420,6 +424,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
       onSaved();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error completando inscripción');
+    } finally {
+      setSavingCompletar(false);
     }
   };
 
@@ -558,10 +564,15 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                       </p>
                     </div>
                   </label>
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
                     <Button onClick={guardarIdentidad} disabled={savingIdentidad} size="sm">
                       {savingIdentidad ? 'Guardando…' : 'Guardar identidad'}
                     </Button>
+                    {tieneIdentidad && (
+                      <span className="text-xs text-primary flex items-center gap-1.5 font-medium">
+                        ✓ Identidad completa
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -577,7 +588,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                       value={practicas}
                       onChange={(e) => setPracticas(e.target.value)}
                       rows={3}
-                      placeholder="Ej: revisión sanitaria estacional, limpieza de pisos, manejo de alimento, recambio de reinas..."
+                      placeholder="Ej: orgánico, revisión sanitaria estacional, limpieza de pisos, manejo de alimento, recambio de reinas..."
                       className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
                     />
                   </div>
@@ -600,14 +611,19 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                       value={metodoVarroa}
                       onChange={(e) => setMetodoVarroa(e.target.value)}
                       rows={2}
-                      placeholder="Ej: tratamiento acaricida en otoño (principio activo), control de primavera, alternancia de principios activos..."
+                      placeholder="Ej: verostop, acaricida en otoño (principio activo), control de primavera..."
                       className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
                     />
                   </div>
-                  <div>
+                  <div className="flex flex-wrap items-center gap-3">
                     <Button onClick={guardarActividad} disabled={savingActividad} size="sm">
                       {savingActividad ? 'Guardando…' : 'Guardar actividad y sanidad'}
                     </Button>
+                    {tieneActividad && (
+                      <span className="text-xs text-primary flex items-center gap-1.5 font-medium">
+                        ✓ Información lista para el censo
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -886,8 +902,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                       { ok: rutOk && telefono.trim().length >= 6, label: 'RUT y teléfono de contacto', step: 'identidad' },
                       { ok: declaracionExistencia, label: 'Declaración de existencia animal ante el SAG', step: 'identidad' },
                       { ok: Boolean(actor.rup), label: 'RUP SAG (recomendado)', step: 'identidad' },
-                      { ok: practicas.trim().length > 0, label: 'Prácticas sanitarias declaradas', step: 'actividad' },
-                      { ok: metodoVarroa.trim().length > 0, label: 'Método de control de varroa declarado', step: 'actividad' },
+                      { ok: practicas.trim().length >= 3, label: 'Prácticas sanitarias declaradas', step: 'actividad' },
+                      { ok: metodoVarroa.trim().length >= 3, label: 'Método de control de varroa declarado', step: 'actividad' },
                       { ok: apiarios.length > 0, label: 'Al menos un apiario declarado con sector y colmenas', step: 'apiarios' },
                       { ok: true, label: 'Carta Constitutiva y privacidad (aceptadas en el alta)', step: null },
                     ].map((item) => (
@@ -919,8 +935,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     ✓ Tus consentimientos de la Carta Constitutiva y política de privacidad ya quedaron suscritos al crear tu cuenta.
                   </p>
 
-                  <Button onClick={completarInscripcion} disabled={!todoListo} size="sm">
-                    <FileCheck2 size={15} className="mr-1" /> Completar inscripción
+                  <Button onClick={completarInscripcion} disabled={!todoListo || savingCompletar} size="sm">
+                    <FileCheck2 size={15} className="mr-1" /> {savingCompletar ? 'Completando inscripción…' : 'Completar inscripción'}
                   </Button>
                   {!todoListo && (
                     <p className="text-xs text-muted-foreground">

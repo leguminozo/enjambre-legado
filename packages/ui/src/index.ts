@@ -31,7 +31,7 @@ export {
 export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay, type GrainOverlayProps } from './components/grain-overlay';
-export { ToastProvider } from './components/toast';
+export { ToastProvider, Toaster } from './components/toast';
 export type { Toast, ToastVariant, ToastAction, ToastPromise } from './components/toast';
 export { toast } from './hooks/use-toast';
 export { NotificationBell, type Notification } from './components/notification-bell';

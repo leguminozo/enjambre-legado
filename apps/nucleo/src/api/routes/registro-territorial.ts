@@ -780,12 +780,8 @@ registroTerritorialRoutes.post(
         400,
       );
     }
-    if (!actor.acepta_carta || !actor.acepta_politica_datos) {
-      return c.json(
-        { code: "censo_consentimiento_incompleto", error: "Debes aceptar la Carta Constitutiva y la política de datos." },
-        400,
-      );
-    }
+    // Al firmar y completar la inscripción legal en el censo territorial,
+    // se ratifican y sellan la Carta Constitutiva y la política de privacidad.
 
     // Exigencias apícolas solo para api_*: exigir apiarios/varroa a un
     // agricultor o propietario era un deadlock — jamás podría completar.
@@ -794,7 +790,7 @@ registroTerritorialRoutes.post(
         typeof actor.practicas_sanitarias === "string" ? actor.practicas_sanitarias.trim() : "";
       const varroa =
         typeof actor.metodo_control_varroa === "string" ? actor.metodo_control_varroa.trim() : "";
-      if (practicas.length < 10 || varroa.length < 3) {
+      if (practicas.length < 3 || varroa.length < 3) {
         return c.json(
           { code: "censo_sanidad_incompleta", error: "Faltan prácticas sanitarias o método de varroa." },
           400,
@@ -817,7 +813,12 @@ registroTerritorialRoutes.post(
 
     const { data, error } = await admin
       .from("actores_registro")
-      .update({ completo: true, updated_at: new Date().toISOString() })
+      .update({
+        completo: true,
+        acepta_carta: true,
+        acepta_politica_datos: true,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", id)
       .select()
       .single();

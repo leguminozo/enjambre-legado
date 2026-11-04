@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState, useMemo } from 'react';
+import { Toaster as SonnerToaster } from 'sonner';
 import { 
   CheckCircleIcon as CheckCircle, 
   AlertCircleIcon as AlertCircle, 
@@ -49,6 +50,7 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+export { SonnerToaster as Toaster };
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useToast must be used within ToastProvider');
@@ -159,6 +161,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <ToastContainer toasts={toasts} onDismiss={removeToast} containerRef={containerRef} />
+      <SonnerToaster
+        position="top-right"
+        richColors
+        closeButton
+        theme="system"
+        toastOptions={{
+          style: {
+            fontFamily: 'inherit',
+          },
+        }}
+      />
     </ToastContext.Provider>
   );
 }
