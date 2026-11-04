@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useTransition } from 'react';
-import { Calendar, Leaf, ArrowRight, Truck, XCircle, MessageCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Calendar, Leaf, ArrowRight, Truck, XCircle, Trash2, MessageCircle } from 'lucide-react';
 import { toast, friendlyError, ConfirmDialog } from '@enjambre/ui';
 import {
   createHarvestPreOrder,
   cancelHarvestPreOrder,
+  deleteHarvestPreOrder,
   type PreOrderRow,
 } from '@/app/actions/perfil-experiences';
 import { alignToClass, type TextAlign } from '@/lib/shop/store-chrome';
@@ -69,10 +71,20 @@ function formatStatus(status: string) {
 }
 
 export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedded = false }: ReservasClientProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [orders, setOrders] = React.useState<PreOrderRow[]>(preOrders);
   const [quantity, setQuantity] = React.useState(1);
-  const [cancelTarget, setCancelTarget] = React.useState<{ id: string; name: string } | null>(null);
-  const [cancelLoading, setCancelLoading] = React.useState(false);
+  const [actionTarget, setActionTarget] = React.useState<{
+    id: string;
+    name: string;
+    type: 'cancel' | 'delete';
+  } | null>(null);
+  const [actionLoading, setActionLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    setOrders(preOrders);
+  }, [preOrders]);
 
   const title = cmsSettings?.title || 'Reserva Anual de Recolección';
   const subtitle = cmsSettings?.subtitle || 'Asegura tu parte de la recolección estacional del bosque nativo antes de que concluya la temporada';
@@ -89,23 +101,48 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedd
       try {
         await createHarvestPreOrder(featuredProduct.id, quantity);
         toast(`Reserva de ${quantity} cupo(s) registrada con éxito`, { type: 'success' });
+        router.refresh();
       } catch (error) {
         toast(friendlyError(error, 'No se pudo reservar'), { type: 'error' });
       }
     });
   };
 
-  const handleConfirmCancel = async () => {
-    if (!cancelTarget) return;
-    setCancelLoading(true);
-    try {
-      await cancelHarvestPreOrder(cancelTarget.id);
-      toast(`Tu reserva para "${cancelTarget.name}" fue cancelada y el cupo ha sido liberado.`, { type: 'success' });
-      setCancelTarget(null);
-    } catch (err) {
-      toast(friendlyError(err, 'No se pudo cancelar la reserva'), { type: 'error' });
-    } finally {
-      setCancelLoading(false);
+  const handleConfirmAction = async () => {
+    if (!actionTarget) return;
+    const target = actionTarget;
+    setActionLoading(true);
+
+    if (target.type === 'delete') {
+      // Retiro optimista de la lista para feedback instantáneo
+      setOrders((prev) => prev.filter((o) => o.id !== target.id));
+      try {
+        await deleteHarvestPreOrder(target.id);
+        toast(`La reserva para "${target.name}" ha sido eliminada.`, { type: 'success' });
+        setActionTarget(null);
+        router.refresh();
+      } catch (err) {
+        setOrders(preOrders);
+        toast(friendlyError(err, 'No se pudo eliminar la reserva'), { type: 'error' });
+      } finally {
+        setActionLoading(false);
+      }
+    } else {
+      // Actualización optimista de estado
+      setOrders((prev) =>
+        prev.map((o) => (o.id === target.id ? { ...o, status: 'cancelled' } : o))
+      );
+      try {
+        await cancelHarvestPreOrder(target.id);
+        toast(`Tu reserva para "${target.name}" fue cancelada y el cupo ha sido liberado.`, { type: 'success' });
+        setActionTarget(null);
+        router.refresh();
+      } catch (err) {
+        setOrders(preOrders);
+        toast(friendlyError(err, 'No se pudo cancelar la reserva'), { type: 'error' });
+      } finally {
+        setActionLoading(false);
+      }
     }
   };
 
@@ -195,11 +232,11 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedd
             <Leaf size={18} />
             <h4 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">Tus reservas registradas</h4>
           </div>
-          {preOrders.length === 0 ? (
+          {orders.length === 0 ? (
             <p className="text-xs text-muted-foreground">Aún no tienes reservas activas.</p>
           ) : (
             <ul className="space-y-4">
-              {preOrders.map((order) => {
+              {orders.map((order) => {
                 const statusInfo = formatStatus(order.status);
                 const refCode = `#RES-${order.id.slice(0, 6).toUpperCase()}`;
                 const productName = order.productos?.nombre || 'Reserva Anual de Recolección';
@@ -244,7 +281,7 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedd
                     )}
 
                     {/* Acciones de gestión para el cliente */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border/30 text-[11px]">
+                    <div className="flex items-center justify-between pt-2 border-t border-border/30 text-[11px] gap-2">
                       <a
                         href={waUrl}
                         target="_blank"
@@ -256,16 +293,29 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedd
                         <span>Consultar</span>
                       </a>
 
-                      {canCancel && (
+                      <div className="flex items-center gap-3">
+                        {canCancel && (
+                          <button
+                            type="button"
+                            onClick={() => setActionTarget({ id: order.id, name: productName, type: 'cancel' })}
+                            className="inline-flex items-center gap-1 text-muted-foreground hover:text-destructive transition-colors text-[11px]"
+                            title="Liberar tu cupo"
+                          >
+                            <XCircle size={13} />
+                            <span>Cancelar</span>
+                          </button>
+                        )}
+
                         <button
                           type="button"
-                          onClick={() => setCancelTarget({ id: order.id, name: productName })}
+                          onClick={() => setActionTarget({ id: order.id, name: productName, type: 'delete' })}
                           className="inline-flex items-center gap-1 text-destructive/80 hover:text-destructive transition-colors text-[11px] font-medium"
+                          title="Eliminar esta reserva"
                         >
-                          <XCircle size={13} />
-                          <span>Cancelar cupo</span>
+                          <Trash2 size={13} />
+                          <span>{isCancelled ? 'Eliminar del historial' : 'Eliminar'}</span>
                         </button>
-                      )}
+                      </div>
                     </div>
                   </li>
                 );
@@ -276,15 +326,27 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedd
       </div>
 
       <ConfirmDialog
-        open={Boolean(cancelTarget)}
-        onOpenChange={(open) => !open && setCancelTarget(null)}
-        title="¿Cancelar reserva de recolección?"
-        description={`Estás a punto de liberar tu cupo para "${cancelTarget?.name ?? ''}". Si decides reservarlo más adelante, dependerá de la disponibilidad de la partida.`}
-        confirmLabel="Sí, cancelar reserva"
+        open={Boolean(actionTarget)}
+        onOpenChange={(open) => !open && setActionTarget(null)}
+        title={
+          actionTarget?.type === 'delete'
+            ? '¿Eliminar reserva de recolección?'
+            : '¿Cancelar reserva de recolección?'
+        }
+        description={
+          actionTarget?.type === 'delete'
+            ? `Estás a punto de eliminar definitivamente el registro de tu reserva para "${actionTarget?.name ?? ''}". Esta acción no se puede deshacer.`
+            : `Estás a punto de liberar tu cupo para "${actionTarget?.name ?? ''}". Si decides reservarlo más adelante, dependerá de la disponibilidad de la partida.`
+        }
+        confirmLabel={
+          actionTarget?.type === 'delete'
+            ? 'Sí, eliminar reserva'
+            : 'Sí, cancelar reserva'
+        }
         cancelLabel="Volver"
         variant="destructive"
-        loading={cancelLoading}
-        onConfirm={handleConfirmCancel}
+        loading={actionLoading}
+        onConfirm={handleConfirmAction}
       />
     </div>
   );

@@ -356,7 +356,7 @@ export function ReposicionClient({
           ) : (
             <div className="p-10 rounded-3xl bg-card border border-border text-center">
               <p className="text-sm text-muted-foreground">
-                No hay convocatorias de reserva de floración activas en este momento.
+                No hay convocatorias de reserva anual abiertas en este momento.
               </p>
             </div>
           )}

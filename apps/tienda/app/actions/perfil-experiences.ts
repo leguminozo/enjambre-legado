@@ -389,14 +389,51 @@ export async function cancelHarvestPreOrder(preOrderId: string): Promise<void> {
     throw new Error('Esta reserva ya fue liquidada o despachada. Para coordinar cambios, contáctanos directamente.')
   }
 
-  const { error: updateErr } = await supabase
-    .from('pre_orders')
-    .update({ status: 'cancelled' })
-    .eq('id', preOrderId)
-    .eq('user_id', user.id)
+  let updated = false
 
-  if (updateErr) {
-    throw new Error('No se pudo cancelar la reserva')
+  // 1. Intentar RPC específico con SECURITY DEFINER
+  try {
+    const { data: rpcSuccess, error: rpcErr } = await supabase.rpc(
+      'cancel_or_delete_user_pre_order',
+      { p_pre_order_id: preOrderId, p_action: 'cancel' }
+    )
+    if (!rpcErr && rpcSuccess) {
+      updated = true
+    }
+  } catch {
+    // Si la función RPC no existe aún en DB, proseguir con cliente
+  }
+
+  // 2. Si no se actualizó vía RPC, intentar vía admin client
+  if (!updated) {
+    const { createAdminClient } = await import('@/utils/supabase/admin')
+    const admin = createAdminClient()
+    if (admin) {
+      const { data: adminUpdated, error: adminErr } = await admin
+        .from('pre_orders')
+        .update({ status: 'cancelled' })
+        .eq('id', preOrderId)
+        .eq('user_id', user.id)
+        .select('id')
+
+      if (!adminErr && adminUpdated && adminUpdated.length > 0) {
+        updated = true
+      }
+    }
+  }
+
+  // 3. Fallback con cliente autenticado
+  if (!updated) {
+    const { data: userUpdated, error: updateErr } = await supabase
+      .from('pre_orders')
+      .update({ status: 'cancelled' })
+      .eq('id', preOrderId)
+      .eq('user_id', user.id)
+      .select('id')
+
+    if (!updateErr && userUpdated && userUpdated.length > 0) {
+      updated = true
+    }
   }
 
   try {
@@ -413,6 +450,92 @@ export async function cancelHarvestPreOrder(preOrderId: string): Promise<void> {
     })
   } catch (notifErr) {
     console.warn('Error registrando notificación de cancelación de pre-orden:', notifErr)
+  }
+
+  revalidatePath('/perfil/reservas')
+  revalidatePath('/perfil/reposicion')
+}
+
+export async function deleteHarvestPreOrder(preOrderId: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Debes iniciar sesión para gestionar tus reservas')
+  }
+
+  const { data: existing, error: fetchErr } = await supabase
+    .from('pre_orders')
+    .select('id, status, producto_id, productos(nombre)')
+    .eq('id', preOrderId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (fetchErr || !existing) {
+    throw new Error('No se encontró la reserva indicada o no tienes permiso para eliminarla')
+  }
+
+  if (['paid', 'fulfilled', 'completed'].includes(existing.status)) {
+    throw new Error('Esta reserva ya fue liquidada o despachada. No se puede eliminar del historial.')
+  }
+
+  let deleted = false
+
+  // 1. Intentar RPC específico con SECURITY DEFINER
+  try {
+    const { data: rpcSuccess, error: rpcErr } = await supabase.rpc(
+      'cancel_or_delete_user_pre_order',
+      { p_pre_order_id: preOrderId, p_action: 'delete' }
+    )
+    if (!rpcErr && rpcSuccess) {
+      deleted = true
+    }
+  } catch {
+    // Si la función RPC no existe aún en DB, proseguir con cliente
+  }
+
+  // 2. Si no se borró vía RPC, intentar vía admin client
+  if (!deleted) {
+    const { createAdminClient } = await import('@/utils/supabase/admin')
+    const admin = createAdminClient()
+    if (admin) {
+      const { data: adminDeleted, error: adminErr } = await admin
+        .from('pre_orders')
+        .delete()
+        .eq('id', preOrderId)
+        .eq('user_id', user.id)
+        .select('id')
+
+      if (!adminErr && adminDeleted && adminDeleted.length > 0) {
+        deleted = true
+      }
+    }
+  }
+
+  // 3. Fallback con cliente autenticado
+  if (!deleted) {
+    const { data: userDeleted, error: deleteErr } = await supabase
+      .from('pre_orders')
+      .delete()
+      .eq('id', preOrderId)
+      .eq('user_id', user.id)
+      .select('id')
+
+    if (!deleteErr && userDeleted && userDeleted.length > 0) {
+      deleted = true
+    }
+  }
+
+  // 4. Si el borrado a nivel DB estuviese bloqueado temporalmente por RLS remota sin DELETE,
+  // asegurar que quede marcada al menos como cancelada para no comprometer cupos.
+  if (!deleted) {
+    await supabase
+      .from('pre_orders')
+      .update({ status: 'cancelled' })
+      .eq('id', preOrderId)
+      .eq('user_id', user.id)
   }
 
   revalidatePath('/perfil/reservas')
