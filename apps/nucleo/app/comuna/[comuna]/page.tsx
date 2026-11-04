@@ -6,6 +6,7 @@ import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE, resolveComunaChiloe } from '@/lib/chiloe-comunas';
 import { getInformeComunal } from '@/lib/informe-comunal-data';
 import { INFORME_DISCLAIMER } from '@/lib/informe-comunal';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 
 type Props = { params: Promise<{ comuna: string }> };
 
@@ -48,7 +49,10 @@ export default async function InformeComunalPage({ params }: Props) {
   const resolved = resolveComunaChiloe(comuna);
   if (!resolved) notFound();
 
-  const loaded = await getInformeComunal(resolved.slug).catch(() => ({ error: 'fetch' }) as const);
+  const [loaded, cms] = await Promise.all([
+    getInformeComunal(resolved.slug).catch(() => ({ error: 'fetch' }) as const),
+    getTerritorioCmsContent(),
+  ]);
   const informe = loaded && !('error' in loaded) ? loaded.informe : null;
   const generado =
     loaded && !('error' in loaded)
@@ -86,7 +90,7 @@ export default async function InformeComunalPage({ params }: Props) {
 
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
       <article className="flex-1 px-6 sm:px-12 lg:px-24 py-16">
         <div className="max-w-2xl mx-auto">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">

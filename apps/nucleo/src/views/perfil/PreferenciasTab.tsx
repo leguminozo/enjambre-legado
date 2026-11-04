@@ -9,7 +9,7 @@ import {
   Loader2,
   Settings
 } from 'lucide-react';
-import { useTheme, type Theme, toast } from '@enjambre/ui';
+import { useTheme, type Theme, toast, Skeleton } from '@enjambre/ui';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   categoriesForPlatformRole,
@@ -128,8 +128,15 @@ export function PreferenciasTab() {
         </div>
 
         {notifLoading ? (
-          <div className="text-sm text-muted-foreground flex items-center gap-2">
-            <Loader2 size={14} className="animate-spin" /> Cargando preferencias...
+          <div className="space-y-3" aria-busy="true">
+            <div className="p-4 bg-secondary/50 rounded-xl space-y-2 border border-border/50">
+              <Skeleton variant="text" className="w-32 h-4" />
+              <Skeleton variant="text" className="w-56 h-3" />
+            </div>
+            <div className="p-4 bg-secondary/50 rounded-xl space-y-2 border border-border/50">
+              <Skeleton variant="text" className="w-32 h-4" />
+              <Skeleton variant="text" className="w-56 h-3" />
+            </div>
           </div>
         ) : (
           <div className="space-y-3">

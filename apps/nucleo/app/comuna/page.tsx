@@ -5,6 +5,7 @@ import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
 import { getInformesChiloe } from '@/lib/informe-comunal-data';
 import { INFORME_DISCLAIMER } from '@/lib/informe-comunal';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ComunasIndexPage() {
-  const payload = await getInformesChiloe().catch(() => ({ error: 'fetch' }) as const);
+  const [payload, cms] = await Promise.all([
+    getInformesChiloe().catch(() => ({ error: 'fetch' }) as const),
+    getTerritorioCmsContent(),
+  ]);
   const ok = payload && !('error' in payload);
   const informes = ok ? payload.informes : null;
   const generado = ok
@@ -46,7 +50,7 @@ export default async function ComunasIndexPage() {
 
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
       <article className="flex-1 px-6 sm:px-12 lg:px-24 py-16">
         <div className="max-w-3xl mx-auto">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">

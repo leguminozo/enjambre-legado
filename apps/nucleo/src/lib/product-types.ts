@@ -7,11 +7,14 @@ import {
   PARES_SEMANTICOS_POR_CATEGORIA,
   EJES_SENSORIALES_POR_CATEGORIA,
   VALORES_DEFAULT_EJES,
+  PRESETS_FAMILIAS_SENSORIALES,
   resolverEjesSensoriales,
   ProductoVarianteSchema,
   type CategoriaSensorial,
+  type TipoSensorial,
   type FortificanteCanonico,
   type ProductoVariante,
+  type PresetSensorial,
 } from '@enjambre/resenas';
 
 export {
@@ -21,11 +24,14 @@ export {
   PARES_SEMANTICOS_POR_CATEGORIA,
   EJES_SENSORIALES_POR_CATEGORIA,
   VALORES_DEFAULT_EJES,
+  PRESETS_FAMILIAS_SENSORIALES,
   resolverEjesSensoriales,
   ProductoVarianteSchema,
   type CategoriaSensorial,
+  type TipoSensorial,
   type FortificanteCanonico,
   type ProductoVariante,
+  type PresetSensorial,
 };
 
 export const perfilSensorialSchema = z
@@ -33,7 +39,17 @@ export const perfilSensorialSchema = z
     intensidad: z.coerce.number().min(0).max(100).default(75),
     dulzor_acidez: z.coerce.number().min(0).max(100).default(60),
     textura: z.coerce.number().min(0).max(100).default(85),
+    ejes: z.array(z.string().min(1)).optional(),
     ejes_calibracion: z.record(z.string(), z.coerce.number()).optional(),
+    pares_semanticos: z
+      .array(
+        z.object({
+          par: z.string(),
+          izq: z.string(),
+          der: z.string(),
+        }),
+      )
+      .optional(),
     descriptores_intensidad: z
       .object({
         izq: z.string().default('Suave & Floral'),
@@ -213,15 +229,60 @@ export interface ProductSensoryFamilyOption {
   value: string;
   label: string;
   description?: string | null;
+  ejes?: string[] | null;
+  pares_semanticos?: Array<{ par: string; izq: string; der: string }> | null;
 }
 
 export const DEFAULT_SENSORY_FAMILIES: ProductSensoryFamilyOption[] = [
-  { value: 'miel', label: 'Miel Cruda Pura', description: 'Monofloral o bosque nativo' },
-  { value: 'miel_fortificada', label: 'Miel Fortificada', description: 'Con polen floral, avellana o cacao crudo' },
-  { value: 'hidromiel', label: 'Hidromiel de Bosque', description: 'Fermentación salvaje viva' },
-  { value: 'extracto', label: 'Extractos & Tinturas', description: 'Propóleo concentrado y resinas' },
-  { value: 'cosmetica', label: 'Cosmética Apícola', description: 'Bálsamos, cremas y ceras' },
-  { value: 'infusion', label: 'Infusiones & Botánica', description: 'Infusiones del bosque nativo y hierbas' },
+  {
+    value: 'miel',
+    label: 'Miel Cruda Pura',
+    description: 'Monofloral o bosque nativo',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.miel],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.miel],
+  },
+  {
+    value: 'fortificaciones',
+    label: 'Fortificaciones & Materias Primas Puras',
+    description: 'Avellana chilena tostada y molida, polen floral puro, cacao crudo (sin miel)',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.fortificaciones],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.fortificaciones],
+  },
+  {
+    value: 'miel_fortificada',
+    label: 'Miel Fortificada',
+    description: 'Con polen floral, avellana o cacao crudo en base de miel',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.miel_fortificada],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.miel_fortificada],
+  },
+  {
+    value: 'hidromiel',
+    label: 'Hidromiel de Bosque',
+    description: 'Fermentación salvaje viva',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.hidromiel],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.hidromiel],
+  },
+  {
+    value: 'extracto',
+    label: 'Extractos & Tinturas',
+    description: 'Propóleo concentrado y resinas',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.extracto],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.extracto],
+  },
+  {
+    value: 'cosmetica',
+    label: 'Cosmética Apícola',
+    description: 'Bálsamos, cremas y ceras',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.cosmetica],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.cosmetica],
+  },
+  {
+    value: 'infusion',
+    label: 'Infusiones & Botánica',
+    description: 'Infusiones del bosque nativo y hierbas',
+    ejes: [...EJES_SENSORIALES_POR_CATEGORIA.infusion],
+    pares_semanticos: [...PARES_SEMANTICOS_POR_CATEGORIA.infusion],
+  },
 ];
 
 export const PRODUCT_TAGS = [

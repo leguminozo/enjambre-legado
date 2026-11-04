@@ -11,6 +11,8 @@ import {
   Spinner,
   toast,
   Badge,
+  Skeleton,
+  SkeletonCard,
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import {
@@ -149,9 +151,33 @@ export function PlanesTerritorialesView({ variant = 'dashboard' }: PlanesTerrito
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col justify-center items-center p-16 gap-3">
-        <Spinner />
-        <p className="text-xs text-muted-foreground">Cargando planes de la red…</p>
+      <div className="min-h-[var(--vh-full)] bg-background text-foreground pb-20 animate-in" aria-busy="true" aria-label="Cargando planes territoriales">
+        {variant === 'dashboard' ? (
+          <div className="space-y-6">
+            <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
+              <Skeleton variant="text" className="w-48 h-7" />
+              <Skeleton variant="text" className="w-80 max-w-full h-3.5" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <SkeletonCard lines={6} />
+              <SkeletonCard lines={6} />
+              <SkeletonCard lines={6} />
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
+            <div className="text-center space-y-3 max-w-xl mx-auto">
+              <Skeleton variant="text" className="w-32 h-4 mx-auto" />
+              <Skeleton variant="text" className="w-64 h-8 mx-auto" />
+              <Skeleton variant="text" className="w-80 h-4 mx-auto" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <SkeletonCard lines={6} />
+              <SkeletonCard lines={6} />
+              <SkeletonCard lines={6} />
+            </div>
+          </div>
+        )}
       </div>
     );
   }

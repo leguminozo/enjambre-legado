@@ -15,7 +15,7 @@ import {
   Repeat,
   Package,
 } from 'lucide-react';
-import { formatCLP, HexagonLoader, toast } from '@enjambre/ui';
+import { formatCLP, HexagonLoader, toast, Skeleton, SkeletonCard, SkeletonKpi, SkeletonTable } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -211,11 +211,22 @@ export function AnalisisCruzadoView() {
       />
 
       {loading && !data ? (
-        <div className="flex flex-col items-center justify-center min-h-[360px] gap-3">
-          <HexagonLoader size="md" />
-          <span className="text-xs uppercase tracking-widest text-muted-foreground font-mono">
-            Consolidando operaciones multicanal...
-          </span>
+        <div className="space-y-8 animate-in" aria-busy="true" aria-label="Cargando análisis multicanal">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <SkeletonKpi />
+            <SkeletonKpi />
+            <SkeletonKpi />
+            <SkeletonKpi />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <SkeletonCard lines={4} />
+            <SkeletonCard lines={4} />
+            <SkeletonCard lines={4} />
+          </div>
+          <div className="p-6 rounded-2xl border border-border bg-card space-y-4">
+            <Skeleton variant="text" className="w-48 h-5" />
+            <SkeletonTable rows={5} columns={6} />
+          </div>
         </div>
       ) : !data ? (
         <div className="card p-8 text-center text-muted-foreground">

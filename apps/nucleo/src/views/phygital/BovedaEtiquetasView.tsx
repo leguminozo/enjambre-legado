@@ -13,7 +13,7 @@ import {
 import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, friendlyError, friendlySupabaseError, ImmersiveModal } from '@enjambre/ui';
+import { toast, friendlyError, friendlySupabaseError, ImmersiveModal, Skeleton } from '@enjambre/ui';
 
 interface ProductoOption {
   id: string;
@@ -275,9 +275,39 @@ export function BovedaEtiquetasView() {
 
         {/* Listado de Etiquetas y Fichas */}
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground text-xs flex items-center justify-center gap-2">
-            <Loader2 size={16} className="animate-spin" />
-            <span>Cargando archivos de imprenta...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" aria-busy="true" aria-label="Cargando archivos de imprenta">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-5 rounded-xl bg-card border border-border space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton variant="rectangular" className="w-20 h-5 rounded" />
+                      <Skeleton variant="text" className="w-16 h-3" />
+                    </div>
+                    <Skeleton variant="text" className="w-48 h-5" />
+                    <Skeleton variant="text" className="w-32 h-3" />
+                  </div>
+                  <Skeleton variant="rectangular" className="w-16 h-8 rounded-lg" />
+                </div>
+                <div className="space-y-2 p-3 rounded-lg bg-surface-sunken border border-border/50">
+                  <div className="flex justify-between">
+                    <Skeleton variant="text" className="w-24 h-3" />
+                    <Skeleton variant="text" className="w-36 h-3" />
+                  </div>
+                  <div className="flex justify-between">
+                    <Skeleton variant="text" className="w-20 h-3" />
+                    <Skeleton variant="text" className="w-28 h-3" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                  <Skeleton variant="text" className="w-24 h-3" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton variant="rectangular" className="w-24 h-8 rounded-lg" />
+                    <Skeleton variant="rectangular" className="w-24 h-8 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : etiquetasFiltradas.length === 0 ? (
           <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-4">

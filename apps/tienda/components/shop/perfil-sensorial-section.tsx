@@ -173,13 +173,36 @@ export function PerfilSensorialSection({
     if (raw.includes('hidromiel')) return 'hidromiel';
     if (raw.includes('cosmet') || raw.includes('balsamo') || raw.includes('cera') || raw.includes('linaza') || raw.includes('hidrolato')) return 'cosmetica';
     if (raw.includes('extracto') || raw.includes('propoleo')) return 'extracto';
+    if (raw === 'fortificaciones' || raw.includes('fortificaci')) return 'fortificaciones';
     if (raw.includes('fortificada')) return 'miel_fortificada';
     return 'miel';
   }, [tipoSensorial]);
 
   const activeAxes = useMemo(() => {
+    const customEjes = (activePerfil as { ejes?: string[] })?.ejes;
+    if (Array.isArray(customEjes) && customEjes.length >= 3) {
+      return customEjes;
+    }
     return resolverEjesSensoriales(tipoSensorial, productName);
-  }, [tipoSensorial, productName]);
+  }, [activePerfil, tipoSensorial, productName]);
+
+  const activePairs = useMemo(() => {
+    const customPairs = (activePerfil as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> })?.pares_semanticos;
+    if (Array.isArray(customPairs) && customPairs.length === 3) {
+      return customPairs;
+    }
+    const dInt = (activePerfil as { descriptores_intensidad?: { izq: string; der: string } })?.descriptores_intensidad;
+    const dDulz = (activePerfil as { descriptores_dulzor?: { izq: string; der: string } })?.descriptores_dulzor;
+    const dText = (activePerfil as { descriptores_textura?: { izq: string; der: string } })?.descriptores_textura;
+    if (dInt?.izq || dDulz?.izq || dText?.izq) {
+      return [
+        { par: 'Intensidad', izq: dInt?.izq ?? 'Suave', der: dInt?.der ?? 'Intenso' },
+        { par: 'Balance', izq: dDulz?.izq ?? 'Equilibrado', der: dDulz?.der ?? 'Marcado' },
+        { par: 'Textura', izq: dText?.izq ?? 'Fluido', der: dText?.der ?? 'Denso' },
+      ];
+    }
+    return PARES_SEMANTICOS_POR_CATEGORIA[normalizedTipo] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
+  }, [activePerfil, normalizedTipo]);
 
   // ── 1. Capa Exoesqueleto (Laboratorio / Literatura y Triangulación Botánica) ──
   const botanicalRef = useMemo(() => {
@@ -639,48 +662,39 @@ export function PerfilSensorialSection({
               </div>
               {isCuratorCalibrated && activePerfil ? (
                 <div className="grid grid-cols-3 gap-2 pt-1 text-center">
-                  {(() => {
-                    const currentPairs =
-                      PARES_SEMANTICOS_POR_CATEGORIA[normalizedTipo] ||
-                      PARES_SEMANTICOS_POR_CATEGORIA.miel;
-                    return (
-                      <>
-                        <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
-                          <span
-                            className="text-[10px] text-muted-foreground block truncate"
-                            title={currentPairs[0]?.par ?? 'Intensidad'}
-                          >
-                            {currentPairs[0]?.par ?? 'Intensidad'}
-                          </span>
-                          <strong className="text-xs text-foreground font-bold">
-                            {activePerfil.intensidad ?? 75}%
-                          </strong>
-                        </div>
-                        <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
-                          <span
-                            className="text-[10px] text-muted-foreground block truncate"
-                            title={currentPairs[1]?.par ?? 'Balance'}
-                          >
-                            {currentPairs[1]?.par ?? 'Balance'}
-                          </span>
-                          <strong className="text-xs text-foreground font-bold">
-                            {activePerfil.dulzor_acidez ?? 60}%
-                          </strong>
-                        </div>
-                        <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
-                          <span
-                            className="text-[10px] text-muted-foreground block truncate"
-                            title={currentPairs[2]?.par ?? 'Textura'}
-                          >
-                            {currentPairs[2]?.par ?? 'Textura'}
-                          </span>
-                          <strong className="text-xs text-foreground font-bold">
-                            {activePerfil.textura ?? 85}%
-                          </strong>
-                        </div>
-                      </>
-                    );
-                  })()}
+                  <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
+                    <span
+                      className="text-[10px] text-muted-foreground block truncate"
+                      title={activePairs[0]?.par ?? 'Intensidad'}
+                    >
+                      {activePairs[0]?.par ?? 'Intensidad'}
+                    </span>
+                    <strong className="text-xs text-foreground font-bold">
+                      {activePerfil.intensidad ?? 75}%
+                    </strong>
+                  </div>
+                  <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
+                    <span
+                      className="text-[10px] text-muted-foreground block truncate"
+                      title={activePairs[1]?.par ?? 'Balance'}
+                    >
+                      {activePairs[1]?.par ?? 'Balance'}
+                    </span>
+                    <strong className="text-xs text-foreground font-bold">
+                      {activePerfil.dulzor_acidez ?? 60}%
+                    </strong>
+                  </div>
+                  <div className="p-1.5 rounded-lg bg-surface-sunken/60 border border-border/40">
+                    <span
+                      className="text-[10px] text-muted-foreground block truncate"
+                      title={activePairs[2]?.par ?? 'Textura'}
+                    >
+                      {activePairs[2]?.par ?? 'Textura'}
+                    </span>
+                    <strong className="text-xs text-foreground font-bold">
+                      {activePerfil.textura ?? 85}%
+                    </strong>
+                  </div>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground italic">

@@ -33,16 +33,16 @@ export interface TerritorioHeaderContent {
 }
 
 export const DEFAULT_TERRITORIO_HEADER: TerritorioHeaderContent = {
-  show_carta: true,
+  show_carta: false,
   carta_label: 'Carta Territorial',
   carta_href: '/carta',
   show_mapa: true,
   mapa_label: 'Mapa',
   mapa_href: '/mapa-chiloe',
-  show_municipios: true,
+  show_municipios: false,
   municipios_label: 'Municipios',
   municipios_href: '/municipalidades',
-  show_theme_toggle: true,
+  show_theme_toggle: false,
   show_login: true,
   login_label: 'Entrar',
   login_href: '/login',

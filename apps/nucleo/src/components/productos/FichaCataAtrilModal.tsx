@@ -55,6 +55,22 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
     ...overrideObj,
   };
 
+  const pair1 = (perfil as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> }).pares_semanticos?.[0];
+  const pair2 = (perfil as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> }).pares_semanticos?.[1];
+  const pair3 = (perfil as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> }).pares_semanticos?.[2];
+
+  const dim1Label = pair1?.par || 'Intensidad';
+  const dim1Izq = perfil.descriptores_intensidad?.izq || pair1?.izq || 'Suave & Sutil';
+  const dim1Der = perfil.descriptores_intensidad?.der || pair1?.der || 'Intenso & Robusto';
+
+  const dim2Label = pair2?.par || 'Balance';
+  const dim2Izq = perfil.descriptores_dulzor?.izq || pair2?.izq || 'Sutil';
+  const dim2Der = perfil.descriptores_dulzor?.der || pair2?.der || 'Marcado';
+
+  const dim3Label = pair3?.par || 'Textura';
+  const dim3Izq = perfil.descriptores_textura?.izq || pair3?.izq || 'Sedosa';
+  const dim3Der = perfil.descriptores_textura?.der || pair3?.der || 'Densa';
+
   const displayNombre = selectedVariante
     ? `${product.nombre} · ${selectedVariante.nombre_variante}`
     : product.nombre;
@@ -200,14 +216,14 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
                 <span>Perfil Sensorial en Paladar</span>
               </div>
 
-              {/* Intensidad */}
+              {/* Dimensión 1: Intensidad */}
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground print-text-dark mb-1">
-                  <span>{perfil.descriptores_intensidad?.izq || 'Suave & Floral'}</span>
+                  <span>{dim1Izq}</span>
                   <span className="font-semibold text-foreground print-text-dark">
-                    Intensidad {perfil.intensidad}%
+                    {dim1Label} {perfil.intensidad}%
                   </span>
-                  <span>{perfil.descriptores_intensidad?.der || 'Robusto & Boscoso'}</span>
+                  <span>{dim1Der}</span>
                 </div>
                 <div className="w-full h-2 bg-surface-sunken print-bg-light rounded-full overflow-hidden border border-border/40">
                   <div
@@ -217,14 +233,14 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
                 </div>
               </div>
 
-              {/* Dulzor / Acidez */}
+              {/* Dimensión 2: Balance / Morfología */}
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground print-text-dark mb-1">
-                  <span>{perfil.descriptores_dulzor?.izq || 'Dulzor Cálido'}</span>
+                  <span>{dim2Izq}</span>
                   <span className="font-semibold text-foreground print-text-dark">
-                    Balance {perfil.dulzor_acidez}%
+                    {dim2Label} {perfil.dulzor_acidez}%
                   </span>
-                  <span>{perfil.descriptores_dulzor?.der || 'Acidez Silvestre'}</span>
+                  <span>{dim2Der}</span>
                 </div>
                 <div className="w-full h-2 bg-surface-sunken print-bg-light rounded-full overflow-hidden border border-border/40">
                   <div
@@ -234,14 +250,14 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
                 </div>
               </div>
 
-              {/* Textura */}
+              {/* Dimensión 3: Textura / Untuosidad */}
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground print-text-dark mb-1">
-                  <span>{perfil.descriptores_textura?.izq || 'Sedosa'}</span>
+                  <span>{dim3Izq}</span>
                   <span className="font-semibold text-foreground print-text-dark">
-                    Textura {perfil.textura}%
+                    {dim3Label} {perfil.textura}%
                   </span>
-                  <span>{perfil.descriptores_textura?.der || 'Cremosa & Densa'}</span>
+                  <span>{dim3Der}</span>
                 </div>
                 <div className="w-full h-2 bg-surface-sunken print-bg-light rounded-full overflow-hidden border border-border/40">
                   <div

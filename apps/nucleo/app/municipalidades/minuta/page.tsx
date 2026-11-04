@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { lineaProveedor, CONTACTO_INSTITUCIONAL } from '@/lib/contacto-institucional';
 import {
@@ -34,10 +35,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MinutaEjecutivaPage() {
+export default async function MinutaEjecutivaPage() {
+  const cms = await getTerritorioCmsContent();
+
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
 
       {/* Barra de navegación superior fija */}
       <div className="border-b border-border/80 bg-surface-raised/40 px-6 sm:px-12 py-3 sticky top-14 z-20 backdrop-blur-md print:hidden">

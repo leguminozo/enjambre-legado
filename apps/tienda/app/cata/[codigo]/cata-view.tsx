@@ -142,48 +142,73 @@ export const MIELES_GEOGRAFICAS_CHILE: MielGeograficaOption[] = [
 
 const DEGUSTACION_VARIEDADES = [
   {
-    id: 'crema-virgen',
-    name: 'Miel Virgen con Trocito de Panal (25g)',
-    icon: Droplet,
-    note: 'Con trozo de panal natural intacto de Pureo',
-    fortificante: 'panal_virgen' as const,
-  },
-  {
     id: 'crema-pura',
-    name: 'Crema de Miel Batida en Frío (25g)',
+    name: 'Crema de Miel Batida en Frío',
     icon: Droplet,
-    note: 'Batido mecánico en frío, textura sedosa sin calor',
+    note: 'Batido mecánico lento en frío · Textura sedosa de bosque nativo',
     fortificante: 'ninguno' as const,
-  },
-  {
-    id: 'crema-polen',
-    name: 'Crema de Miel con Polen Floral (25g)',
-    icon: Flower2,
-    note: 'Polen floral silvestre seleccionado',
-    fortificante: 'polen_floral' as const,
+    keywords: ['crema de miel', 'batida', 'crema'],
   },
   {
     id: 'crema-avellanas',
-    name: 'Crema de Miel con Avellana Chilena (25g)',
+    name: 'Crema de Miel con Avellana Chilena',
     icon: Nut,
-    note: 'Avellana tostada y molida de bosque templado',
+    note: 'Avellana nativa tostada y molida de bosque templado',
     fortificante: 'avellana_chilena' as const,
+    keywords: ['avellana', 'avellanas'],
+  },
+  {
+    id: 'crema-polen',
+    name: 'Crema de Miel con Polen Floral',
+    icon: Flower2,
+    note: 'Polen multifloral silvestre recolectado en el archipiélago',
+    fortificante: 'polen_floral' as const,
+    keywords: ['polen'],
   },
   {
     id: 'crema-cacao',
-    name: 'Crema de Miel con Nibs de Cacao Crudo (25g)',
+    name: 'Crema de Miel con Nibs de Cacao',
     icon: Sparkle,
-    note: 'Nibs de cacao crudo de origen',
+    note: 'Nibs de cacao crudo de origen · Contraste tostado y floral',
     fortificante: 'cacao_crudo' as const,
+    keywords: ['cacao', 'nibs'],
+  },
+  {
+    id: 'crema-virgen',
+    name: 'Miel Virgen con Trocito de Panal',
+    icon: Droplet,
+    note: 'Con trozo de panal natural intacto de Pureo, Chiloé',
+    fortificante: 'panal_virgen' as const,
+    keywords: ['panal', 'virgen', 'ulmo'],
   },
   {
     id: 'prototipo-porvenir',
-    name: 'Prototipo / Nueva Creación por Venir (25g)',
+    name: 'Edición Experimental / Reserva de Autor',
     icon: Sparkle,
-    note: 'Despensa viva: formulaciones de autor y barrica por venir',
+    note: 'Muestra especial de feria · Recolección estacional o barrica',
     fortificante: 'ninguno' as const,
+    keywords: ['reserva', 'experimental'],
   },
 ];
+
+function findCatalogProductForVariety(
+  products: ShopProduct[],
+  varietyName: string,
+  keywords: string[] = [],
+): ShopProduct | undefined {
+  const normName = varietyName.toLowerCase();
+  const exact = products.find((p) => p.name.toLowerCase().includes(normName));
+  if (exact) return exact;
+  for (const kw of keywords) {
+    const found = products.find(
+      (p) =>
+        p.name.toLowerCase().includes(kw.toLowerCase()) ||
+        p.slug.toLowerCase().includes(kw.toLowerCase()),
+    );
+    if (found) return found;
+  }
+  return undefined;
+}
 
 interface CataViewProps {
   punto: { id: string; nombre: string; tipo: string; ciudad: string | null };
@@ -230,7 +255,7 @@ export function CataView({
   const [tipoSensorial, setTipoSensorial] = useState<CategoriaSensorial>(
     foundInitialVariant?.ingrediente_fortificante && foundInitialVariant.ingrediente_fortificante !== 'ninguno'
       ? 'miel_fortificada'
-      : 'miel',
+      : ((foundInitial?.tipo_sensorial as CategoriaSensorial) || 'miel'),
   );
   const [selectedProductName, setSelectedProductName] = useState<string>(
     foundInitialVariant?.nombre_variante ?? foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name,
@@ -241,7 +266,7 @@ export function CataView({
   const [selectedFloracionSlug, setSelectedFloracionSlug] = useState<string | null>(null);
 
   const [step, setStep] = useState<'intro' | 'producto' | 'pares' | 'chips' | 'user' | 'success'>(
-    'intro',
+    foundInitialVariant || foundInitial ? 'pares' : 'producto',
   );
   const [loading, setLoading] = useState(false);
 
@@ -290,8 +315,11 @@ export function CataView({
     }
   };
 
+  const currentProduct = products.find((p) => p.id === selectedProductId);
   const currentSemanticPairs =
-    PARES_SEMANTICOS_POR_CATEGORIA[tipoSensorial] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
+    (currentProduct?.perfil_sensorial as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> })?.pares_semanticos ||
+    PARES_SEMANTICOS_POR_CATEGORIA[tipoSensorial] ||
+    PARES_SEMANTICOS_POR_CATEGORIA.miel;
 
   const filteredChips = chipsCatalog.filter((c) => {
     if (!c.categoria_producto || c.categoria_producto === 'miel') return true;
@@ -331,8 +359,11 @@ export function CataView({
 
       let finalProductId = selectedProductId;
       if (!finalProductId) {
-        const match = products.find((p) =>
-          p.name.toLowerCase().includes(selectedProductName.toLowerCase()),
+        const selectedVariety = DEGUSTACION_VARIEDADES.find((v) => v.name === selectedProductName);
+        const match = findCatalogProductForVariety(
+          products,
+          selectedProductName,
+          selectedVariety?.keywords ?? [],
         );
         finalProductId = match?.id ?? products[0]?.id ?? '146073e1-ac90-45d9-9fb3-9ece4a4e877d';
       }
@@ -418,16 +449,19 @@ export function CataView({
       )}
 
       {step === 'producto' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-400">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-400">
           <div className="text-center space-y-2">
-            <span className="block text-xs font-mono uppercase tracking-[0.2em] text-primary">
-              Paso 1 de 3
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-[10px] font-mono uppercase tracking-[0.18em] text-primary">
+              <Droplet className="w-3 h-3" />
+              {punto.tipo === 'feria_evento'
+                ? 'Estación de Degustación en Vivo'
+                : punto.nombre}
             </span>
-            <h2 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
-              ¿Qué miel estás probando?
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Selecciona el pabellón correspondiente a la muestra que tienes en mano.
+            <h1 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight pt-1">
+              ¿Qué variante estás degustando?
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Toca la creación que tienes en tu paladar para calibrar sus notas sensoriales y dejar tu reseña.
             </p>
           </div>
 
@@ -443,7 +477,7 @@ export function CataView({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <span className="font-medium text-xs sm:text-sm">Nuestros Productos</span>
+              <span className="font-medium text-xs sm:text-sm">Creaciones en Mesa</span>
               <span className="text-[10px] text-primary font-mono">Pureo · Chiloé</span>
             </button>
             <button
@@ -464,14 +498,16 @@ export function CataView({
           {pabellon === 'casa' ? (
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground px-1">
-                Creaciones de autor de Predio Pureo. Su evaluación calibra directamente la{' '}
-                <strong className="text-foreground">ficha del producto en la tienda oficial</strong>.
+                Selecciona la variante que acabas de probar. Tu evaluación se suma directamente a la{' '}
+                <strong className="text-foreground">ficha oficial de esa creación</strong>.
               </p>
               <div className="grid grid-cols-1 gap-3">
                 {DEGUSTACION_VARIEDADES.map((v) => {
                   const IconComponent = v.icon;
-                  const matchedProduct = products.find((p) =>
-                    p.name.toLowerCase().includes(v.name.toLowerCase()),
+                  const matchedProduct = findCatalogProductForVariety(
+                    products,
+                    v.name,
+                    v.keywords,
                   );
                   return (
                     <button

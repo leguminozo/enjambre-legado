@@ -335,8 +335,11 @@ export function PdpBody({
           <ResenasSection
             productoId={product.id}
             productName={product.name}
+            productSlug={product.slug}
             initialAggregate={resenasAggregate}
             tipoSensorial={product.tipo_sensorial}
+            tipoSensorialLabel={product.tipoSensorialLabel}
+            perfilSensorial={product.perfil_sensorial}
             variantes={product.variantes}
           />
 
@@ -707,8 +710,11 @@ export function PdpBody({
               <ResenasSection
                 productoId={product.id}
                 productName={product.name}
+                productSlug={product.slug}
                 initialAggregate={resenasAggregate}
                 tipoSensorial={product.tipo_sensorial}
+                tipoSensorialLabel={product.tipoSensorialLabel}
+                perfilSensorial={product.perfil_sensorial}
                 variantes={product.variantes}
               />
             </div>

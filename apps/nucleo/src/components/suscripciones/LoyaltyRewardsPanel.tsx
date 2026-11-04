@@ -25,6 +25,7 @@ import {
   toast,
   ImmersiveModal,
   Spinner,
+  SkeletonTable,
   friendlyError,
 } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
@@ -315,8 +316,8 @@ export function LoyaltyRewardsPanel() {
       {/* Table */}
       <div className="rounded-xl border border-border/60 bg-surface-raised/20 overflow-hidden">
         {loading ? (
-          <div className="p-12 flex justify-center items-center">
-            <Spinner />
+          <div className="p-6" aria-busy="true">
+            <SkeletonTable rows={4} columns={5} />
           </div>
         ) : rewards.length === 0 ? (
           <div className="p-12 text-center space-y-3">

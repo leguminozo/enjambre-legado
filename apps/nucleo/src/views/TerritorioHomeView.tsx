@@ -12,7 +12,7 @@ import {
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useTerritorialActor } from '@/hooks/use-territorial-actor';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
-import { Badge, Button, Spinner, toast } from '@enjambre/ui';
+import { Badge, Button, Spinner, toast, Skeleton } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
@@ -38,8 +38,10 @@ const MapaTerritorial = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex items-center justify-center bg-card rounded-2xl border border-border">
-        <Spinner />
+      <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex flex-col items-center justify-center bg-card rounded-2xl border border-border p-6 gap-3 animate-in" aria-busy="true">
+        <Map className="w-10 h-10 text-muted-foreground animate-pulse" />
+        <Skeleton variant="text" className="w-48 h-4" />
+        <Skeleton variant="text" className="w-64 h-3 opacity-60" />
       </div>
     ),
   }

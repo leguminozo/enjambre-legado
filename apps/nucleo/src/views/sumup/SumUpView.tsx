@@ -7,7 +7,7 @@ import {
   Card, CardHeader, CardTitle, CardDescription, CardContent,
   Button, Badge, Spinner, HexagonLoader,
   toast, formatCLP, formatCalendarDate,
-  SkeletonTable,
+  SkeletonTable, Skeleton, SkeletonCard,
 } from '@enjambre/ui';
 import { 
   CreditCard, RefreshCw, CheckCircle, Wallet, ArrowRight, FileText,
@@ -582,7 +582,12 @@ export function SumUpView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {checklistQuery.isLoading && <Spinner />}
+                {checklistQuery.isLoading && (
+                  <div className="flex gap-2" aria-busy="true">
+                    <Skeleton variant="rectangular" className="w-24 h-7 rounded-full" />
+                    <Skeleton variant="rectangular" className="w-28 h-7 rounded-full" />
+                  </div>
+                )}
                 {checklist && (
                   <>
                     <div className="flex flex-wrap gap-2">
@@ -641,7 +646,12 @@ export function SumUpView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {configQuery.isLoading && <Spinner />}
+                {configQuery.isLoading && (
+                  <div className="space-y-2" aria-busy="true">
+                    <Skeleton variant="text" className="w-48 h-3.5" />
+                    <Skeleton variant="rectangular" className="w-full h-10 rounded-xl" />
+                  </div>
+                )}
                 {cfgMeta && (
                   <p className="text-xs text-muted-foreground">
                     {cfgMeta.hasCredentials ? 'API key configurada' : 'Sin API key'} · cifrado runtime:{' '}
@@ -751,7 +761,12 @@ export function SumUpView() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {readersQuery.isLoading && <Spinner />}
+                {readersQuery.isLoading && (
+                  <div className="space-y-2" aria-busy="true">
+                    <Skeleton variant="rectangular" className="w-full h-10 rounded-xl" />
+                    <Skeleton variant="rectangular" className="w-full h-10 rounded-xl" />
+                  </div>
+                )}
                 {readersQuery.isError && (
                   <p className="text-sm text-muted-foreground">
                     {(readersQuery.error as Error).message}

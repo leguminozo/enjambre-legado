@@ -37,7 +37,22 @@ const ItemSchema = z.object({
   doc_fecha: z.string().max(40).optional().nullable(),
 });
 
-const ItemPatchSchema = ItemSchema.partial();
+// Schema para PATCH: NUNCA usar ItemSchema.partial() porque Zod preserva los .default()
+// de campos como stock (0), unidad ("unidad"), etc. Si el frontend omitía stock al editar,
+// Zod inyectaba stock: 0 y borraba silenciosamente las existencias del ítem.
+// Además, el stock operativo se gestiona exclusivamente por movimientos (/movimiento).
+const ItemPatchSchema = z.object({
+  clase: z.enum(CLASES).optional(),
+  nombre: z.string().min(1).max(200).optional(),
+  sku_code: z.string().max(80).optional().nullable(),
+  unidad: z.enum(UNIDADES).optional(),
+  stock_minimo: z.number().min(0).optional(),
+  costo_unitario: z.number().int().min(0).optional(),
+  producto_id: z.string().uuid().optional().nullable(),
+  proveedor_nota: z.string().max(300).optional().nullable(),
+  notas: z.string().max(2000).optional().nullable(),
+  activo: z.boolean().optional(),
+});
 
 const MovimientoSchema = z.object({
   tipo: z.enum(TIPOS_MOV),

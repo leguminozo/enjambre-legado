@@ -8,6 +8,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   Badge, Button, Spinner, toast, formatCalendarDate,
+  Skeleton, SkeletonCard, SkeletonTable,
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -21,7 +22,16 @@ import dynamic from 'next/dynamic';
 
 const MapaTerritorial = dynamic(
   () => import('@/components/apicultor/MapaTerritorial').then((mod) => mod.MapaTerritorial),
-  { ssr: false, loading: () => <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex items-center justify-center bg-card rounded-2xl border border-border"><Spinner /></div> }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex flex-col items-center justify-center bg-card rounded-2xl border border-border p-6 gap-3 animate-in" aria-busy="true">
+        <Map className="w-10 h-10 text-muted-foreground animate-pulse" />
+        <Skeleton variant="text" className="w-48 h-4" />
+        <Skeleton variant="text" className="w-64 h-3 opacity-60" />
+      </div>
+    ),
+  }
 );
 
 import { PredioForm } from '@/components/apicultor/PredioForm';
@@ -333,7 +343,10 @@ export function RegistroTerritorialView() {
               </CardHeader>
               <CardContent>
                 {loadingAlertas ? (
-                  <Spinner />
+                  <div className="space-y-2" aria-busy="true">
+                    <Skeleton variant="text" className="w-32 h-4" />
+                    <Skeleton variant="text" className="w-48 h-3" />
+                  </div>
                 ) : alertas.length === 0 ? (
                   <p className="text-xs text-muted-foreground">Sin alertas activas</p>
                 ) : (
@@ -360,7 +373,10 @@ export function RegistroTerritorialView() {
               </CardHeader>
               <CardContent>
                 {loadingActores ? (
-                  <Spinner />
+                  <div className="space-y-2" aria-busy="true">
+                    <Skeleton variant="text" className="w-32 h-4" />
+                    <Skeleton variant="text" className="w-48 h-3" />
+                  </div>
                 ) : actores.length === 0 ? (
                   <p className="text-xs text-muted-foreground">Sin actores registrados</p>
                 ) : (
@@ -399,7 +415,11 @@ export function RegistroTerritorialView() {
         {tab === 'actores' && (
           <div className="flex flex-col gap-3">
             {loadingActores ? (
-              <div className="flex justify-center py-12"><Spinner /></div>
+              <div className="space-y-3" aria-busy="true">
+                <SkeletonCard lines={2} />
+                <SkeletonCard lines={2} />
+                <SkeletonCard lines={2} />
+              </div>
             ) : actores.length === 0 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
@@ -459,7 +479,10 @@ export function RegistroTerritorialView() {
               </Button>
             </div>
             {loadingPredios ? (
-              <div className="flex justify-center py-12"><Spinner /></div>
+              <div className="space-y-3" aria-busy="true">
+                <SkeletonCard lines={3} />
+                <SkeletonCard lines={3} />
+              </div>
             ) : predios.length === 0 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
@@ -502,7 +525,10 @@ export function RegistroTerritorialView() {
               </Button>
             </div>
             {loadingApiarios ? (
-              <div className="flex justify-center py-12"><Spinner /></div>
+              <div className="space-y-3" aria-busy="true">
+                <SkeletonCard lines={3} />
+                <SkeletonCard lines={3} />
+              </div>
             ) : apiariosExternos.length === 0 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">
@@ -565,7 +591,9 @@ export function RegistroTerritorialView() {
               </div>
             </div>
             {loadingComunas ? (
-              <div className="flex justify-center py-12"><Spinner /></div>
+              <div className="p-6 bg-card border border-border rounded-xl">
+                <SkeletonTable rows={5} columns={4} />
+              </div>
             ) : comunas.length === 0 ? (
               <Card className="bg-card border-border">
                 <CardContent className="py-12 text-center">

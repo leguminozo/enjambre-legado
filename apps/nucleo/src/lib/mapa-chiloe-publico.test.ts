@@ -124,4 +124,33 @@ describe('buildMapaChiloePublico (Defensa Territorial)', () => {
     expect(ancudZona?.asentamientos_protegidos).toBe(1);
     expect(castroZona?.asentamientos_protegidos).toBe(1);
   });
+
+  it('normaliza comunas con/sin tilde a exactamente 10 comunas oficiales de Chiloé', () => {
+    const m = buildMapaChiloePublico({
+      apiariosExternos: [],
+      apiariosRegistro: [
+        { id: '1', comuna: 'Queilen', activo: true },
+        { id: '2', comuna: 'Queilén', activo: true },
+        { id: '3', comuna: 'quellon', activo: true },
+        { id: '4', comuna: 'puqueldon', activo: true },
+      ],
+      predios: [],
+      alertas: [],
+      actores: [
+        { comuna: 'Queilen', estado: 'activo' },
+        { comuna: 'Queilén', estado: 'activo' },
+      ],
+    });
+
+    expect(m.comunas).toHaveLength(10);
+    const queilen = m.comunas.find((c) => c.comuna === 'Queilén');
+    expect(queilen).toBeDefined();
+    // Suma las apariciones de "Queilen" y "Queilén" en la misma cuenca
+    expect(queilen?.asentamientos_protegidos).toBe(2);
+    expect(queilen?.actores_activos).toBe(2);
+
+    // No debe existir "Queilen" duplicado
+    const queilenSinTilde = m.comunas.find((c) => c.comuna === 'Queilen');
+    expect(queilenSinTilde).toBeUndefined();
+  });
 });

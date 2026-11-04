@@ -18,7 +18,7 @@ import {
 import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, friendlyError, friendlySupabaseError, ImmersiveModal, QRCodeSVG } from '@enjambre/ui';
+import { toast, friendlyError, friendlySupabaseError, ImmersiveModal, QRCodeSVG, Skeleton } from '@enjambre/ui';
 import { downloadQrSvg, downloadQrPng } from '@/lib/qr-export';
 
 interface ProductoOption {
@@ -169,7 +169,12 @@ export function HubPhygitalView() {
         apiFetch('/api/phygital/qr?limit=100'),
       ]);
 
-      if (resProd.data) setProductos(resProd.data as ProductoOption[]);
+      if (resProd.data) {
+        const soloProductosReales = (resProd.data as ProductoOption[]).filter(
+          (p) => !p.slug?.toLowerCase().startsWith('insumo-'),
+        );
+        setProductos(soloProductosReales);
+      }
       if (resLotes.data) setLotes(resLotes.data as LoteOption[]);
 
       if (resQr.ok) {
@@ -363,15 +368,110 @@ export function HubPhygitalView() {
 
         <p className="text-[0.7rem] text-muted-foreground px-1 -mt-2">
           {tipoVistaQr === 'oficiales'
-            ? 'QRs canónicos de tienda listos para imprimir en etiquetas de catálogo.'
+            ? 'QRs canónicos listos para imprimir en etiquetas de envase o en tu trípode de degustación en feria.'
             : 'QRs vinculados a recolecciones y lotes específicos para cata sensorial.'}
         </p>
 
+        {/* QR Maestro de Trípode / Mesa de Degustación en Feria */}
+        {tipoVistaQr === 'oficiales' && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-primary/10 border border-primary/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-5">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+              <div className="flex items-center justify-center p-3 bg-white rounded-xl shadow-inner border border-border/40 w-32 h-32 shrink-0">
+                <QRCodeSVG
+                  id="qr-maestro-feria-svg"
+                  value={`${tiendaBase}/cata/FERIA`}
+                  size={108}
+                  level="H"
+                  includeMargin={false}
+                  bgColor="transparent"
+                  fgColor="#1C1917"
+                />
+              </div>
+              <div className="space-y-1.5 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/40 text-[0.62rem] font-mono uppercase tracking-wider text-primary font-semibold">
+                  <QrCode size={11} />
+                  <span>QR Maestro · Trípode / Mesa de Feria (Multi-Degustación)</span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground">
+                  Estación de Degustación en Vivo (`{tiendaBase.replace(/^https?:\/\//, '')}/cata/FERIA`)
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong>Este es el QR para el trípode o acrílico de tu mesa en feria.</strong> Al escanearlo, la persona elige en pantalla cuál de las variantes acaba de probar (<em>Crema de Miel Batida, con Avellanas, con Polen, con Cacao Nibs o Miel Virgen con Panal</em>), evalúa su perfil sensorial y deja su reseña vinculada directamente al producto elegido.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row md:flex-col gap-2 w-full md:w-52 shrink-0">
+              <button
+                type="button"
+                onClick={() => descargarSvg('qr-maestro-feria-svg', 'QR_TRIPODE_FERIA_DEGUSTACION')}
+                className="btn btn-gold text-xs py-2 px-3 flex items-center justify-center gap-1.5 w-full"
+                title="Vectorial SVG transparente para Adobe Illustrator"
+              >
+                <Download size={13} />
+                <span>Descargar SVG (Trípode)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => descargarPng('qr-maestro-feria-svg', 'QR_TRIPODE_FERIA_DEGUSTACION')}
+                className="btn btn-outline text-xs py-2 px-3 flex items-center justify-center gap-1.5 w-full bg-background/80"
+                title="PNG transparente a 300 DPI para Adobe Photoshop / Canva"
+              >
+                <Download size={13} />
+                <span>Descargar PNG 300 DPI</span>
+              </button>
+              <div className="flex items-center justify-between gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleCopiar(`${tiendaBase}/cata/FERIA`, 'qr-maestro-feria')}
+                  className="text-[0.65rem] font-mono text-muted-foreground hover:text-foreground flex items-center gap-1"
+                >
+                  {copiedId === 'qr-maestro-feria' ? <Check size={11} className="text-success" /> : <Copy size={11} />}
+                  <span>{copiedId === 'qr-maestro-feria' ? 'URL copiada' : 'Copiar URL'}</span>
+                </button>
+                <a
+                  href={`${tiendaBase}/cata/FERIA`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[0.65rem] font-mono text-primary hover:underline flex items-center gap-1"
+                >
+                  <span>Probar vista</span>
+                  <ExternalLink size={11} />
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Listado de Códigos QR */}
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground text-xs flex items-center justify-center gap-2">
-            <Loader2 size={16} className="animate-spin" />
-            <span>Cargando códigos QR...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" aria-busy="true" aria-label="Cargando códigos QR">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="p-4 rounded-xl bg-card border border-border space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton variant="text" className="w-24 h-3" />
+                    <Skeleton variant="text" className="w-44 h-4" />
+                    <Skeleton variant="text" className="w-20 h-3" />
+                  </div>
+                  <Skeleton variant="rectangular" className="w-16 h-5 rounded" />
+                </div>
+                <div className="flex items-center justify-center p-3.5 bg-card/80 rounded-xl border border-border/40 w-36 h-36 mx-auto">
+                  <Skeleton variant="rectangular" className="w-28 h-28 rounded-lg" />
+                </div>
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <div className="flex justify-between">
+                    <Skeleton variant="text" className="w-28 h-3" />
+                    <Skeleton variant="text" className="w-16 h-3" />
+                  </div>
+                  <Skeleton variant="rectangular" className="w-full h-8 rounded" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton variant="rectangular" className="w-full h-8 rounded-lg" />
+                    <Skeleton variant="rectangular" className="w-full h-8 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : tipoVistaQr === 'oficiales' ? (
           productosFiltrados.length === 0 ? (

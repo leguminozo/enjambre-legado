@@ -92,7 +92,7 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
         (f) => f.lat != null && f.lng != null && Number.isFinite(f.lat) && Number.isFinite(f.lng),
       );
 
-    const apiariosRegistroConsentidos = ((regRes.data ?? []) as unknown as Array<{
+    const apiariosRegistroPublicos = ((regRes.data ?? []) as unknown as Array<{
       id: string;
       n_colmenas?: number | null;
       comuna?: string | null;
@@ -100,12 +100,7 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
       lat_aproximada?: number | null;
       lng_aproximada?: number | null;
       activo?: boolean | null;
-      actores_registro?: { consentimientos?: Record<string, unknown> } | null;
     }>)
-      .filter((r) => {
-        const c = r.actores_registro?.consentimientos?.mapa_comunitario;
-        return c === true || c === "true";
-      })
       .map((r) => ({
         id: r.id,
         n_colmenas: r.n_colmenas,
@@ -118,11 +113,12 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
 
     const payload = buildMapaChiloePublico({
       apiariosExternos: extRes.data ?? [],
-      apiariosRegistro: apiariosRegistroConsentidos,
+      apiariosRegistro: apiariosRegistroPublicos,
       predios: prediosRes.data ?? [],
       alertas: alertasRes.data ?? [],
       actores: actoresRes.data ?? [],
       floraciones,
+      applyBaseline: true,
     });
 
     // Cache corto en CDN / browser (datos semi-estáticos)

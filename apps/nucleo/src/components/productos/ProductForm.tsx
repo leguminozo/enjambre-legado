@@ -26,6 +26,7 @@ import {
   VALORES_DEFAULT_EJES,
   resolverEjesSensoriales,
   type CategoriaSensorial,
+  type TipoSensorial,
   type FortificanteCanonico,
   type ProductoVariante,
 } from '@/lib/product-types';
@@ -729,7 +730,34 @@ export function ProductForm({
   const loteSeleccionado = lotes.find((l) => l.id === loteIdActual);
 
   const nombreActual = watch('nombre') || '';
-  const activeSensoryAxes = resolverEjesSensoriales(tipoSensorialActual, nombreActual);
+  const selectedFamilyOption = sensoryFamilyOptions.find((s) => s.value === tipoSensorialActual);
+
+  const activeSensoryAxes: string[] = (() => {
+    const customEjes = (perfilSensorial as { ejes?: string[] })?.ejes;
+    if (Array.isArray(customEjes) && customEjes.length >= 3) {
+      return customEjes;
+    }
+    if (selectedFamilyOption?.ejes && Array.isArray(selectedFamilyOption.ejes) && selectedFamilyOption.ejes.length >= 3) {
+      return selectedFamilyOption.ejes;
+    }
+    return [...resolverEjesSensoriales(tipoSensorialActual, nombreActual)];
+  })();
+
+  const activeSemanticPairs: Array<{ par: string; izq: string; der: string }> = (() => {
+    const customPairs = (perfilSensorial as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> })?.pares_semanticos;
+    if (Array.isArray(customPairs) && customPairs.length === 3) {
+      return customPairs;
+    }
+    if (selectedFamilyOption?.pares_semanticos && Array.isArray(selectedFamilyOption.pares_semanticos) && selectedFamilyOption.pares_semanticos.length === 3) {
+      return selectedFamilyOption.pares_semanticos;
+    }
+    const catPairs = (PARES_SEMANTICOS_POR_CATEGORIA as Record<string, Array<{ par: string; izq: string; der: string }>>)[tipoSensorialActual];
+    if (catPairs && catPairs.length === 3) {
+      return catPairs;
+    }
+    return [...PARES_SEMANTICOS_POR_CATEGORIA.miel];
+  })();
+
   const ejesCalibracion = (perfilSensorial as { ejes_calibracion?: Record<string, number> })?.ejes_calibracion || {};
 
   const handleAxisChange = (axisName: string, val: number) => {
@@ -744,14 +772,120 @@ export function ProductForm({
     );
   };
 
+  const handleUpdateAxisName = (index: number, newName: string) => {
+    const oldName = activeSensoryAxes[index];
+    const next = [...activeSensoryAxes];
+    next[index] = newName;
+    setValue('perfil_sensorial.ejes', next, { shouldDirty: true, shouldValidate: true });
+
+    if (oldName && oldName !== newName) {
+      const currentCal = (getValues('perfil_sensorial.ejes_calibracion') as Record<string, number> | undefined) || {};
+      if (currentCal[oldName] !== undefined) {
+        const nextCal = { ...currentCal, [newName]: currentCal[oldName] };
+        delete nextCal[oldName];
+        setValue('perfil_sensorial.ejes_calibracion', nextCal, { shouldDirty: true, shouldValidate: true });
+      }
+    }
+  };
+
+  const handleAddAxis = () => {
+    if (activeSensoryAxes.length >= 10) {
+      toast.error('La constelación permite un máximo de 10 puntos en la red');
+      return;
+    }
+    const newName = `Punto ${activeSensoryAxes.length + 1}`;
+    const next = [...activeSensoryAxes, newName];
+    setValue('perfil_sensorial.ejes', next, { shouldDirty: true, shouldValidate: true });
+    handleAxisChange(newName, 75);
+    toast.success(`Punto «${newName}» añadido a la red.`);
+  };
+
+  const handleRemoveAxis = (index: number) => {
+    if (activeSensoryAxes.length <= 3) {
+      toast.error('La red poligonal requiere al menos 3 vértices / ejes');
+      return;
+    }
+    const removedName = activeSensoryAxes[index];
+    const next = activeSensoryAxes.filter((_, i) => i !== index);
+    setValue('perfil_sensorial.ejes', next, { shouldDirty: true, shouldValidate: true });
+    if (removedName) {
+      const currentCal = (getValues('perfil_sensorial.ejes_calibracion') as Record<string, number> | undefined) || {};
+      if (currentCal[removedName] !== undefined) {
+        const nextCal = { ...currentCal };
+        delete nextCal[removedName];
+        setValue('perfil_sensorial.ejes_calibracion', nextCal, { shouldDirty: true, shouldValidate: true });
+      }
+    }
+    toast.success(`Punto «${removedName}» eliminado`);
+  };
+
   const handleLoadDefaultAxes = () => {
-    const next: Record<string, number> = {};
-    activeSensoryAxes.forEach((axis: string) => {
+    const defaultAxes = selectedFamilyOption?.ejes && selectedFamilyOption.ejes.length >= 3
+      ? selectedFamilyOption.ejes
+      : [...resolverEjesSensoriales(tipoSensorialActual, nombreActual)];
+
+    setValue('perfil_sensorial.ejes', defaultAxes, { shouldDirty: true, shouldValidate: true });
+
+    const nextCal: Record<string, number> = {};
+    defaultAxes.forEach((axis: string) => {
       const def = VALORES_DEFAULT_EJES[axis] ?? 75;
-      next[axis] = def;
+      nextCal[axis] = def;
     });
-    setValue('perfil_sensorial.ejes_calibracion', next, { shouldDirty: true, shouldValidate: true });
-    toast.success('Valores canónicos cargados para la constelación sensorial.');
+    setValue('perfil_sensorial.ejes_calibracion', nextCal, { shouldDirty: true, shouldValidate: true });
+
+    const defaultPairs = selectedFamilyOption?.pares_semanticos && selectedFamilyOption.pares_semanticos.length === 3
+      ? selectedFamilyOption.pares_semanticos
+      : (PARES_SEMANTICOS_POR_CATEGORIA as Record<string, Array<{ par: string; izq: string; der: string }>>)[tipoSensorialActual]
+        ? [...(PARES_SEMANTICOS_POR_CATEGORIA as Record<string, Array<{ par: string; izq: string; der: string }>>)[tipoSensorialActual]]
+        : [...PARES_SEMANTICOS_POR_CATEGORIA.miel];
+
+    setValue('perfil_sensorial.pares_semanticos', defaultPairs, { shouldDirty: true, shouldValidate: true });
+    if (defaultPairs[0]) setValue('perfil_sensorial.descriptores_intensidad', { izq: defaultPairs[0].izq, der: defaultPairs[0].der }, { shouldDirty: true });
+    if (defaultPairs[1]) setValue('perfil_sensorial.descriptores_dulzor', { izq: defaultPairs[1].izq, der: defaultPairs[1].der }, { shouldDirty: true });
+    if (defaultPairs[2]) setValue('perfil_sensorial.descriptores_textura', { izq: defaultPairs[2].izq, der: defaultPairs[2].der }, { shouldDirty: true });
+
+    toast.success('Valores canónicos y red restaurados según la familia seleccionada.');
+  };
+
+  const handleSelectSensoryFamily = (cat: { value: string; label: string; description?: string | null; ejes?: string[] | null; pares_semanticos?: Array<{ par: string; izq: string; der: string }> | null }) => {
+    setValue('tipo_sensorial', cat.value, { shouldDirty: true, shouldValidate: true });
+
+    const familyAxes = cat.ejes && cat.ejes.length >= 3
+      ? cat.ejes
+      : [...resolverEjesSensoriales(cat.value, nombreActual)];
+
+    setValue('perfil_sensorial.ejes', familyAxes, { shouldDirty: true, shouldValidate: true });
+
+    const familyPairs = cat.pares_semanticos && cat.pares_semanticos.length >= 3
+      ? cat.pares_semanticos
+      : (PARES_SEMANTICOS_POR_CATEGORIA as Record<string, Array<{ par: string; izq: string; der: string }>>)[cat.value]
+        ? [...(PARES_SEMANTICOS_POR_CATEGORIA as Record<string, Array<{ par: string; izq: string; der: string }>>)[cat.value]]
+        : [...PARES_SEMANTICOS_POR_CATEGORIA.miel];
+
+    setValue('perfil_sensorial.pares_semanticos', familyPairs, { shouldDirty: true, shouldValidate: true });
+    if (familyPairs[0]) setValue('perfil_sensorial.descriptores_intensidad', { izq: familyPairs[0].izq, der: familyPairs[0].der }, { shouldDirty: true });
+    if (familyPairs[1]) setValue('perfil_sensorial.descriptores_dulzor', { izq: familyPairs[1].izq, der: familyPairs[1].der }, { shouldDirty: true });
+    if (familyPairs[2]) setValue('perfil_sensorial.descriptores_textura', { izq: familyPairs[2].izq, der: familyPairs[2].der }, { shouldDirty: true });
+
+    const nextCal: Record<string, number> = {};
+    familyAxes.forEach((axis: string) => {
+      nextCal[axis] = VALORES_DEFAULT_EJES[axis] ?? 75;
+    });
+    setValue('perfil_sensorial.ejes_calibracion', nextCal, { shouldDirty: true, shouldValidate: true });
+  };
+
+  const handlePairChange = (index: number, field: 'par' | 'izq' | 'der', val: string) => {
+    const next = [...activeSemanticPairs].map((p) => ({ ...p }));
+    if (!next[index]) next[index] = { par: '', izq: '', der: '' };
+    next[index][field] = val;
+    setValue('perfil_sensorial.pares_semanticos', next, { shouldDirty: true, shouldValidate: true });
+    if (index === 0) {
+      setValue('perfil_sensorial.descriptores_intensidad', { izq: next[0].izq, der: next[0].der }, { shouldDirty: true });
+    } else if (index === 1) {
+      setValue('perfil_sensorial.descriptores_dulzor', { izq: next[1].izq, der: next[1].der }, { shouldDirty: true });
+    } else if (index === 2) {
+      setValue('perfil_sensorial.descriptores_textura', { izq: next[2].izq, der: next[2].der }, { shouldDirty: true });
+    }
   };
 
   const handleFormatoChange = (nuevoFormato: string) => {
@@ -1430,7 +1564,7 @@ export function ProductForm({
                         <button
                           key={cat.value}
                           type="button"
-                          onClick={() => setValue('tipo_sensorial', cat.value, { shouldDirty: true, shouldValidate: true })}
+                          onClick={() => handleSelectSensoryFamily(cat)}
                           className={`p-2.5 rounded-lg border text-left transition-all ${
                             isSelected
                               ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/40'
@@ -1445,49 +1579,186 @@ export function ProductForm({
                   </div>
                 </div>
 
-                {/* Calibración Canónica de los 8 Ejes de la Constelación */}
+                {/* Previsualización en Vivo de la Red Sensorial (Radar SVG) */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-card border border-border/80">
+                  <div className="relative w-44 h-44 shrink-0 select-none flex items-center justify-center">
+                    <svg viewBox="0 0 200 200" className="w-full h-full overflow-visible">
+                      <defs>
+                        <radialGradient id="mini-radar-grad" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.05" />
+                        </radialGradient>
+                      </defs>
+                      {/* Círculos concéntricos de referencia */}
+                      {[0.25, 0.5, 0.75, 1].map((lvl) => {
+                        const pts = activeSensoryAxes
+                          .map((_, i) => {
+                            const angle = ((Math.PI * 2) / activeSensoryAxes.length) * i - Math.PI / 2;
+                            const r = lvl * 68;
+                            return `${(100 + r * Math.cos(angle)).toFixed(1)},${(100 + r * Math.sin(angle)).toFixed(1)}`;
+                          })
+                          .join(' ');
+                        return (
+                          <polygon
+                            key={lvl}
+                            points={pts}
+                            fill="none"
+                            stroke="currentColor"
+                            className="text-border/60"
+                            strokeWidth="0.8"
+                          />
+                        );
+                      })}
+                      {/* Rayos radiales */}
+                      {activeSensoryAxes.map((_, i) => {
+                        const angle = ((Math.PI * 2) / activeSensoryAxes.length) * i - Math.PI / 2;
+                        const x2 = 100 + 68 * Math.cos(angle);
+                        const y2 = 100 + 68 * Math.sin(angle);
+                        return (
+                          <line
+                            key={i}
+                            x1="100"
+                            y1="100"
+                            x2={x2.toFixed(1)}
+                            y2={y2.toFixed(1)}
+                            stroke="currentColor"
+                            className="text-border/60"
+                            strokeWidth="0.8"
+                          />
+                        );
+                      })}
+                      {/* Polígono del producto (Puntos y Aristas de la Red) */}
+                      {(() => {
+                        const pts = activeSensoryAxes
+                          .map((axis, i) => {
+                            const raw = ejesCalibracion[axis] ?? VALORES_DEFAULT_EJES[axis] ?? 75;
+                            const val = Math.max(10, Math.min(100, raw)) / 100;
+                            const angle = ((Math.PI * 2) / activeSensoryAxes.length) * i - Math.PI / 2;
+                            const r = val * 68;
+                            return `${(100 + r * Math.cos(angle)).toFixed(1)},${(100 + r * Math.sin(angle)).toFixed(1)}`;
+                          })
+                          .join(' ');
+                        return (
+                          <polygon
+                            points={pts}
+                            fill="url(#mini-radar-grad)"
+                            stroke="var(--primary)"
+                            strokeWidth="2"
+                          />
+                        );
+                      })()}
+                      {/* Vértices / Puntos destacados */}
+                      {activeSensoryAxes.map((axis, i) => {
+                        const raw = ejesCalibracion[axis] ?? VALORES_DEFAULT_EJES[axis] ?? 75;
+                        const val = Math.max(10, Math.min(100, raw)) / 100;
+                        const angle = ((Math.PI * 2) / activeSensoryAxes.length) * i - Math.PI / 2;
+                        const r = val * 68;
+                        const x = 100 + r * Math.cos(angle);
+                        const y = 100 + r * Math.sin(angle);
+                        return (
+                          <circle
+                            key={i}
+                            cx={x.toFixed(1)}
+                            cy={y.toFixed(1)}
+                            r="3"
+                            className="fill-primary stroke-card"
+                            strokeWidth="1.5"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Compass size={16} className="text-primary shrink-0" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                        Geometría de la Red Sensorial ({activeSensoryAxes.length} Vértices / Aristas)
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Esta red poligonal define la constelación visual de cata en el PDP y Campo POS. Puedes editar directamente el nombre de cada punto de la red, sumar nuevas aristas, calibrar su puntaje o restablecer los valores canónicos de la familia taxonómica.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleLoadDefaultAxes}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-raised border border-border text-xs font-semibold text-foreground/90 hover:text-foreground hover:border-primary/50 transition-colors"
+                        title="Restablecer ejes y calibración recomendada según la familia"
+                      >
+                        <Sparkles size={13} className="text-primary" />
+                        <span>Restablecer canónicos</span>
+                      </button>
+                      {activeSensoryAxes.length < 10 && (
+                        <button
+                          type="button"
+                          onClick={handleAddAxis}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-raised border border-border text-xs font-semibold text-foreground/90 hover:text-foreground hover:border-primary/50 transition-colors"
+                        >
+                          <Plus size={13} className="text-primary" />
+                          <span>Añadir punto a la red</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Calibración & Edición de los Puntos de la Red */}
                 <div className="space-y-4 pt-2 border-t border-border/40">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
                         <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
-                          Calibración de la Constelación Sensorial (8 Ejes Canónicos)
+                          Puntos y Aristas de la Red Sensorial ({activeSensoryAxes.length} Ejes)
                         </label>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
                           {tipoSensorialActual}
                         </span>
                       </div>
                       <span className="text-[0.7rem] text-muted-foreground block mt-0.5">
-                        Calibra la geometría del radar SVG para el PDP de la tienda y la ficha de cata de Campo POS.
+                        Haz clic en el nombre de cualquier eje para editarlo libremente, o ajusta su intensidad en escala 1.0 – 10.0.
                       </span>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={handleLoadDefaultAxes}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-card border border-border text-xs font-semibold text-foreground/80 hover:text-foreground hover:border-primary/50 transition-colors self-start sm:self-auto"
-                      title="Cargar valores canónicos recomendados según botánica de origen"
-                    >
-                      <Sparkles size={13} className="text-primary" />
-                      <span>Cargar valores canónicos</span>
-                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                    {activeSensoryAxes.map((axis: string) => {
+                    {activeSensoryAxes.map((axis: string, idx: number) => {
                       const currentVal = ejesCalibracion[axis] ?? VALORES_DEFAULT_EJES[axis] ?? 75;
                       const displayScore = (currentVal / 10).toFixed(1);
 
                       return (
                         <div
-                          key={axis}
-                          className="p-3 rounded-xl bg-card border border-border/60 hover:border-border transition-colors space-y-1.5"
+                          key={`${axis}-${idx}`}
+                          className="p-3 rounded-xl bg-card border border-border/60 hover:border-border transition-colors space-y-2"
                         >
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-foreground">{axis}</span>
-                            <span className="font-mono text-[11px] text-primary font-bold">
-                              {currentVal}% · <span className="text-muted-foreground">{displayScore}/10</span>
-                            </span>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              <span className="font-mono text-[10px] text-muted-foreground shrink-0 w-4 text-center">
+                                {idx + 1}
+                              </span>
+                              <input
+                                type="text"
+                                value={axis}
+                                onChange={(e) => handleUpdateAxisName(idx, e.target.value)}
+                                placeholder={`Eje ${idx + 1}`}
+                                className="input-field p-1 text-xs font-semibold text-foreground flex-1 bg-surface-sunken/40 border border-transparent hover:border-border focus:border-primary"
+                                title="Editar nombre del eje"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-mono text-[11px] text-primary font-bold">
+                                {currentVal}% · <span className="text-muted-foreground">{displayScore}/10</span>
+                              </span>
+                              {activeSensoryAxes.length > 3 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveAxis(idx)}
+                                  className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                                  title="Eliminar este punto de la red"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <input
                             type="range"
@@ -1508,93 +1779,177 @@ export function ProductForm({
                   </div>
                 </div>
 
-                {/* Métricas de Resumen Rápido (3 Dimensiones Primarias) */}
+                {/* Métricas de Resumen Rápido (3 Dimensiones Primarias Personalizables) */}
                 <div className="space-y-4 pt-2 border-t border-border/40">
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
                       Métricas de Resumen Rápido (3 Dimensiones Primarias)
                     </label>
                     <span className="text-[0.7rem] text-muted-foreground">
-                      Dimensiones condensadas exhibidas en badges y tarjetas compactas.
+                      Personaliza las 3 dimensiones exhibidas en tarjetas compactas y badges de la tienda (ej. Intensidad, Molienda, Untuosidad).
                     </span>
                   </div>
 
-                  {(() => {
-                    const currentTipo = (watch('tipo_sensorial') || 'miel') as CategoriaSensorial;
-                    const pairs = PARES_SEMANTICOS_POR_CATEGORIA[currentTipo] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
-                    return (
-                      <div className="space-y-5">
-                        {/* Dimensión 1 */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs font-medium">
-                            <span className="text-muted-foreground">{pairs[0]?.izq ?? 'Suave'}</span>
-                            <span className="text-foreground font-bold">
-                              {pairs[0]?.par ?? 'Intensidad'}: {perfilSensorial.intensidad ?? 75}%
-                            </span>
-                            <span className="text-muted-foreground">{pairs[0]?.der ?? 'Intenso'}</span>
-                          </div>
+                  <div className="space-y-4">
+                    {/* Dimensión 1 */}
+                    <div className="p-3.5 rounded-xl bg-card border border-border/60 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <span className="font-mono text-[10px] text-primary font-bold">Dim 1:</span>
                           <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={perfilSensorial.intensidad ?? 75}
-                            onChange={(e) =>
-                              setValue('perfil_sensorial.intensidad', Number(e.target.value), {
-                                shouldDirty: true,
-                              })
-                            }
-                            className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                            type="text"
+                            value={activeSemanticPairs[0]?.par ?? 'Intensidad'}
+                            onChange={(e) => handlePairChange(0, 'par', e.target.value)}
+                            placeholder="Nombre Dimensión 1 (ej: Intensidad)"
+                            className="input-field p-1 text-xs font-semibold text-foreground flex-1 max-w-[200px] bg-surface-sunken/40"
                           />
                         </div>
-
-                        {/* Dimensión 2 */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs font-medium">
-                            <span className="text-muted-foreground">{pairs[1]?.izq ?? 'Equilibrado'}</span>
-                            <span className="text-foreground font-bold">
-                              {pairs[1]?.par ?? 'Balance'}: {perfilSensorial.dulzor_acidez ?? 60}%
-                            </span>
-                            <span className="text-muted-foreground">{pairs[1]?.der ?? 'Marcado'}</span>
-                          </div>
+                        <span className="font-mono text-xs font-bold text-primary">
+                          {perfilSensorial.intensidad ?? 75}%
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-[9px] text-muted-foreground block mb-0.5">Extremo 0%</span>
                           <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={perfilSensorial.dulzor_acidez ?? 60}
-                            onChange={(e) =>
-                              setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
-                                shouldDirty: true,
-                              })
-                            }
-                            className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                            type="text"
+                            value={activeSemanticPairs[0]?.izq ?? 'Suave'}
+                            onChange={(e) => handlePairChange(0, 'izq', e.target.value)}
+                            placeholder="Descriptor izquierdo (ej: Suave)"
+                            className="input-field p-1 text-xs bg-surface-sunken/40"
                           />
                         </div>
-
-                        {/* Dimensión 3 */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs font-medium">
-                            <span className="text-muted-foreground">{pairs[2]?.izq ?? 'Fluido'}</span>
-                            <span className="text-foreground font-bold">
-                              {pairs[2]?.par ?? 'Textura'}: {perfilSensorial.textura ?? 85}%
-                            </span>
-                            <span className="text-muted-foreground">{pairs[2]?.der ?? 'Denso'}</span>
-                          </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground block mb-0.5">Extremo 100%</span>
                           <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={perfilSensorial.textura ?? 85}
-                            onChange={(e) =>
-                              setValue('perfil_sensorial.textura', Number(e.target.value), {
-                                shouldDirty: true,
-                              })
-                            }
-                            className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                            type="text"
+                            value={activeSemanticPairs[0]?.der ?? 'Intenso'}
+                            onChange={(e) => handlePairChange(0, 'der', e.target.value)}
+                            placeholder="Descriptor derecho (ej: Intenso)"
+                            className="input-field p-1 text-xs bg-surface-sunken/40"
                           />
                         </div>
                       </div>
-                    );
-                  })()}
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={perfilSensorial.intensidad ?? 75}
+                        onChange={(e) =>
+                          setValue('perfil_sensorial.intensidad', Number(e.target.value), {
+                            shouldDirty: true,
+                          })
+                        }
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Dimensión 2 */}
+                    <div className="p-3.5 rounded-xl bg-card border border-border/60 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <span className="font-mono text-[10px] text-primary font-bold">Dim 2:</span>
+                          <input
+                            type="text"
+                            value={activeSemanticPairs[1]?.par ?? 'Molienda / Textura'}
+                            onChange={(e) => handlePairChange(1, 'par', e.target.value)}
+                            placeholder="Nombre Dimensión 2 (ej: Molienda / Balance)"
+                            className="input-field p-1 text-xs font-semibold text-foreground flex-1 max-w-[200px] bg-surface-sunken/40"
+                          />
+                        </div>
+                        <span className="font-mono text-xs font-bold text-primary">
+                          {perfilSensorial.dulzor_acidez ?? 60}%
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-[9px] text-muted-foreground block mb-0.5">Extremo 0%</span>
+                          <input
+                            type="text"
+                            value={activeSemanticPairs[1]?.izq ?? 'Fina'}
+                            onChange={(e) => handlePairChange(1, 'izq', e.target.value)}
+                            placeholder="Descriptor izquierdo (ej: Fina)"
+                            className="input-field p-1 text-xs bg-surface-sunken/40"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground block mb-0.5">Extremo 100%</span>
+                          <input
+                            type="text"
+                            value={activeSemanticPairs[1]?.der ?? 'Rústica'}
+                            onChange={(e) => handlePairChange(1, 'der', e.target.value)}
+                            placeholder="Descriptor derecho (ej: Rústica)"
+                            className="input-field p-1 text-xs bg-surface-sunken/40"
+                          />
+                        </div>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={perfilSensorial.dulzor_acidez ?? 60}
+                        onChange={(e) =>
+                          setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
+                            shouldDirty: true,
+                          })
+                        }
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Dimensión 3 */}
+                    <div className="p-3.5 rounded-xl bg-card border border-border/60 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <span className="font-mono text-[10px] text-primary font-bold">Dim 3:</span>
+                          <input
+                            type="text"
+                            value={activeSemanticPairs[2]?.par ?? 'Untuosidad / Grasa'}
+                            onChange={(e) => handlePairChange(2, 'par', e.target.value)}
+                            placeholder="Nombre Dimensión 3 (ej: Untuosidad / Textura)"
+                            className="input-field p-1 text-xs font-semibold text-foreground flex-1 max-w-[200px] bg-surface-sunken/40"
+                          />
+                        </div>
+                        <span className="font-mono text-xs font-bold text-primary">
+                          {perfilSensorial.textura ?? 85}%
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-[9px] text-muted-foreground block mb-0.5">Extremo 0%</span>
+                          <input
+                            type="text"
+                            value={activeSemanticPairs[2]?.izq ?? 'Seco'}
+                            onChange={(e) => handlePairChange(2, 'izq', e.target.value)}
+                            placeholder="Descriptor izquierdo (ej: Seco)"
+                            className="input-field p-1 text-xs bg-surface-sunken/40"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground block mb-0.5">Extremo 100%</span>
+                          <input
+                            type="text"
+                            value={activeSemanticPairs[2]?.der ?? 'Untuoso'}
+                            onChange={(e) => handlePairChange(2, 'der', e.target.value)}
+                            placeholder="Descriptor derecho (ej: Untuoso)"
+                            className="input-field p-1 text-xs bg-surface-sunken/40"
+                          />
+                        </div>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={perfilSensorial.textura ?? 85}
+                        onChange={(e) =>
+                          setValue('perfil_sensorial.textura', Number(e.target.value), {
+                            shouldDirty: true,
+                          })
+                        }
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Notas Aromáticas & Chips */}

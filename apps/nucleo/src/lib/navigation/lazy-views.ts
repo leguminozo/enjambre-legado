@@ -15,6 +15,10 @@ import {
   ClubLegadoSkeleton,
   CuadernoCampoSkeleton,
   EscenaHojaSkeleton,
+  QRsProductosSkeleton,
+  BovedaEtiquetasSkeleton,
+  PortalImprentaSkeleton,
+  SaludPlataformaSkeleton,
   ModuloGenericoSkeleton,
 } from '@/components/shared/skeletons';
 
@@ -319,7 +323,7 @@ export const LazySaludPlataformaView = named(
   () => import('@/views/SaludPlataformaView'),
   'SaludPlataformaView',
   'Salud',
-  () => createElement(ModuloGenericoSkeleton),
+  () => createElement(SaludPlataformaSkeleton),
 );
 export const LazyAnalisisCruzadoView = named(
   () => import('@/views/analisis/AnalisisCruzadoView'),
@@ -398,19 +402,19 @@ export const LazyHubPhygitalView = named(
   () => import('@/views/phygital/HubPhygitalView'),
   'HubPhygitalView',
   'QRs de Productos',
-  () => createElement(ModuloGenericoSkeleton),
+  () => createElement(QRsProductosSkeleton),
 );
 
 export const LazyBovedaEtiquetasView = named(
   () => import('@/views/phygital/BovedaEtiquetasView'),
   'BovedaEtiquetasView',
   'Bóveda de Etiquetas',
-  () => createElement(ModuloGenericoSkeleton),
+  () => createElement(BovedaEtiquetasSkeleton),
 );
 
 export const LazyPortalImprentaView = named(
   () => import('@/views/portal-imprenta/PortalImprentaView'),
   'PortalImprentaView',
   'Portal Imprenta & Diseño',
-  () => createElement(ModuloGenericoSkeleton),
+  () => createElement(PortalImprentaSkeleton),
 );

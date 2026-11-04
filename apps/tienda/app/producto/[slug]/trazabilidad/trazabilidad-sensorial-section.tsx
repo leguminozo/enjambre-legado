@@ -169,12 +169,14 @@ export function TrazabilidadSensorialSection({ product }: TrazabilidadSensorialS
       <ResenaComposer
         productoId={product.id}
         productName={product.name}
+        productSlug={product.slug}
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
         onSubmitted={() => {
           setComposerOpen(false);
         }}
         tipoSensorial={product.tipo_sensorial ?? 'miel'}
+        perfilSensorial={product.perfil_sensorial as any}
         variantes={product.variantes}
       />
     </section>

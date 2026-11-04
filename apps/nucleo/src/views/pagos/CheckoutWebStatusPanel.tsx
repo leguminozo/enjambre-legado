@@ -10,6 +10,8 @@ import {
   Badge,
   Spinner,
   Button,
+  Skeleton,
+  SkeletonTable,
 } from '@enjambre/ui';
 import {
   CheckCircle,
@@ -163,7 +165,12 @@ export function CheckoutWebStatusPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {checklistQuery.isLoading && <Spinner />}
+          {checklistQuery.isLoading && (
+            <div className="flex gap-2" aria-busy="true">
+              <Skeleton variant="rectangular" className="w-24 h-7 rounded-full" />
+              <Skeleton variant="rectangular" className="w-28 h-7 rounded-full" />
+            </div>
+          )}
           {checklistQuery.isError && (
             <p className="text-sm text-destructive font-medium">
               {(checklistQuery.error as Error).message}
@@ -267,7 +274,11 @@ export function CheckoutWebStatusPanel() {
               Retry fulfill solo si el pago ya se autorizó y la sesión sigue pending (no re-cobra).
             </p>
           </div>
-          {sessionsQuery.isLoading && <Spinner />}
+          {sessionsQuery.isLoading && (
+            <div className="p-4" aria-busy="true">
+              <SkeletonTable rows={4} columns={5} />
+            </div>
+          )}
           {sessionsQuery.isError && (
             <p className="text-sm text-destructive">
               {(sessionsQuery.error as Error).message}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 
 import type { Metadata } from 'next';
 
@@ -28,10 +29,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PrivacidadTerritorialPage() {
+export default async function PrivacidadTerritorialPage() {
+  const cms = await getTerritorioCmsContent();
+
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
       <article className="mx-auto w-full max-w-2xl px-6 sm:px-8 py-16 sm:py-24">
         <p className="text-sm text-muted-foreground mb-4">Registro Territorial Apícola de Chiloé</p>
         <h1 className="font-existencial text-3xl sm:text-4xl font-semibold tracking-tight text-balance mb-6">

@@ -36,6 +36,7 @@ import {
   QRCodeSVG,
 } from '@enjambre/ui';
 import { downloadQrSvg, downloadQrPng } from '@/lib/qr-export';
+import { PortalImprentaSkeleton } from '@/components/shared/skeletons';
 
 interface ProductoGaleria {
   id: string;
@@ -434,6 +435,10 @@ export function PortalImprentaView() {
   });
 
   const totalQrsDisponibles = productos.length + qrs.length;
+
+  if (loading) {
+    return <PortalImprentaSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

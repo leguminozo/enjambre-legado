@@ -9624,8 +9624,10 @@ export type Database = {
           active: boolean
           created_at: string
           description: string
+          ejes: Json | null
           id: string
           label: string
+          pares_semanticos: Json | null
           sort_order: number
           updated_at: string
           value: string
@@ -9634,8 +9636,10 @@ export type Database = {
           active?: boolean
           created_at?: string
           description?: string
+          ejes?: Json | null
           id?: string
           label: string
+          pares_semanticos?: Json | null
           sort_order?: number
           updated_at?: string
           value: string
@@ -9644,8 +9648,10 @@ export type Database = {
           active?: boolean
           created_at?: string
           description?: string
+          ejes?: Json | null
           id?: string
           label?: string
+          pares_semanticos?: Json | null
           sort_order?: number
           updated_at?: string
           value?: string

@@ -10,4 +10,8 @@ export { BancoChileSkeleton } from './BancoChileSkeleton';
 export { ClubLegadoSkeleton } from './ClubLegadoSkeleton';
 export { CuadernoCampoSkeleton, EscenaHojaSkeleton } from './CuadernoCampoSkeleton';
 export { CalendarioSkeleton } from './CalendarioSkeleton';
+export { QRsProductosSkeleton } from './QRsProductosSkeleton';
+export { BovedaEtiquetasSkeleton } from './BovedaEtiquetasSkeleton';
+export { PortalImprentaSkeleton } from './PortalImprentaSkeleton';
+export { SaludPlataformaSkeleton } from './SaludPlataformaSkeleton';
 export { ModuloGenericoSkeleton } from './ModuloGenericoSkeleton';

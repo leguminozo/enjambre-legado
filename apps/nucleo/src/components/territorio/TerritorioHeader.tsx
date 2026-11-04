@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@enjambre/ui';
 import { TerritorioLogo } from './TerritorioLogo';
+import { supabase } from '@/lib/supabase';
 import {
   DEFAULT_TERRITORIO_HEADER,
   type TerritorioHeaderContent,
@@ -13,13 +14,45 @@ export interface TerritorioHeaderProps {
   content?: TerritorioHeaderContent;
 }
 
+const STORAGE_KEY = 'enj_territorio_header_cfg';
+let memoryHeaderCache: TerritorioHeaderContent | null = null;
+
+function resolveInitialContent(propContent?: TerritorioHeaderContent): TerritorioHeaderContent {
+  if (propContent) {
+    memoryHeaderCache = propContent;
+    return propContent;
+  }
+  if (memoryHeaderCache) {
+    return memoryHeaderCache;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<TerritorioHeaderContent>;
+        if (parsed && typeof parsed === 'object') {
+          const merged: TerritorioHeaderContent = { ...DEFAULT_TERRITORIO_HEADER, ...parsed };
+          memoryHeaderCache = merged;
+          return merged;
+        }
+      }
+    } catch {
+      // Ignorar error de parsing en storage
+    }
+  }
+  return DEFAULT_TERRITORIO_HEADER;
+}
+
 /**
  * Header público del territorio — marca + entrar + inscribirse.
  * Editable y configurable desde CMS (Registro Territorial -> Cabecera y Navegación).
+ * Se auto-sincroniza en páginas cliente y recibe contenido vía SSR en páginas servidor.
  */
 export function TerritorioHeader({ content }: TerritorioHeaderProps = {}) {
   const [scrolled, setScrolled] = useState(false);
-  const cfg = { ...DEFAULT_TERRITORIO_HEADER, ...(content ?? {}) };
+  const [headerContent, setHeaderContent] = useState<TerritorioHeaderContent>(() =>
+    resolveInitialContent(content),
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -27,6 +60,66 @@ export function TerritorioHeader({ content }: TerritorioHeaderProps = {}) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (content) {
+      memoryHeaderCache = content;
+      setHeaderContent(content);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+        } catch {}
+      }
+      return;
+    }
+
+    let cancelled = false;
+    async function syncHeaderFromDb() {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('content')
+          .eq('section_key', 'territorio_header')
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (!cancelled && !error && data?.content) {
+          const merged: TerritorioHeaderContent = {
+            ...DEFAULT_TERRITORIO_HEADER,
+            ...(data.content as Partial<TerritorioHeaderContent>),
+          };
+          memoryHeaderCache = merged;
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            } catch {}
+          }
+          setHeaderContent(merged);
+        }
+      } catch {
+        // Fallback silencioso
+      }
+    }
+
+    void syncHeaderFromDb();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setHeaderContent({ ...DEFAULT_TERRITORIO_HEADER, ...parsed });
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [content]);
+
+  const cfg = content ?? headerContent;
 
   return (
     <header

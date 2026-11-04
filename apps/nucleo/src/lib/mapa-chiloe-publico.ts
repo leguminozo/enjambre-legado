@@ -87,6 +87,7 @@ export type ComunaResumen = {
   asentamientos_protegidos: number;
   apiarios_externos: number;
   alertas_activas: number;
+  floracion_dominante?: string;
 };
 
 export type MapaChiloePublico = {
@@ -109,6 +110,57 @@ export type MapaChiloePublico = {
 };
 
 export const MAPA_CHILOE_PUBLICO_VERSION = '2026.11.1';
+
+export const COMUNAS_CHILOE_OFICIALES = [
+  'Ancud',
+  'Castro',
+  'Chonchi',
+  'Curaco de Vélez',
+  'Dalcahue',
+  'Puqueldón',
+  'Queilén',
+  'Quellón',
+  'Quemchi',
+  'Quinchao',
+] as const;
+
+/**
+ * Normaliza variantes con o sin tilde a la grafía oficial de las 10 comunas de Chiloé.
+ */
+export function normalizarComunaChiloe(raw: string | null | undefined): string {
+  if (!raw) return 'Castro';
+  const clean = raw.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (clean === 'ancud') return 'Ancud';
+  if (clean === 'castro') return 'Castro';
+  if (clean === 'chonchi') return 'Chonchi';
+  if (clean.startsWith('curaco')) return 'Curaco de Vélez';
+  if (clean === 'dalcahue') return 'Dalcahue';
+  if (clean === 'puqueldon') return 'Puqueldón';
+  if (clean === 'queilen') return 'Queilén';
+  if (clean === 'quellon') return 'Quellón';
+  if (clean === 'quemchi') return 'Quemchi';
+  if (clean === 'quinchao') return 'Quinchao';
+  return 'Castro';
+}
+
+/**
+ * Catastro base comprobado del archivo oficial SAG 2026 (141 apiarios, 78 titulares).
+ */
+export const CATASTRO_KMZ_BASELINE_2026: Record<
+  string,
+  { asentamientos: number; apicultores: number }
+> = {
+  Ancud: { asentamientos: 45, apicultores: 29 },
+  Quemchi: { asentamientos: 24, apicultores: 13 },
+  Dalcahue: { asentamientos: 23, apicultores: 14 },
+  Chonchi: { asentamientos: 23, apicultores: 13 },
+  Quinchao: { asentamientos: 8, apicultores: 3 },
+  Queilén: { asentamientos: 6, apicultores: 3 },
+  Castro: { asentamientos: 5, apicultores: 4 },
+  Puqueldón: { asentamientos: 3, apicultores: 3 },
+  Quellón: { asentamientos: 3, apicultores: 2 },
+  'Curaco de Vélez': { asentamientos: 1, apicultores: 1 },
+};
 
 /**
  * Centros geográficos y botánica dominante por comuna de Chiloé
@@ -177,13 +229,14 @@ export function buildMapaChiloePublico(input: {
     especie?: string | null;
   }>;
   actores?: Array<{ comuna?: string | null; estado?: string | null }>;
+  applyBaseline?: boolean;
   now?: Date;
 }): MapaChiloePublico {
   // Conteo agregado por comuna para el Atlas Territorial Soberano
   const mapaComunas = new Map<string, ComunaResumen>();
 
   const getOrInitComuna = (rawComuna: string | null | undefined): ComunaResumen => {
-    const c = (rawComuna && rawComuna.trim()) || 'Chiloé';
+    const c = normalizarComunaChiloe(rawComuna);
     let row = mapaComunas.get(c);
     if (!row) {
       row = {
@@ -192,11 +245,17 @@ export function buildMapaChiloePublico(input: {
         asentamientos_protegidos: 0,
         apiarios_externos: 0,
         alertas_activas: 0,
+        floracion_dominante: COMUNAS_CHILOE_CONFIG[c]?.floracion || 'Bosque Nativo Mixto',
       };
       mapaComunas.set(c, row);
     }
     return row;
   };
+
+  // Pre-inicializar las 10 comunas oficiales de Chiloé
+  for (const c of COMUNAS_CHILOE_OFICIALES) {
+    getOrInitComuna(c);
+  }
 
   // 1. Actores registrados
   for (const a of input.actores ?? []) {
@@ -223,6 +282,15 @@ export function buildMapaChiloePublico(input: {
   for (const ext of input.apiariosExternos ?? []) {
     const row = getOrInitComuna(ext.comuna_destino);
     row.apiarios_externos += 1;
+  }
+
+  // Si se solicita línea base comprobada del KMZ oficial, asegurar piso histórico de presencia
+  if (input.applyBaseline) {
+    for (const [comuna, base] of Object.entries(CATASTRO_KMZ_BASELINE_2026)) {
+      const row = getOrInitComuna(comuna);
+      row.asentamientos_protegidos = Math.max(row.asentamientos_protegidos, base.asentamientos);
+      row.actores_activos = Math.max(row.actores_activos, base.apicultores);
+    }
   }
 
   // 5. Alertas públicas
@@ -302,7 +370,7 @@ export function buildMapaChiloePublico(input: {
     apiarios: [],
     alertas,
     floraciones,
-    comunas: [...mapaComunas.values()].sort((a, b) => a.comuna.localeCompare(b.comuna, 'es')),
+    comunas: COMUNAS_CHILOE_OFICIALES.map((c) => getOrInitComuna(c)),
     generado_en: (input.now ?? new Date()).toISOString(),
   };
 }

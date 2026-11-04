@@ -19,6 +19,7 @@ import {
   friendlySupabaseError,
   friendlyError,
   cn,
+  SkeletonTable,
   type ColumnDef,
 } from '@enjambre/ui';
 import {
@@ -709,7 +710,9 @@ export function SubscriptionPlansView() {
 
           <EnjTableShell>
             {loading ? (
-              <div className="py-12 flex justify-center"><Spinner /></div>
+              <div className="p-6">
+                <SkeletonTable rows={5} columns={6} />
+              </div>
             ) : (
               <DataTable
                 rows={filteredPlans}

@@ -44,6 +44,7 @@ export const MOMENTO_RECOLECCION_LABELS: Record<MomentoRecoleccion, string> = {
 export const CATEGORIAS_SENSORIALES = [
   'miel',
   'miel_fortificada',
+  'fortificaciones',
   'hidromiel',
   'extracto',
   'cosmetica',
@@ -55,6 +56,7 @@ export type CategoriaSensorial = TipoSensorial;
 export const CATEGORIAS_SENSORIALES_LABELS: Record<TipoSensorial, string> = {
   miel: 'Miel Pura de Origen',
   miel_fortificada: 'Crema de Miel Fortificada',
+  fortificaciones: 'Fortificaciones & Materias Primas Puras',
   hidromiel: 'Hidromiel & Fermentados',
   extracto: 'Extractos & Tónicos Apícolas',
   cosmetica: 'Cosmética Botánica & Ceras',
@@ -130,6 +132,11 @@ export const PARES_SEMANTICOS_POR_CATEGORIA: Record<
     { par: 'dulce/contraste', izq: 'Dulzor Miel', der: 'Contraste Tostado' },
     { par: 'sedosa/crujiente', izq: 'Sedosa Homogénea', der: 'Inclusión Crujiente' },
   ],
+  fortificaciones: [
+    { par: 'suave/intenso', izq: 'Sutil & Crudo', der: 'Intenso & Tostado' },
+    { par: 'molienda', izq: 'Molienda Fina / Sedosa', der: 'Granulado / Rústico' },
+    { par: 'untuosidad', izq: 'Seco & Harinoso', der: 'Untuoso & Oleoso' },
+  ],
   hidromiel: [
     { par: 'seco/dulce', izq: 'Seco', der: 'Dulce' },
     { par: 'tranquilo/espumoso', izq: 'Tranquilo', der: 'Espumoso' },
@@ -178,6 +185,16 @@ export const EJES_SENSORIALES_POR_CATEGORIA: Record<
     'Contraste Tostado',
     'Densidad Activa',
     'Sinergia Funcional',
+    'Vector Territorial',
+  ],
+  fortificaciones: [
+    'Tostado & Calidez',
+    'Untuosidad & Grasa Noble',
+    'Granulometría & Molienda',
+    'Densidad Nutritiva',
+    'Amargor Noble / Tanino',
+    'Crocancia & Textura',
+    'Persistencia en Boca',
     'Vector Territorial',
   ],
   hidromiel: [
@@ -291,6 +308,14 @@ export const VALORES_DEFAULT_EJES: Record<string, number> = {
   'Sedosidad': 80,
   'Calma Cutánea': 85,
 
+  // Fortificaciones & Materias Primas Puras (Avellana chilena, polen puro, cacao, etc.)
+  'Tostado & Calidez': 85,
+  'Untuosidad & Grasa Noble': 80,
+  'Granulometría & Molienda': 75,
+  'Densidad Nutritiva': 90,
+  'Amargor Noble / Tanino': 40,
+  'Crocancia & Textura': 70,
+
   // Cera
   'Nutrición de Fibra': 90,
   'Hidrorrepelencia': 95,
@@ -329,14 +354,88 @@ export function resolverEjesSensoriales(
   if (normTipo.includes('hidromiel')) {
     return EJES_SENSORIALES_POR_CATEGORIA.hidromiel;
   }
-  if (normTipo.includes('extracto') || normTipo.includes('tintura')) {
+  if (normTipo.includes('extracto') || normTipo.includes('tintura') || normNom.includes('propoleo') || normNom.includes('propóleo')) {
     return EJES_SENSORIALES_POR_CATEGORIA.extracto;
   }
-  if (normTipo.includes('cosmetica') || normTipo.includes('cosmética') || normNom.includes('balsamo')) {
+  if (normTipo.includes('cosmetica') || normTipo.includes('cosmética') || normNom.includes('balsamo') || normNom.includes('bálsamo')) {
     return EJES_SENSORIALES_POR_CATEGORIA.cosmetica;
+  }
+  if (
+    normTipo === 'fortificaciones' ||
+    normTipo.includes('fortificaci') ||
+    normNom.includes('avellana') ||
+    normNom.includes('polen') ||
+    normNom.includes('cacao') ||
+    normNom.includes('semilla') ||
+    normNom.includes('fruto')
+  ) {
+    if (normTipo === 'miel_fortificada' || (normNom.includes('miel') && normTipo.includes('fortificada'))) {
+      return EJES_SENSORIALES_POR_CATEGORIA.miel_fortificada;
+    }
+    return EJES_SENSORIALES_POR_CATEGORIA.fortificaciones;
   }
   if (normTipo.includes('fortificada')) {
     return EJES_SENSORIALES_POR_CATEGORIA.miel_fortificada;
   }
   return EJES_SENSORIALES_POR_CATEGORIA.miel;
 }
+
+export interface PresetSensorial {
+  id: string;
+  label: string;
+  description: string;
+  ejes: readonly [string, string, string, string, string, string, string, string];
+  pares_semanticos: Array<{ par: string; izq: string; der: string }>;
+}
+
+export const PRESETS_FAMILIAS_SENSORIALES: PresetSensorial[] = [
+  {
+    id: 'miel',
+    label: 'Miel Cruda de Origen',
+    description: 'Monoflorales y multiflorales del bosque nativo chilote',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.miel,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.miel,
+  },
+  {
+    id: 'fortificaciones',
+    label: 'Fortificaciones & Materias Primas Puras',
+    description: 'Avellana chilena tostada y molida, polen floral puro, nibs de cacao criollo',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.fortificaciones,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.fortificaciones,
+  },
+  {
+    id: 'miel_fortificada',
+    label: 'Crema de Miel Fortificada',
+    description: 'Emulsiones untables de miel con adición de superalimentos',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.miel_fortificada,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.miel_fortificada,
+  },
+  {
+    id: 'hidromiel',
+    label: 'Hidromiel & Fermentados',
+    description: 'Fermentaciones salvajes, metheglin, melomel',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.hidromiel,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.hidromiel,
+  },
+  {
+    id: 'extracto',
+    label: 'Extractos & Tinturas',
+    description: 'Propóleo concentrado, elixires y tónicos bioactivos',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.extracto,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.extracto,
+  },
+  {
+    id: 'cosmetica',
+    label: 'Cosmética Botánica & Ceras',
+    description: 'Bálsamos labiales, ceras nobles, hidrolatos y cremas',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.cosmetica,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.cosmetica,
+  },
+  {
+    id: 'infusion',
+    label: 'Infusiones del Bosque Nativo',
+    description: 'Hojas, flores y cortezas medicinales de Chiloé',
+    ejes: EJES_SENSORIALES_POR_CATEGORIA.infusion,
+    pares_semanticos: PARES_SEMANTICOS_POR_CATEGORIA.infusion,
+  },
+];

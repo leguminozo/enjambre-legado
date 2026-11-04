@@ -2,12 +2,19 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle, Compass } from 'lucide-react';
+import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle, Compass, Sparkles, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, Skeleton, SkeletonKpi, SkeletonTable, ImmersiveModal, cn } from '@enjambre/ui';
 import type { ProductFormat, ProductCategory, ProductSensoryFamily } from '@/lib/product-types';
 import { extractGramajeFromFormato } from '@/lib/product-types';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import {
+  PRESETS_FAMILIAS_SENSORIALES,
+  EJES_SENSORIALES_POR_CATEGORIA,
+  PARES_SEMANTICOS_POR_CATEGORIA,
+  type TipoSensorial,
+  type PresetSensorial,
+} from '@enjambre/resenas';
 
 type TaxonomyKind = 'formato' | 'categoria' | 'familia_sensorial';
 
@@ -27,6 +34,8 @@ interface EditorState {
   sortOrder: number;
   active: boolean;
   pesoNetoG?: number | null;
+  ejes?: string[];
+  paresSemanticos?: Array<{ par: string; izq: string; der: string }>;
 }
 
 interface RowWithUsage {
@@ -39,6 +48,8 @@ interface RowWithUsage {
   /** productos que usan este value (columna TEXT libre en productos) */
   productosEnUso: number;
   peso_neto_g?: number | null;
+  ejes?: string[] | null;
+  pares_semanticos?: Array<{ par: string; izq: string; der: string }> | null;
 }
 
 const emptyEditor = (kind: TaxonomyKind): EditorState => ({
@@ -50,6 +61,14 @@ const emptyEditor = (kind: TaxonomyKind): EditorState => ({
   sortOrder: 0,
   active: true,
   pesoNetoG: null,
+  ejes:
+    kind === 'familia_sensorial'
+      ? [...EJES_SENSORIALES_POR_CATEGORIA.fortificaciones]
+      : undefined,
+  paresSemanticos:
+    kind === 'familia_sensorial'
+      ? [...PARES_SEMANTICOS_POR_CATEGORIA.fortificaciones]
+      : undefined,
 });
 
 const TABLE_BY_KIND: Record<TaxonomyKind, 'product_formats' | 'product_categories' | 'product_sensory_families'> = {
@@ -163,6 +182,8 @@ export function TaxonomiasPanel() {
       }
       if (editor.kind === 'familia_sensorial') {
         payload.description = editor.description?.trim() ?? '';
+        payload.ejes = editor.ejes && editor.ejes.length > 0 ? editor.ejes : [...EJES_SENSORIALES_POR_CATEGORIA.miel];
+        payload.pares_semanticos = editor.paresSemanticos && editor.paresSemanticos.length > 0 ? editor.paresSemanticos : [...PARES_SEMANTICOS_POR_CATEGORIA.miel];
       }
 
       const kindName = KIND_CONFIG[editor.kind].singular;
@@ -178,6 +199,8 @@ export function TaxonomiasPanel() {
         }
         if (editor.kind === 'familia_sensorial') {
           updatePayload.description = editor.description?.trim() ?? '';
+          updatePayload.ejes = payload.ejes;
+          updatePayload.pares_semanticos = payload.pares_semanticos;
         }
         const { error } = await supabase.from(table).update(updatePayload).eq('id', editor.editingId);
         if (error) throw error;
@@ -336,7 +359,14 @@ export function TaxonomiasPanel() {
         rows={sensoryFamilies}
         actionLoading={actionLoading}
         onCreate={() => setEditor(emptyEditor('familia_sensorial'))}
-        onEdit={(row) =>
+        onEdit={(row) => {
+          const defaultEjes = EJES_SENSORIALES_POR_CATEGORIA[row.value as TipoSensorial]
+            ? [...EJES_SENSORIALES_POR_CATEGORIA[row.value as TipoSensorial]]
+            : [...EJES_SENSORIALES_POR_CATEGORIA.miel];
+          const defaultPairs = PARES_SEMANTICOS_POR_CATEGORIA[row.value as TipoSensorial]
+            ? [...PARES_SEMANTICOS_POR_CATEGORIA[row.value as TipoSensorial]]
+            : [...PARES_SEMANTICOS_POR_CATEGORIA.miel];
+
           setEditor({
             kind: 'familia_sensorial',
             editingId: row.id,
@@ -345,8 +375,13 @@ export function TaxonomiasPanel() {
             description: row.description ?? '',
             sortOrder: row.sort_order,
             active: row.active,
-          })
-        }
+            ejes: Array.isArray(row.ejes) && row.ejes.length > 0 ? (row.ejes as string[]) : defaultEjes,
+            paresSemanticos:
+              Array.isArray(row.pares_semanticos) && row.pares_semanticos.length > 0
+                ? (row.pares_semanticos as Array<{ par: string; izq: string; der: string }>)
+                : defaultPairs,
+          });
+        }}
         onToggle={toggleActive}
         onRemove={remove}
       />
@@ -362,7 +397,7 @@ export function TaxonomiasPanel() {
               : `Nueva ${KIND_CONFIG[editor.kind].singular}`
             : ''
         }
-        size="md"
+        size={editor?.kind === 'familia_sensorial' ? 'lg' : 'md'}
         footer={
           <>
             <button onClick={() => setEditor(null)} className="btn btn-outline text-xs">Cancelar</button>
@@ -453,21 +488,195 @@ export function TaxonomiasPanel() {
               </p>
             </div>
             {editor.kind === 'familia_sensorial' && (
-              <div>
-                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
-                  Descripción organoléptica / Subtítulo
-                </label>
-                <input
-                  type="text"
-                  value={editor.description ?? ''}
-                  onChange={(e) => setEditor({ ...editor, description: e.target.value })}
-                  placeholder="ej: Infusiones del bosque nativo y hierbas silvestres"
-                  className="input-field text-sm"
-                />
-                <p className="text-[0.7rem] text-muted-foreground mt-1">
-                  Subtítulo explicativo exhibido en el selector de producto y la Escuela de Venta POS.
-                </p>
-              </div>
+              <>
+                <div>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
+                    Descripción organoléptica / Subtítulo
+                  </label>
+                  <input
+                    type="text"
+                    value={editor.description ?? ''}
+                    onChange={(e) => setEditor({ ...editor, description: e.target.value })}
+                    placeholder="ej: Infusiones del bosque nativo y hierbas silvestres"
+                    className="input-field text-sm"
+                  />
+                  <p className="text-[0.7rem] text-muted-foreground mt-1">
+                    Subtítulo explicativo exhibido en el selector de producto y la Escuela de Venta POS.
+                  </p>
+                </div>
+
+                {/* Selector de Plantillas Canónicas Rápidas */}
+                <div className="p-3.5 bg-foreground/[0.03] rounded-xl border border-border/70 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Sparkles size={13} className="text-primary" />
+                      Plantillas canónicas de Constelación Sensorial
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">Pre-carga 8 ejes y 3 dimensiones</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PRESETS_FAMILIAS_SENSORIALES.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setEditor({
+                            ...editor,
+                            value: editor.editingId ? editor.value : (editor.value || preset.id),
+                            label: editor.label || preset.label,
+                            description: editor.description || preset.description,
+                            ejes: [...preset.ejes],
+                            paresSemanticos: preset.pares_semanticos.map((p) => ({ ...p })),
+                          });
+                          toast.success(`Plantilla «${preset.label}» cargada`);
+                        }}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-foreground/80 hover:text-foreground transition-colors"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ejes de la Red Sensorial (Puntos del Radar) */}
+                <div className="p-3.5 bg-card rounded-xl border border-border/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                        Puntos de la Red Sensorial ({editor.ejes?.length ?? 8} Ejes del Radar)
+                      </label>
+                      <span className="text-[0.7rem] text-muted-foreground">
+                        Cada punto genera las aristas de la red poligonal en la tienda web y cata técnica.
+                      </span>
+                    </div>
+                    {(editor.ejes?.length ?? 0) < 10 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = editor.ejes || [];
+                          setEditor({
+                            ...editor,
+                            ejes: [...current, `Nuevo Eje ${current.length + 1}`],
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-xs font-semibold hover:border-primary/50 text-foreground transition-colors"
+                      >
+                        <Plus size={12} /> Agregar Punto
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(editor.ejes || []).map((axis, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-surface-sunken/40 border border-border/50 text-xs"
+                      >
+                        <span className="font-mono text-[10px] text-muted-foreground w-4 shrink-0 text-center">
+                          {idx + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={axis}
+                          onChange={(e) => {
+                            const next = [...(editor.ejes || [])];
+                            next[idx] = e.target.value;
+                            setEditor({ ...editor, ejes: next });
+                          }}
+                          placeholder={`Eje ${idx + 1}`}
+                          className="input-field p-1.5 text-xs flex-1 bg-card"
+                        />
+                        {(editor.ejes?.length ?? 0) > 3 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = (editor.ejes || []).filter((_, i) => i !== idx);
+                              setEditor({ ...editor, ejes: next });
+                            }}
+                            className="p-1 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                            title="Eliminar punto de la red"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3 Dimensiones Métricas Primarias (Pares Semánticos) */}
+                <div className="p-3.5 bg-card rounded-xl border border-border/80 space-y-3">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                      3 Dimensiones Métricas Primarias (Deslizadores de Resumen)
+                    </label>
+                    <span className="text-[0.7rem] text-muted-foreground">
+                      Define qué miden los 3 cursores principales en lugar de heredar los valores fijos de la miel.
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {(editor.paresSemanticos || [
+                      { par: 'Intensidad', izq: 'Suave & Sutil', der: 'Intenso & Tostado' },
+                      { par: 'Molienda / Textura', izq: 'Fina / Sedosa', der: 'Granulada / Rústica' },
+                      { par: 'Untuosidad / Grasa', izq: 'Seco & Harinoso', der: 'Untuoso & Oleoso' },
+                    ]).map((pair, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg bg-surface-sunken/40 border border-border/50 space-y-1.5 text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] text-primary font-bold">Dimensión {idx + 1}:</span>
+                          <input
+                            type="text"
+                            value={pair.par}
+                            onChange={(e) => {
+                              const next = [...(editor.paresSemanticos || [])];
+                              if (!next[idx]) next[idx] = { par: '', izq: '', der: '' };
+                              next[idx].par = e.target.value;
+                              setEditor({ ...editor, paresSemanticos: next });
+                            }}
+                            placeholder="Nombre (ej. Intensidad, Molienda, Untuosidad)"
+                            className="input-field p-1 text-xs flex-1 bg-card font-semibold"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pl-4">
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-0.5">Extremo Izquierdo (0%)</span>
+                            <input
+                              type="text"
+                              value={pair.izq}
+                              onChange={(e) => {
+                                const next = [...(editor.paresSemanticos || [])];
+                                if (!next[idx]) next[idx] = { par: '', izq: '', der: '' };
+                                next[idx].izq = e.target.value;
+                                setEditor({ ...editor, paresSemanticos: next });
+                              }}
+                              placeholder="ej: Sutil & Crudo"
+                              className="input-field p-1 text-xs w-full bg-card"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-0.5">Extremo Derecho (100%)</span>
+                            <input
+                              type="text"
+                              value={pair.der}
+                              onChange={(e) => {
+                                const next = [...(editor.paresSemanticos || [])];
+                                if (!next[idx]) next[idx] = { par: '', izq: '', der: '' };
+                                next[idx].der = e.target.value;
+                                setEditor({ ...editor, paresSemanticos: next });
+                              }}
+                              placeholder="ej: Intenso & Tostado"
+                              className="input-field p-1 text-xs w-full bg-card"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
             {editor.kind === 'formato' && (
               <div className="p-3 bg-foreground/[0.03] rounded-lg border border-border/60 space-y-1.5">
@@ -630,6 +839,11 @@ function TaxonomyRow({ row, kind, actionLoading, onEdit, onToggle, onRemove }: T
         {kind === 'formato' && (
           <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
             {row.peso_neto_g ? `${row.peso_neto_g} g` : extractGramajeFromFormato(row.value) ? `${extractGramajeFromFormato(row.value)} g (auto)` : 'Sin gramaje'}
+          </span>
+        )}
+        {kind === 'familia_sensorial' && (
+          <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+            {Array.isArray(row.ejes) && row.ejes.length > 0 ? `${row.ejes.length} ejes` : '8 ejes'}
           </span>
         )}
         {kind === 'familia_sensorial' && row.description && (

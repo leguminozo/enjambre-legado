@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { ContactoInstitucionalForm } from '@/components/territorio/ContactoInstitucionalForm';
 import { CONTACTO_INSTITUCIONAL, lineaProveedor } from '@/lib/contacto-institucional';
@@ -151,10 +152,12 @@ const MARCO_LEGAL_TABLA = [
   },
 ];
 
-export default function MunicipalidadesPage() {
+export default async function MunicipalidadesPage() {
+  const cms = await getTerritorioCmsContent();
+
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
 
       <section className="pt-16 pb-20 px-6 sm:px-12 lg:px-24">
         <div className="max-w-3xl mx-auto">

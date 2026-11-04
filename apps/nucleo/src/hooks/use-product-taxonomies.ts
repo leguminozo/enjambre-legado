@@ -61,7 +61,16 @@ export function useProductTaxonomies() {
       };
 
       const toSensoryOptions = (
-        rows: { value: string; label: string; description?: string | null; active: boolean }[] | null,
+        rows:
+          | (Record<string, unknown> & {
+              value: string;
+              label: string;
+              description?: string | null;
+              active: boolean;
+              ejes?: unknown;
+              pares_semanticos?: unknown;
+            })[]
+          | null,
         fallback: ProductSensoryFamilyOption[],
       ): ProductSensoryFamilyOption[] => {
         if (!rows) return fallback;
@@ -69,6 +78,10 @@ export function useProductTaxonomies() {
           value: r.value,
           label: r.label,
           description: r.description ?? null,
+          ejes: Array.isArray(r.ejes) ? (r.ejes as string[]) : undefined,
+          pares_semanticos: Array.isArray(r.pares_semanticos)
+            ? (r.pares_semanticos as Array<{ par: string; izq: string; der: string }>)
+            : undefined,
         }));
         return active.length > 0 ? active : fallback;
       };

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { Scale, ShieldCheck, ArrowLeft, ExternalLink } from 'lucide-react';
 
@@ -335,10 +336,12 @@ const TRANSITORIOS: Articulo[] = [
   },
 ];
 
-export default function OrdenanzaModeloPage() {
+export default async function OrdenanzaModeloPage() {
+  const cms = await getTerritorioCmsContent();
+
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
 
       {/* Barra superior de navegación / acciones */}
       <div className="border-b border-border/80 bg-surface-raised/40 px-6 sm:px-12 py-3 sticky top-14 z-20 backdrop-blur-md print:hidden">

@@ -23,7 +23,7 @@ export const AtributosMielSchema = z.object({
   familia_aromatica: z.enum(FAMILIAS_AROMATICAS),
   intensidad_fondo: z.number().int().min(1).max(10),
   momento_recoleccion: z.enum(MOMENTO_RECOLECCION_OPCIONES).optional(),
-});
+}).passthrough();
 
 export const AtributosMielFortificadaSchema = z.object({
   tipo: z.literal('miel_fortificada'),
@@ -32,7 +32,7 @@ export const AtributosMielFortificadaSchema = z.object({
   textura_inclusion: z.enum(FORTIFICADA_TEXTURAS),
   intensidad_fondo: z.number().int().min(1).max(10),
   familia_aromatica: z.enum(FAMILIAS_AROMATICAS).optional(),
-});
+}).passthrough();
 
 export const AtributosHidromielSchema = z.object({
   tipo: z.literal('hidromiel'),
@@ -40,33 +40,47 @@ export const AtributosHidromielSchema = z.object({
   efervescencia: z.enum(HIDROMIEL_EFERVESCENCIA),
   acidez_viva: z.number().int().min(1).max(10),
   tanicidad: z.number().int().min(1).max(10),
-});
+}).passthrough();
 
 export const AtributosExtractoSchema = z.object({
   tipo: z.literal('extracto'),
   percepcion_garganta: z.enum(EXTRACTO_SENSACIONES),
   concentracion_percibida: z.number().int().min(1).max(10),
-});
+}).passthrough();
 
 export const AtributosCosmeticaSchema = z.object({
   tipo: z.literal('cosmetica'),
   absorcion_dermica: z.enum(COSMETICA_ABSORCIONES),
   sensacion_grasa: z.number().int().min(1).max(10),
-});
+}).passthrough();
 
 export const AtributosInfusionSchema = z.object({
   tipo: z.literal('infusion'),
   intensidad_infusion: z.number().int().min(1).max(10),
   complejidad_herbal: z.number().int().min(1).max(10),
-});
+}).passthrough();
 
-export const AtributosSensorialesSchema = z.discriminatedUnion('tipo', [
+export const AtributosFortificacionesSchema = z.object({
+  tipo: z.literal('fortificaciones'),
+  tostado: z.number().int().min(1).max(10).optional(),
+  molienda: z.string().optional(),
+  untuosidad: z.number().int().min(1).max(10).optional(),
+  intensidad_fondo: z.number().int().min(1).max(10).optional(),
+}).passthrough();
+
+export const AtributosDinamicosSchema = z.object({
+  tipo: z.string(),
+}).passthrough();
+
+export const AtributosSensorialesSchema = z.union([
   AtributosMielSchema,
   AtributosMielFortificadaSchema,
+  AtributosFortificacionesSchema,
   AtributosHidromielSchema,
   AtributosExtractoSchema,
   AtributosCosmeticaSchema,
   AtributosInfusionSchema,
+  AtributosDinamicosSchema,
 ]);
 
 // ── Reseñas por modo de ingesta ─────────────────────────────────────────────
@@ -75,7 +89,7 @@ export const ResenaAnonimaInputSchema = z.object({
   modo: z.literal('anonima'),
   producto_id: z.string().uuid(),
   variante_id: z.string().uuid().optional(),
-  tipo_sensorial: z.enum(CATEGORIAS_SENSORIALES).optional().default('miel'),
+  tipo_sensorial: z.string().min(1).optional().default('miel'),
   rating: ratingSchema,
   comentario_corto: z.string().trim().min(3).max(ANON_COMMENT_MAX),
   display_name: z.string().trim().min(2).max(40).optional(),
@@ -86,7 +100,7 @@ export const ResenaGuardianInputSchema = z
     modo: z.literal('guardian'),
     producto_id: z.string().uuid(),
     variante_id: z.string().uuid().optional(),
-    tipo_sensorial: z.enum(CATEGORIAS_SENSORIALES).optional().default('miel'),
+    tipo_sensorial: z.string().min(1).optional().default('miel'),
     rating: ratingSchema,
     venta_id: z.string().min(1).optional(),
     lote_id: z.string().uuid().optional(),
@@ -128,7 +142,7 @@ export const ListResenasQuerySchema = z
   .object({
     producto_id: z.string().uuid().optional(),
     variante_id: z.string().uuid().optional(),
-    tipo_sensorial: z.enum(CATEGORIAS_SENSORIALES).optional(),
+    tipo_sensorial: z.string().min(1).optional(),
     modo: z.enum(['anonima', 'guardian', 'all']).optional().default('all'),
     page: z.coerce.number().int().positive().optional().default(1),
     limit: z.coerce.number().int().min(1).max(50).optional().default(10),

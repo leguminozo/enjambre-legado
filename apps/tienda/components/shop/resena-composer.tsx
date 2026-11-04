@@ -6,6 +6,7 @@ import {
   CRISTALIZACION_OPCIONES,
   FAMILIAS_AROMATICAS,
   CATEGORIAS_SENSORIALES,
+  CATEGORIAS_SENSORIALES_LABELS,
   FORTIFICANTES_CANONICOS,
   FORTIFICANTES_LABELS,
   FORTIFICADA_TEXTURAS,
@@ -13,13 +14,31 @@ import {
   HIDROMIEL_EFERVESCENCIA,
   EXTRACTO_SENSACIONES,
   COSMETICA_ABSORCIONES,
+  MOMENTO_RECOLECCION_OPCIONES,
+  MOMENTO_RECOLECCION_LABELS,
+  PARES_SEMANTICOS_POR_CATEGORIA,
   RESENA_COPY,
   type CategoriaSensorial,
   type CreateResenaInput,
   type AtributosSensoriales,
+  type FortificanteCanonico,
+  type MomentoRecoleccion,
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
-import { Star, ShieldCheck, Compass, UserCheck } from 'lucide-react';
+import {
+  Star,
+  ShieldCheck,
+  Compass,
+  UserCheck,
+  Sparkles,
+  Sliders,
+  Check,
+  Plus,
+  UtensilsCrossed,
+  Clock,
+  Tag,
+  Info,
+} from 'lucide-react';
 import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 import { checkEligible, createResena, getAuthToken } from '@/lib/shop/resenas-api';
 import { useAuth } from '@/components/providers/auth-context';
@@ -36,7 +55,38 @@ export interface VarianteOption {
   precio_override?: number | null;
 }
 
-// Selector de 7 estrellas (escala cultural chilena de 1 a 7)
+export interface ResenaComposerProps {
+  productoId: string;
+  productName: string;
+  productSlug?: string;
+  open: boolean;
+  onClose: () => void;
+  onSubmitted?: () => void;
+  tipoSensorial?: CategoriaSensorial | string;
+  tipoSensorialLabel?: string | null;
+  perfilSensorial?: {
+    intensidad?: number;
+    dulzor_acidez?: number;
+    textura?: number;
+    descriptores_intensidad?: { izq?: string; der?: string };
+    descriptores_dulzor?: { izq?: string; der?: string };
+    descriptores_textura?: { izq?: string; der?: string };
+    notas_aromaticas?: string[];
+    maridajes?: Array<{ titulo: string; detalle: string }>;
+    momento_consumo?: string;
+    ejes?: string[];
+    ejes_calibracion?: Record<string, number> | null;
+    pares_semanticos?: Array<{ par: string; izq: string; der: string }>;
+    qr_modo?: 'experiencia' | 'trazabilidad' | 'comercial';
+    qr_titulo?: string;
+    qr_mensaje?: string;
+    qr_cta_resena?: string;
+  } | null;
+  variantes?: VarianteOption[];
+  initialVarianteId?: string;
+}
+
+// Selector de 7 estrellas (escala cultural de 1 a 7)
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
     <div className="flex items-center gap-1 sm:gap-1.5">
@@ -82,22 +132,16 @@ function formatInitials(raw: string | undefined): string | undefined {
 export function ResenaComposer({
   productoId,
   productName,
+  productSlug,
   open,
   onClose,
   onSubmitted,
   tipoSensorial = 'miel',
+  tipoSensorialLabel,
+  perfilSensorial,
   variantes = [],
   initialVarianteId,
-}: {
-  productoId: string;
-  productName: string;
-  open: boolean;
-  onClose: () => void;
-  onSubmitted?: () => void;
-  tipoSensorial?: CategoriaSensorial | string;
-  variantes?: VarianteOption[];
-  initialVarianteId?: string;
-}) {
+}: ResenaComposerProps) {
   const [modo, setModo] = useState<Modo>('anonima');
   const [selectedVarianteId, setSelectedVarianteId] = useState<string | null>(initialVarianteId ?? null);
   const [rating, setRating] = useState(7);
@@ -108,6 +152,7 @@ export function ResenaComposer({
   const [cristalizacion, setCristalizacion] = useState<string>(CRISTALIZACION_OPCIONES[0]);
   const [familia, setFamilia] = useState<string>(FAMILIAS_AROMATICAS[0]);
   const [intensidad, setIntensidad] = useState(7);
+  const [momentoRecoleccion, setMomentoRecoleccion] = useState<MomentoRecoleccion>('primera_extraccion');
   const [notas, setNotas] = useState('');
   const [momento, setMomento] = useState('');
   const [maridaje, setMaridaje] = useState('');
@@ -134,6 +179,18 @@ export function ResenaComposer({
   // Infusión
   const [intensidadInfusion, setIntensidadInfusion] = useState(7);
   const [complejidadHerbal, setComplejidadHerbal] = useState(7);
+
+  // Fortificaciones puras
+  const [tostado, setTostado] = useState(7);
+  const [molienda, setMolienda] = useState('Molienda fina sedosa');
+  const [untuosidad, setUntuosidad] = useState(7);
+
+  // Pares Semánticos Dinámicos (Contrastes)
+  const [paresState, setParesState] = useState<Record<string, number>>({});
+
+  // Notas Aromáticas / Botánicas Seleccionadas
+  const [selectedNotas, setSelectedNotas] = useState<Set<string>>(new Set());
+  const [customNotaInput, setCustomNotaInput] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [eligibilityLoading, setEligibilityLoading] = useState(false);
@@ -165,6 +222,57 @@ export function ResenaComposer({
     }
     return 'miel';
   }, [selectedVariante, tipoSensorial]);
+
+  // Pares semánticos activos: configurados en Núcleo para este producto o defaults por familia
+  const activePares = useMemo(() => {
+    if (perfilSensorial?.pares_semanticos && perfilSensorial.pares_semanticos.length > 0) {
+      return perfilSensorial.pares_semanticos;
+    }
+    return PARES_SEMANTICOS_POR_CATEGORIA[effectiveTipo] ?? PARES_SEMANTICOS_POR_CATEGORIA.miel;
+  }, [perfilSensorial?.pares_semanticos, effectiveTipo]);
+
+  // Inicializar estado de pares semánticos si no están seteados
+  useEffect(() => {
+    setParesState((prev) => {
+      const next = { ...prev };
+      for (const p of activePares) {
+        if (next[p.par] === undefined) {
+          next[p.par] = 6;
+        }
+      }
+      return next;
+    });
+  }, [activePares]);
+
+  // Notas botánicas y aromáticas disponibles para tildar
+  const availableNotas = useMemo(() => {
+    const set = new Set<string>();
+    if (perfilSensorial?.notas_aromaticas) {
+      for (const n of perfilSensorial.notas_aromaticas) {
+        if (n && n.trim()) set.add(n.trim());
+      }
+    }
+    for (const f of FAMILIAS_AROMATICAS) {
+      set.add(f);
+    }
+    return Array.from(set);
+  }, [perfilSensorial?.notas_aromaticas]);
+
+  const toggleNota = (nota: string) => {
+    setSelectedNotas((prev) => {
+      const next = new Set(prev);
+      if (next.has(nota)) next.delete(nota);
+      else next.add(nota);
+      return next;
+    });
+  };
+
+  const handleAddCustomNota = () => {
+    const trimmed = customNotaInput.trim();
+    if (!trimmed) return;
+    setSelectedNotas((prev) => new Set([...prev, trimmed]));
+    setCustomNotaInput('');
+  };
 
   useEffect(() => {
     if (selectedVariante?.ingrediente_fortificante && selectedVariante.ingrediente_fortificante !== 'ninguno') {
@@ -214,6 +322,13 @@ export function ResenaComposer({
   }, [open, modo, isAuthenticated, productoId]);
 
   const buildAtributos = (): AtributosSensoriales => {
+    const baseExtra = {
+      pares_semanticos: paresState,
+      notas_seleccionadas: Array.from(selectedNotas),
+      maridaje_sugerido: maridaje.trim() || undefined,
+      momento_sugerido: momento.trim() || undefined,
+    };
+
     switch (effectiveTipo) {
       case 'miel':
         return {
@@ -221,6 +336,8 @@ export function ResenaComposer({
           cristalizacion: cristalizacion as (typeof CRISTALIZACION_OPCIONES)[number],
           familia_aromatica: familia as (typeof FAMILIAS_AROMATICAS)[number],
           intensidad_fondo: intensidad,
+          momento_recoleccion: momentoRecoleccion,
+          ...baseExtra,
         };
       case 'miel_fortificada':
         return {
@@ -232,6 +349,16 @@ export function ResenaComposer({
           textura_inclusion: texturaInclusion as (typeof FORTIFICADA_TEXTURAS)[number],
           intensidad_fondo: intensidad,
           familia_aromatica: familia as (typeof FAMILIAS_AROMATICAS)[number],
+          ...baseExtra,
+        };
+      case 'fortificaciones':
+        return {
+          tipo: 'fortificaciones',
+          tostado,
+          molienda,
+          untuosidad,
+          intensidad_fondo: intensidad,
+          ...baseExtra,
         };
       case 'hidromiel':
         return {
@@ -240,24 +367,33 @@ export function ResenaComposer({
           efervescencia: hidromielEfervescencia as (typeof HIDROMIEL_EFERVESCENCIA)[number],
           acidez_viva: acidezViva,
           tanicidad,
+          ...baseExtra,
         };
       case 'extracto':
         return {
           tipo: 'extracto',
           percepcion_garganta: extractoSensacion as (typeof EXTRACTO_SENSACIONES)[number],
           concentracion_percibida: concentracion,
+          ...baseExtra,
         };
       case 'cosmetica':
         return {
           tipo: 'cosmetica',
           absorcion_dermica: cosmeticaAbsorcion as (typeof COSMETICA_ABSORCIONES)[number],
           sensacion_grasa: sensacionGrasa,
+          ...baseExtra,
         };
       case 'infusion':
         return {
           tipo: 'infusion',
           intensidad_infusion: intensidadInfusion,
           complejidad_herbal: complejidadHerbal,
+          ...baseExtra,
+        };
+      default:
+        return {
+          tipo: String(effectiveTipo),
+          ...baseExtra,
         };
     }
   };
@@ -351,7 +487,7 @@ export function ResenaComposer({
         }`}
       >
         <ShieldCheck size={14} />
-        <span>Legado Sensorial</span>
+        <span>Huella Legado</span>
       </button>
     </div>
   );
@@ -360,8 +496,16 @@ export function ResenaComposer({
     <TiendaModal
       open={open}
       onClose={onClose}
-      kicker={selectedVariante ? 'Variante de Edición' : 'Expresión Botánica de Origen'}
-      title={selectedVariante ? `Cata de ${selectedVariante.nombre_variante}` : `Cata de ${productName}`}
+      kicker={
+        selectedVariante
+          ? `Edición · ${selectedVariante.nombre_variante}`
+          : tipoSensorialLabel || CATEGORIAS_SENSORIALES_LABELS[effectiveTipo] || 'Expresión Botánica de Origen'
+      }
+      title={
+        selectedVariante
+          ? `Cata de ${selectedVariante.nombre_variante}`
+          : `Cata Sensorial · ${productName}`
+      }
       ariaLabel={`Crear reseña sensorial de ${productName}`}
       size="lg"
       headerExtra={modeTabs}
@@ -383,9 +527,9 @@ export function ResenaComposer({
               className="w-full min-h-[48px] rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {loading
-                ? 'Registrando...'
+                ? 'Registrando huella...'
                 : modo === 'guardian'
-                  ? 'Confirmar Huella en el Legado Sensorial'
+                  ? 'Confirmar Huella en el Legado Sensorial (+ciclos)'
                   : 'Publicar Testimonio de Paso'}
             </button>
           )}
@@ -393,12 +537,27 @@ export function ResenaComposer({
       }
     >
       <div className="space-y-5">
-        {/* Selector de Variante / Fortificación si existen opciones */}
+        {/* Guía curatorial desde Núcleo (si fue configurada) */}
+        {perfilSensorial?.qr_titulo && (
+          <div className="p-3.5 rounded-xl bg-accent/5 border border-accent/20 space-y-1">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-accent-text">
+              <Sparkles size={13} />
+              <span>{perfilSensorial.qr_titulo}</span>
+            </div>
+            {perfilSensorial.qr_mensaje && (
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {perfilSensorial.qr_mensaje}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Selector de Variante / Edición si existen opciones */}
         {variantes.length > 0 && (
           <div className="p-3.5 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
               <Compass size={13} className="text-primary" />
-              <span>¿Qué edición o variante probaste?</span>
+              <span>¿Qué edición o formato probaste?</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               <button
@@ -410,7 +569,7 @@ export function ResenaComposer({
                     : 'bg-card border border-border/80 text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Formato Base / Miel Pura
+                Formato Base
               </button>
               {variantes.map((v) => (
                 <button
@@ -440,11 +599,12 @@ export function ResenaComposer({
         </div>
 
         {modo === 'anonima' ? (
-          /* Modo Visitantes (Rápido) */
+          /* ================================================================ */
+          /* MODO VISITANTES (Rápido & Anónimo)                               */
+          /* ================================================================ */
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Comparte tu percepción en 30 segundos. Ideal para quienes degustaron en una cafetería aliada, hotel,
-              feria o acaban de probar el producto en casa.
+              Comparte tu testimonio en 30 segundos. Tu reseña será moderada por el equipo antes de publicarse en la tienda.
             </p>
 
             <div className="space-y-1.5">
@@ -458,7 +618,7 @@ export function ResenaComposer({
                 rows={4}
                 placeholder={
                   effectiveTipo === 'miel_fortificada'
-                    ? 'Describe qué sensaciones te evocó la combinación de miel cruda y la inclusión botánica...'
+                    ? 'Describe qué sensaciones te evocó la combinación de miel cruda y la adición botánica...'
                     : 'Describe qué sensaciones, texturas o recuerdos te evocó este producto del bosque...'
                 }
                 className={`${modalFieldClass} resize-none`}
@@ -472,7 +632,7 @@ export function ResenaComposer({
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="ej. G. C. o Guardián del Sur"
+                placeholder="ej. G. C. o Visitante del Bosque"
                 className={modalFieldClass}
               />
               <p className="text-[11px] text-muted-foreground/80">
@@ -481,8 +641,10 @@ export function ResenaComposer({
             </div>
           </div>
         ) : (
-          /* Modo Legado Sensorial (Experiencia Completa para Miembros) */
-          <div className="space-y-4">
+          /* ================================================================ */
+          /* MODO LEGADO SENSORIAL (Profundo & Ramificado)                     */
+          /* ================================================================ */
+          <div className="space-y-5">
             {!isAuthenticated ? (
               <div className="p-5 rounded-2xl border border-primary/30 bg-primary/5 space-y-3">
                 <div className="flex items-center gap-2 text-primary font-semibold text-sm">
@@ -490,9 +652,9 @@ export function ResenaComposer({
                   <span>Cata Completa del Enjambre Legado</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  El protocolo de cata profunda te permite calibrar cuerpo, aroma, notas organolépticas y sugerir
-                  maridajes. Además, acumula puntos de fidelidad en tu cuenta del Club Legado y otorga el sello dorado
-                  de <strong>Legado</strong> a tu testimonio.
+                  El protocolo de cata profunda te permite calibrar contrastes sensoriales, identificar notas botánicas
+                  y proponer maridajes. Además, acumula ciclos de néctar en tu cuenta del Club Legado y otorga la insignia dorada
+                  de <strong>Legado</strong> a tu reseña.
                 </p>
                 <div className="pt-2 flex flex-col sm:flex-row gap-2">
                   <Link
@@ -512,21 +674,126 @@ export function ResenaComposer({
               </div>
             ) : (
               <>
-                <p className="text-xs text-primary/90 leading-relaxed font-medium">
-                  {RESENA_COPY.guardianSubtitle}
-                </p>
+                <div className="flex items-center justify-between text-xs text-primary/90 font-medium">
+                  <span>{RESENA_COPY.guardianSubtitle}</span>
+                  {eligibilityLoading ? (
+                    <span className="text-muted-foreground italic">Verificando compras...</span>
+                  ) : eligibility?.compraVerificada ? (
+                    <span className="text-success-text flex items-center gap-1">
+                      <Check size={13} />
+                      Compra verificada
+                    </span>
+                  ) : null}
+                </div>
 
-                {eligibilityLoading ? (
-                  <p className="text-xs text-muted-foreground italic">Verificando compras asociadas…</p>
-                ) : eligibility?.compraVerificada ? (
-                  <p className="text-xs text-success-text/90 font-medium">
-                    ✓ Compra verificada: tu reseña recibirá la insignia de Compra Verificada y Sello Legado.
-                  </p>
-                ) : null}
+                {/* ── 1. Contrastes Organolépticos (Pares Semánticos) ──────────── */}
+                {activePares.length > 0 && (
+                  <div className="p-4 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-3.5">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                      <Sliders size={13} className="text-primary" />
+                      <span>Calibración de Contrastes Organolépticos</span>
+                    </div>
 
-                {/* Campos Sensoriales Polimórficos según Categoría */}
+                    <div className="space-y-3 pt-1">
+                      {activePares.map((par) => {
+                        const val = paresState[par.par] ?? 6;
+                        return (
+                          <div key={par.par} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs font-medium">
+                              <span className={val <= 4 ? 'text-primary font-semibold' : 'text-muted-foreground'}>
+                                {par.izq}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground font-mono tabular-nums">
+                                {val <= 4 ? `Tendencia ${par.izq}` : val >= 7 ? `Tendencia ${par.der}` : 'Equilibrado'} ({val}/10)
+                              </span>
+                              <span className={val >= 7 ? 'text-primary font-semibold' : 'text-muted-foreground'}>
+                                {par.der}
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min={1}
+                              max={10}
+                              value={val}
+                              onChange={(e) =>
+                                setParesState((prev) => ({
+                                  ...prev,
+                                  [par.par]: Number(e.target.value),
+                                }))
+                              }
+                              className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── 2. Notas Aromáticas & Botánicas Reconocidas ───────────────── */}
+                <div className="p-4 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                      <Tag size={13} className="text-primary" />
+                      <span>Notas Aromáticas & Botánicas Reconocidas</span>
+                    </div>
+                    {selectedNotas.size > 0 && (
+                      <span className="text-[11px] text-accent-text font-medium">
+                        {selectedNotas.size} {selectedNotas.size === 1 ? 'nota' : 'notas'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableNotas.map((n) => {
+                      const active = selectedNotas.has(n);
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => toggleNota(n)}
+                          className={`text-xs px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+                            active
+                              ? 'bg-accent/20 text-accent-text font-semibold border border-accent/40 shadow-sm'
+                              : 'bg-card border border-border/70 text-muted-foreground hover:text-foreground hover:border-border'
+                          }`}
+                        >
+                          {active && <Check size={12} />}
+                          <span>{n}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Input para agregar descriptor adicional */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={customNotaInput}
+                      onChange={(e) => setCustomNotaInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCustomNota();
+                        }
+                      }}
+                      placeholder="¿Descubriste otra nota o matiz en tu cata?"
+                      className={`${modalFieldClass} text-xs py-1.5`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomNota}
+                      disabled={!customNotaInput.trim()}
+                      className="px-3 py-2 rounded-lg bg-surface-raised border border-border text-xs font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-40 transition"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── 3. Dimensiones Organolépticas de Familia ──────────────────── */}
                 {effectiveTipo === 'miel' && (
-                  <>
+                  <div className="space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className="text-xs space-y-1.5 block">
                         <span className="uppercase tracking-wider text-muted-foreground font-medium block">
@@ -562,27 +829,46 @@ export function ResenaComposer({
                       </label>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs">
-                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
-                          Intensidad en Paladar
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Momento de Recolección
                         </span>
-                        <span className="font-semibold text-primary">{intensidad} / 10</span>
+                        <select
+                          value={momentoRecoleccion}
+                          onChange={(e) => setMomentoRecoleccion(e.target.value as MomentoRecoleccion)}
+                          className={modalFieldClass}
+                        >
+                          {MOMENTO_RECOLECCION_OPCIONES.map((m) => (
+                            <option key={m} value={m}>
+                              {MOMENTO_RECOLECCION_LABELS[m]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Intensidad en Paladar
+                          </span>
+                          <span className="font-semibold text-primary">{intensidad} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={intensidad}
+                          onChange={(e) => setIntensidad(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
                       </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={10}
-                        value={intensidad}
-                        onChange={(e) => setIntensidad(Number(e.target.value))}
-                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                      />
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {effectiveTipo === 'miel_fortificada' && (
-                  <>
+                  <div className="space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className="text-xs space-y-1.5 block">
                         <span className="uppercase tracking-wider text-muted-foreground font-medium block">
@@ -619,50 +905,107 @@ export function ResenaComposer({
                       </label>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs">
-                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
-                          Balance Miel vs Inclusión
-                        </span>
-                        <span className="font-semibold text-primary">
-                          {balanceInclusion <= 4
-                            ? 'Domina dulzor miel'
-                            : balanceInclusion >= 7
-                              ? 'Domina inclusión botánica'
-                              : 'Equilibrio perfecto (50/50)'}
-                        </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Balance Miel vs Inclusión
+                          </span>
+                          <span className="font-semibold text-primary">
+                            {balanceInclusion <= 4
+                              ? 'Domina miel'
+                              : balanceInclusion >= 7
+                                ? 'Domina inclusión'
+                                : 'Equilibrado 50/50'}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={balanceInclusion}
+                          onChange={(e) => setBalanceInclusion(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
                       </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={10}
-                        value={balanceInclusion}
-                        onChange={(e) => setBalanceInclusion(Number(e.target.value))}
-                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                      />
-                    </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs">
-                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
-                          Intensidad en Paladar
-                        </span>
-                        <span className="font-semibold text-primary">{intensidad} / 10</span>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Intensidad en Paladar
+                          </span>
+                          <span className="font-semibold text-primary">{intensidad} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={intensidad}
+                          onChange={(e) => setIntensidad(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
                       </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={10}
-                        value={intensidad}
-                        onChange={(e) => setIntensidad(Number(e.target.value))}
-                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                      />
                     </div>
-                  </>
+                  </div>
+                )}
+
+                {effectiveTipo === 'fortificaciones' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Tostado
+                          </span>
+                          <span className="font-semibold text-primary">{tostado} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={tostado}
+                          onChange={(e) => setTostado(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Untuosidad
+                          </span>
+                          <span className="font-semibold text-primary">{untuosidad} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={untuosidad}
+                          onChange={(e) => setUntuosidad(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Intensidad
+                          </span>
+                          <span className="font-semibold text-primary">{intensidad} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={intensidad}
+                          onChange={(e) => setIntensidad(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {effectiveTipo === 'hidromiel' && (
-                  <>
+                  <div className="space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className="text-xs space-y-1.5 block">
                         <span className="uppercase tracking-wider text-muted-foreground font-medium block">
@@ -732,7 +1075,7 @@ export function ResenaComposer({
                         />
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {effectiveTipo === 'extracto' && (
@@ -793,7 +1136,7 @@ export function ResenaComposer({
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs">
                         <span className="uppercase tracking-wider text-muted-foreground font-medium">
-                          Nutrición / Sensación Grasa
+                          Nutrición / Sensación en Piel
                         </span>
                         <span className="font-semibold text-primary">{sensacionGrasa} / 10</span>
                       </div>
@@ -846,42 +1189,96 @@ export function ResenaComposer({
                   </div>
                 )}
 
+                {/* ── 4. Momento y Maridaje Sugeridos (con presets de Núcleo) ───── */}
+                <div className="p-4 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-3">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                    <UtensilsCrossed size={13} className="text-primary" />
+                    <span>Momento & Maridaje Sugerido</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
+                        Momento de Degustación
+                      </label>
+                      <input
+                        value={momento}
+                        onChange={(e) => setMomento(e.target.value)}
+                        placeholder="ej. Sobremesa pausada, Desayuno de invierno"
+                        className={modalFieldClass}
+                      />
+                      {/* Presets de momento */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {[
+                          perfilSensorial?.momento_consumo,
+                          'Sobremesa pausada',
+                          'Desayuno de origen',
+                          'Ritual nocturno',
+                        ]
+                          .filter((v): v is string => Boolean(v && v.trim()))
+                          .map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => setMomento(preset)}
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-surface-raised border border-border/70 text-muted-foreground hover:text-foreground transition"
+                            >
+                              {preset}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
+                        Maridaje Recomendado
+                      </label>
+                      <input
+                        value={maridaje}
+                        onChange={(e) => setMaridaje(e.target.value)}
+                        placeholder="ej. Queso azul, café filtrado de especialidad"
+                        className={modalFieldClass}
+                      />
+                      {/* Presets de maridaje */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {[
+                          ...(perfilSensorial?.maridajes?.map((m) => m.titulo) ?? []),
+                          'Quesos maduros',
+                          'Café de especialidad',
+                          'Pan de masa madre',
+                        ]
+                          .filter(Boolean)
+                          .slice(0, 4)
+                          .map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => setMaridaje(preset)}
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-surface-raised border border-border/70 text-muted-foreground hover:text-foreground transition"
+                            >
+                              {preset}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── 5. Firma Sensorial Completa (Notas Personales) ───────────── */}
                 <div className="space-y-1.5">
                   <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
-                    Firma Sensorial Completa & Notas de Origen
+                    Firma Sensorial & Impresiones del Catador
                   </label>
                   <textarea
                     value={notas}
                     onChange={(e) => setNotas(e.target.value)}
-                    rows={3}
-                    placeholder="Describe los matices, la apertura organoléptica y la persistencia..."
+                    rows={4}
+                    placeholder={`Describe con precisión la apertura aromática, texturas y persistencia en paladar de esta expresión de ${productName}...`}
                     className={`${modalFieldClass} resize-none`}
                   />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
-                      Momento de Consumo
-                    </label>
-                    <input
-                      value={momento}
-                      onChange={(e) => setMomento(e.target.value)}
-                      placeholder="ej. Sobremesa, desayuno pausado"
-                      className={modalFieldClass}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
-                      Maridaje Sugerido
-                    </label>
-                    <input
-                      value={maridaje}
-                      onChange={(e) => setMaridaje(e.target.value)}
-                      placeholder="ej. Queso azul, café filtrado"
-                      className={modalFieldClass}
-                    />
-                  </div>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Mínimo 10 caracteres. Tu análisis enriquecerá la constelación comunitaria tras su aprobación en el Núcleo.
+                  </p>
                 </div>
               </>
             )}

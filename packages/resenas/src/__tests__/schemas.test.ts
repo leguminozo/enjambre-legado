@@ -115,6 +115,85 @@ describe('Esquemas sensoriales y variantes (@enjambre/resenas)', () => {
     }
   });
 
+  it('valida reseña guardian profunda con pares semánticos y notas botánicas ramificadas desde núcleo', () => {
+    const input = {
+      modo: 'guardian' as const,
+      producto_id: VALID_UUID,
+      rating: 7,
+      atributos: {
+        tipo: 'miel' as const,
+        cristalizacion: 'Cremosa' as const,
+        familia_aromatica: 'Floral' as const,
+        intensidad_fondo: 8,
+        pares_semanticos: {
+          'suave/intenso': 8,
+          'dulce/acido': 4,
+          'liquida/cremosa': 9,
+        },
+        notas_seleccionadas: ['Flor de Ulmo', 'Madera noble', 'Almendra'],
+        maridaje_sugerido: 'Queso maduro y café filtrado',
+        momento_sugerido: 'Sobremesa pausada',
+      },
+      notas_personales: 'Cata sensorial completa: textura microcristalina impecable y final floral persistente.',
+    };
+
+    const parsed = CreateResenaSchema.parse(input);
+    expect(parsed.modo).toBe('guardian');
+    if (parsed.modo === 'guardian') {
+      expect(parsed.atributos?.tipo).toBe('miel');
+      const atr = parsed.atributos as Record<string, unknown>;
+      expect(atr.pares_semanticos).toEqual({
+        'suave/intenso': 8,
+        'dulce/acido': 4,
+        'liquida/cremosa': 9,
+      });
+      expect(atr.notas_seleccionadas).toEqual(['Flor de Ulmo', 'Madera noble', 'Almendra']);
+    }
+  });
+
+  it('valida reseña guardian para fortificaciones puras (avellana chilena tostada y molida)', () => {
+    const input = {
+      modo: 'guardian' as const,
+      producto_id: VALID_UUID,
+      tipo_sensorial: 'fortificaciones',
+      rating: 7,
+      atributos: {
+        tipo: 'fortificaciones' as const,
+        tostado: 9,
+        molienda: 'fina_untuosa',
+        untuosidad: 8,
+      },
+      notas_personales: 'Avellana nativa tostada a fuego lento, textura untuosa y notas cálidas a madera.',
+    };
+
+    const parsed = CreateResenaSchema.parse(input);
+    expect(parsed.modo).toBe('guardian');
+    if (parsed.modo === 'guardian') {
+      expect(parsed.tipo_sensorial).toBe('fortificaciones');
+      expect(parsed.atributos?.tipo).toBe('fortificaciones');
+    }
+  });
+
+  it('valida reseña guardian para familia dinámica libre creada en Núcleo', () => {
+    const input = {
+      modo: 'guardian' as const,
+      producto_id: VALID_UUID,
+      tipo_sensorial: 'superalimentos_del_bosque',
+      rating: 6,
+      atributos: {
+        tipo: 'superalimentos_del_bosque',
+        densidad: 'alta',
+      },
+      notas_personales: 'Evaluación de lote piloto de nueva familia taxonómica personalizada.',
+    };
+
+    const parsed = CreateResenaSchema.parse(input);
+    expect(parsed.modo).toBe('guardian');
+    if (parsed.modo === 'guardian') {
+      expect(parsed.tipo_sensorial).toBe('superalimentos_del_bosque');
+    }
+  });
+
   it('valida esquema de creación de ProductoVariante en Núcleo', () => {
     const variante = {
       producto_id: VALID_UUID,

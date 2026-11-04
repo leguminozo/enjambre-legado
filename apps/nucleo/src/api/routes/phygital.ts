@@ -329,6 +329,7 @@ phygitalRoutes.get('/productos-galeria', async (c) => {
       id, nombre, formato, fotos, slug, categoria, descripcion_corta, peso_neto_g,
       producto_variantes ( id, nombre_variante, sku, peso_neto_g, tipo_variante, ingrediente_fortificante, activo )
     `)
+    .not('slug', 'ilike', 'insumo-%')
     .order('nombre', { ascending: true });
 
   if (prodErr) {

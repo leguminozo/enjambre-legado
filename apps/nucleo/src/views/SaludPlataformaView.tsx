@@ -21,7 +21,8 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { friendlyError, toast, Badge, cn } from '@enjambre/ui';
+import { friendlyError, toast, Badge, cn, SkeletonCard } from '@enjambre/ui';
+import { SaludPlataformaSkeleton } from '@/components/shared/skeletons';
 import { supabase } from '@/lib/supabase';
 import type { SecurityEvent, SecurityEventType, AppSource } from '@enjambre/auth/security-events';
 
@@ -333,20 +334,7 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
   }
 
   if (isLoading || !data) {
-    return (
-      <div className="space-y-6 animate-in fade-in duration-500">
-        <ViewShell
-          variant="compact"
-          eyebrow="Sistema"
-          title="Salud de la Plataforma"
-          subtitle="Monitoreo de recursos, operaciones y comunidad"
-          icon={<Activity size={20} />}
-        />
-        <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </div>
-    );
+    return <SaludPlataformaSkeleton />;
   }
 
   const { db, sync, loyalty, webhooks, crons, umbrales, queue_pending } = data;
@@ -808,8 +796,10 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
 
           <div className="space-y-3">
             {securityQuery.isLoading ? (
-              <div className="flex h-32 items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="space-y-3" aria-busy="true">
+                <SkeletonCard lines={2} />
+                <SkeletonCard lines={2} />
+                <SkeletonCard lines={2} />
               </div>
             ) : securityQuery.isError ? (
               <div className="text-xs text-destructive p-4 bg-destructive/10 rounded-xl border border-destructive/20">

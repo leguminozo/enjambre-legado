@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
+import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
 import { DIDECO_CHILOE, mailtoDideco } from '@/lib/dideco-chiloe';
@@ -124,10 +125,12 @@ const TDR_ITEMS = [
   },
 ];
 
-export default function KitMunicipalPage() {
+export default async function KitMunicipalPage() {
+  const cms = await getTerritorioCmsContent();
+
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
-      <TerritorioHeader />
+      <TerritorioHeader content={cms.header} />
 
       <div className="border-b border-border/80 bg-surface-raised/40 px-6 sm:px-12 py-3 sticky top-14 z-20 backdrop-blur-md print:hidden">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">

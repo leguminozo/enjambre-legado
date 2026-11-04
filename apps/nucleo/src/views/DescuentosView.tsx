@@ -28,6 +28,7 @@ import {
   ImmersiveModal,
   Spinner,
   formatCLP,
+  SkeletonTable,
   friendlyError,
   formatCalendarDate,
 } from '@enjambre/ui';
@@ -356,8 +357,8 @@ export function DescuentosView() {
 
       <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground text-sm flex items-center justify-center gap-2">
-            <Spinner className="w-4 h-4" /> Cargando cupones...
+          <div className="p-6">
+            <SkeletonTable rows={6} columns={6} />
           </div>
         ) : descuentos.length === 0 ? (
           <div className="p-12 text-center space-y-3">
