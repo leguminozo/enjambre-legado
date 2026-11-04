@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Check,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
@@ -21,6 +22,7 @@ import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
 import { CHILE_REGIONES, getComunasPorRegion } from '@enjambre/logistica';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
+import { validarRUT, formatearRUT } from '@/lib/rut';
 
 interface UnclaimedActor {
   id: string;
@@ -55,6 +57,8 @@ function LoginContent() {
   const [sugerencias, setSugerencias] = useState<UnclaimedActor[]>([]);
   const [buscando, setBuscando] = useState(false);
   const [reclamarActor, setReclamarActor] = useState<UnclaimedActor | null>(null);
+  const [claimRut, setClaimRut] = useState('');
+  const [claimTelefono, setClaimTelefono] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showInviteCode, setShowInviteCode] = useState(false);
 
@@ -116,6 +120,8 @@ function LoginContent() {
 
   function handleDesvincular() {
     setReclamarActor(null);
+    setClaimRut('');
+    setClaimTelefono('');
   }
   const [consentMapa, setConsentMapa] = useState(false);
   const [consentAlertas, setConsentAlertas] = useState(true);
@@ -244,6 +250,8 @@ function LoginContent() {
     setSugerencias([]);
     if (nextTab !== 'signup') {
       setReclamarActor(null);
+      setClaimRut('');
+      setClaimTelefono('');
     }
   };
 
@@ -330,6 +338,17 @@ function LoginContent() {
         if (password.length < 6) {
           throw new Error('La contraseña debe tener al menos 6 caracteres.');
         }
+        if (reclamarActor) {
+          if (!claimRut.trim()) {
+            throw new Error('Debes ingresar tu RUT para acreditar la titularidad del asentamiento.');
+          }
+          if (!validarRUT(claimRut.trim())) {
+            throw new Error('El RUT ingresado no es válido. Formato: 12.345.678-9');
+          }
+          if (!claimTelefono.trim()) {
+            throw new Error('Debes ingresar un teléfono de contacto para verificación territorial.');
+          }
+        }
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email: email.trim(),
           password,
@@ -339,6 +358,8 @@ function LoginContent() {
               app_source: 'nucleo_territorial',
               referrer_id: inviteCode.trim() || undefined,
               reclamar_actor_id: reclamarActor ? reclamarActor.id : undefined,
+              rut: reclamarActor ? formatearRUT(claimRut.trim()) : undefined,
+              telefono: reclamarActor ? claimTelefono.trim() : undefined,
               territorial_rol: rol,
               territorial_region: region,
               territorial_comuna: comuna.trim(),
@@ -657,8 +678,49 @@ function LoginContent() {
                           <span>•</span>
                           <span>{reclamarActor.n_colmenas} colmenas</span>
                         </div>
+                        <div className="pt-2 border-t border-primary/20 space-y-2.5">
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-primary">
+                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                            <span>Acreditación de titularidad requerida (Ley 21.489)</span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-snug">
+                            Para resguardar este asentamiento y evitar suplantaciones en la red territorial, ingresa tu RUT y teléfono de contacto directo.
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[10px] uppercase font-semibold text-muted-foreground mb-1">
+                                RUT del titular *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={claimRut}
+                                onChange={(e) => setClaimRut(e.target.value)}
+                                onBlur={() => claimRut && setClaimRut(formatearRUT(claimRut))}
+                                placeholder="12.345.678-9"
+                                className="w-full rounded-lg border border-border/70 bg-background/90 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+                              />
+                              {claimRut && !validarRUT(claimRut) && (
+                                <span className="text-[10px] text-destructive mt-0.5 block">RUT inválido</span>
+                              )}
+                            </div>
+                            <div>
+                              <label className="block text-[10px] uppercase font-semibold text-muted-foreground mb-1">
+                                Teléfono de contacto *
+                              </label>
+                              <input
+                                type="tel"
+                                required
+                                value={claimTelefono}
+                                onChange={(e) => setClaimTelefono(e.target.value)}
+                                placeholder="+56 9 1234 5678"
+                                className="w-full rounded-lg border border-border/70 bg-background/90 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
                         <p className="text-[11px] text-muted-foreground/80 italic pt-1 border-t border-border/50">
-                          Al crear tu cuenta, desbloquearás de inmediato todos los apiarios y colmenas de este registro.
+                          Al crear tu cuenta, se asociarán tus apiarios históricos bajo acreditación territorial oficial.
                         </p>
                       </div>
                     ) : sugerencias.length > 0 ? (

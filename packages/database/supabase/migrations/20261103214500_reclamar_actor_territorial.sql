@@ -72,9 +72,15 @@ BEGIN
     END;
 
     IF v_reclamar_id IS NOT NULL THEN
-      -- Reclamar actor pre-cargado
+      -- Reclamar actor pre-cargado asociando identidad, consentimientos y trazabilidad
       UPDATE public.actores_registro
       SET user_id = NEW.id,
+          rut = COALESCE(NULLIF(NEW.raw_user_meta_data->>'rut', ''), rut),
+          telefono = COALESCE(NULLIF(NEW.raw_user_meta_data->>'telefono', ''), telefono),
+          acepta_carta = COALESCE((NEW.raw_user_meta_data->>'territorial_acepta_carta')::boolean, true),
+          acepta_politica_datos = COALESCE((NEW.raw_user_meta_data->>'territorial_acepta_politica_datos')::boolean, true),
+          consentimientos = COALESCE((NEW.raw_user_meta_data->>'territorial_consentimientos')::jsonb, consentimientos),
+          observaciones = COALESCE(observaciones || ' · ', '') || 'Reclamado en signup por ' || NEW.email || ' (' || NOW()::date || ')',
           updated_at = NOW()
       WHERE id = v_reclamar_id
         AND user_id IS NULL;

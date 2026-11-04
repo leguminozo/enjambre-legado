@@ -1537,9 +1537,13 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
                           <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
                             🐝 Reserva Territorial · {a.comuna}
                           </span>
-                          {a.nivel_acreditacion && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium">
-                              {a.nivel_acreditacion}
+                          {a.email || a.rut ? (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-medium">
+                              {a.nivel_acreditacion ?? 'Vinculado'}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-medium">
+                              Catastro SAG (Disponible)
                             </span>
                           )}
                         </div>
@@ -1622,8 +1626,8 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
                             </a>
                           )}
                           {!a.telefono && !a.email && (
-                            <span className="text-[10px] text-muted-foreground italic">
-                              Sin datos de contacto directo aún
+                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                              Catastro SAG · Disponible para adopción o contacto presencial
                             </span>
                           )}
                         </div>

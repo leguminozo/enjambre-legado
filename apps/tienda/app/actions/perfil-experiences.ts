@@ -216,7 +216,7 @@ export async function getReservasDashboard(): Promise<{
   if (cmsSettings.featured_product_id) {
     productQuery = productQuery.eq('id', cmsSettings.featured_product_id)
   } else {
-    productQuery = productQuery.ilike('nombre', '%ulmo%')
+    productQuery = productQuery.ilike('nombre', '%miel%')
   }
 
   const [ordersResult, productResult] = await Promise.all([
@@ -231,14 +231,28 @@ export async function getReservasDashboard(): Promise<{
 
   let featured = productResult.data
   if (!featured) {
-    const { data: fallback } = await supabase
+    // Buscar miel insignia de bosque nativo si el id no fue asignado o no coincide
+    const { data: honeyFallback } = await supabase
       .from('productos')
       .select('id, nombre, precio')
       .eq('visible', true)
-      .order('nombre')
+      .or('nombre.ilike.%miel%,nombre.ilike.%bosque%,categoria.ilike.%miel%')
+      .order('precio', { ascending: false })
       .limit(1)
       .maybeSingle()
-    featured = fallback
+
+    featured = honeyFallback ?? null
+  }
+
+  if (!featured) {
+    const { data: generalFallback } = await supabase
+      .from('productos')
+      .select('id, nombre, precio')
+      .eq('visible', true)
+      .limit(1)
+      .maybeSingle()
+
+    featured = generalFallback ?? null
   }
 
   const rawOrders = (ordersResult.data ?? []) as Array<Record<string, unknown>>
@@ -333,6 +347,65 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
     }
   } catch (notifErr) {
     console.warn('Error registrando notificaciones de pre-orden:', notifErr)
+  }
+
+  revalidatePath('/perfil/reservas')
+  revalidatePath('/perfil/reposicion')
+}
+
+export async function cancelHarvestPreOrder(preOrderId: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Debes iniciar sesión para gestionar tus reservas')
+  }
+
+  const { data: existing, error: fetchErr } = await supabase
+    .from('pre_orders')
+    .select('id, status, producto_id, productos(nombre)')
+    .eq('id', preOrderId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (fetchErr || !existing) {
+    throw new Error('No se encontró la reserva indicada o no tienes permiso para modificarla')
+  }
+
+  if (existing.status === 'cancelled') {
+    return
+  }
+
+  if (['paid', 'fulfilled', 'completed'].includes(existing.status)) {
+    throw new Error('Esta reserva ya fue liquidada o despachada. Para coordinar cambios, contáctanos directamente.')
+  }
+
+  const { error: updateErr } = await supabase
+    .from('pre_orders')
+    .update({ status: 'cancelled' })
+    .eq('id', preOrderId)
+    .eq('user_id', user.id)
+
+  if (updateErr) {
+    throw new Error('No se pudo cancelar la reserva')
+  }
+
+  try {
+    const prodObj = Array.isArray(existing.productos) ? existing.productos[0] : existing.productos
+    const prodName = prodObj?.nombre ?? 'Reserva Anual'
+
+    await supabase.from('notification_events').insert({
+      recipient_user_id: user.id,
+      channel: 'in_app',
+      status: 'sent',
+      subject: 'Reserva Cancelada',
+      body: `Tu reserva para ${prodName} ha sido cancelada exitosamente y el cupo ha sido liberado.`,
+      provider_response: { pre_order_id: preOrderId },
+    })
+  } catch (notifErr) {
+    console.warn('Error registrando notificación de cancelación de pre-orden:', notifErr)
   }
 
   revalidatePath('/perfil/reservas')

@@ -72,6 +72,7 @@ import {
   LayoutDashboard,
   Compass,
   Repeat,
+  Calendar,
   Star,
   Wallet,
   ShieldCheck,
@@ -760,11 +761,11 @@ const SECTION_META: Record<
     hint: 'Hero, pilares formativos, audiencia y formulario de inscripción de la página de talleres',
   },
   reserva_anual: {
-    label: 'Club Legado — Ciclos de Recolección',
-    short: 'Ciclos Recolección',
-    icon: Repeat,
+    label: 'Campaña — Reserva Anual de Recolección',
+    short: 'Reserva Anual',
+    icon: Calendar,
     group: 'contenido',
-    hint: 'Tarjetas de ciclos estacionales del Club Legado del Bosque',
+    hint: 'Campaña, textos y asignación de cupos de la recolección anual',
   },
 };
 

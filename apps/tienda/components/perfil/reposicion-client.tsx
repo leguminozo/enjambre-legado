@@ -220,7 +220,7 @@ export function ReposicionClient({
             </h1>
           </div>
           <p className="text-muted-foreground text-sm tracking-wide max-w-2xl">
-            Gestiona tus entregas periódicas de reposición y asegura cupos exclusivos en la recolección anual de floraciones vírgenes.
+            Gestiona tus entregas periódicas de reposición y asegura cupos exclusivos en la recolección anual de miel del bosque nativo de Chiloé.
           </p>
         </div>
 
@@ -263,12 +263,15 @@ export function ReposicionClient({
           )}
         >
           <Calendar size={15} />
-          <span>Reserva de Floraciones</span>
-          {reservasData && reservasData.preOrders.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] bg-accent/15 text-accent-text font-bold">
-              {reservasData.preOrders.length}
-            </span>
-          )}
+          <span>Reserva de Recolección</span>
+          {(() => {
+            const activeCount = reservasData?.preOrders.filter((o) => o.status !== 'cancelled').length ?? 0;
+            return activeCount > 0 ? (
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-accent/15 text-accent-text font-bold">
+                {activeCount}
+              </span>
+            ) : null;
+          })()}
         </button>
       </div>
 

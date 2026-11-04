@@ -1064,6 +1064,30 @@ export type CienciaSettings = {
   bioquimica_title_en?: string;
   bioquimica_desc?: string;
   bioquimica_desc_en?: string;
+  tabla_th_parametro?: string;
+  tabla_th_parametro_en?: string;
+  tabla_th_miel?: string;
+  tabla_th_miel_en?: string;
+  tabla_th_azucar?: string;
+  tabla_th_azucar_en?: string;
+  tabla_r1_parametro?: string;
+  tabla_r1_parametro_en?: string;
+  tabla_r1_miel?: string;
+  tabla_r1_miel_en?: string;
+  tabla_r1_azucar?: string;
+  tabla_r1_azucar_en?: string;
+  tabla_r2_parametro?: string;
+  tabla_r2_parametro_en?: string;
+  tabla_r2_miel?: string;
+  tabla_r2_miel_en?: string;
+  tabla_r2_azucar?: string;
+  tabla_r2_azucar_en?: string;
+  tabla_r3_parametro?: string;
+  tabla_r3_parametro_en?: string;
+  tabla_r3_miel?: string;
+  tabla_r3_miel_en?: string;
+  tabla_r3_azucar?: string;
+  tabla_r3_azucar_en?: string;
   protocolo_kicker?: string;
   protocolo_kicker_en?: string;
   protocolo_title?: string;
@@ -1216,6 +1240,15 @@ export type CienciaSettings = {
 
   formulas_title?: string;
   formulas_title_en?: string;
+  formulas_c1_label?: string;
+  formulas_c1_label_en?: string;
+  formulas_c1_text?: string;
+  formulas_c2_label?: string;
+  formulas_c2_label_en?: string;
+  formulas_c2_text?: string;
+  formulas_c3_label?: string;
+  formulas_c3_label_en?: string;
+  formulas_c3_text?: string;
   fuentes_title?: string;
   fuentes_title_en?: string;
 
@@ -1320,6 +1353,35 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
     'La miel no es un producto fabricado: es energía solar transformada en biomolécula por una cadena causal directa. La abeja concentra el néctar con enzimas y lo estabiliza por deshidratación. Frente al azúcar refinada —molienda, clarificación, centrifugación, decoloración—, la miel cruda es un alimento sin etapas industriales.',
   bioquimica_desc_en:
     'Honey is not a manufactured product: it is solar energy transformed into a biomolecule through a direct causal chain. Bees concentrate nectar with active enzymes and stabilize it via dehydration. In contrast to refined industrial sugar, raw honey undergoes zero industrial processing.',
+
+  tabla_th_parametro: 'Parámetro',
+  tabla_th_parametro_en: 'Parameter',
+  tabla_th_miel: 'Miel cruda',
+  tabla_th_miel_en: 'Raw honey',
+  tabla_th_azucar: 'Azúcar refinada',
+  tabla_th_azucar_en: 'Refined sugar',
+
+  tabla_r1_parametro: 'Índice glucémico (referencia)',
+  tabla_r1_parametro_en: 'Glycemic index (reference)',
+  tabla_r1_miel: '~55',
+  tabla_r1_miel_en: '~55',
+  tabla_r1_azucar: '65',
+  tabla_r1_azucar_en: '65',
+
+  tabla_r2_parametro: 'Enzimas activas',
+  tabla_r2_parametro_en: 'Active enzymes',
+  tabla_r2_miel: 'Diastasa, invertasa, GOx',
+  tabla_r2_miel_en: 'Diastase, invertase, GOx',
+  tabla_r2_azucar: '0',
+  tabla_r2_azucar_en: '0',
+
+  tabla_r3_parametro: 'Acción antibacteriana (contexto)',
+  tabla_r3_parametro_en: 'Antibacterial action (context)',
+  tabla_r3_miel: 'Asociada a H₂O₂ y bajo Aw',
+  tabla_r3_miel_en: 'Associated with H₂O₂ and low Aw',
+  tabla_r3_azucar: 'No aplica',
+  tabla_r3_azucar_en: 'Not applicable',
+
   protocolo_kicker: 'Protocolo de Laboratorio y Análisis por Lote',
   protocolo_kicker_en: 'Laboratory Protocol & Batch Analysis',
   protocolo_title: 'Protocolo de Laboratorio y Análisis por Lote',
@@ -1518,6 +1580,15 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
 
   formulas_title: 'Fórmulas Matemáticas Abiertas',
   formulas_title_en: 'Open Mathematical Formulas',
+  formulas_c1_label: 'Secuestro por árbol nativo:',
+  formulas_c1_label_en: 'Sequestration per native tree:',
+  formulas_c1_text: 'CO₂ = 0.05 t CO₂e / árbol maduro',
+  formulas_c2_label: 'Índice de Regeneración Relativa (IRR):',
+  formulas_c2_label_en: 'Relative Regeneration Index (IRR):',
+  formulas_c2_text: 'IRR = Σ CO₂ capturado (kg) / Σ CO₂ emitido (kg)',
+  formulas_c3_label: 'Emisiones evitadas por frasco 500 g:',
+  formulas_c3_label_en: 'Avoided emissions per 500 g jar:',
+  formulas_c3_text: 'CO₂ evitado = 0.5 kg × 2.4 kg CO₂e/kg miel = ~1.2 kg CO₂e',
   fuentes_title: 'Fuentes Bibliográficas de Respaldo',
   fuentes_title_en: 'Backing Bibliographic Sources',
 
@@ -2330,12 +2401,12 @@ export type ReservaAnualSettings = {
 
 export const DEFAULT_RESERVA_ANUAL_SETTINGS: ReservaAnualSettings = {
   enabled: true,
-  title: 'Reserva Anual',
-  title_en: 'Annual Reservation',
-  subtitle: 'Asegura tu parte del legado antes de que la naturaleza lo entregue',
-  subtitle_en: 'Secure your share of the legacy before nature delivers it',
-  description: 'Reserva anticipada vinculada a recolección de temporada. Te contactaremos para confirmar despacho y liquidación.',
-  description_en: 'Early reservation tied to seasonal harvest. We will contact you to confirm shipping and settlement.',
+  title: 'Reserva Anual de Recolección',
+  title_en: 'Annual Harvest Allocation',
+  subtitle: 'Asegura tu parte de la recolección estacional del bosque nativo antes de que concluya la temporada',
+  subtitle_en: 'Secure your share of the native forest seasonal harvest before the season closes',
+  description: 'Asignación anticipada de cupos vinculada a la recolección anual de temporada en Chiloé. Te contactaremos al correo registrado para confirmar despacho y liquidación.',
+  description_en: 'Early allocation tied to the annual seasonal harvest in Chiloé. We will contact your registered email to confirm delivery and settlement.',
   featured_product_id: '',
   button_text: 'Garantizar Mi Cupo',
   button_text_en: 'Guarantee My Spot',
@@ -3428,12 +3499,12 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
     'Set up periodic replenishment subscriptions (monthly, bimonthly or quarterly) so you never run out of honey. Modify or pause whenever you wish with no paperwork.',
   beneficio_2_tag: '02 · Reservas Exclusivas',
   beneficio_2_tag_en: '02 · Exclusive Reservations',
-  beneficio_2_title: 'Acceso prioritario a microlotes',
-  beneficio_2_title_en: 'Priority access to microlots',
+  beneficio_2_title: 'Acceso prioritario a la recolección anual',
+  beneficio_2_title_en: 'Priority access to annual harvest',
   beneficio_2_desc:
-    'Cupo preferente en recolecciones escasas de temporada (Ulmo puro de altura, Tiaca silvestre) antes de cualquier apertura pública en el catálogo general.',
+    'Cupo preferente en la recolección anual de temporada del bosque nativo de Chiloé antes de cualquier apertura pública en el catálogo general.',
   beneficio_2_desc_en:
-    'Preferred spots in scarce seasonal harvests (high-altitude pure Ulmo, wild Tiaca) before any public opening in the general catalog.',
+    'Preferred spots in the annual seasonal harvest of Chiloé native forest before any public opening in the general catalog.',
   beneficio_3_tag: '03 · Trazabilidad de Origen',
   beneficio_3_tag_en: '03 · Origin Traceability',
   beneficio_3_title: 'Pasaporte oficial en cada lote',
@@ -4184,6 +4255,30 @@ export function parseCienciaSettings(
     bioquimica_title_en: typeof raw.bioquimica_title_en === 'string' ? raw.bioquimica_title_en : d.bioquimica_title_en,
     bioquimica_desc: asString(raw.bioquimica_desc, d.bioquimica_desc ?? ''),
     bioquimica_desc_en: typeof raw.bioquimica_desc_en === 'string' ? raw.bioquimica_desc_en : d.bioquimica_desc_en,
+    tabla_th_parametro: asString(raw.tabla_th_parametro, d.tabla_th_parametro ?? ''),
+    tabla_th_parametro_en: typeof raw.tabla_th_parametro_en === 'string' ? raw.tabla_th_parametro_en : d.tabla_th_parametro_en,
+    tabla_th_miel: asString(raw.tabla_th_miel, d.tabla_th_miel ?? ''),
+    tabla_th_miel_en: typeof raw.tabla_th_miel_en === 'string' ? raw.tabla_th_miel_en : d.tabla_th_miel_en,
+    tabla_th_azucar: asString(raw.tabla_th_azucar, d.tabla_th_azucar ?? ''),
+    tabla_th_azucar_en: typeof raw.tabla_th_azucar_en === 'string' ? raw.tabla_th_azucar_en : d.tabla_th_azucar_en,
+    tabla_r1_parametro: asString(raw.tabla_r1_parametro, d.tabla_r1_parametro ?? ''),
+    tabla_r1_parametro_en: typeof raw.tabla_r1_parametro_en === 'string' ? raw.tabla_r1_parametro_en : d.tabla_r1_parametro_en,
+    tabla_r1_miel: asString(raw.tabla_r1_miel, d.tabla_r1_miel ?? ''),
+    tabla_r1_miel_en: typeof raw.tabla_r1_miel_en === 'string' ? raw.tabla_r1_miel_en : d.tabla_r1_miel_en,
+    tabla_r1_azucar: asString(raw.tabla_r1_azucar, d.tabla_r1_azucar ?? ''),
+    tabla_r1_azucar_en: typeof raw.tabla_r1_azucar_en === 'string' ? raw.tabla_r1_azucar_en : d.tabla_r1_azucar_en,
+    tabla_r2_parametro: asString(raw.tabla_r2_parametro, d.tabla_r2_parametro ?? ''),
+    tabla_r2_parametro_en: typeof raw.tabla_r2_parametro_en === 'string' ? raw.tabla_r2_parametro_en : d.tabla_r2_parametro_en,
+    tabla_r2_miel: asString(raw.tabla_r2_miel, d.tabla_r2_miel ?? ''),
+    tabla_r2_miel_en: typeof raw.tabla_r2_miel_en === 'string' ? raw.tabla_r2_miel_en : d.tabla_r2_miel_en,
+    tabla_r2_azucar: asString(raw.tabla_r2_azucar, d.tabla_r2_azucar ?? ''),
+    tabla_r2_azucar_en: typeof raw.tabla_r2_azucar_en === 'string' ? raw.tabla_r2_azucar_en : d.tabla_r2_azucar_en,
+    tabla_r3_parametro: asString(raw.tabla_r3_parametro, d.tabla_r3_parametro ?? ''),
+    tabla_r3_parametro_en: typeof raw.tabla_r3_parametro_en === 'string' ? raw.tabla_r3_parametro_en : d.tabla_r3_parametro_en,
+    tabla_r3_miel: asString(raw.tabla_r3_miel, d.tabla_r3_miel ?? ''),
+    tabla_r3_miel_en: typeof raw.tabla_r3_miel_en === 'string' ? raw.tabla_r3_miel_en : d.tabla_r3_miel_en,
+    tabla_r3_azucar: asString(raw.tabla_r3_azucar, d.tabla_r3_azucar ?? ''),
+    tabla_r3_azucar_en: typeof raw.tabla_r3_azucar_en === 'string' ? raw.tabla_r3_azucar_en : d.tabla_r3_azucar_en,
     protocolo_kicker: asString(raw.protocolo_kicker, d.protocolo_kicker ?? ''),
     protocolo_kicker_en: typeof raw.protocolo_kicker_en === 'string' ? raw.protocolo_kicker_en : d.protocolo_kicker_en,
     protocolo_title: asString(raw.protocolo_title, d.protocolo_title ?? ''),
@@ -4337,6 +4432,15 @@ export function parseCienciaSettings(
 
     formulas_title: asString(raw.formulas_title, d.formulas_title ?? ''),
     formulas_title_en: typeof raw.formulas_title_en === 'string' ? raw.formulas_title_en : d.formulas_title_en,
+    formulas_c1_label: asString(raw.formulas_c1_label, d.formulas_c1_label ?? ''),
+    formulas_c1_label_en: typeof raw.formulas_c1_label_en === 'string' ? raw.formulas_c1_label_en : d.formulas_c1_label_en,
+    formulas_c1_text: asString(raw.formulas_c1_text, d.formulas_c1_text ?? ''),
+    formulas_c2_label: asString(raw.formulas_c2_label, d.formulas_c2_label ?? ''),
+    formulas_c2_label_en: typeof raw.formulas_c2_label_en === 'string' ? raw.formulas_c2_label_en : d.formulas_c2_label_en,
+    formulas_c2_text: asString(raw.formulas_c2_text, d.formulas_c2_text ?? ''),
+    formulas_c3_label: asString(raw.formulas_c3_label, d.formulas_c3_label ?? ''),
+    formulas_c3_label_en: typeof raw.formulas_c3_label_en === 'string' ? raw.formulas_c3_label_en : d.formulas_c3_label_en,
+    formulas_c3_text: asString(raw.formulas_c3_text, d.formulas_c3_text ?? ''),
     fuentes_title: asString(raw.fuentes_title, d.fuentes_title ?? ''),
     fuentes_title_en: typeof raw.fuentes_title_en === 'string' ? raw.fuentes_title_en : d.fuentes_title_en,
 

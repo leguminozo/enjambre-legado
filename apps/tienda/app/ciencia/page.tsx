@@ -260,6 +260,34 @@ export default async function CienciaPage({
   const bioquimicaDesc =
     resolveLocalized(cienciaSettings.bioquimica_desc, cienciaSettings.bioquimica_desc_en, locale);
 
+  const tablaThParametro =
+    resolveLocalized(cienciaSettings.tabla_th_parametro, cienciaSettings.tabla_th_parametro_en, locale) || 'Parámetro';
+  const tablaThMiel =
+    resolveLocalized(cienciaSettings.tabla_th_miel, cienciaSettings.tabla_th_miel_en, locale) || 'Miel cruda';
+  const tablaThAzucar =
+    resolveLocalized(cienciaSettings.tabla_th_azucar, cienciaSettings.tabla_th_azucar_en, locale) || 'Azúcar refinada';
+
+  const tablaR1Parametro =
+    resolveLocalized(cienciaSettings.tabla_r1_parametro, cienciaSettings.tabla_r1_parametro_en, locale) || 'Índice glucémico (referencia)';
+  const tablaR1Miel =
+    resolveLocalized(cienciaSettings.tabla_r1_miel, cienciaSettings.tabla_r1_miel_en, locale) || '~55';
+  const tablaR1Azucar =
+    resolveLocalized(cienciaSettings.tabla_r1_azucar, cienciaSettings.tabla_r1_azucar_en, locale) || '65';
+
+  const tablaR2Parametro =
+    resolveLocalized(cienciaSettings.tabla_r2_parametro, cienciaSettings.tabla_r2_parametro_en, locale) || 'Enzimas activas';
+  const tablaR2Miel =
+    resolveLocalized(cienciaSettings.tabla_r2_miel, cienciaSettings.tabla_r2_miel_en, locale) || 'Diastasa, invertasa, GOx';
+  const tablaR2Azucar =
+    resolveLocalized(cienciaSettings.tabla_r2_azucar, cienciaSettings.tabla_r2_azucar_en, locale) || '0';
+
+  const tablaR3Parametro =
+    resolveLocalized(cienciaSettings.tabla_r3_parametro, cienciaSettings.tabla_r3_parametro_en, locale) || 'Acción antibacteriana (contexto)';
+  const tablaR3Miel =
+    resolveLocalized(cienciaSettings.tabla_r3_miel, cienciaSettings.tabla_r3_miel_en, locale) || 'Asociada a H₂O₂ y bajo Aw';
+  const tablaR3Azucar =
+    resolveLocalized(cienciaSettings.tabla_r3_azucar, cienciaSettings.tabla_r3_azucar_en, locale) || 'No aplica';
+
   const protocoloKicker =
     resolveLocalized(cienciaSettings.protocolo_kicker, cienciaSettings.protocolo_kicker_en, locale) || 'Protocolo de Laboratorio y Análisis por Lote';
   const protocoloTitle =
@@ -453,8 +481,21 @@ export default async function CienciaPage({
     resolveLocalized(cienciaSettings.ecosistema_disclaimer, cienciaSettings.ecosistema_disclaimer_en, locale) ||
     'Rigor ético y metodológico: la modelación biofísica de absorción en biomasa e IRR requiere el censo georreferenciado árbol a árbol del Predio Pureo (temporada 2026–2027 en ejecución). Por honestidad radical, no publicamos indicadores concluidos mientras el conteo empírico territorial permanezca en calibración.';
 
+  const metodo = getMetodologiaPublica();
   const formulasTitle =
     resolveLocalized(cienciaSettings.formulas_title, cienciaSettings.formulas_title_en, locale) || 'Fórmulas Matemáticas Abiertas';
+  const formulasC1Label =
+    resolveLocalized(cienciaSettings.formulas_c1_label, cienciaSettings.formulas_c1_label_en, locale) || 'Secuestro por árbol nativo:';
+  const formulasC1Text =
+    cienciaSettings.formulas_c1_text || metodo.formulas.co2_ton_plantacion;
+  const formulasC2Label =
+    resolveLocalized(cienciaSettings.formulas_c2_label, cienciaSettings.formulas_c2_label_en, locale) || 'Índice de Regeneración Relativa (IRR):';
+  const formulasC2Text =
+    cienciaSettings.formulas_c2_text || metodo.formulas.irr_simplificado;
+  const formulasC3Label =
+    resolveLocalized(cienciaSettings.formulas_c3_label, cienciaSettings.formulas_c3_label_en, locale) || 'Emisiones evitadas por frasco 500 g:';
+  const formulasC3Text =
+    cienciaSettings.formulas_c3_text || metodo.formulas.co2_frasco_500g;
   const fuentesTitle =
     resolveLocalized(cienciaSettings.fuentes_title, cienciaSettings.fuentes_title_en, locale) || 'Fuentes Bibliográficas de Respaldo';
 
@@ -497,7 +538,6 @@ export default async function CienciaPage({
   const h2o2 = getClaim('h2o2_antimicrobiana');
   const hmf = getClaim('hmf_limite_codex');
   const perfil = getClaim('perfil_organoleptico');
-  const metodo = getMetodologiaPublica();
 
   // IRR sin números mágicos: solo se muestra cuando el dato de emisión existe.
   const co2CapturadoAnual = m.co2_capturado_kg > 0 ? m.co2_capturado_kg : null;
@@ -721,31 +761,31 @@ export default async function CienciaPage({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/40 text-left text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">
-                    <th className="py-3 pr-4 font-normal">Parámetro</th>
-                    <th className="py-3 pr-4 font-normal text-accent-text">Miel cruda</th>
-                    <th className="py-3 font-normal">Azúcar refinada</th>
+                    <th className="py-3 pr-4 font-normal">{tablaThParametro}</th>
+                    <th className="py-3 pr-4 font-normal text-accent-text">{tablaThMiel}</th>
+                    <th className="py-3 font-normal">{tablaThAzucar}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/20">
                   {ig && (
                     <tr>
-                      <td className="py-4 pr-4 text-muted-foreground">Índice glucémico (referencia)</td>
-                      <td className="py-4 pr-4 text-accent-text">~55</td>
-                      <td className="py-4 text-foreground">65</td>
+                      <td className="py-4 pr-4 text-muted-foreground">{tablaR1Parametro}</td>
+                      <td className="py-4 pr-4 text-accent-text">{tablaR1Miel}</td>
+                      <td className="py-4 text-foreground">{tablaR1Azucar}</td>
                     </tr>
                   )}
                   {enzimas && (
                     <tr>
-                      <td className="py-4 pr-4 text-muted-foreground">Enzimas activas</td>
-                      <td className="py-4 pr-4 text-accent-text">Diastasa, invertasa, GOx</td>
-                      <td className="py-4 text-foreground">0</td>
+                      <td className="py-4 pr-4 text-muted-foreground">{tablaR2Parametro}</td>
+                      <td className="py-4 pr-4 text-accent-text">{tablaR2Miel}</td>
+                      <td className="py-4 text-foreground">{tablaR2Azucar}</td>
                     </tr>
                   )}
                   {h2o2 && (
                     <tr>
-                      <td className="py-4 pr-4 text-muted-foreground">Acción antibacteriana (contexto)</td>
-                      <td className="py-4 pr-4 text-accent-text">Asociada a H₂O₂ y bajo Aw</td>
-                      <td className="py-4 text-foreground">No aplica</td>
+                      <td className="py-4 pr-4 text-muted-foreground">{tablaR3Parametro}</td>
+                      <td className="py-4 pr-4 text-accent-text">{tablaR3Miel}</td>
+                      <td className="py-4 text-foreground">{tablaR3Azucar}</td>
                     </tr>
                   )}
                 </tbody>
@@ -1228,21 +1268,21 @@ export default async function CienciaPage({
                 <ul className="space-y-3 text-xs font-mono text-muted-foreground">
                   <li className="p-3 rounded-xl bg-card border border-border/40">
                     <span className="text-foreground block font-sans font-medium text-[11px] mb-1">
-                      Secuestro por árbol nativo:
+                      {formulasC1Label}
                     </span>
-                    {metodo.formulas.co2_ton_plantacion}
+                    {formulasC1Text}
                   </li>
                   <li className="p-3 rounded-xl bg-card border border-border/40">
                     <span className="text-foreground block font-sans font-medium text-[11px] mb-1">
-                      Índice de Regeneración Relativa (IRR):
+                      {formulasC2Label}
                     </span>
-                    {metodo.formulas.irr_simplificado}
+                    {formulasC2Text}
                   </li>
                   <li className="p-3 rounded-xl bg-card border border-border/40">
                     <span className="text-foreground block font-sans font-medium text-[11px] mb-1">
-                      Emisiones evitadas por frasco 500 g:
+                      {formulasC3Label}
                     </span>
-                    {metodo.formulas.co2_frasco_500g}
+                    {formulasC3Text}
                   </li>
                 </ul>
               </div>
