@@ -125,19 +125,35 @@ async function fetchBatchFromSupabase(
     // draft_content es JSONB pesado y solo se usa en modo borrador (preview);
     // la vía pública pide columnas explícitas para no arrastrarlo en cada hit.
     // Literales (no ternario): el parser de tipos de supabase-js no infiere uniones.
-    const { data, error } = draft
-      ? await supabase
+    const queryPromise = draft
+      ? supabase
           .from('site_content')
           .select('id, section_key, content, draft_content, item_order, locale')
           .in('section_key', sectionKeys)
           .eq('is_active', true)
           .order('item_order', { ascending: true })
-      : await supabase
+      : supabase
           .from('site_content')
           .select('id, section_key, content, item_order, locale')
           .in('section_key', sectionKeys)
           .eq('is_active', true)
           .order('item_order', { ascending: true });
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutMs = process.env.NEXT_PHASE === 'phase-production-build' ? 10000 : 5000;
+    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+      timer = setTimeout(
+        () => resolve({ data: null, error: { message: 'Timeout fetching CMS batch from Supabase' } }),
+        timeoutMs,
+      );
+    });
+
+    const { data, error } = await Promise.race([
+      Promise.resolve(queryPromise).finally(() => {
+        if (timer) clearTimeout(timer);
+      }),
+      timeoutPromise,
+    ]);
 
     if (error) {
       console.warn('Error fetching CMS batch:', error.message);

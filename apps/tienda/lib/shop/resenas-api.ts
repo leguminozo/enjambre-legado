@@ -4,6 +4,15 @@ import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 
+function createTimeoutController(ms: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return {
+    signal: controller.signal,
+    clear: () => clearTimeout(timer),
+  };
+}
+
 export type ResenaPublic = {
   id: string;
   modo: 'anonima' | 'guardian';
@@ -170,6 +179,7 @@ export async function createResena(
     return { ok: false, error: 'Servicio de reseñas no disponible' };
   }
 
+  const timeout = createTimeoutController(5000);
   try {
     const res = await fetch(`${nucleoUrl}/api/resenas`, {
       method: 'POST',
@@ -179,6 +189,7 @@ export async function createResena(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(input),
+      signal: timeout.signal,
     });
     const json = (await res.json()) as Record<string, unknown>;
     if (!res.ok) {
@@ -194,6 +205,8 @@ export async function createResena(
     };
   } catch {
     return { ok: false, error: 'Error de conexión. Intenta de nuevo.' };
+  } finally {
+    timeout.clear();
   }
 }
 
@@ -203,6 +216,7 @@ export async function checkEligible(productoId: string, token: string) {
     return { eligible: false, reason: 'Servicio no disponible' };
   }
 
+  const timeout = createTimeoutController(4000);
   const params = new URLSearchParams({ producto_id: productoId });
   try {
     const res = await fetch(`${nucleoUrl}/api/resenas/eligible?${params}`, {
@@ -210,6 +224,7 @@ export async function checkEligible(productoId: string, token: string) {
         Authorization: `Bearer ${token}`,
         'X-Requested-With': 'XMLHttpRequest',
       },
+      signal: timeout.signal,
     });
     return (await res.json()) as {
       eligible: boolean;
@@ -219,6 +234,8 @@ export async function checkEligible(productoId: string, token: string) {
     };
   } catch {
     return { eligible: false, reason: 'Error de conexión. Intenta de nuevo.' };
+  } finally {
+    timeout.clear();
   }
 }
 
@@ -228,6 +245,7 @@ export async function claimResena(token: string, authToken: string): Promise<{ o
     return { ok: false, message: 'Servicio no disponible' };
   }
 
+  const timeout = createTimeoutController(5000);
   try {
     const res = await fetch(`${nucleoUrl}/api/resenas/claim`, {
       method: 'POST',
@@ -237,6 +255,7 @@ export async function claimResena(token: string, authToken: string): Promise<{ o
         'X-Requested-With': 'XMLHttpRequest',
       },
       body: JSON.stringify({ token }),
+      signal: timeout.signal,
     });
     const json = (await res.json()) as { message?: string };
     if (!res.ok) {
@@ -245,6 +264,8 @@ export async function claimResena(token: string, authToken: string): Promise<{ o
     return { ok: true, message: json.message ?? 'Reseña vinculada a tu cuenta' };
   } catch {
     return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
+  } finally {
+    timeout.clear();
   }
 }
 

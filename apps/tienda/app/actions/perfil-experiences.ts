@@ -79,7 +79,14 @@ export async function getLoyaltyDashboard(): Promise<{
   // Auto-acredita puntos de bienvenida si aún no han sido depositados (idempotente vía uq_loyalty_bienvenida)
   if (typeof supabase.rpc === 'function') {
     try {
-      await supabase.rpc('unirse_al_enjambre');
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeoutPromise = new Promise((resolve) => {
+        timer = setTimeout(resolve, 1500);
+      });
+      const rpcPromise = Promise.resolve(supabase.rpc('unirse_al_enjambre')).finally(() => {
+        if (timer) clearTimeout(timer);
+      });
+      await Promise.race([rpcPromise, timeoutPromise]);
     } catch {
       /* fail-soft */
     }

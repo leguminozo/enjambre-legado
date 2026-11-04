@@ -36,22 +36,38 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
   })
 
   // getUser() validates the user JWT with the Supabase Auth server on every request.
-  const { data: { user } } = await supabase.auth.getUser()
+  // Protegido con timeout fail-soft (2.5s) para evitar 504 Gateway Timeout si Supabase Auth
+  // experimenta latencia o límites de concurrencia en Edge/Serverless.
+  let authUser: { id: string; email?: string; app_metadata?: Record<string, unknown> } | null = null
+  try {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) => {
+      timer = setTimeout(() => resolve({ data: { user: null } }), 2500)
+    })
+    const authPromise = Promise.resolve(supabase.auth.getUser()).finally(() => {
+      if (timer) clearTimeout(timer)
+    })
+    const { data } = await Promise.race([authPromise, timeoutPromise])
+    authUser = data.user
+  } catch {
+    authUser = null
+  }
 
-  const oyzRole = user?.app_metadata?.oyz_role ?? 'comprador'
+  const rawRole = authUser?.app_metadata?.oyz_role
+  const oyzRole = typeof rawRole === 'string' ? rawRole : 'comprador'
 
-  if (user) {
+  if (authUser) {
     requestHeaders.set('x-oyz-role', oyzRole)
   }
 
   return {
     response,
-    user: user
+    user: authUser
       ? {
-          id: user.id,
-          email: user.email ?? '',
+          id: authUser.id,
+          email: authUser.email ?? '',
           oyz_role: oyzRole,
-          app_metadata: user.app_metadata as Record<string, unknown> | undefined,
+          app_metadata: authUser.app_metadata as Record<string, unknown> | undefined,
         }
       : null,
     supabase,

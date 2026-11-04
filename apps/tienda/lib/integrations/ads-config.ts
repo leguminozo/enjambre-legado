@@ -39,10 +39,30 @@ async function fetchAdsConfigDirect(): Promise<{
       return { metaRow: null, googleRow: null };
     }
 
-    const { data, error } = await admin
-      .from('integrations')
-      .select('key, enabled, config')
-      .in('key', ['meta_ads', 'google_ads']);
+    const queryPromise = Promise.resolve(
+      admin
+        .from('integrations')
+        .select('key, enabled, config')
+        .in('key', ['meta_ads', 'google_ads']),
+    );
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+      timer = setTimeout(
+        () => resolve({ data: null, error: { message: 'Timeout fetching ads config' } }),
+        2500,
+      );
+    });
+
+    const result = await Promise.race([
+      queryPromise.finally(() => {
+        if (timer) clearTimeout(timer);
+      }),
+      timeoutPromise,
+    ]);
+
+    const data = result.data as RawIntegrationRow[] | null;
+    const error = result.error;
 
     if (error || !data) {
       return { metaRow: null, googleRow: null };

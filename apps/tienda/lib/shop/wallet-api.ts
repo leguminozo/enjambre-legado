@@ -3,6 +3,15 @@ import { getAuthToken } from '@/lib/shop/resenas-api';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { friendlyError } from '@enjambre/ui';
 
+function createTimeoutController(ms: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return {
+    signal: controller.signal,
+    clear: () => clearTimeout(timer),
+  };
+}
+
 export type WalletCapabilities = {
   apple: { available: boolean; reason: string | null };
   google: { available: boolean; configured: boolean; reason: string | null };
@@ -16,6 +25,7 @@ export async function fetchWalletCapabilities(token?: string): Promise<WalletCap
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return null;
 
+  const timeout = createTimeoutController(3500);
   try {
     const res = await fetch(`${nucleoUrl}/api/wallet/capabilities`, {
       headers: {
@@ -23,14 +33,17 @@ export async function fetchWalletCapabilities(token?: string): Promise<WalletCap
         'X-Requested-With': 'XMLHttpRequest',
       },
       next: { revalidate: 300 },
+      signal: timeout.signal,
     });
 
     if (!res.ok) return null;
     return (await res.json()) as WalletCapabilities;
   } catch {
-    // Fail-soft: Núcleo 502/HTML rompería res.json() y dejaría la UI sin
+    // Fail-soft: Núcleo 502/HTML/timeout rompería res.json() y dejaría la UI sin
     // capacidades (mismo patrón que club-lotes-publicos).
     return null;
+  } finally {
+    timeout.clear();
   }
 }
 
@@ -41,6 +54,7 @@ export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardia
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return null;
 
+  const timeout = createTimeoutController(3500);
   try {
     const res = await fetch(`${nucleoUrl}/api/wallet/stamps`, {
       headers: {
@@ -48,15 +62,18 @@ export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardia
         'X-Requested-With': 'XMLHttpRequest',
       },
       next: { revalidate: 60 },
+      signal: timeout.signal,
     });
 
     if (!res.ok) return null;
     const json = (await res.json()) as { snapshot?: WalletGuardianSnapshot };
     return json.snapshot ?? null;
   } catch {
-    // Fail-soft: si Núcleo responde 502/HTML, res.json() lanzaría y la
+    // Fail-soft: si Núcleo responde 502/HTML/timeout, res.json() lanzaría y la
     // sección "Sellos del bosque" quedaría en "Cargando..." eterno.
     return null;
+  } finally {
+    timeout.clear();
   }
 }
 
@@ -66,12 +83,14 @@ export async function downloadApplePass(): Promise<{ ok: boolean; message?: stri
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return { ok: false, message: 'Servicio no disponible' };
 
+  const timeout = createTimeoutController(6000);
   try {
     const res = await fetch(`${nucleoUrl}/api/wallet/apple/download`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'X-Requested-With': 'XMLHttpRequest',
       },
+      signal: timeout.signal,
     });
 
     const json = (await res.json()) as Record<string, unknown>;
@@ -85,6 +104,8 @@ export async function downloadApplePass(): Promise<{ ok: boolean; message?: stri
     return { ok: true };
   } catch {
     return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
+  } finally {
+    timeout.clear();
   }
 }
 
@@ -94,6 +115,7 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return { ok: false, message: 'Servicio no disponible' };
 
+  const timeout = createTimeoutController(6000);
   try {
     const res = await fetch(`${nucleoUrl}/api/wallet/google/save-link`, {
       method: 'POST',
@@ -103,6 +125,7 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
         'X-Requested-With': 'XMLHttpRequest',
         origin: typeof window !== 'undefined' ? window.location.origin : nucleoUrl,
       },
+      signal: timeout.signal,
     });
 
     const json = (await res.json()) as Record<string, unknown>;
@@ -124,5 +147,7 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
     };
   } catch {
     return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
+  } finally {
+    timeout.clear();
   }
 }
