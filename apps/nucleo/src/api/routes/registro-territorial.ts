@@ -307,6 +307,11 @@ registroTerritorialRoutes.get("/actores/buscar-unclaimed", async (c) => {
     return c.json({ data: [] });
   }
 
+  const unaccented = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const searchFilter = unaccented !== q
+    ? `nombre_actor.ilike.%${q}%,nombre_actor.ilike.%${unaccented}%`
+    : `nombre_actor.ilike.%${q}%`;
+
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("actores_registro")
@@ -326,7 +331,7 @@ registroTerritorialRoutes.get("/actores/buscar-unclaimed", async (c) => {
     `)
     .is("user_id", null)
     .eq("estado", "activo")
-    .ilike("nombre_actor", `%${q}%`)
+    .or(searchFilter)
     .limit(6);
 
   if (error) return c.json({ error: error.message }, 500);
