@@ -4,7 +4,7 @@ import { Award, Printer, X, ShieldCheck, CheckCircle2, MapPin } from 'lucide-rea
 import { QRCode } from '@enjambre/ui';
 import { getTerritorialCredential, territorialRolLabel } from '@/lib/territorial-rol';
 import { formatearRUT } from '@/lib/rut';
-import { slugifyComuna } from '@/lib/chiloe-comunas';
+import { resolveComunaChiloe } from '@/lib/chiloe-comunas';
 
 export interface CredencialActor {
   id: string;
@@ -34,7 +34,10 @@ export function CredencialTerritorialModal({
 
   const credential = getTerritorialCredential(actor.nivel_acreditacion);
   const codigoRegistro = `RTA-CL-${actor.id.slice(0, 8).toUpperCase()}`;
-  const verificationUrl = `https://www.registroapicolachiloe.me/comuna/${slugifyComuna(actor.comuna)}`;
+  const resolvedComuna = resolveComunaChiloe(actor.comuna);
+  const verificationUrl = resolvedComuna
+    ? `https://www.registroapicolachiloe.me/comuna/${resolvedComuna.slug}`
+    : `https://www.registroapicolachiloe.me/mapa-chiloe`;
 
   const handlePrint = () => {
     window.print();
