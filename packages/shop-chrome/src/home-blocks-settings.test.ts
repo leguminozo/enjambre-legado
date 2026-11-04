@@ -46,10 +46,40 @@ describe('Home blocks: Encuentros & Origen y Alianzas & Negocios', () => {
     expect(parsed.subtitle).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.subtitle);
     expect(parsed.card1_title).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.card1_title);
     expect(parsed.card1_href).toBe('/experiencias/territorio');
+    expect(parsed.card1_image).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.card1_image);
     expect(parsed.card2_title).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.card2_title);
     expect(parsed.card2_href).toBe('/experiencias/degustaciones');
+    expect(parsed.card2_image).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.card2_image);
     expect(parsed.card3_title).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.card3_title);
     expect(parsed.card3_href).toBe('/experiencias/talleres');
+    expect(parsed.card3_image).toBe(DEFAULT_EXPERIENCIAS_HOME_SETTINGS.card3_image);
+  });
+
+  it('parseExperienciasHomeSettings hereda imágenes de experiencias_settings cuando se pasan como fallbacks', () => {
+    const fallbackImages = {
+      card1_image: 'https://images.example.com/pureo.jpg',
+      card2_image: 'https://images.example.com/cata.jpg',
+      card3_image: 'https://images.example.com/talleres.jpg',
+    };
+    const parsed = parseExperienciasHomeSettings(
+      {
+        title: 'Vivencias',
+      },
+      fallbackImages,
+    );
+    expect(parsed.card1_image).toBe('https://images.example.com/pureo.jpg');
+    expect(parsed.card2_image).toBe('https://images.example.com/cata.jpg');
+    expect(parsed.card3_image).toBe('https://images.example.com/talleres.jpg');
+
+    // Override individual toma precedencia
+    const withOverride = parseExperienciasHomeSettings(
+      {
+        card1_image: 'https://images.example.com/custom-pureo.jpg',
+      },
+      fallbackImages,
+    );
+    expect(withOverride.card1_image).toBe('https://images.example.com/custom-pureo.jpg');
+    expect(withOverride.card2_image).toBe('https://images.example.com/cata.jpg');
   });
 
   it('parseExperienciasHomeSettings sanitiza enlaces externos o maliciosos', () => {

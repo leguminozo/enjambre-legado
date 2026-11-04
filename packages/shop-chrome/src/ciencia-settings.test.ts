@@ -29,6 +29,13 @@ describe('Ciencia Settings Parser', () => {
     expect(parsed.pecoreo_title_en).toBe('Nectar-to-Honey Conversion & Forest Carrying Capacity');
     expect(parsed.horizonte_title_en).toBe('Methodological Horizon 2026–2027 · Field Measurement & Calibration');
     expect(parsed.respaldo_title_en).toBe('Scientific Limits, Accountability & Legal Disclaimer');
+    expect(parsed.jump_bar_01).toBe('01 · Pureza & Ausencia de Pesticidas');
+    expect(parsed.triangulacion_c1_badge).toBe('0.00 ppm · LOR');
+    expect(parsed.protocolo_c1_badge).toBe('Humedad Máxima <18%');
+    expect(parsed.biblioteca_p1_title).toBe('01 · Melisopalinología NCh2981');
+    expect(parsed.sensorial_title).toBe('Protocolo de Panel Sensorial Distribuido (ST-CATA)');
+    expect(parsed.pecoreo_c1_formula).toBe('M_néctar = kg × (0.82 / 0.30)');
+    expect(parsed.ecosistema_title).toBe('Estado del Ecosistema en Vivo');
   });
 
   it('preserves custom overrides for scientific axes', () => {

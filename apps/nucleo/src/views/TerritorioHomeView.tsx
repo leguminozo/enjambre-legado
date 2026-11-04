@@ -7,13 +7,14 @@ import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
   MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList, FileText,
-  Sprout, BookOpen, Hexagon, Award, Bell
+  Sprout, BookOpen, Hexagon, Award, Bell, Edit3
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useTerritorialActor } from '@/hooks/use-territorial-actor';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { Badge, Button, Spinner, toast } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
@@ -115,6 +116,7 @@ export function TerritorioHomeView() {
   const [showInscripcion, setShowInscripcion] = useState(false);
   const [showAlertaForm, setShowAlertaForm] = useState(false);
   const [showCredencial, setShowCredencial] = useState(false);
+  const [editingCenso, setEditingCenso] = useState(false);
 
   const { data: actorData, refetch: refetchActor, isFetched: actorFetched } = useTerritorialActor();
 
@@ -157,6 +159,8 @@ export function TerritorioHomeView() {
   });
 
   const miActor = actorData?.data ?? null;
+  const apiariosPropios = apiariosRegistroData?.data ?? [];
+  const totalColmenas = apiariosPropios.reduce((sum, a) => sum + (a.n_colmenas || 0), 0);
 
   const retryAdopt = async () => {
     const result = await adoptTerritorialSession();
@@ -271,6 +275,23 @@ export function TerritorioHomeView() {
             </div>
           ) : undefined
         }
+      />
+
+      {/* Selector de pestañas canónico y accesible */}
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="territorio-home-tabs"
+        tabs={[
+          { id: 'registro', label: 'Mi Registro' },
+          { id: 'mapa', label: 'Mapa de la Red' },
+          { id: 'alertas', label: 'Alertas', badge: alertasEnMiComuna.length > 0 ? alertasEnMiComuna.length : undefined },
+          { id: 'trashumancia', label: 'Trashumancia y Predios' },
+        ]}
+        activeId={tab}
+        onChange={(id) => {
+          if (id === 'registro') router.push('/territorio');
+          else router.push(`/territorio/${id}`);
+        }}
       />
 
       {/* Alerta temprana fitosanitaria en la comuna del apicultor */}
@@ -413,34 +434,127 @@ export function TerritorioHomeView() {
       {tab === 'registro' && (
         <div className="space-y-4">
           {miActor ? (
-            miActor.completo ? (
-              <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <ShieldCheck size={18} />
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Tu inscripción legal</h3>
+            miActor.completo && !editingCenso ? (
+              <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-success/15 border border-success/30 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-success" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-foreground">Tu inscripción legal está completa</h3>
+                        <Badge variant="success">Censo al día</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Inscripción acreditada ante la red territorial y la Ley Apícola SAG N.º 21.489
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingCenso(true)}
+                      className="text-xs rounded-xl"
+                    >
+                      <Edit3 size={13} className="mr-1.5" /> Actualizar datos o apiarios
+                    </Button>
+                    <Link href="/declaracion-sag">
+                      <Button size="sm" className="text-xs rounded-xl">
+                        <FileText size={13} className="mr-1.5" /> Declaración SAG oficial
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  {miActor.rut && (
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">RUT</dt>
-                      <dd className="mt-1 font-medium text-foreground">{miActor.rut}</dd>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-surface-raised/40 border border-border/60 space-y-2">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Identidad Legal</p>
+                    <div className="space-y-1.5 text-sm">
+                      <p className="text-foreground"><span className="text-muted-foreground text-xs">RUT:</span> {miActor.rut || 'No indicado'}</p>
+                      <p className="text-foreground"><span className="text-muted-foreground text-xs">Teléfono:</span> {miActor.telefono || 'No indicado'}</p>
+                      <p className="text-foreground"><span className="text-muted-foreground text-xs">RUP SAG:</span> {miActor.rup || 'Sin RUP'}</p>
+                      <p className="text-xs text-success flex items-center gap-1 font-medium pt-1">
+                        <CheckCircle2 size={13} className="shrink-0" /> Existencia animal declarada ante el SAG
+                      </p>
                     </div>
-                  )}
-                  {miActor.rup && (
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">RUP (SAG)</dt>
-                      <dd className="mt-1 font-medium text-foreground">{miActor.rup}</dd>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-surface-raised/40 border border-border/60 space-y-2">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Sanidad y Varroa</p>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <p className="text-[11px] text-muted-foreground mb-1">Prácticas sanitarias:</p>
+                        <p className="text-xs text-foreground font-medium bg-background/60 p-2.5 rounded-lg border border-border/40">
+                          {miActor.practicas_sanitarias || 'No especificadas'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-muted-foreground mb-1">Método de control de varroa:</p>
+                        <p className="text-xs text-foreground font-medium bg-background/60 p-2.5 rounded-lg border border-border/40">
+                          {miActor.metodo_control_varroa || 'No especificado'}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </dl>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-surface-raised/40 border border-border/60 space-y-2">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Apiarios Declarados</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Apiarios registrados:</span>
+                        <span className="font-bold text-foreground">{apiariosPropios.length}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Total de colmenas:</span>
+                        <span className="font-bold text-primary">{totalColmenas} colmenas</span>
+                      </div>
+                      <div className="space-y-1 pt-1 max-h-32 overflow-y-auto">
+                        {apiariosPropios.map((ap) => (
+                          <div key={ap.id} className="text-xs bg-background/50 px-2.5 py-1.5 rounded-lg border border-border/40 flex items-center justify-between">
+                            <span className="truncate max-w-[140px] font-medium text-foreground">{ap.nombre || ap.zona}</span>
+                            <span className="text-muted-foreground font-mono">{ap.n_colmenas} colm.</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 text-xs text-muted-foreground border-t border-border/40">
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck size={14} className="text-primary shrink-0" />
+                    Tus coordenadas exactas están protegidas por secreto territorial.
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCredencial(true)}
+                    className="text-xs h-8 text-primary hover:text-primary"
+                  >
+                    <Award size={13} className="mr-1.5" /> Abrir credencial digital
+                  </Button>
+                </div>
               </div>
             ) : (
-              <CensoLegalWizard
-                actor={miActor}
-                onSaved={() => {
-                  refetchActor().catch(() => toast.error('Error actualizando tu inscripción'));
-                }}
-              />
+              <div className="space-y-4">
+                {editingCenso && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-raised border border-border">
+                    <span className="text-xs font-medium text-muted-foreground">Modo edición de censo legal</span>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingCenso(false)} className="text-xs h-7">
+                      Volver a mi ficha
+                    </Button>
+                  </div>
+                )}
+                <CensoLegalWizard
+                  actor={miActor}
+                  onSaved={() => {
+                    setEditingCenso(false);
+                    refetchActor().catch(() => toast.error('Error actualizando tu inscripción'));
+                  }}
+                />
+              </div>
             )
           ) : (
             <div className="bg-card border border-border rounded-2xl p-10 text-center">

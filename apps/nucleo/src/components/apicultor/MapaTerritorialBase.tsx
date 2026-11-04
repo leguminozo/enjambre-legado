@@ -197,7 +197,7 @@ export function MapaTerritorial({
             )}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Protección de pecoreo ±1.5 km · Ley 21.489
+            Protección de pecoreo ±2.0 km · Ley 21.489
           </p>
         </div>
       </div>
@@ -270,7 +270,7 @@ export function MapaTerritorial({
                 <div key={apiario.id}>
                   <Circle
                     center={[apiario.lat_aproximada!, apiario.lng_aproximada!]}
-                    radius={1500}
+                    radius={2000}
                     pathOptions={{
                       color: 'hsl(var(--accent))',
                       fillColor: 'hsl(var(--accent))',
@@ -285,7 +285,7 @@ export function MapaTerritorial({
                           🚚 Apiario Trashumante en Tránsito
                         </p>
                         <p className="text-muted-foreground">
-                          <strong>Asentamiento temporal:</strong> Radio estimado ~1.5 km
+                          <strong>Asentamiento temporal:</strong> Radio estimado ~2.0 km
                         </p>
                         {capaActiva === 'restringida' && (
                           <p className="text-[11px] text-muted-foreground mt-2 border-t border-border pt-1">
@@ -304,15 +304,15 @@ export function MapaTerritorial({
                 </div>
               ))}
 
-          {/* Apiarios de la Red Territorial (130+ Asentamientos de Chiloé) */}
+          {/* Apiarios de la Red Territorial (140+ Asentamientos de Chiloé) */}
           {apiariosRegistro
             .filter((a) => a.lat_aproximada != null && a.lng_aproximada != null)
             .map((apiario) => (
               <div key={apiario.id}>
-                {/* Halo de Pecoreo Orgánico (K-Anonymity ~1.5 km) */}
+                {/* Halo de Pecoreo Orgánico (K-Anonymity ~2.0 km) */}
                 <Circle
                   center={[apiario.lat_aproximada!, apiario.lng_aproximada!]}
-                  radius={1500}
+                  radius={2000}
                   pathOptions={{
                     color: 'hsl(var(--primary))',
                     fillColor: 'hsl(var(--primary))',
@@ -333,7 +333,7 @@ export function MapaTerritorial({
                         {apiario.zona ? `${apiario.zona} · ` : ''}{apiario.comuna}
                       </p>
                       <div className="mt-2 pt-1 border-t border-border text-[11px] text-muted-foreground">
-                        Radio de pecoreo estimado: 1.5 km (Ley 21.489)
+                        Radio de pecoreo estimado: 2.0 km (Ley 21.489)
                       </div>
                       {capaActiva === 'restringida' && (
                         <div className="mt-1 text-[11px] text-primary/80">
@@ -349,20 +349,6 @@ export function MapaTerritorial({
                   <Marker
                     position={[apiario.lat_aproximada!, apiario.lng_aproximada!]}
                     icon={ICON_RESIDENTE}
-                  />
-                )}
-
-                {/* En modo comunitario mostramos un micro-punto orgánico central sutil */}
-                {capaActiva === 'comunitaria' && (
-                  <Circle
-                    center={[apiario.lat_aproximada!, apiario.lng_aproximada!]}
-                    radius={60}
-                    pathOptions={{
-                      color: 'hsl(var(--primary))',
-                      fillColor: 'hsl(var(--primary))',
-                      fillOpacity: 0.8,
-                      weight: 1,
-                    }}
                   />
                 )}
               </div>

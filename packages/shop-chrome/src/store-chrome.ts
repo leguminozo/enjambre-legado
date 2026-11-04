@@ -1006,6 +1006,20 @@ export type CienciaSettings = {
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
 
+  // Jump bar
+  jump_bar_01?: string;
+  jump_bar_01_en?: string;
+  jump_bar_02?: string;
+  jump_bar_02_en?: string;
+  jump_bar_03?: string;
+  jump_bar_03_en?: string;
+  jump_bar_04?: string;
+  jump_bar_04_en?: string;
+  jump_bar_05?: string;
+  jump_bar_05_en?: string;
+  jump_bar_06?: string;
+  jump_bar_06_en?: string;
+
   // Eje 01 · Triangulación botánica
   triangulacion_kicker?: string;
   triangulacion_kicker_en?: string;
@@ -1013,6 +1027,35 @@ export type CienciaSettings = {
   triangulacion_title_en?: string;
   triangulacion_desc?: string;
   triangulacion_desc_en?: string;
+  triangulacion_c1_badge?: string;
+  triangulacion_c1_badge_en?: string;
+  triangulacion_c1_title?: string;
+  triangulacion_c1_title_en?: string;
+  triangulacion_c1_desc?: string;
+  triangulacion_c1_desc_en?: string;
+  triangulacion_c1_footer?: string;
+  triangulacion_c1_footer_en?: string;
+  triangulacion_c2_badge?: string;
+  triangulacion_c2_badge_en?: string;
+  triangulacion_c2_title?: string;
+  triangulacion_c2_title_en?: string;
+  triangulacion_c2_desc?: string;
+  triangulacion_c2_desc_en?: string;
+  triangulacion_c2_footer?: string;
+  triangulacion_c2_footer_en?: string;
+  triangulacion_c3_badge?: string;
+  triangulacion_c3_badge_en?: string;
+  triangulacion_c3_title?: string;
+  triangulacion_c3_title_en?: string;
+  triangulacion_c3_desc?: string;
+  triangulacion_c3_desc_en?: string;
+  triangulacion_c3_footer?: string;
+  triangulacion_c3_footer_en?: string;
+  triangulacion_banner_text?: string;
+  triangulacion_banner_text_en?: string;
+  triangulacion_banner_cta_label?: string;
+  triangulacion_banner_cta_label_en?: string;
+  triangulacion_banner_cta_href?: string;
 
   // Eje 02 · Bioquímica de origen
   bioquimica_kicker?: string;
@@ -1021,10 +1064,32 @@ export type CienciaSettings = {
   bioquimica_title_en?: string;
   bioquimica_desc?: string;
   bioquimica_desc_en?: string;
+  protocolo_kicker?: string;
+  protocolo_kicker_en?: string;
   protocolo_title?: string;
   protocolo_title_en?: string;
   protocolo_desc?: string;
   protocolo_desc_en?: string;
+  protocolo_c1_badge?: string;
+  protocolo_c1_badge_en?: string;
+  protocolo_c1_title?: string;
+  protocolo_c1_title_en?: string;
+  protocolo_c1_desc?: string;
+  protocolo_c1_desc_en?: string;
+  protocolo_c2_badge?: string;
+  protocolo_c2_badge_en?: string;
+  protocolo_c2_title?: string;
+  protocolo_c2_title_en?: string;
+  protocolo_c2_desc?: string;
+  protocolo_c2_desc_en?: string;
+  protocolo_c3_badge?: string;
+  protocolo_c3_badge_en?: string;
+  protocolo_c3_title?: string;
+  protocolo_c3_title_en?: string;
+  protocolo_c3_desc?: string;
+  protocolo_c3_desc_en?: string;
+  evidencia_section_title?: string;
+  evidencia_section_title_en?: string;
 
   // Eje 03 · Botánica melífera & Estación de origen
   biblioteca_kicker?: string;
@@ -1033,6 +1098,25 @@ export type CienciaSettings = {
   biblioteca_title_en?: string;
   biblioteca_desc?: string;
   biblioteca_desc_en?: string;
+  biblioteca_cta_label?: string;
+  biblioteca_cta_label_en?: string;
+  biblioteca_cta_href?: string;
+  biblioteca_p1_title?: string;
+  biblioteca_p1_title_en?: string;
+  biblioteca_p1_desc?: string;
+  biblioteca_p1_desc_en?: string;
+  biblioteca_p2_title?: string;
+  biblioteca_p2_title_en?: string;
+  biblioteca_p2_desc?: string;
+  biblioteca_p2_desc_en?: string;
+  biblioteca_p3_title?: string;
+  biblioteca_p3_title_en?: string;
+  biblioteca_p3_desc?: string;
+  biblioteca_p3_desc_en?: string;
+  card_ficha_label?: string;
+  card_ficha_label_en?: string;
+  card_lab_label?: string;
+  card_lab_label_en?: string;
   estacion_kicker?: string;
   estacion_kicker_en?: string;
   estacion_title?: string;
@@ -1042,8 +1126,31 @@ export type CienciaSettings = {
   estacion_cta_label?: string;
   estacion_cta_label_en?: string;
   estacion_cta_href?: string;
+  estacion_secondary_cta_label?: string;
+  estacion_secondary_cta_label_en?: string;
+  estacion_secondary_cta_href?: string;
 
-  // Eje 04 · Contabilidad biofísica & Pecoreo
+  // Eje 04 · Ciencia Sensorial & ST-CATA
+  sensorial_kicker?: string;
+  sensorial_kicker_en?: string;
+  sensorial_title?: string;
+  sensorial_title_en?: string;
+  sensorial_desc?: string;
+  sensorial_desc_en?: string;
+  sensorial_c1_title?: string;
+  sensorial_c1_title_en?: string;
+  sensorial_c1_desc?: string;
+  sensorial_c1_desc_en?: string;
+  sensorial_c2_title?: string;
+  sensorial_c2_title_en?: string;
+  sensorial_c2_desc?: string;
+  sensorial_c2_desc_en?: string;
+  sensorial_c3_title?: string;
+  sensorial_c3_title_en?: string;
+  sensorial_c3_desc?: string;
+  sensorial_c3_desc_en?: string;
+
+  // Eje 05 · Contabilidad biofísica & Pecoreo
   metodologia_kicker?: string;
   metodologia_kicker_en?: string;
   metodologia_title?: string;
@@ -1056,14 +1163,76 @@ export type CienciaSettings = {
   pecoreo_title_en?: string;
   pecoreo_desc?: string;
   pecoreo_desc_en?: string;
+  pecoreo_c1_title?: string;
+  pecoreo_c1_title_en?: string;
+  pecoreo_c1_formula?: string;
+  pecoreo_c1_desc?: string;
+  pecoreo_c1_desc_en?: string;
+  pecoreo_c2_title?: string;
+  pecoreo_c2_title_en?: string;
+  pecoreo_c2_formula?: string;
+  pecoreo_c2_desc?: string;
+  pecoreo_c2_desc_en?: string;
+  pecoreo_c3_title?: string;
+  pecoreo_c3_title_en?: string;
+  pecoreo_c3_formula?: string;
+  pecoreo_c3_desc?: string;
+  pecoreo_c3_desc_en?: string;
+
+  equivalencia_c1_title?: string;
+  equivalencia_c1_title_en?: string;
+  equivalencia_c1_value?: string;
+  equivalencia_c1_value_en?: string;
+  equivalencia_c1_desc?: string;
+  equivalencia_c1_desc_en?: string;
+  equivalencia_c2_title?: string;
+  equivalencia_c2_title_en?: string;
+  equivalencia_c2_value?: string;
+  equivalencia_c2_value_en?: string;
+  equivalencia_c2_desc?: string;
+  equivalencia_c2_desc_en?: string;
+  equivalencia_c3_title?: string;
+  equivalencia_c3_title_en?: string;
+  equivalencia_c3_value?: string;
+  equivalencia_c3_value_en?: string;
+  equivalencia_c3_desc?: string;
+  equivalencia_c3_desc_en?: string;
+
+  ecosistema_title?: string;
+  ecosistema_title_en?: string;
+  ecosistema_territorio?: string;
+  ecosistema_territorio_en?: string;
+  ecosistema_version_badge?: string;
+  ecosistema_m1_label?: string;
+  ecosistema_m1_label_en?: string;
+  ecosistema_m2_label?: string;
+  ecosistema_m2_label_en?: string;
+  ecosistema_m3_label?: string;
+  ecosistema_m3_label_en?: string;
+  ecosistema_m4_label?: string;
+  ecosistema_m4_label_en?: string;
+  ecosistema_disclaimer?: string;
+  ecosistema_disclaimer_en?: string;
+
+  formulas_title?: string;
+  formulas_title_en?: string;
+  fuentes_title?: string;
+  fuentes_title_en?: string;
+
   horizonte_title?: string;
   horizonte_title_en?: string;
   horizonte_text?: string;
   horizonte_text_en?: string;
 
-  // Eje 05 · Respaldo y límites
+  // Eje 06 · Respaldo y límites
+  respaldo_kicker?: string;
+  respaldo_kicker_en?: string;
   respaldo_title?: string;
   respaldo_title_en?: string;
+  respaldo_extra_notas?: string;
+  respaldo_extra_notas_en?: string;
+  respaldo_disclaimer_minsal?: string;
+  respaldo_disclaimer_minsal_en?: string;
 };
 
 export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
@@ -1078,6 +1247,21 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   hero_image: '',
   hero_image_opacity: 25,
 
+  // Jump bar
+  jump_bar_01: '01 · Pureza & Ausencia de Pesticidas',
+  jump_bar_01_en: '01 · Purity & Zero Pesticides',
+  jump_bar_02: '02 · Bioquímica & Enzimas Vivas',
+  jump_bar_02_en: '02 · Biochemistry & Living Enzymes',
+  jump_bar_03: '03 · Biblioteca Botánica NCh2981',
+  jump_bar_03_en: '03 · Botanical Library NCh2981',
+  jump_bar_04: '04 · Panel Sensorial ST-CATA',
+  jump_bar_04_en: '04 · Sensory Panel ST-CATA',
+  jump_bar_05: '05 · Balance Biofísico & Pecoreo',
+  jump_bar_05_en: '05 · Biophysical Balance & Foraging',
+  jump_bar_06: '06 · Compliance & Límites',
+  jump_bar_06_en: '06 · Compliance & Boundaries',
+
+  // Eje 01 · Triangulación botánica
   triangulacion_kicker: 'Eje 01 · Triangulación Botánica',
   triangulacion_kicker_en: 'Axis 01 · Botanical Triangulation',
   triangulacion_title: 'Refugio Austral: Bosque Nativo sin Pesticidas',
@@ -1086,7 +1270,48 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
     'El archipiélago de Chiloé y la vertiente occidental de la Cordillera de la Costa constituyen un santuario biogeográfico aislado. La ausencia de monocultivos agroindustriales extensivos, combinada con una densa pluviometría templada lluviosa, protege los apiarios de la deriva de agroquímicos sintéticos.',
   triangulacion_desc_en:
     'The Chiloé archipelago and the western slopes of the Coastal Range form an isolated biogeographical sanctuary. The absence of extensive agro-industrial monocultures, combined with dense temperate rainforest precipitation, shields our apiaries from synthetic agrochemical drift.',
+  triangulacion_c1_badge: '0.00 ppm · LOR',
+  triangulacion_c1_badge_en: '0.00 ppm · LOR',
+  triangulacion_c1_title: 'Neonicotinoides y Glifosato: No Detectados',
+  triangulacion_c1_title_en: 'Neonicotinoids & Glyphosate: Undetected',
+  triangulacion_c1_desc:
+    'Los análisis cromatográficos multiresiduo en matrices de miel y polen del bosque templado lluvioso no registran trazas detectables de insecticidas sistémicos (imidacloprid, tiametoxam) ni herbicidas agroindustriales (bajo límite de detección analítica y estándares Codex Alimentarius).',
+  triangulacion_c1_desc_en:
+    'Multi-residue chromatographic analyses across honey and pollen matrices from the temperate rainforest show zero detectable traces of systemic insecticides or agroindustrial herbicides.',
+  triangulacion_c1_footer: 'Ensayos cromatográficos GC-MS/MS & LC-MS/MS · Respaldo por lote',
+  triangulacion_c1_footer_en: 'GC-MS/MS & LC-MS/MS Chromatography Trials · Batch backing',
 
+  triangulacion_c2_badge: '100% Reserva Nativa',
+  triangulacion_c2_badge_en: '100% Native Reserve',
+  triangulacion_c2_title: 'Invernada con Néctar y Polen Silvestre',
+  triangulacion_c2_title_en: 'Overwintering on Wild Nectar and Pollen',
+  triangulacion_c2_desc:
+    'Frente a prácticas de apicultura masiva que reemplazan sistemáticamente la reserva invernal con jarabes de maíz de alta fructosa (HFCS), priorizamos que el enjambre inverne con sus propios marcos de miel y polen de floraciones nativas, protegiendo la vitalidad de la colonia.',
+  triangulacion_c2_desc_en:
+    'Unlike mass beekeeping practices that replace winter stores with high-fructose corn syrup (HFCS), we ensure the colony overwinters on its own frames of native honey and pollen.',
+  triangulacion_c2_footer: 'Manejo apícola adaptativo sin sustitutos sintéticos',
+  triangulacion_c2_footer_en: 'Adaptive apicultural management without synthetic substitutes',
+
+  triangulacion_c3_badge: '≥ 45% NCh2981',
+  triangulacion_c3_badge_en: '≥ 45% NCh2981',
+  triangulacion_c3_title: 'Melisopalinología y Botánica',
+  triangulacion_c3_title_en: 'Melissopalynology and Botany',
+  triangulacion_c3_desc:
+    'La norma chilena NCh2981 define miel monofloral a partir de un mínimo del 45% de polen dominante de una misma especie nativa. El análisis melisopalinológico verifica la identidad botánica del bosque valdiviano de Chiloé frente a mieles de pradera o mezcla comercial.',
+  triangulacion_c3_desc_en:
+    'Chilean standard NCh2981 defines monofloral honey by a minimum 45% dominant pollen from a single native species, verified through microscopic analysis.',
+  triangulacion_c3_footer: 'Melisopalinología NCh2981 · Clasificación polínica microscópica',
+  triangulacion_c3_footer_en: 'Melissopalynology NCh2981 · Microscopic pollen classification',
+
+  triangulacion_banner_text:
+    'Trazabilidad analítica y ensayos de pureza verificables en el sello y pasaporte digital de cada frasco.',
+  triangulacion_banner_text_en:
+    'Analytical traceability and verifiable purity tests on the digital seal and passport of every jar.',
+  triangulacion_banner_cta_label: 'Explorar frascos con pasaporte →',
+  triangulacion_banner_cta_label_en: 'Explore jars with digital passport →',
+  triangulacion_banner_cta_href: '/catalogo',
+
+  // Eje 02 · Bioquímica de origen
   bioquimica_kicker: 'Eje 02 · Bioquímica de Origen',
   bioquimica_kicker_en: 'Axis 02 · Origin Biochemistry',
   bioquimica_title: 'Composición de la Miel Cruda Viva',
@@ -1095,13 +1320,42 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
     'La miel no es un producto fabricado: es energía solar transformada en biomolécula por una cadena causal directa. La abeja concentra el néctar con enzimas y lo estabiliza por deshidratación. Frente al azúcar refinada —molienda, clarificación, centrifugación, decoloración—, la miel cruda es un alimento sin etapas industriales.',
   bioquimica_desc_en:
     'Honey is not a manufactured product: it is solar energy transformed into a biomolecule through a direct causal chain. Bees concentrate nectar with active enzymes and stabilize it via dehydration. In contrast to refined industrial sugar, raw honey undergoes zero industrial processing.',
+  protocolo_kicker: 'Protocolo de Laboratorio y Análisis por Lote',
+  protocolo_kicker_en: 'Laboratory Protocol & Batch Analysis',
   protocolo_title: 'Protocolo de Laboratorio y Análisis por Lote',
   protocolo_title_en: 'Laboratory Protocol & Batch Analysis',
   protocolo_desc:
     'Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:',
   protocolo_desc_en:
     'Every packaged batch has documented analytical backing prior to distribution. Physico-chemical and botanical standards uphold the raw purity delivered to homes, culinary studios, and boutique establishments:',
+  protocolo_c1_badge: 'Humedad Máxima <18%',
+  protocolo_c1_badge_en: 'Maximum Moisture <18%',
+  protocolo_c1_title: 'Refractometría Analítica',
+  protocolo_c1_title_en: 'Analytical Refractometry',
+  protocolo_c1_desc:
+    'Estabilidad física permanente. Previene fermentaciones en frío sin recurrir a pasteurización térmica.',
+  protocolo_c1_desc_en:
+    'Permanent physical stability. Prevents cold fermentation without thermal pasteurization.',
+  protocolo_c2_badge: 'HMF Codex <40 mg/kg',
+  protocolo_c2_badge_en: 'Codex HMF <40 mg/kg',
+  protocolo_c2_title: 'Control de Temperatura',
+  protocolo_c2_title_en: 'Thermal Control',
+  protocolo_c2_desc:
+    'Niveles basales mínimos que certifican la ausencia de calentamiento industrial, protegiendo diastasa, invertasa y bioactividad.',
+  protocolo_c2_desc_en:
+    'Minimal baseline levels proving absence of industrial heat processing, preserving live enzymes.',
+  protocolo_c3_badge: 'Norma NCh2981',
+  protocolo_c3_badge_en: 'Standard NCh2981',
+  protocolo_c3_title: 'Melisopalinología Certificada',
+  protocolo_c3_title_en: 'Certified Melissopalynology',
+  protocolo_c3_desc:
+    'Identificación microscópica de polen de ulmo, tiaca y especies acompañantes, garantizando el origen biogeográfico de Chiloé.',
+  protocolo_c3_desc_en:
+    'Microscopic pollen identification of ulmo, tiaca, and companion species, guaranteeing Chiloé biogeographical origin.',
+  evidencia_section_title: 'Evidencia y Ensayos Registrados',
+  evidencia_section_title_en: 'Registered Evidence & Laboratory Trials',
 
+  // Eje 03 · Botánica melífera & Estación de origen
   biblioteca_kicker: 'Eje 03 · Botánica Melífera',
   biblioteca_kicker_en: 'Axis 03 · Melliferous Botany',
   biblioteca_title: 'Biblioteca de Floraciones del Bosque Nativo',
@@ -1110,6 +1364,32 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
     'El bosque nativo de Chile no florece todo a la vez: sigue una cadencia estacional estricta. Cada miel es la huella digital de una floración en el tiempo. La regeneración territorial protege esta sucesión para que las abejas jamás sufran vacíos nutricionales ni dependan de jarabes artificiales.',
   biblioteca_desc_en:
     'Chilean native forests do not bloom simultaneously: they follow a strict seasonal cadence. Each honey represents the fingerprint of a single bloom in time. Territorial stewardship protects this floral succession so bees never suffer nutritional voids or depend on artificial syrups.',
+  biblioteca_cta_label: 'Ver biblioteca completa',
+  biblioteca_cta_label_en: 'View full library',
+  biblioteca_cta_href: '/origen',
+  biblioteca_p1_title: '01 · Melisopalinología NCh2981',
+  biblioteca_p1_title_en: '01 · Melissopalynology NCh2981',
+  biblioteca_p1_desc:
+    'Conteo microscópico de granos de polen para certificar ≥45% de dominancia floral exclusiva frente a mezclas comerciales.',
+  biblioteca_p1_desc_en:
+    'Microscopic pollen count certifying ≥45% exclusive floral dominance against commercial blends.',
+  biblioteca_p2_title: '02 · Fenología & Grados Día',
+  biblioteca_p2_title_en: '02 · Phenology & Degree Days',
+  biblioteca_p2_desc:
+    'Modelación térmica territorial que predice las ventanas breves de floración en el bosque lluvioso de Chiloé.',
+  biblioteca_p2_desc_en:
+    'Territorial thermal modeling predicting brief bloom windows in Chiloé rainforest.',
+  biblioteca_p3_title: '03 · Bioactividad No Peróxica',
+  biblioteca_p3_title_en: '03 · Non-Peroxide Bioactivity',
+  biblioteca_p3_desc:
+    'Identificación de flavonoides y terpenos de especies endémicas que conservan su capacidad antioxidante intacta.',
+  biblioteca_p3_desc_en:
+    'Identification of flavonoids and terpenes in endemic species preserving natural antioxidant potency.',
+  card_ficha_label: 'Ficha Botánica',
+  card_ficha_label_en: 'Botanical Profile',
+  card_lab_label: 'Catas & Lab',
+  card_lab_label_en: 'Tasting & Lab',
+
   estacion_kicker: 'Presencia en eventos externos · Módulos territoriales',
   estacion_kicker_en: 'Presence at External Events · Territorial Modules',
   estacion_title: 'Estación de Origen: Curaduría de Contraste Máximo',
@@ -1121,7 +1401,39 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   estacion_cta_label: 'Estación de Origen',
   estacion_cta_label_en: 'Origin Station',
   estacion_cta_href: '/experiencias/degustaciones#estacion-origen',
+  estacion_secondary_cta_label: 'Ver todas las modalidades',
+  estacion_secondary_cta_label_en: 'View all tasting formats',
+  estacion_secondary_cta_href: '/experiencias/degustaciones',
 
+  // Eje 04 · Ciencia Sensorial & ST-CATA
+  sensorial_kicker: 'EJE 04 · Ciencia Sensorial & Evaluación Objetiva',
+  sensorial_kicker_en: 'Axis 04 · Sensory Science & Objective Assessment',
+  sensorial_title: 'Protocolo de Panel Sensorial Distribuido (ST-CATA)',
+  sensorial_title_en: 'Distributed Sensory Panel Protocol (ST-CATA)',
+  sensorial_desc:
+    'De la degustación empírica al perfil sensorial validado. Nuestra plataforma no publica promedios subjetivos de marketing: opera el protocolo científico ST-CATA (Check-All-That-Apply semi-entrenado) para caracterizar la miel cruda de bosque nativo con rigor estadístico y reproducibilidad.',
+  sensorial_desc_en:
+    'From empirical tasting to verified sensory profile. We employ the scientific ST-CATA protocol to characterize native forest honey with statistical rigor.',
+  sensorial_c1_title: '01 · Instrumento 60s',
+  sensorial_c1_title_en: '01 · 60s Instrument',
+  sensorial_c1_desc:
+    'Evaluación de 3 pares semánticos bipolares y chips organolépticos con orden contrabalanceado aleatorio para eliminar sesgos de posición.',
+  sensorial_c1_desc_en:
+    'Evaluation of 3 bipolar semantic pairs and randomized organoleptic attributes to eliminate positioning bias.',
+  sensorial_c2_title: '02 · Dos Cohortes',
+  sensorial_c2_title_en: '02 · Two Cohorts',
+  sensorial_c2_desc:
+    'Separación estricta entre consumidores espontáneos en mesa y la red semi-entrenada de baristas calibrados con referentes aromáticos físicos.',
+  sensorial_c2_desc_en:
+    'Strict segregation between spontaneous table tasters and calibrated semi-trained baristas.',
+  sensorial_c3_title: '03 · Umbral N ≥ 30',
+  sensorial_c3_title_en: '03 · N ≥ 30 Threshold',
+  sensorial_c3_desc:
+    'Regla de oro: ningún perfil de floración o lote se publica con menos de 30 sesiones completadas. Bajo ese umbral, la plataforma declara «perfil en construcción».',
+  sensorial_c3_desc_en:
+    'Golden rule: no bloom or batch profile is published with fewer than 30 completed sessions.',
+
+  // Eje 05 · Contabilidad biofísica & Pecoreo
   metodologia_kicker: 'Eje 04 · Contabilidad Biofísica',
   metodologia_kicker_en: 'Axis 04 · Biophysical Accounting',
   metodologia_title: 'Cálculo Referencial de CO₂ y Regeneración',
@@ -1138,6 +1450,77 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
     'En nuestra modelación analítica de biofísica territorial y capacidad de carga, hemos calculado la estequiometría de pecoreo de Apis mellifera en el dosel nativo de Chiloé:',
   pecoreo_desc_en:
     'In our analytical modeling of territorial biophysics and carrying capacity, we calculate the foraging stoichiometry of Apis mellifera across the native Chiloé canopy:',
+
+  pecoreo_c1_title: 'Néctar y Concentración',
+  pecoreo_c1_title_en: 'Nectar & Concentration',
+  pecoreo_c1_formula: 'M_néctar = kg × (0.82 / 0.30)',
+  pecoreo_c1_desc:
+    'Considera 82% de azúcares en miel madura frente al 30% de sólidos solubles en néctar de flora nativa.',
+  pecoreo_c1_desc_en:
+    'Accounts for 82% sugars in mature honey vs 30% soluble solids in native flower nectar.',
+  pecoreo_c2_title: 'Superficie Vital Protegida',
+  pecoreo_c2_title_en: 'Protected Vital Canopy',
+  pecoreo_c2_formula: 'Área = (kg / 20) × 5.000 m²',
+  pecoreo_c2_desc:
+    'Basado en un rendimiento conservador de 20 kg/colmena y 0,5 ha de bosque maduro asignado como radio vital.',
+  pecoreo_c2_desc_en:
+    'Based on a conservative yield of 20 kg/hive and 0.5 ha of mature forest designated as vital radius.',
+  pecoreo_c3_title: 'Vuelo y Fecundación',
+  pecoreo_c3_title_en: 'Flight & Pollination',
+  pecoreo_c3_formula: 'Flores = M_néctar / 1.2 mg',
+  pecoreo_c3_desc:
+    'Secreción media de 1,2 mg néctar/flor y tasa de polinización cruzada (+40% semillas viables al banco de suelo).',
+  pecoreo_c3_desc_en:
+    'Average secretion of 1.2 mg nectar/flower and cross-pollination rate (+40% viable soil bank seeds).',
+
+  equivalencia_c1_title: 'Frasco 500 g',
+  equivalencia_c1_title_en: '500 g Jar',
+  equivalencia_c1_value: '~1.2 kg CO₂e',
+  equivalencia_c1_value_en: '~1.2 kg CO₂e',
+  equivalencia_c1_desc:
+    'Estimación de emisiones evitadas por sustitución de azúcar refinada industrial. No constituye certificado de absorción forestal individual.',
+  equivalencia_c1_desc_en:
+    'Avoided emissions estimate by replacing industrial refined sugar. Not an individual carbon credit.',
+  equivalencia_c2_title: '1 Kilogramo Miel',
+  equivalencia_c2_title_en: '1 Kilogram Honey',
+  equivalencia_c2_value: '~2.4 kg CO₂e',
+  equivalencia_c2_value_en: '~2.4 kg CO₂e',
+  equivalencia_c2_desc:
+    'Coeficiente de orden de magnitud por sustitución alimentaria de miel cruda sin procesamiento térmico ni aditivos.',
+  equivalencia_c2_desc_en:
+    'Order of magnitude coefficient for nutritional substitution of raw honey without thermal processing.',
+  equivalencia_c3_title: 'Factor por Árbol Nativo',
+  equivalencia_c3_title_en: 'Native Tree Factor',
+  equivalencia_c3_value: '~0.05 t CO₂e',
+  equivalencia_c3_value_en: '~0.05 t CO₂e',
+  equivalencia_c3_desc:
+    'Secuestro referencial estimado en biomasa leñosa para especies nativas en crecimiento activo en el Predio Pureo.',
+  equivalencia_c3_desc_en:
+    'Estimated referential sequestration in woody biomass for native species in active growth.',
+
+  ecosistema_title: 'Estado del Ecosistema en Vivo',
+  ecosistema_title_en: 'Live Ecosystem Status',
+  ecosistema_territorio: 'Territorio: Chiloé, Chile — bosque nativo templado lluvioso',
+  ecosistema_territorio_en: 'Territory: Chiloé, Chile — temperate rainforest',
+  ecosistema_version_badge: 'v2026.10.1',
+  ecosistema_m1_label: 'Árboles censados en el predio',
+  ecosistema_m1_label_en: 'Surveyed trees in sanctuary',
+  ecosistema_m2_label: 'CO₂ capturado estimado',
+  ecosistema_m2_label_en: 'Estimated captured CO₂',
+  ecosistema_m3_label: 'CO₂ emitido logística + producción',
+  ecosistema_m3_label_en: 'Logistics + operations CO₂ emitted',
+  ecosistema_m4_label: 'Índice de Regeneración (IRR)',
+  ecosistema_m4_label_en: 'Regeneration Index (IRR)',
+  ecosistema_disclaimer:
+    'Rigor ético y metodológico: la modelación biofísica de absorción en biomasa e IRR requiere el censo georreferenciado árbol a árbol del Predio Pureo (temporada 2026–2027 en ejecución). Por honestidad radical, no publicamos indicadores concluidos mientras el conteo empírico territorial permanezca en calibración.',
+  ecosistema_disclaimer_en:
+    'Ethical & methodological rigor: biophysical absorption modeling requires georeferenced tree-by-tree census in the Pureo Sanctuary (2026–2027 season in progress).',
+
+  formulas_title: 'Fórmulas Matemáticas Abiertas',
+  formulas_title_en: 'Open Mathematical Formulas',
+  fuentes_title: 'Fuentes Bibliográficas de Respaldo',
+  fuentes_title_en: 'Backing Bibliographic Sources',
+
   horizonte_title: 'Horizonte Metodológico 2026–2027 · Medición y Calibración en Terreno',
   horizonte_title_en: 'Methodological Horizon 2026–2027 · Field Measurement & Calibration',
   horizonte_text:
@@ -1145,8 +1528,15 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   horizonte_text_en:
     'Radical transparency principle: Although this biophysical mathematical model is structured within our territorial accounting systems, it is not used as a closed commercial stamp on individual retail jars. Throughout the 2026 and 2027 seasons, we conduct exhaustive empirical field measurements, bloom censuses, and georeferenced tracking across the Pureo Sanctuary. Unit equivalencies will only be published once empirical field validation concludes.',
 
+  // Eje 06 · Respaldo y límites
+  respaldo_kicker: 'EJE 06 · Compliance & Límites',
+  respaldo_kicker_en: 'Axis 06 · Compliance & Boundaries',
   respaldo_title: 'Límites y Responsabilidad Científica',
   respaldo_title_en: 'Scientific Limits, Accountability & Legal Disclaimer',
+  respaldo_extra_notas: '',
+  respaldo_extra_notas_en: '',
+  respaldo_disclaimer_minsal: '',
+  respaldo_disclaimer_minsal_en: '',
 };
 
 export type AuthBackgroundStyle = 'cosmic' | 'bosque_nativo' | 'abeja_cosmos' | 'dark_luxury';
@@ -3736,6 +4126,20 @@ export function parseCienciaSettings(
     hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 25, 0, 100),
     text_align: parseTextAlign(raw.text_align),
 
+    // Jump bar
+    jump_bar_01: asString(raw.jump_bar_01, d.jump_bar_01 ?? ''),
+    jump_bar_01_en: typeof raw.jump_bar_01_en === 'string' ? raw.jump_bar_01_en : d.jump_bar_01_en,
+    jump_bar_02: asString(raw.jump_bar_02, d.jump_bar_02 ?? ''),
+    jump_bar_02_en: typeof raw.jump_bar_02_en === 'string' ? raw.jump_bar_02_en : d.jump_bar_02_en,
+    jump_bar_03: asString(raw.jump_bar_03, d.jump_bar_03 ?? ''),
+    jump_bar_03_en: typeof raw.jump_bar_03_en === 'string' ? raw.jump_bar_03_en : d.jump_bar_03_en,
+    jump_bar_04: asString(raw.jump_bar_04, d.jump_bar_04 ?? ''),
+    jump_bar_04_en: typeof raw.jump_bar_04_en === 'string' ? raw.jump_bar_04_en : d.jump_bar_04_en,
+    jump_bar_05: asString(raw.jump_bar_05, d.jump_bar_05 ?? ''),
+    jump_bar_05_en: typeof raw.jump_bar_05_en === 'string' ? raw.jump_bar_05_en : d.jump_bar_05_en,
+    jump_bar_06: asString(raw.jump_bar_06, d.jump_bar_06 ?? ''),
+    jump_bar_06_en: typeof raw.jump_bar_06_en === 'string' ? raw.jump_bar_06_en : d.jump_bar_06_en,
+
     // Eje 01 · Triangulación botánica
     triangulacion_kicker: asString(raw.triangulacion_kicker, d.triangulacion_kicker ?? ''),
     triangulacion_kicker_en: typeof raw.triangulacion_kicker_en === 'string' ? raw.triangulacion_kicker_en : d.triangulacion_kicker_en,
@@ -3743,6 +4147,35 @@ export function parseCienciaSettings(
     triangulacion_title_en: typeof raw.triangulacion_title_en === 'string' ? raw.triangulacion_title_en : d.triangulacion_title_en,
     triangulacion_desc: asString(raw.triangulacion_desc, d.triangulacion_desc ?? ''),
     triangulacion_desc_en: typeof raw.triangulacion_desc_en === 'string' ? raw.triangulacion_desc_en : d.triangulacion_desc_en,
+    triangulacion_c1_badge: asString(raw.triangulacion_c1_badge, d.triangulacion_c1_badge ?? ''),
+    triangulacion_c1_badge_en: typeof raw.triangulacion_c1_badge_en === 'string' ? raw.triangulacion_c1_badge_en : d.triangulacion_c1_badge_en,
+    triangulacion_c1_title: asString(raw.triangulacion_c1_title, d.triangulacion_c1_title ?? ''),
+    triangulacion_c1_title_en: typeof raw.triangulacion_c1_title_en === 'string' ? raw.triangulacion_c1_title_en : d.triangulacion_c1_title_en,
+    triangulacion_c1_desc: asString(raw.triangulacion_c1_desc, d.triangulacion_c1_desc ?? ''),
+    triangulacion_c1_desc_en: typeof raw.triangulacion_c1_desc_en === 'string' ? raw.triangulacion_c1_desc_en : d.triangulacion_c1_desc_en,
+    triangulacion_c1_footer: asString(raw.triangulacion_c1_footer, d.triangulacion_c1_footer ?? ''),
+    triangulacion_c1_footer_en: typeof raw.triangulacion_c1_footer_en === 'string' ? raw.triangulacion_c1_footer_en : d.triangulacion_c1_footer_en,
+    triangulacion_c2_badge: asString(raw.triangulacion_c2_badge, d.triangulacion_c2_badge ?? ''),
+    triangulacion_c2_badge_en: typeof raw.triangulacion_c2_badge_en === 'string' ? raw.triangulacion_c2_badge_en : d.triangulacion_c2_badge_en,
+    triangulacion_c2_title: asString(raw.triangulacion_c2_title, d.triangulacion_c2_title ?? ''),
+    triangulacion_c2_title_en: typeof raw.triangulacion_c2_title_en === 'string' ? raw.triangulacion_c2_title_en : d.triangulacion_c2_title_en,
+    triangulacion_c2_desc: asString(raw.triangulacion_c2_desc, d.triangulacion_c2_desc ?? ''),
+    triangulacion_c2_desc_en: typeof raw.triangulacion_c2_desc_en === 'string' ? raw.triangulacion_c2_desc_en : d.triangulacion_c2_desc_en,
+    triangulacion_c2_footer: asString(raw.triangulacion_c2_footer, d.triangulacion_c2_footer ?? ''),
+    triangulacion_c2_footer_en: typeof raw.triangulacion_c2_footer_en === 'string' ? raw.triangulacion_c2_footer_en : d.triangulacion_c2_footer_en,
+    triangulacion_c3_badge: asString(raw.triangulacion_c3_badge, d.triangulacion_c3_badge ?? ''),
+    triangulacion_c3_badge_en: typeof raw.triangulacion_c3_badge_en === 'string' ? raw.triangulacion_c3_badge_en : d.triangulacion_c3_badge_en,
+    triangulacion_c3_title: asString(raw.triangulacion_c3_title, d.triangulacion_c3_title ?? ''),
+    triangulacion_c3_title_en: typeof raw.triangulacion_c3_title_en === 'string' ? raw.triangulacion_c3_title_en : d.triangulacion_c3_title_en,
+    triangulacion_c3_desc: asString(raw.triangulacion_c3_desc, d.triangulacion_c3_desc ?? ''),
+    triangulacion_c3_desc_en: typeof raw.triangulacion_c3_desc_en === 'string' ? raw.triangulacion_c3_desc_en : d.triangulacion_c3_desc_en,
+    triangulacion_c3_footer: asString(raw.triangulacion_c3_footer, d.triangulacion_c3_footer ?? ''),
+    triangulacion_c3_footer_en: typeof raw.triangulacion_c3_footer_en === 'string' ? raw.triangulacion_c3_footer_en : d.triangulacion_c3_footer_en,
+    triangulacion_banner_text: asString(raw.triangulacion_banner_text, d.triangulacion_banner_text ?? ''),
+    triangulacion_banner_text_en: typeof raw.triangulacion_banner_text_en === 'string' ? raw.triangulacion_banner_text_en : d.triangulacion_banner_text_en,
+    triangulacion_banner_cta_label: asString(raw.triangulacion_banner_cta_label, d.triangulacion_banner_cta_label ?? ''),
+    triangulacion_banner_cta_label_en: typeof raw.triangulacion_banner_cta_label_en === 'string' ? raw.triangulacion_banner_cta_label_en : d.triangulacion_banner_cta_label_en,
+    triangulacion_banner_cta_href: asString(raw.triangulacion_banner_cta_href, d.triangulacion_banner_cta_href ?? ''),
 
     // Eje 02 · Bioquímica de origen
     bioquimica_kicker: asString(raw.bioquimica_kicker, d.bioquimica_kicker ?? ''),
@@ -3751,10 +4184,32 @@ export function parseCienciaSettings(
     bioquimica_title_en: typeof raw.bioquimica_title_en === 'string' ? raw.bioquimica_title_en : d.bioquimica_title_en,
     bioquimica_desc: asString(raw.bioquimica_desc, d.bioquimica_desc ?? ''),
     bioquimica_desc_en: typeof raw.bioquimica_desc_en === 'string' ? raw.bioquimica_desc_en : d.bioquimica_desc_en,
+    protocolo_kicker: asString(raw.protocolo_kicker, d.protocolo_kicker ?? ''),
+    protocolo_kicker_en: typeof raw.protocolo_kicker_en === 'string' ? raw.protocolo_kicker_en : d.protocolo_kicker_en,
     protocolo_title: asString(raw.protocolo_title, d.protocolo_title ?? ''),
     protocolo_title_en: typeof raw.protocolo_title_en === 'string' ? raw.protocolo_title_en : d.protocolo_title_en,
     protocolo_desc: asString(raw.protocolo_desc, d.protocolo_desc ?? ''),
     protocolo_desc_en: typeof raw.protocolo_desc_en === 'string' ? raw.protocolo_desc_en : d.protocolo_desc_en,
+    protocolo_c1_badge: asString(raw.protocolo_c1_badge, d.protocolo_c1_badge ?? ''),
+    protocolo_c1_badge_en: typeof raw.protocolo_c1_badge_en === 'string' ? raw.protocolo_c1_badge_en : d.protocolo_c1_badge_en,
+    protocolo_c1_title: asString(raw.protocolo_c1_title, d.protocolo_c1_title ?? ''),
+    protocolo_c1_title_en: typeof raw.protocolo_c1_title_en === 'string' ? raw.protocolo_c1_title_en : d.protocolo_c1_title_en,
+    protocolo_c1_desc: asString(raw.protocolo_c1_desc, d.protocolo_c1_desc ?? ''),
+    protocolo_c1_desc_en: typeof raw.protocolo_c1_desc_en === 'string' ? raw.protocolo_c1_desc_en : d.protocolo_c1_desc_en,
+    protocolo_c2_badge: asString(raw.protocolo_c2_badge, d.protocolo_c2_badge ?? ''),
+    protocolo_c2_badge_en: typeof raw.protocolo_c2_badge_en === 'string' ? raw.protocolo_c2_badge_en : d.protocolo_c2_badge_en,
+    protocolo_c2_title: asString(raw.protocolo_c2_title, d.protocolo_c2_title ?? ''),
+    protocolo_c2_title_en: typeof raw.protocolo_c2_title_en === 'string' ? raw.protocolo_c2_title_en : d.protocolo_c2_title_en,
+    protocolo_c2_desc: asString(raw.protocolo_c2_desc, d.protocolo_c2_desc ?? ''),
+    protocolo_c2_desc_en: typeof raw.protocolo_c2_desc_en === 'string' ? raw.protocolo_c2_desc_en : d.protocolo_c2_desc_en,
+    protocolo_c3_badge: asString(raw.protocolo_c3_badge, d.protocolo_c3_badge ?? ''),
+    protocolo_c3_badge_en: typeof raw.protocolo_c3_badge_en === 'string' ? raw.protocolo_c3_badge_en : d.protocolo_c3_badge_en,
+    protocolo_c3_title: asString(raw.protocolo_c3_title, d.protocolo_c3_title ?? ''),
+    protocolo_c3_title_en: typeof raw.protocolo_c3_title_en === 'string' ? raw.protocolo_c3_title_en : d.protocolo_c3_title_en,
+    protocolo_c3_desc: asString(raw.protocolo_c3_desc, d.protocolo_c3_desc ?? ''),
+    protocolo_c3_desc_en: typeof raw.protocolo_c3_desc_en === 'string' ? raw.protocolo_c3_desc_en : d.protocolo_c3_desc_en,
+    evidencia_section_title: asString(raw.evidencia_section_title, d.evidencia_section_title ?? ''),
+    evidencia_section_title_en: typeof raw.evidencia_section_title_en === 'string' ? raw.evidencia_section_title_en : d.evidencia_section_title_en,
 
     // Eje 03 · Botánica melífera & Estación de origen
     biblioteca_kicker: asString(raw.biblioteca_kicker, d.biblioteca_kicker ?? ''),
@@ -3763,6 +4218,26 @@ export function parseCienciaSettings(
     biblioteca_title_en: typeof raw.biblioteca_title_en === 'string' ? raw.biblioteca_title_en : d.biblioteca_title_en,
     biblioteca_desc: asString(raw.biblioteca_desc, d.biblioteca_desc ?? ''),
     biblioteca_desc_en: typeof raw.biblioteca_desc_en === 'string' ? raw.biblioteca_desc_en : d.biblioteca_desc_en,
+    biblioteca_cta_label: asString(raw.biblioteca_cta_label, d.biblioteca_cta_label ?? ''),
+    biblioteca_cta_label_en: typeof raw.biblioteca_cta_label_en === 'string' ? raw.biblioteca_cta_label_en : d.biblioteca_cta_label_en,
+    biblioteca_cta_href: asString(raw.biblioteca_cta_href, d.biblioteca_cta_href ?? ''),
+    biblioteca_p1_title: asString(raw.biblioteca_p1_title, d.biblioteca_p1_title ?? ''),
+    biblioteca_p1_title_en: typeof raw.biblioteca_p1_title_en === 'string' ? raw.biblioteca_p1_title_en : d.biblioteca_p1_title_en,
+    biblioteca_p1_desc: asString(raw.biblioteca_p1_desc, d.biblioteca_p1_desc ?? ''),
+    biblioteca_p1_desc_en: typeof raw.biblioteca_p1_desc_en === 'string' ? raw.biblioteca_p1_desc_en : d.biblioteca_p1_desc_en,
+    biblioteca_p2_title: asString(raw.biblioteca_p2_title, d.biblioteca_p2_title ?? ''),
+    biblioteca_p2_title_en: typeof raw.biblioteca_p2_title_en === 'string' ? raw.biblioteca_p2_title_en : d.biblioteca_p2_title_en,
+    biblioteca_p2_desc: asString(raw.biblioteca_p2_desc, d.biblioteca_p2_desc ?? ''),
+    biblioteca_p2_desc_en: typeof raw.biblioteca_p2_desc_en === 'string' ? raw.biblioteca_p2_desc_en : d.biblioteca_p2_desc_en,
+    biblioteca_p3_title: asString(raw.biblioteca_p3_title, d.biblioteca_p3_title ?? ''),
+    biblioteca_p3_title_en: typeof raw.biblioteca_p3_title_en === 'string' ? raw.biblioteca_p3_title_en : d.biblioteca_p3_title_en,
+    biblioteca_p3_desc: asString(raw.biblioteca_p3_desc, d.biblioteca_p3_desc ?? ''),
+    biblioteca_p3_desc_en: typeof raw.biblioteca_p3_desc_en === 'string' ? raw.biblioteca_p3_desc_en : d.biblioteca_p3_desc_en,
+    card_ficha_label: asString(raw.card_ficha_label, d.card_ficha_label ?? ''),
+    card_ficha_label_en: typeof raw.card_ficha_label_en === 'string' ? raw.card_ficha_label_en : d.card_ficha_label_en,
+    card_lab_label: asString(raw.card_lab_label, d.card_lab_label ?? ''),
+    card_lab_label_en: typeof raw.card_lab_label_en === 'string' ? raw.card_lab_label_en : d.card_lab_label_en,
+
     estacion_kicker: asString(raw.estacion_kicker, d.estacion_kicker ?? ''),
     estacion_kicker_en: typeof raw.estacion_kicker_en === 'string' ? raw.estacion_kicker_en : d.estacion_kicker_en,
     estacion_title: asString(raw.estacion_title, d.estacion_title ?? ''),
@@ -3772,8 +4247,31 @@ export function parseCienciaSettings(
     estacion_cta_label: asString(raw.estacion_cta_label, d.estacion_cta_label ?? ''),
     estacion_cta_label_en: typeof raw.estacion_cta_label_en === 'string' ? raw.estacion_cta_label_en : d.estacion_cta_label_en,
     estacion_cta_href: asString(raw.estacion_cta_href, d.estacion_cta_href ?? ''),
+    estacion_secondary_cta_label: asString(raw.estacion_secondary_cta_label, d.estacion_secondary_cta_label ?? ''),
+    estacion_secondary_cta_label_en: typeof raw.estacion_secondary_cta_label_en === 'string' ? raw.estacion_secondary_cta_label_en : d.estacion_secondary_cta_label_en,
+    estacion_secondary_cta_href: asString(raw.estacion_secondary_cta_href, d.estacion_secondary_cta_href ?? ''),
 
-    // Eje 04 · Contabilidad biofísica & Pecoreo
+    // Eje 04 · Ciencia Sensorial & ST-CATA
+    sensorial_kicker: asString(raw.sensorial_kicker, d.sensorial_kicker ?? ''),
+    sensorial_kicker_en: typeof raw.sensorial_kicker_en === 'string' ? raw.sensorial_kicker_en : d.sensorial_kicker_en,
+    sensorial_title: asString(raw.sensorial_title, d.sensorial_title ?? ''),
+    sensorial_title_en: typeof raw.sensorial_title_en === 'string' ? raw.sensorial_title_en : d.sensorial_title_en,
+    sensorial_desc: asString(raw.sensorial_desc, d.sensorial_desc ?? ''),
+    sensorial_desc_en: typeof raw.sensorial_desc_en === 'string' ? raw.sensorial_desc_en : d.sensorial_desc_en,
+    sensorial_c1_title: asString(raw.sensorial_c1_title, d.sensorial_c1_title ?? ''),
+    sensorial_c1_title_en: typeof raw.sensorial_c1_title_en === 'string' ? raw.sensorial_c1_title_en : d.sensorial_c1_title_en,
+    sensorial_c1_desc: asString(raw.sensorial_c1_desc, d.sensorial_c1_desc ?? ''),
+    sensorial_c1_desc_en: typeof raw.sensorial_c1_desc_en === 'string' ? raw.sensorial_c1_desc_en : d.sensorial_c1_desc_en,
+    sensorial_c2_title: asString(raw.sensorial_c2_title, d.sensorial_c2_title ?? ''),
+    sensorial_c2_title_en: typeof raw.sensorial_c2_title_en === 'string' ? raw.sensorial_c2_title_en : d.sensorial_c2_title_en,
+    sensorial_c2_desc: asString(raw.sensorial_c2_desc, d.sensorial_c2_desc ?? ''),
+    sensorial_c2_desc_en: typeof raw.sensorial_c2_desc_en === 'string' ? raw.sensorial_c2_desc_en : d.sensorial_c2_desc_en,
+    sensorial_c3_title: asString(raw.sensorial_c3_title, d.sensorial_c3_title ?? ''),
+    sensorial_c3_title_en: typeof raw.sensorial_c3_title_en === 'string' ? raw.sensorial_c3_title_en : d.sensorial_c3_title_en,
+    sensorial_c3_desc: asString(raw.sensorial_c3_desc, d.sensorial_c3_desc ?? ''),
+    sensorial_c3_desc_en: typeof raw.sensorial_c3_desc_en === 'string' ? raw.sensorial_c3_desc_en : d.sensorial_c3_desc_en,
+
+    // Eje 05 · Contabilidad biofísica & Pecoreo
     metodologia_kicker: asString(raw.metodologia_kicker, d.metodologia_kicker ?? ''),
     metodologia_kicker_en: typeof raw.metodologia_kicker_en === 'string' ? raw.metodologia_kicker_en : d.metodologia_kicker_en,
     metodologia_title: asString(raw.metodologia_title, d.metodologia_title ?? ''),
@@ -3786,14 +4284,76 @@ export function parseCienciaSettings(
     pecoreo_title_en: typeof raw.pecoreo_title_en === 'string' ? raw.pecoreo_title_en : d.pecoreo_title_en,
     pecoreo_desc: asString(raw.pecoreo_desc, d.pecoreo_desc ?? ''),
     pecoreo_desc_en: typeof raw.pecoreo_desc_en === 'string' ? raw.pecoreo_desc_en : d.pecoreo_desc_en,
+    pecoreo_c1_title: asString(raw.pecoreo_c1_title, d.pecoreo_c1_title ?? ''),
+    pecoreo_c1_title_en: typeof raw.pecoreo_c1_title_en === 'string' ? raw.pecoreo_c1_title_en : d.pecoreo_c1_title_en,
+    pecoreo_c1_formula: asString(raw.pecoreo_c1_formula, d.pecoreo_c1_formula ?? ''),
+    pecoreo_c1_desc: asString(raw.pecoreo_c1_desc, d.pecoreo_c1_desc ?? ''),
+    pecoreo_c1_desc_en: typeof raw.pecoreo_c1_desc_en === 'string' ? raw.pecoreo_c1_desc_en : d.pecoreo_c1_desc_en,
+    pecoreo_c2_title: asString(raw.pecoreo_c2_title, d.pecoreo_c2_title ?? ''),
+    pecoreo_c2_title_en: typeof raw.pecoreo_c2_title_en === 'string' ? raw.pecoreo_c2_title_en : d.pecoreo_c2_title_en,
+    pecoreo_c2_formula: asString(raw.pecoreo_c2_formula, d.pecoreo_c2_formula ?? ''),
+    pecoreo_c2_desc: asString(raw.pecoreo_c2_desc, d.pecoreo_c2_desc ?? ''),
+    pecoreo_c2_desc_en: typeof raw.pecoreo_c2_desc_en === 'string' ? raw.pecoreo_c2_desc_en : d.pecoreo_c2_desc_en,
+    pecoreo_c3_title: asString(raw.pecoreo_c3_title, d.pecoreo_c3_title ?? ''),
+    pecoreo_c3_title_en: typeof raw.pecoreo_c3_title_en === 'string' ? raw.pecoreo_c3_title_en : d.pecoreo_c3_title_en,
+    pecoreo_c3_formula: asString(raw.pecoreo_c3_formula, d.pecoreo_c3_formula ?? ''),
+    pecoreo_c3_desc: asString(raw.pecoreo_c3_desc, d.pecoreo_c3_desc ?? ''),
+    pecoreo_c3_desc_en: typeof raw.pecoreo_c3_desc_en === 'string' ? raw.pecoreo_c3_desc_en : d.pecoreo_c3_desc_en,
+
+    equivalencia_c1_title: asString(raw.equivalencia_c1_title, d.equivalencia_c1_title ?? ''),
+    equivalencia_c1_title_en: typeof raw.equivalencia_c1_title_en === 'string' ? raw.equivalencia_c1_title_en : d.equivalencia_c1_title_en,
+    equivalencia_c1_value: asString(raw.equivalencia_c1_value, d.equivalencia_c1_value ?? ''),
+    equivalencia_c1_value_en: typeof raw.equivalencia_c1_value_en === 'string' ? raw.equivalencia_c1_value_en : d.equivalencia_c1_value_en,
+    equivalencia_c1_desc: asString(raw.equivalencia_c1_desc, d.equivalencia_c1_desc ?? ''),
+    equivalencia_c1_desc_en: typeof raw.equivalencia_c1_desc_en === 'string' ? raw.equivalencia_c1_desc_en : d.equivalencia_c1_desc_en,
+    equivalencia_c2_title: asString(raw.equivalencia_c2_title, d.equivalencia_c2_title ?? ''),
+    equivalencia_c2_title_en: typeof raw.equivalencia_c2_title_en === 'string' ? raw.equivalencia_c2_title_en : d.equivalencia_c2_title_en,
+    equivalencia_c2_value: asString(raw.equivalencia_c2_value, d.equivalencia_c2_value ?? ''),
+    equivalencia_c2_value_en: typeof raw.equivalencia_c2_value_en === 'string' ? raw.equivalencia_c2_value_en : d.equivalencia_c2_value_en,
+    equivalencia_c2_desc: asString(raw.equivalencia_c2_desc, d.equivalencia_c2_desc ?? ''),
+    equivalencia_c2_desc_en: typeof raw.equivalencia_c2_desc_en === 'string' ? raw.equivalencia_c2_desc_en : d.equivalencia_c2_desc_en,
+    equivalencia_c3_title: asString(raw.equivalencia_c3_title, d.equivalencia_c3_title ?? ''),
+    equivalencia_c3_title_en: typeof raw.equivalencia_c3_title_en === 'string' ? raw.equivalencia_c3_title_en : d.equivalencia_c3_title_en,
+    equivalencia_c3_value: asString(raw.equivalencia_c3_value, d.equivalencia_c3_value ?? ''),
+    equivalencia_c3_value_en: typeof raw.equivalencia_c3_value_en === 'string' ? raw.equivalencia_c3_value_en : d.equivalencia_c3_value_en,
+    equivalencia_c3_desc: asString(raw.equivalencia_c3_desc, d.equivalencia_c3_desc ?? ''),
+    equivalencia_c3_desc_en: typeof raw.equivalencia_c3_desc_en === 'string' ? raw.equivalencia_c3_desc_en : d.equivalencia_c3_desc_en,
+
+    ecosistema_title: asString(raw.ecosistema_title, d.ecosistema_title ?? ''),
+    ecosistema_title_en: typeof raw.ecosistema_title_en === 'string' ? raw.ecosistema_title_en : d.ecosistema_title_en,
+    ecosistema_territorio: asString(raw.ecosistema_territorio, d.ecosistema_territorio ?? ''),
+    ecosistema_territorio_en: typeof raw.ecosistema_territorio_en === 'string' ? raw.ecosistema_territorio_en : d.ecosistema_territorio_en,
+    ecosistema_version_badge: asString(raw.ecosistema_version_badge, d.ecosistema_version_badge ?? ''),
+    ecosistema_m1_label: asString(raw.ecosistema_m1_label, d.ecosistema_m1_label ?? ''),
+    ecosistema_m1_label_en: typeof raw.ecosistema_m1_label_en === 'string' ? raw.ecosistema_m1_label_en : d.ecosistema_m1_label_en,
+    ecosistema_m2_label: asString(raw.ecosistema_m2_label, d.ecosistema_m2_label ?? ''),
+    ecosistema_m2_label_en: typeof raw.ecosistema_m2_label_en === 'string' ? raw.ecosistema_m2_label_en : d.ecosistema_m2_label_en,
+    ecosistema_m3_label: asString(raw.ecosistema_m3_label, d.ecosistema_m3_label ?? ''),
+    ecosistema_m3_label_en: typeof raw.ecosistema_m3_label_en === 'string' ? raw.ecosistema_m3_label_en : d.ecosistema_m3_label_en,
+    ecosistema_m4_label: asString(raw.ecosistema_m4_label, d.ecosistema_m4_label ?? ''),
+    ecosistema_m4_label_en: typeof raw.ecosistema_m4_label_en === 'string' ? raw.ecosistema_m4_label_en : d.ecosistema_m4_label_en,
+    ecosistema_disclaimer: asString(raw.ecosistema_disclaimer, d.ecosistema_disclaimer ?? ''),
+    ecosistema_disclaimer_en: typeof raw.ecosistema_disclaimer_en === 'string' ? raw.ecosistema_disclaimer_en : d.ecosistema_disclaimer_en,
+
+    formulas_title: asString(raw.formulas_title, d.formulas_title ?? ''),
+    formulas_title_en: typeof raw.formulas_title_en === 'string' ? raw.formulas_title_en : d.formulas_title_en,
+    fuentes_title: asString(raw.fuentes_title, d.fuentes_title ?? ''),
+    fuentes_title_en: typeof raw.fuentes_title_en === 'string' ? raw.fuentes_title_en : d.fuentes_title_en,
+
     horizonte_title: asString(raw.horizonte_title, d.horizonte_title ?? ''),
     horizonte_title_en: typeof raw.horizonte_title_en === 'string' ? raw.horizonte_title_en : d.horizonte_title_en,
     horizonte_text: asString(raw.horizonte_text, d.horizonte_text ?? ''),
     horizonte_text_en: typeof raw.horizonte_text_en === 'string' ? raw.horizonte_text_en : d.horizonte_text_en,
 
-    // Eje 05 · Respaldo y límites
+    // Eje 06 · Respaldo y límites
+    respaldo_kicker: asString(raw.respaldo_kicker, d.respaldo_kicker ?? ''),
+    respaldo_kicker_en: typeof raw.respaldo_kicker_en === 'string' ? raw.respaldo_kicker_en : d.respaldo_kicker_en,
     respaldo_title: asString(raw.respaldo_title, d.respaldo_title ?? ''),
     respaldo_title_en: typeof raw.respaldo_title_en === 'string' ? raw.respaldo_title_en : d.respaldo_title_en,
+    respaldo_extra_notas: asString(raw.respaldo_extra_notas, d.respaldo_extra_notas ?? ''),
+    respaldo_extra_notas_en: typeof raw.respaldo_extra_notas_en === 'string' ? raw.respaldo_extra_notas_en : d.respaldo_extra_notas_en,
+    respaldo_disclaimer_minsal: asString(raw.respaldo_disclaimer_minsal, d.respaldo_disclaimer_minsal ?? ''),
+    respaldo_disclaimer_minsal_en: typeof raw.respaldo_disclaimer_minsal_en === 'string' ? raw.respaldo_disclaimer_minsal_en : d.respaldo_disclaimer_minsal_en,
   };
 }
 
@@ -7932,6 +8492,7 @@ export type ExperienciasHomeSettings = {
   card1_cta: string;
   card1_cta_en?: string;
   card1_href: string;
+  card1_image?: string;
   card2_tag: string;
   card2_tag_en?: string;
   card2_title: string;
@@ -7941,6 +8502,7 @@ export type ExperienciasHomeSettings = {
   card2_cta: string;
   card2_cta_en?: string;
   card2_href: string;
+  card2_image?: string;
   card3_tag: string;
   card3_tag_en?: string;
   card3_title: string;
@@ -7950,6 +8512,7 @@ export type ExperienciasHomeSettings = {
   card3_cta: string;
   card3_cta_en?: string;
   card3_href: string;
+  card3_image?: string;
   text_align?: TextAlign;
 };
 
@@ -7973,6 +8536,7 @@ export const DEFAULT_EXPERIENCIAS_HOME_SETTINGS: ExperienciasHomeSettings = {
   card1_cta: 'Conocer estancia',
   card1_cta_en: 'Explore stay',
   card1_href: '/experiencias/territorio',
+  card1_image: '/assets/editorial/hero-bosque-tronco.jpg',
   card2_tag: 'Santiago & Regiones',
   card2_tag_en: 'Santiago & Regions',
   card2_title: 'Degustaciones · Mieles de Chile',
@@ -7984,6 +8548,7 @@ export const DEFAULT_EXPERIENCIAS_HOME_SETTINGS: ExperienciasHomeSettings = {
   card2_cta: 'Ver degustaciones',
   card2_cta_en: 'View tastings',
   card2_href: '/experiencias/degustaciones',
+  card2_image: '/assets/editorial/honey-jar.png',
   card3_tag: 'Técnica & Formación',
   card3_tag_en: 'Technique & Training',
   card3_title: 'Talleres de Técnica Apícola',
@@ -7995,6 +8560,7 @@ export const DEFAULT_EXPERIENCIAS_HOME_SETTINGS: ExperienciasHomeSettings = {
   card3_cta: 'Ver programas',
   card3_cta_en: 'View workshops',
   card3_href: '/experiencias/talleres',
+  card3_image: '/assets/editorial/hero-hueco.jpg',
 };
 
 export const EXPERIENCIAS_HOME_SETTINGS_TEMPLATE: ExperienciasHomeSettings = {
@@ -8003,9 +8569,26 @@ export const EXPERIENCIAS_HOME_SETTINGS_TEMPLATE: ExperienciasHomeSettings = {
 
 export function parseExperienciasHomeSettings(
   raw: Record<string, unknown> | null | undefined,
+  fallbackImages?: {
+    card1_image?: string;
+    card2_image?: string;
+    card3_image?: string;
+  },
 ): ExperienciasHomeSettings {
   const d = DEFAULT_EXPERIENCIAS_HOME_SETTINGS;
-  if (!raw) return { ...d };
+  const fb1 = fallbackImages?.card1_image || d.card1_image;
+  const fb2 = fallbackImages?.card2_image || d.card2_image;
+  const fb3 = fallbackImages?.card3_image || d.card3_image;
+
+  if (!raw) {
+    return {
+      ...d,
+      card1_image: fb1,
+      card2_image: fb2,
+      card3_image: fb3,
+    };
+  }
+
   return {
     kicker: asString(raw.kicker, d.kicker).trim(),
     kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
@@ -8022,6 +8605,7 @@ export function parseExperienciasHomeSettings(
     card1_cta: asString(raw.card1_cta, d.card1_cta).trim(),
     card1_cta_en: typeof raw.card1_cta_en === 'string' ? raw.card1_cta_en.trim() : d.card1_cta_en,
     card1_href: sanitizeStoreHref(raw.card1_href, d.card1_href) ?? d.card1_href,
+    card1_image: asString(raw.card1_image, fb1 ?? '').trim() || fb1,
     card2_tag: asString(raw.card2_tag, d.card2_tag).trim(),
     card2_tag_en: typeof raw.card2_tag_en === 'string' ? raw.card2_tag_en.trim() : d.card2_tag_en,
     card2_title: asString(raw.card2_title, d.card2_title).trim(),
@@ -8031,6 +8615,7 @@ export function parseExperienciasHomeSettings(
     card2_cta: asString(raw.card2_cta, d.card2_cta).trim(),
     card2_cta_en: typeof raw.card2_cta_en === 'string' ? raw.card2_cta_en.trim() : d.card2_cta_en,
     card2_href: sanitizeStoreHref(raw.card2_href, d.card2_href) ?? d.card2_href,
+    card2_image: asString(raw.card2_image, fb2 ?? '').trim() || fb2,
     card3_tag: asString(raw.card3_tag, d.card3_tag).trim(),
     card3_tag_en: typeof raw.card3_tag_en === 'string' ? raw.card3_tag_en.trim() : d.card3_tag_en,
     card3_title: asString(raw.card3_title, d.card3_title).trim(),
@@ -8040,6 +8625,7 @@ export function parseExperienciasHomeSettings(
     card3_cta: asString(raw.card3_cta, d.card3_cta).trim(),
     card3_cta_en: typeof raw.card3_cta_en === 'string' ? raw.card3_cta_en.trim() : d.card3_cta_en,
     card3_href: sanitizeStoreHref(raw.card3_href, d.card3_href) ?? d.card3_href,
+    card3_image: asString(raw.card3_image, fb3 ?? '').trim() || fb3,
     text_align: parseTextAlign(raw.text_align),
   };
 }

@@ -192,13 +192,65 @@ export default async function CienciaPage({
   const heroSubtitle =
     resolveLocalized(cienciaSettings.subtitle, cienciaSettings.subtitle_en, locale);
 
+  // Jump Bar
+  const jumpBar01 =
+    resolveLocalized(cienciaSettings.jump_bar_01, cienciaSettings.jump_bar_01_en, locale) || '01 · Pureza & Ausencia de Pesticidas';
+  const jumpBar02 =
+    resolveLocalized(cienciaSettings.jump_bar_02, cienciaSettings.jump_bar_02_en, locale) || '02 · Bioquímica & Enzimas Vivas';
+  const jumpBar03 =
+    resolveLocalized(cienciaSettings.jump_bar_03, cienciaSettings.jump_bar_03_en, locale) || '03 · Biblioteca Botánica NCh2981';
+  const jumpBar04 =
+    resolveLocalized(cienciaSettings.jump_bar_04, cienciaSettings.jump_bar_04_en, locale) || '04 · Panel Sensorial ST-CATA';
+  const jumpBar05 =
+    resolveLocalized(cienciaSettings.jump_bar_05, cienciaSettings.jump_bar_05_en, locale) || '05 · Balance Biofísico & Pecoreo';
+  const jumpBar06 =
+    resolveLocalized(cienciaSettings.jump_bar_06, cienciaSettings.jump_bar_06_en, locale) || '06 · Compliance & Límites';
+
   // Eje 01 · Triangulación & Pureza
   const triangulacionKicker =
-    resolveLocalized(cienciaSettings.triangulacion_kicker, cienciaSettings.triangulacion_kicker_en, locale);
+    resolveLocalized(cienciaSettings.triangulacion_kicker, cienciaSettings.triangulacion_kicker_en, locale) || 'EJE 01 · Triangulación & Pureza de Origen';
   const triangulacionTitle =
     resolveLocalized(cienciaSettings.triangulacion_title, cienciaSettings.triangulacion_title_en, locale);
   const triangulacionDesc =
     resolveLocalized(cienciaSettings.triangulacion_desc, cienciaSettings.triangulacion_desc_en, locale);
+
+  const triangulacionC1Badge =
+    resolveLocalized(cienciaSettings.triangulacion_c1_badge, cienciaSettings.triangulacion_c1_badge_en, locale) || '0.00 ppm · LOR';
+  const triangulacionC1Title =
+    resolveLocalized(cienciaSettings.triangulacion_c1_title, cienciaSettings.triangulacion_c1_title_en, locale) || 'Neonicotinoides y Glifosato: No Detectados';
+  const triangulacionC1Desc =
+    resolveLocalized(cienciaSettings.triangulacion_c1_desc, cienciaSettings.triangulacion_c1_desc_en, locale) ||
+    'Los análisis cromatográficos multiresiduo en matrices de miel y polen del bosque templado lluvioso no registran trazas detectables de insecticidas sistémicos (imidacloprid, tiametoxam) ni herbicidas agroindustriales (bajo límite de detección analítica y estándares Codex Alimentarius).';
+  const triangulacionC1Footer =
+    resolveLocalized(cienciaSettings.triangulacion_c1_footer, cienciaSettings.triangulacion_c1_footer_en, locale) || 'Ensayos cromatográficos GC-MS/MS & LC-MS/MS · Respaldo por lote';
+
+  const triangulacionC2Badge =
+    resolveLocalized(cienciaSettings.triangulacion_c2_badge, cienciaSettings.triangulacion_c2_badge_en, locale) || '100% Reserva Nativa';
+  const triangulacionC2Title =
+    resolveLocalized(cienciaSettings.triangulacion_c2_title, cienciaSettings.triangulacion_c2_title_en, locale) || 'Invernada con Néctar y Polen Silvestre';
+  const triangulacionC2Desc =
+    resolveLocalized(cienciaSettings.triangulacion_c2_desc, cienciaSettings.triangulacion_c2_desc_en, locale) ||
+    'Frente a prácticas de apicultura masiva que reemplazan sistemáticamente la reserva invernal con jarabes de maíz de alta fructosa (HFCS), priorizamos que el enjambre inverne con sus propios marcos de miel y polen de floraciones nativas, protegiendo la vitalidad de la colonia.';
+  const triangulacionC2Footer =
+    resolveLocalized(cienciaSettings.triangulacion_c2_footer, cienciaSettings.triangulacion_c2_footer_en, locale) || 'Manejo apícola adaptativo sin sustitutos sintéticos';
+
+  const triangulacionC3Badge =
+    resolveLocalized(cienciaSettings.triangulacion_c3_badge, cienciaSettings.triangulacion_c3_badge_en, locale) || '≥ 45% NCh2981';
+  const triangulacionC3Title =
+    resolveLocalized(cienciaSettings.triangulacion_c3_title, cienciaSettings.triangulacion_c3_title_en, locale) || 'Melisopalinología y Botánica';
+  const triangulacionC3Desc =
+    resolveLocalized(cienciaSettings.triangulacion_c3_desc, cienciaSettings.triangulacion_c3_desc_en, locale) ||
+    'La norma chilena NCh2981 define miel monofloral a partir de un mínimo del 45% de polen dominante de una misma especie nativa. El análisis melisopalinológico verifica la identidad botánica del bosque valdiviano de Chiloé frente a mieles de pradera o mezcla comercial.';
+  const triangulacionC3Footer =
+    resolveLocalized(cienciaSettings.triangulacion_c3_footer, cienciaSettings.triangulacion_c3_footer_en, locale) || 'Melisopalinología NCh2981 · Clasificación polínica microscópica';
+
+  const triangulacionBannerText =
+    resolveLocalized(cienciaSettings.triangulacion_banner_text, cienciaSettings.triangulacion_banner_text_en, locale) ||
+    'Trazabilidad analítica y ensayos de pureza verificables en el sello y pasaporte digital de cada frasco.';
+  const triangulacionBannerCtaLabel =
+    resolveLocalized(cienciaSettings.triangulacion_banner_cta_label, cienciaSettings.triangulacion_banner_cta_label_en, locale) || 'Explorar frascos con pasaporte →';
+  const triangulacionBannerCtaHref =
+    cienciaSettings.triangulacion_banner_cta_href || '/catalogo';
 
   // Eje 02 · Bioquímica & Enzimas
   const bioquimicaKicker =
@@ -207,10 +259,40 @@ export default async function CienciaPage({
     resolveLocalized(cienciaSettings.bioquimica_title, cienciaSettings.bioquimica_title_en, locale);
   const bioquimicaDesc =
     resolveLocalized(cienciaSettings.bioquimica_desc, cienciaSettings.bioquimica_desc_en, locale);
+
+  const protocoloKicker =
+    resolveLocalized(cienciaSettings.protocolo_kicker, cienciaSettings.protocolo_kicker_en, locale) || 'Protocolo de Laboratorio y Análisis por Lote';
   const protocoloTitle =
     resolveLocalized(cienciaSettings.protocolo_title, cienciaSettings.protocolo_title_en, locale);
   const protocoloDesc =
     resolveLocalized(cienciaSettings.protocolo_desc, cienciaSettings.protocolo_desc_en, locale);
+
+  const protocoloC1Badge =
+    resolveLocalized(cienciaSettings.protocolo_c1_badge, cienciaSettings.protocolo_c1_badge_en, locale) || 'Humedad Máxima <18%';
+  const protocoloC1Title =
+    resolveLocalized(cienciaSettings.protocolo_c1_title, cienciaSettings.protocolo_c1_title_en, locale) || 'Refractometría Analítica';
+  const protocoloC1Desc =
+    resolveLocalized(cienciaSettings.protocolo_c1_desc, cienciaSettings.protocolo_c1_desc_en, locale) ||
+    'Estabilidad física permanente. Previene fermentaciones en frío sin recurrir a pasteurización térmica.';
+
+  const protocoloC2Badge =
+    resolveLocalized(cienciaSettings.protocolo_c2_badge, cienciaSettings.protocolo_c2_badge_en, locale) || 'HMF Codex <40 mg/kg';
+  const protocoloC2Title =
+    resolveLocalized(cienciaSettings.protocolo_c2_title, cienciaSettings.protocolo_c2_title_en, locale) || 'Control de Temperatura';
+  const protocoloC2Desc =
+    resolveLocalized(cienciaSettings.protocolo_c2_desc, cienciaSettings.protocolo_c2_desc_en, locale) ||
+    'Niveles basales mínimos que certifican la ausencia de calentamiento industrial, protegiendo diastasa, invertasa y bioactividad.';
+
+  const protocoloC3Badge =
+    resolveLocalized(cienciaSettings.protocolo_c3_badge, cienciaSettings.protocolo_c3_badge_en, locale) || 'Norma NCh2981';
+  const protocoloC3Title =
+    resolveLocalized(cienciaSettings.protocolo_c3_title, cienciaSettings.protocolo_c3_title_en, locale) || 'Melisopalinología Certificada';
+  const protocoloC3Desc =
+    resolveLocalized(cienciaSettings.protocolo_c3_desc, cienciaSettings.protocolo_c3_desc_en, locale) ||
+    'Identificación microscópica de polen de ulmo, tiaca y especies acompañantes, garantizando el origen biogeográfico de Chiloé.';
+
+  const evidenciaSectionTitle =
+    resolveLocalized(cienciaSettings.evidencia_section_title, cienciaSettings.evidencia_section_title_en, locale) || 'Evidencia y Ensayos Registrados';
 
   // Eje 03 · Floraciones Nativas & Polinización
   const bibliotecaKicker =
@@ -219,6 +301,62 @@ export default async function CienciaPage({
     resolveLocalized(cienciaSettings.biblioteca_title, cienciaSettings.biblioteca_title_en, locale);
   const bibliotecaDesc =
     resolveLocalized(cienciaSettings.biblioteca_desc, cienciaSettings.biblioteca_desc_en, locale);
+
+  const bibliotecaCtaLabel =
+    resolveLocalized(cienciaSettings.biblioteca_cta_label, cienciaSettings.biblioteca_cta_label_en, locale) || 'Ver biblioteca completa';
+  const bibliotecaCtaHref =
+    cienciaSettings.biblioteca_cta_href || '/origen';
+
+  const bibliotecaP1Title =
+    resolveLocalized(cienciaSettings.biblioteca_p1_title, cienciaSettings.biblioteca_p1_title_en, locale) || '01 · Melisopalinología NCh2981';
+  const bibliotecaP1Desc =
+    resolveLocalized(cienciaSettings.biblioteca_p1_desc, cienciaSettings.biblioteca_p1_desc_en, locale) ||
+    'Conteo microscópico de granos de polen para certificar ≥45% de dominancia floral exclusiva frente a mezclas comerciales.';
+
+  const bibliotecaP2Title =
+    resolveLocalized(cienciaSettings.biblioteca_p2_title, cienciaSettings.biblioteca_p2_title_en, locale) || '02 · Fenología & Grados Día';
+  const bibliotecaP2Desc =
+    resolveLocalized(cienciaSettings.biblioteca_p2_desc, cienciaSettings.biblioteca_p2_desc_en, locale) ||
+    'Modelación térmica territorial que predice las ventanas breves de floración en el bosque lluvioso de Chiloé.';
+
+  const bibliotecaP3Title =
+    resolveLocalized(cienciaSettings.biblioteca_p3_title, cienciaSettings.biblioteca_p3_title_en, locale) || '03 · Bioactividad No Peróxica';
+  const bibliotecaP3Desc =
+    resolveLocalized(cienciaSettings.biblioteca_p3_desc, cienciaSettings.biblioteca_p3_desc_en, locale) ||
+    'Identificación de flavonoides y terpenos de especies endémicas que conservan su capacidad antioxidante intacta.';
+
+  const cardFichaLabel =
+    resolveLocalized(cienciaSettings.card_ficha_label, cienciaSettings.card_ficha_label_en, locale) || 'Ficha Botánica';
+  const cardLabLabel =
+    resolveLocalized(cienciaSettings.card_lab_label, cienciaSettings.card_lab_label_en, locale) || 'Catas & Lab';
+
+  // Eje 04 · Ciencia Sensorial & Evaluación Objetiva (ST-CATA) + Estación
+  const sensorialKicker =
+    resolveLocalized(cienciaSettings.sensorial_kicker, cienciaSettings.sensorial_kicker_en, locale) || 'EJE 04 · Ciencia Sensorial & Evaluación Objetiva';
+  const sensorialTitle =
+    resolveLocalized(cienciaSettings.sensorial_title, cienciaSettings.sensorial_title_en, locale) || 'Protocolo de Panel Sensorial Distribuido (ST-CATA)';
+  const sensorialDesc =
+    resolveLocalized(cienciaSettings.sensorial_desc, cienciaSettings.sensorial_desc_en, locale) ||
+    'De la degustación empírica al perfil sensorial validado. Nuestra plataforma no publica promedios subjetivos de marketing: opera el protocolo científico ST-CATA (Check-All-That-Apply semi-entrenado) para caracterizar la miel cruda de bosque nativo con rigor estadístico y reproducibilidad.';
+
+  const sensorialC1Title =
+    resolveLocalized(cienciaSettings.sensorial_c1_title, cienciaSettings.sensorial_c1_title_en, locale) || '01 · Instrumento 60s';
+  const sensorialC1Desc =
+    resolveLocalized(cienciaSettings.sensorial_c1_desc, cienciaSettings.sensorial_c1_desc_en, locale) ||
+    'Evaluación de 3 pares semánticos bipolares y chips organolépticos con orden contrabalanceado aleatorio para eliminar sesgos de posición.';
+
+  const sensorialC2Title =
+    resolveLocalized(cienciaSettings.sensorial_c2_title, cienciaSettings.sensorial_c2_title_en, locale) || '02 · Dos Cohortes';
+  const sensorialC2Desc =
+    resolveLocalized(cienciaSettings.sensorial_c2_desc, cienciaSettings.sensorial_c2_desc_en, locale) ||
+    'Separación estricta entre consumidores espontáneos en mesa y la red semi-entrenada de baristas calibrados con referentes aromáticos físicos.';
+
+  const sensorialC3Title =
+    resolveLocalized(cienciaSettings.sensorial_c3_title, cienciaSettings.sensorial_c3_title_en, locale) || '03 · Umbral N ≥ 30';
+  const sensorialC3Desc =
+    resolveLocalized(cienciaSettings.sensorial_c3_desc, cienciaSettings.sensorial_c3_desc_en, locale) ||
+    'Regla de oro: ningún perfil de floración o lote se publica con menos de 30 sesiones completadas. Bajo ese umbral, la plataforma declara «perfil en construcción».';
+
   const estacionKicker =
     resolveLocalized(cienciaSettings.estacion_kicker, cienciaSettings.estacion_kicker_en, locale);
   const estacionTitle =
@@ -229,28 +367,111 @@ export default async function CienciaPage({
     resolveLocalized(cienciaSettings.estacion_cta_label, cienciaSettings.estacion_cta_label_en, locale);
   const estacionCtaHref =
     cienciaSettings.estacion_cta_href || '/experiencias/degustaciones#estacion-origen';
+  const estacionSecondaryCtaLabel =
+    resolveLocalized(cienciaSettings.estacion_secondary_cta_label, cienciaSettings.estacion_secondary_cta_label_en, locale) || 'Ver todas las modalidades';
+  const estacionSecondaryCtaHref =
+    cienciaSettings.estacion_secondary_cta_href || '/experiencias/degustaciones';
 
-  // Eje 04 / 05 · Balance Territorial & Pecoreo
+  // Eje 05 · Balance Territorial & Pecoreo
   const metodologiaKicker =
     resolveLocalized(cienciaSettings.metodologia_kicker, cienciaSettings.metodologia_kicker_en, locale);
   const metodologiaTitle =
     resolveLocalized(cienciaSettings.metodologia_title, cienciaSettings.metodologia_title_en, locale);
   const metodologiaDesc =
     resolveLocalized(cienciaSettings.metodologia_desc, cienciaSettings.metodologia_desc_en, locale);
+
   const pecoreoKicker =
     resolveLocalized(cienciaSettings.pecoreo_kicker, cienciaSettings.pecoreo_kicker_en, locale);
   const pecoreoTitle =
     resolveLocalized(cienciaSettings.pecoreo_title, cienciaSettings.pecoreo_title_en, locale);
   const pecoreoDesc =
     resolveLocalized(cienciaSettings.pecoreo_desc, cienciaSettings.pecoreo_desc_en, locale);
+
+  const pecoreoC1Title =
+    resolveLocalized(cienciaSettings.pecoreo_c1_title, cienciaSettings.pecoreo_c1_title_en, locale) || 'Néctar y Concentración';
+  const pecoreoC1Formula =
+    cienciaSettings.pecoreo_c1_formula || 'M_néctar = kg × (0.82 / 0.30)';
+  const pecoreoC1Desc =
+    resolveLocalized(cienciaSettings.pecoreo_c1_desc, cienciaSettings.pecoreo_c1_desc_en, locale) ||
+    'Considera 82% de azúcares en miel madura frente al 30% de sólidos solubles en néctar de flora nativa.';
+
+  const pecoreoC2Title =
+    resolveLocalized(cienciaSettings.pecoreo_c2_title, cienciaSettings.pecoreo_c2_title_en, locale) || 'Superficie Vital Protegida';
+  const pecoreoC2Formula =
+    cienciaSettings.pecoreo_c2_formula || 'Área = (kg / 20) × 5.000 m²';
+  const pecoreoC2Desc =
+    resolveLocalized(cienciaSettings.pecoreo_c2_desc, cienciaSettings.pecoreo_c2_desc_en, locale) ||
+    'Basado en un rendimiento conservador de 20 kg/colmena y 0,5 ha de bosque maduro asignado como radio vital.';
+
+  const pecoreoC3Title =
+    resolveLocalized(cienciaSettings.pecoreo_c3_title, cienciaSettings.pecoreo_c3_title_en, locale) || 'Vuelo y Fecundación';
+  const pecoreoC3Formula =
+    cienciaSettings.pecoreo_c3_formula || 'Flores = M_néctar / 1.2 mg';
+  const pecoreoC3Desc =
+    resolveLocalized(cienciaSettings.pecoreo_c3_desc, cienciaSettings.pecoreo_c3_desc_en, locale) ||
+    'Secreción media de 1,2 mg néctar/flor y tasa de polinización cruzada (+40% semillas viables al banco de suelo).';
+
+  const equivalenciaC1Title =
+    resolveLocalized(cienciaSettings.equivalencia_c1_title, cienciaSettings.equivalencia_c1_title_en, locale) || 'Frasco 500 g';
+  const equivalenciaC1Value =
+    resolveLocalized(cienciaSettings.equivalencia_c1_value, cienciaSettings.equivalencia_c1_value_en, locale) || `~${IMPACTO_COEFICIENTES.co2_evitado_kg_por_frasco_500g} kg CO₂e`;
+  const equivalenciaC1Desc =
+    resolveLocalized(cienciaSettings.equivalencia_c1_desc, cienciaSettings.equivalencia_c1_desc_en, locale) ||
+    'Estimación de emisiones evitadas por sustitución de azúcar refinada industrial. No constituye certificado de absorción forestal individual.';
+
+  const equivalenciaC2Title =
+    resolveLocalized(cienciaSettings.equivalencia_c2_title, cienciaSettings.equivalencia_c2_title_en, locale) || '1 Kilogramo Miel';
+  const equivalenciaC2Value =
+    resolveLocalized(cienciaSettings.equivalencia_c2_value, cienciaSettings.equivalencia_c2_value_en, locale) || `~${IMPACTO_COEFICIENTES.co2_evitado_kg_por_kg_miel} kg CO₂e`;
+  const equivalenciaC2Desc =
+    resolveLocalized(cienciaSettings.equivalencia_c2_desc, cienciaSettings.equivalencia_c2_desc_en, locale) ||
+    'Coeficiente de orden de magnitud por sustitución alimentaria de miel cruda sin procesamiento térmico ni aditivos.';
+
+  const equivalenciaC3Title =
+    resolveLocalized(cienciaSettings.equivalencia_c3_title, cienciaSettings.equivalencia_c3_title_en, locale) || 'Factor por Árbol Nativo';
+  const equivalenciaC3Value =
+    resolveLocalized(cienciaSettings.equivalencia_c3_value, cienciaSettings.equivalencia_c3_value_en, locale) || `~${IMPACTO_COEFICIENTES.co2_ton_por_arbol} t CO₂e`;
+  const equivalenciaC3Desc =
+    resolveLocalized(cienciaSettings.equivalencia_c3_desc, cienciaSettings.equivalencia_c3_desc_en, locale) ||
+    'Secuestro referencial estimado en biomasa leñosa para especies nativas en crecimiento activo en el Predio Pureo.';
+
+  const ecosistemaTitle =
+    resolveLocalized(cienciaSettings.ecosistema_title, cienciaSettings.ecosistema_title_en, locale) || 'Estado del Ecosistema en Vivo';
+  const ecosistemaTerritorio =
+    resolveLocalized(cienciaSettings.ecosistema_territorio, cienciaSettings.ecosistema_territorio_en, locale) || `Territorio: ${IMPACTO_TERRITORIO}`;
+  const ecosistemaVersionBadge =
+    cienciaSettings.ecosistema_version_badge || `v${IMPACTO_METODOLOGIA_VERSION}`;
+  const ecosistemaM1Label =
+    resolveLocalized(cienciaSettings.ecosistema_m1_label, cienciaSettings.ecosistema_m1_label_en, locale) || 'Árboles censados en el predio';
+  const ecosistemaM2Label =
+    resolveLocalized(cienciaSettings.ecosistema_m2_label, cienciaSettings.ecosistema_m2_label_en, locale) || 'CO₂ capturado estimado';
+  const ecosistemaM3Label =
+    resolveLocalized(cienciaSettings.ecosistema_m3_label, cienciaSettings.ecosistema_m3_label_en, locale) || 'CO₂ emitido logística + producción';
+  const ecosistemaM4Label =
+    resolveLocalized(cienciaSettings.ecosistema_m4_label, cienciaSettings.ecosistema_m4_label_en, locale) || 'Índice de Regeneración (IRR)';
+  const ecosistemaDisclaimer =
+    resolveLocalized(cienciaSettings.ecosistema_disclaimer, cienciaSettings.ecosistema_disclaimer_en, locale) ||
+    'Rigor ético y metodológico: la modelación biofísica de absorción en biomasa e IRR requiere el censo georreferenciado árbol a árbol del Predio Pureo (temporada 2026–2027 en ejecución). Por honestidad radical, no publicamos indicadores concluidos mientras el conteo empírico territorial permanezca en calibración.';
+
+  const formulasTitle =
+    resolveLocalized(cienciaSettings.formulas_title, cienciaSettings.formulas_title_en, locale) || 'Fórmulas Matemáticas Abiertas';
+  const fuentesTitle =
+    resolveLocalized(cienciaSettings.fuentes_title, cienciaSettings.fuentes_title_en, locale) || 'Fuentes Bibliográficas de Respaldo';
+
   const horizonteTitle =
     resolveLocalized(cienciaSettings.horizonte_title, cienciaSettings.horizonte_title_en, locale);
   const horizonteText =
     resolveLocalized(cienciaSettings.horizonte_text, cienciaSettings.horizonte_text_en, locale);
 
   // Eje 06 · Respaldo Académico & Límites
+  const respaldoKicker =
+    resolveLocalized(cienciaSettings.respaldo_kicker, cienciaSettings.respaldo_kicker_en, locale) || 'EJE 06 · Compliance & Límites';
   const respaldoTitle =
-    resolveLocalized(cienciaSettings.respaldo_title, cienciaSettings.respaldo_title_en, locale);
+    resolveLocalized(cienciaSettings.respaldo_title, cienciaSettings.respaldo_title_en, locale) || 'Límites Metodológicos & Responsabilidad Regulatoria';
+  const respaldoExtraNotas =
+    resolveLocalized(cienciaSettings.respaldo_extra_notas, cienciaSettings.respaldo_extra_notas_en, locale);
+  const respaldoDisclaimerMinsal =
+    resolveLocalized(cienciaSettings.respaldo_disclaimer_minsal, cienciaSettings.respaldo_disclaimer_minsal_en, locale) || DISCLAIMER_LEY_20606;
 
   const cmsCienciaItems = (batch.ciencia ?? [])
     .map((row) => row.content as {
@@ -338,37 +559,37 @@ export default async function CienciaPage({
                 href="#triangulacion"
                 className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
               >
-                01 · Pureza & Ausencia de Pesticidas
+                {jumpBar01}
               </a>
               <a
                 href="#bioquimica"
                 className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
               >
-                02 · Bioquímica & Enzimas Vivas
+                {jumpBar02}
               </a>
               <a
                 href="#biblioteca"
                 className="px-3.5 py-1.5 rounded-full border border-accent/40 bg-accent/10 text-accent-text hover:bg-accent/20 text-xs transition-colors font-mono font-medium"
               >
-                03 · Biblioteca Botánica NCh2981
+                {jumpBar03}
               </a>
               <a
                 href="#sensorial"
                 className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
               >
-                04 · Panel Sensorial ST-CATA
+                {jumpBar04}
               </a>
               <a
                 href="#biofisica"
                 className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
               >
-                05 · Balance Biofísico & Pecoreo
+                {jumpBar05}
               </a>
               <a
                 href="#respaldo"
                 className="px-3.5 py-1.5 rounded-full border border-border/60 bg-surface-raised/70 hover:border-accent/60 hover:text-accent-text text-xs text-muted-foreground transition-colors font-mono"
               >
-                06 · Compliance & Límites
+                {jumpBar06}
               </a>
             </nav>
           </div>
@@ -401,20 +622,18 @@ export default async function CienciaPage({
                       <ShieldCheck size={20} />
                     </div>
                     <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/10 text-accent-text border border-accent/20">
-                      0.00 ppm · LOR
+                      {triangulacionC1Badge}
                     </span>
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Neonicotinoides y Glifosato: No Detectados
+                    {triangulacionC1Title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    Los análisis cromatográficos multiresiduo en matrices de miel y polen del bosque templado
-                    lluvioso no registran trazas detectables de insecticidas sistémicos (imidacloprid, tiametoxam)
-                    ni herbicidas agroindustriales (bajo límite de detección analítica y estándares Codex Alimentarius).
+                  <p className="text-xs text-muted-foreground leading-relaxed text-left whitespace-pre-line">
+                    {triangulacionC1Desc}
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Ensayos cromatográficos GC-MS/MS & LC-MS/MS · Respaldo por lote
+                  {triangulacionC1Footer}
                 </p>
               </div>
 
@@ -425,20 +644,18 @@ export default async function CienciaPage({
                       <Leaf size={20} />
                     </div>
                     <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                      100% Reserva Nativa
+                      {triangulacionC2Badge}
                     </span>
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Invernada con Néctar y Polen Silvestre
+                    {triangulacionC2Title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    Frente a prácticas de apicultura masiva que reemplazan sistemáticamente la reserva invernal
-                    con jarabes de maíz de alta fructosa (HFCS), priorizamos que el enjambre inverne con sus
-                    propios marcos de miel y polen de floraciones nativas, protegiendo la vitalidad de la colonia.
+                  <p className="text-xs text-muted-foreground leading-relaxed text-left whitespace-pre-line">
+                    {triangulacionC2Desc}
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Manejo apícola adaptativo sin sustitutos sintéticos
+                  {triangulacionC2Footer}
                 </p>
               </div>
 
@@ -449,20 +666,18 @@ export default async function CienciaPage({
                       <BookOpen size={20} />
                     </div>
                     <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/10 text-accent-text border border-accent/20">
-                      ≥ 45% NCh2981
+                      {triangulacionC3Badge}
                     </span>
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Melisopalinología y Botánica
+                    {triangulacionC3Title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    La norma chilena NCh2981 define miel monofloral a partir de un mínimo del 45% de polen dominante de una
-                    misma especie nativa. El análisis melisopalinológico verifica la identidad botánica del bosque
-                    valdiviano de Chiloé frente a mieles de pradera o mezcla comercial.
+                  <p className="text-xs text-muted-foreground leading-relaxed text-left whitespace-pre-line">
+                    {triangulacionC3Desc}
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Melisopalinología NCh2981 · Clasificación polínica microscópica
+                  {triangulacionC3Footer}
                 </p>
               </div>
             </div>
@@ -471,13 +686,13 @@ export default async function CienciaPage({
             <div className="mt-6 rounded-2xl border border-border/40 bg-surface-raised/40 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-2">
                 <ShieldCheck size={16} className="text-accent-text shrink-0" />
-                <span>Trazabilidad analítica y ensayos de pureza verificables en el sello y pasaporte digital de cada frasco.</span>
+                <span>{triangulacionBannerText}</span>
               </span>
               <Link
-                href="/catalogo"
+                href={triangulacionBannerCtaHref}
                 className="shrink-0 text-foreground hover:text-accent-text font-medium underline underline-offset-4 transition-colors"
               >
-                Explorar frascos con pasaporte →
+                {triangulacionBannerCtaLabel}
               </Link>
             </div>
           </section>
@@ -562,12 +777,12 @@ export default async function CienciaPage({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-wider font-semibold">
                   <ShieldCheck size={16} />
-                  <span>Protocolo de Laboratorio y Análisis por Lote</span>
+                  <span>{protocoloKicker}</span>
                 </div>
                 <h3 className="font-display text-xl font-light text-foreground">
                   {protocoloTitle || 'Estándares Físico-Químicos de Liberación'}
                 </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl whitespace-pre-line">
                   {protocoloDesc ||
                     'Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:'}
                 </p>
@@ -576,29 +791,29 @@ export default async function CienciaPage({
               <div className="grid sm:grid-cols-3 gap-4 pt-2 text-xs">
                 <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text block">
-                    Humedad Máxima &lt;18%
+                    {protocoloC1Badge}
                   </span>
-                  <p className="text-foreground font-medium">Refractometría Analítica</p>
-                  <p className="text-muted-foreground leading-snug">
-                    Estabilidad física permanente. Previene fermentaciones en frío sin recurrir a pasteurización térmica.
+                  <p className="text-foreground font-medium">{protocoloC1Title}</p>
+                  <p className="text-muted-foreground leading-snug whitespace-pre-line">
+                    {protocoloC1Desc}
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-primary block">
-                    HMF Codex &lt;40 mg/kg
+                    {protocoloC2Badge}
                   </span>
-                  <p className="text-foreground font-medium">Control de Temperatura</p>
-                  <p className="text-muted-foreground leading-snug">
-                    Niveles basales mínimos que certifican la ausencia de calentamiento industrial, protegiendo diastasa, invertasa y bioactividad.
+                  <p className="text-foreground font-medium">{protocoloC2Title}</p>
+                  <p className="text-muted-foreground leading-snug whitespace-pre-line">
+                    {protocoloC2Desc}
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text block">
-                    Norma NCh2981
+                    {protocoloC3Badge}
                   </span>
-                  <p className="text-foreground font-medium">Melisopalinología Certificada</p>
-                  <p className="text-muted-foreground leading-snug">
-                    Identificación microscópica de polen de ulmo, tiaca y especies acompañantes, garantizando el origen biogeográfico de Chiloé.
+                  <p className="text-foreground font-medium">{protocoloC3Title}</p>
+                  <p className="text-muted-foreground leading-snug whitespace-pre-line">
+                    {protocoloC3Desc}
                   </p>
                 </div>
               </div>
@@ -608,7 +823,7 @@ export default async function CienciaPage({
             {cmsCienciaItems.length > 0 && (
               <div className="mt-8 space-y-4">
                 <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text font-mono">
-                  Evidencia y Ensayos Registrados
+                  {evidenciaSectionTitle}
                 </span>
                 <div className="grid md:grid-cols-2 gap-4">
                   {cmsCienciaItems.map((item, idx) => (
@@ -646,10 +861,10 @@ export default async function CienciaPage({
                 </p>
               </div>
               <Link
-                href="/origen"
+                href={bibliotecaCtaHref}
                 className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border/60 bg-surface-raised/40 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
               >
-                <span>Ver biblioteca completa</span>
+                <span>{bibliotecaCtaLabel}</span>
                 <span aria-hidden="true">→</span>
               </Link>
             </div>
@@ -659,30 +874,30 @@ export default async function CienciaPage({
               <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold font-mono">
                   <BookOpen size={14} />
-                  <span>01 · Melisopalinología NCh2981</span>
+                  <span>{bibliotecaP1Title}</span>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Conteo microscópico de granos de polen para certificar ≥45% de dominancia floral exclusiva frente a mezclas comerciales.
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {bibliotecaP1Desc}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
                 <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-wider font-semibold font-mono">
                   <Compass size={14} />
-                  <span>02 · Fenología & Grados Día</span>
+                  <span>{bibliotecaP2Title}</span>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Modelación térmica territorial que predice las ventanas breves de floración en el bosque lluvioso de Chiloé.
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {bibliotecaP2Desc}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold font-mono">
                   <Sparkles size={14} />
-                  <span>03 · Bioactividad No Peróxica</span>
+                  <span>{bibliotecaP3Title}</span>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Identificación de flavonoides y terpenos de especies endémicas que conservan su capacidad antioxidante intacta.
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {bibliotecaP3Desc}
                 </p>
               </div>
             </div>
@@ -736,14 +951,14 @@ export default async function CienciaPage({
                       href={`/origen/${f.key}`}
                       className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
                     >
-                      <span>Ficha Botánica</span>
+                      <span>{cardFichaLabel}</span>
                       <ArrowRight size={12} />
                     </Link>
                     <Link
                       href={`/ciencia/${f.key}`}
                       className="font-medium text-accent-text hover:text-accent transition-colors inline-flex items-center gap-1"
                     >
-                      <span>Catas & Lab</span>
+                      <span>{cardLabLabel}</span>
                       <ArrowRight size={12} />
                     </Link>
                   </div>
@@ -756,33 +971,33 @@ export default async function CienciaPage({
           <section id="sensorial" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-8">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2 font-mono">
-                EJE 04 · Ciencia Sensorial & Evaluación Objetiva
+                {sensorialKicker}
               </span>
               <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
-                Protocolo de Panel Sensorial Distribuido (ST-CATA)
+                {sensorialTitle}
               </h2>
               <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
-                De la degustación empírica al perfil sensorial validado. Nuestra plataforma no publica promedios subjetivos de marketing: opera el protocolo científico ST-CATA (Check-All-That-Apply semi-entrenado) para caracterizar la miel cruda de bosque nativo con rigor estadístico y reproducibilidad.
+                {sensorialDesc}
               </p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4 mb-8">
               <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
-                <span className="font-mono text-xs text-accent-text font-semibold">01 · Instrumento 60s</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Evaluación de 3 pares semánticos bipolares y chips organolépticos con orden contrabalanceado aleatorio para eliminar sesgos de posición.
+                <span className="font-mono text-xs text-accent-text font-semibold">{sensorialC1Title}</span>
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {sensorialC1Desc}
                 </p>
               </div>
               <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
-                <span className="font-mono text-xs text-primary font-semibold">02 · Dos Cohortes</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Separación estricta entre consumidores espontáneos en mesa y la red semi-entrenada de baristas calibrados con referentes aromáticos físicos.
+                <span className="font-mono text-xs text-primary font-semibold">{sensorialC2Title}</span>
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {sensorialC2Desc}
                 </p>
               </div>
               <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
-                <span className="font-mono text-xs text-accent-text font-semibold">03 · Umbral N ≥ 30</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Regla de oro: ningún perfil de floración o lote se publica con menos de 30 sesiones completadas. Bajo ese umbral, la plataforma declara «perfil en construcción».
+                <span className="font-mono text-xs text-accent-text font-semibold">{sensorialC3Title}</span>
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {sensorialC3Desc}
                 </p>
               </div>
             </div>
@@ -816,10 +1031,10 @@ export default async function CienciaPage({
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
-                  href="/experiencias/degustaciones"
+                  href={estacionSecondaryCtaHref}
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border/60 bg-background/50 px-5 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground hover:border-accent transition-colors text-center"
                 >
-                  <span>Ver todas las modalidades</span>
+                  <span>{estacionSecondaryCtaLabel}</span>
                 </Link>
               </div>
             </div>
@@ -867,37 +1082,37 @@ export default async function CienciaPage({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                 <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
-                    Néctar y Concentración
+                    {pecoreoC1Title}
                   </span>
                   <p className="font-mono text-[11px] text-foreground">
-                    M_néctar = kg × (0.82 / 0.30)
+                    {pecoreoC1Formula}
                   </p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Considera 82% de azúcares en miel madura frente al 30% de sólidos solubles en néctar de flora nativa.
+                  <p className="text-[11px] text-muted-foreground leading-snug whitespace-pre-line">
+                    {pecoreoC1Desc}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">
-                    Superficie Vital Protegida
+                    {pecoreoC2Title}
                   </span>
                   <p className="font-mono text-[11px] text-foreground">
-                    Área = (kg / 20) × 5.000 m²
+                    {pecoreoC2Formula}
                   </p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Basado en un rendimiento conservador de 20 kg/colmena y 0,5 ha de bosque maduro asignado como radio vital.
+                  <p className="text-[11px] text-muted-foreground leading-snug whitespace-pre-line">
+                    {pecoreoC2Desc}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
-                    Vuelo y Fecundación
+                    {pecoreoC3Title}
                   </span>
                   <p className="font-mono text-[11px] text-foreground">
-                    Flores = M_néctar / 1.2 mg
+                    {pecoreoC3Formula}
                   </p>
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    Secreción media de 1,2 mg néctar/flor y tasa de polinización cruzada (+40% semillas viables al banco de suelo).
+                  <p className="text-[11px] text-muted-foreground leading-snug whitespace-pre-line">
+                    {pecoreoC3Desc}
                   </p>
                 </div>
               </div>
@@ -908,39 +1123,39 @@ export default async function CienciaPage({
               <div className="rounded-2xl border border-border/60 bg-surface-raised p-6 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold">
                   <Scale size={14} />
-                  <span>Frasco 500 g</span>
+                  <span>{equivalenciaC1Title}</span>
                 </div>
                 <p className="font-display text-2xl font-light text-foreground">
-                  ~{IMPACTO_COEFICIENTES.co2_evitado_kg_por_frasco_500g} kg CO₂e
+                  {equivalenciaC1Value}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Estimación de emisiones evitadas por sustitución de azúcar refinada industrial. No constituye certificado de absorción forestal individual.
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {equivalenciaC1Desc}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-border/60 bg-surface-raised p-6 space-y-2">
                 <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-wider font-semibold">
                   <Leaf size={14} />
-                  <span>1 Kilogramo Miel</span>
+                  <span>{equivalenciaC2Title}</span>
                 </div>
                 <p className="font-display text-2xl font-light text-foreground">
-                  ~{IMPACTO_COEFICIENTES.co2_evitado_kg_por_kg_miel} kg CO₂e
+                  {equivalenciaC2Value}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Coeficiente de orden de magnitud por sustitución alimentaria de miel cruda sin procesamiento térmico ni aditivos.
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {equivalenciaC2Desc}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-border/60 bg-surface-raised p-6 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold">
                   <TreePine size={14} />
-                  <span>Factor por Árbol Nativo</span>
+                  <span>{equivalenciaC3Title}</span>
                 </div>
                 <p className="font-display text-2xl font-light text-foreground">
-                  ~{IMPACTO_COEFICIENTES.co2_ton_por_arbol} t CO₂e
+                  {equivalenciaC3Value}
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Secuestro referencial estimado en biomasa leñosa para especies nativas en crecimiento activo en el Predio Pureo.
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {equivalenciaC3Desc}
                 </p>
               </div>
             </div>
@@ -950,49 +1165,65 @@ export default async function CienciaPage({
               <div className="flex items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="font-display text-xl font-light text-foreground">
-                    Estado del Ecosistema en Vivo
+                    {ecosistemaTitle}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Territorio: {IMPACTO_TERRITORIO}
+                    {ecosistemaTerritorio}
                   </p>
                 </div>
                 <span className="text-[10px] font-mono uppercase tracking-wider px-3 py-1 rounded-full bg-accent/10 text-accent-text border border-accent/20">
-                  v{IMPACTO_METODOLOGIA_VERSION}
+                  {ecosistemaVersionBadge}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <Metric
-                  label="Árboles censados en el predio"
+                  label={ecosistemaM1Label}
                   value={m.arboles_total > 0 ? m.arboles_total.toLocaleString('es-CL') : 'En censo 2026–2027'}
                 />
                 <Metric
-                  label="CO₂ capturado estimado"
+                  label={ecosistemaM2Label}
                   value={m.arboles_total > 0 && co2CapturadoAnual != null ? `${co2CapturadoAnual.toLocaleString('es-CL')} kg` : 'En medición'}
                 />
                 <Metric
-                  label="CO₂ emitido logística + producción"
+                  label={ecosistemaM3Label}
                   value={m.arboles_total > 0 && co2EmitidoAnual != null ? `${co2EmitidoAnual.toLocaleString('es-CL')} kg` : 'En auditoría'}
                 />
                 <Metric
-                  label="Índice de Regeneración (IRR)"
+                  label={ecosistemaM4Label}
                   value={m.arboles_total > 0 && irrCalculado != null ? String(irrCalculado) : 'En calibración'}
                 />
               </div>
 
-              <p className="mt-6 text-xs text-muted-foreground leading-relaxed text-left border-t border-border/30 pt-4">
+              <p className="mt-6 text-xs text-muted-foreground leading-relaxed text-left border-t border-border/30 pt-4 whitespace-pre-line">
                 {m.arboles_total > 0 && irrCalculado != null
                   ? `IRR = ${co2CapturadoAnual?.toLocaleString('es-CL') ?? '—'} kg capturado / ${co2EmitidoAnual?.toLocaleString('es-CL') ?? '—'} kg emitido = ${irrCalculado}. Un valor superior a 1.0 documenta una huella neta regenerativa.`
-                  : 'Rigor ético y metodológico: la modelación biofísica de absorción en biomasa e IRR requiere el censo georreferenciado árbol a árbol del Predio Pureo (temporada 2026–2027 en ejecución). Por honestidad radical, no publicamos indicadores concluidos mientras el conteo empírico territorial permanezca en calibración.'}
+                  : ecosistemaDisclaimer}
               </p>
             </div>
+
+            {/* Horizonte Metodológico (si está configurado) */}
+            {horizonteTitle || horizonteText ? (
+              <div className="rounded-3xl border border-border/50 bg-surface-raised p-6 sm:p-8 space-y-2 mb-10">
+                {horizonteTitle ? (
+                  <h4 className="font-display text-lg font-medium text-foreground">
+                    {horizonteTitle}
+                  </h4>
+                ) : null}
+                {horizonteText ? (
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {horizonteText}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             {/* Metodología abierta: Fórmulas y Fuentes */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="rounded-2xl border border-border/50 bg-surface-sunken p-6 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text font-mono">
                   <FileText size={14} />
-                  <span>Fórmulas Matemáticas Abiertas</span>
+                  <span>{formulasTitle}</span>
                 </div>
                 <ul className="space-y-3 text-xs font-mono text-muted-foreground">
                   <li className="p-3 rounded-xl bg-card border border-border/40">
@@ -1019,7 +1250,7 @@ export default async function CienciaPage({
               <div className="rounded-2xl border border-border/50 bg-surface-sunken p-6 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary font-mono">
                   <BookOpen size={14} />
-                  <span>Fuentes Bibliográficas de Respaldo</span>
+                  <span>{fuentesTitle}</span>
                 </div>
                 <ul className="space-y-3">
                   {IMPACTO_FUENTES.map((f) => (
@@ -1045,11 +1276,16 @@ export default async function CienciaPage({
 
           {/* ── EJE 06: Compliance Regulatorio & Responsabilidad Científica ── */}
           <section id="respaldo" className="rounded-3xl border border-border/60 bg-surface-raised p-8 space-y-4 scroll-mt-36">
-            <div className="flex items-center gap-2 text-accent-text text-sm font-semibold">
-              <Scale size={18} />
-              <h2 className="font-display text-xl font-medium text-foreground">
-                {respaldoTitle || 'Límites Metodológicos & Responsabilidad Regulatoria'}
-              </h2>
+            <div className="space-y-1">
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text font-mono">
+                {respaldoKicker}
+              </span>
+              <div className="flex items-center gap-2 text-accent-text text-sm font-semibold">
+                <Scale size={18} />
+                <h2 className="font-display text-xl font-medium text-foreground">
+                  {respaldoTitle || 'Límites Metodológicos & Responsabilidad Regulatoria'}
+                </h2>
+              </div>
             </div>
             <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground leading-relaxed text-left">
               {IMPACTO_LIMITES.map((l) => (
@@ -1058,9 +1294,14 @@ export default async function CienciaPage({
               <li>· Estas notas proporcionan contexto botánico y bibliográfico de composición; no constituyen rotulado terapéutico MINSAL ni promesas médicas.</li>
               <li>· El IRR es un cociente biofísico de transparencia interna y no debe confundirse con un bono de carbono transferible ni un Análisis de Ciclo de Vida (ACV) corporativo.</li>
             </ul>
+            {respaldoExtraNotas ? (
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-left whitespace-pre-line border-t border-border/30 pt-4">
+                {respaldoExtraNotas}
+              </p>
+            ) : null}
           </section>
 
-          <p className="text-xs text-muted-foreground px-2 leading-relaxed text-left">{DISCLAIMER_LEY_20606}</p>
+          <p className="text-xs text-muted-foreground px-2 leading-relaxed text-left">{respaldoDisclaimerMinsal}</p>
         </div>
       </main>
       <ShopFooter />

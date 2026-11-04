@@ -69,13 +69,14 @@ export function PredioForm({ actores, fixedActorId, fixedActorName, onClose, onS
       });
 
       if (!res.ok) {
-        throw new Error('Error al registrar el predio');
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Error al registrar el predio');
       }
 
       toast.success('Predio registrado exitosamente');
       onSuccess();
-    } catch {
-      toast.error('Ocurrió un error al registrar el predio');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ocurrió un error al registrar el predio');
     } finally {
       setLoading(false);
     }

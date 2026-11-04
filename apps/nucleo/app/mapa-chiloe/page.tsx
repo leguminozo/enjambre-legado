@@ -44,7 +44,7 @@ function MapaChiloeContent() {
         active={showApiarios}
         onClick={() => setShowApiarios((v) => !v)}
         icon={<Eye className="w-3.5 h-3.5" />}
-        label="Apiarios"
+        label="Zonas en red"
       />
       <Toggle
         active={showAlertas}
@@ -131,7 +131,7 @@ function MapaChiloeContent() {
               Mapa Apícola Territorial · Chiloé
             </h1>
             <p className="text-[11px] text-muted-foreground hidden sm:block">
-              Zonas aproximadas de pecoreo (±1 km) · Privacidad protegida
+              Zonas Comunales de Pecoreo Protegido · Resguardo Soberano Ley 21.489
             </p>
           </div>
         </div>
@@ -205,8 +205,8 @@ function MapaChiloeContent() {
                     <tr className="text-left text-muted-foreground border-b border-border">
                       <th className="py-2.5 pr-2 font-medium">Comuna</th>
                       <th className="py-2.5 pr-2 font-medium">Apicultores</th>
-                      <th className="py-2.5 pr-2 font-medium">Apiarios en mapa</th>
-                      <th className="py-2.5 font-medium">Alertas</th>
+                      <th className="py-2.5 pr-2 font-medium">Asentamientos en red</th>
+                      <th className="py-2.5 font-medium">Alertas sanitarias</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -214,7 +214,7 @@ function MapaChiloeContent() {
                       <tr key={c.comuna} className="border-b border-border/40">
                         <td className="py-2.5 pr-2 font-medium text-foreground">{c.comuna}</td>
                         <td className="py-2.5 pr-2 tabular-nums">{c.actores_activos}</td>
-                        <td className="py-2.5 pr-2 tabular-nums">{c.apiarios_externos}</td>
+                        <td className="py-2.5 pr-2 tabular-nums font-semibold">{c.asentamientos_protegidos ?? c.apiarios_externos}</td>
                         <td className="py-2.5 tabular-nums">{c.alertas_activas}</td>
                       </tr>
                     ))}
@@ -230,7 +230,7 @@ function MapaChiloeContent() {
               <Shield className="w-4 h-4" />
             </div>
             <p className="leading-relaxed">
-              <strong className="text-foreground font-medium">Privacidad protegida:</strong> El mapa público muestra zonas aproximadas (~1 km) para coordinar la defensa sanitaria y de pecoreo, sin publicar nombres, RUP ni GPS exacto.
+              <strong className="text-foreground font-medium">Privacidad protegida:</strong> El mapa público presenta zonas agregadas por cuenca comunal (Ley 21.489) para coordinar la defensa sanitaria y de pecoreo, sin publicar coordenadas individuales, RUP ni nombres de predios para resguardar la seguridad de cada apiario.
             </p>
           </section>
         </div>

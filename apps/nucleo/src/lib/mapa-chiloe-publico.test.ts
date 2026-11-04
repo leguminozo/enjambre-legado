@@ -23,8 +23,8 @@ describe('publicCoords', () => {
   });
 });
 
-describe('buildMapaChiloePublico', () => {
-  it('anonimiza y no incluye nombres', () => {
+describe('buildMapaChiloePublico (Defensa Territorial)', () => {
+  it('resguarda la privacidad territorial omitiendo coordenadas individuales de apiarios', () => {
     const m = buildMapaChiloePublico({
       apiariosExternos: [
         {
@@ -65,25 +65,33 @@ describe('buildMapaChiloePublico', () => {
       now: new Date('2026-08-05T12:00:00Z'),
     });
 
-    expect(m.apiarios).toHaveLength(2);
-    expect(m.apiarios[0]?.colmenas_banda).toBe('6-20');
+    // En la API pública no emitimos coordenadas individuales de colmenas
+    expect(m.apiarios).toHaveLength(0);
+    // Pero sí emitimos las Zonas Comunales consolidadas de Chiloé
+    expect(m.zonas_comunales.length).toBeGreaterThanOrEqual(10);
+    const queilenZona = m.zonas_comunales.find((z) => z.comuna === 'Queilén');
+    expect(queilenZona).toBeDefined();
+    expect(queilenZona?.asentamientos_protegidos).toBe(1);
+    expect(queilenZona?.actores_activos).toBe(1);
+    expect(queilenZona?.alertas_activas).toBe(1);
+
+    // Alertas públicas preventivas
     expect(m.alertas).toHaveLength(1);
     expect(m.alertas[0]?.tipo_producto).toBe('insecticida');
-    // Sin campos de identidad en los puntos
-    for (const a of m.apiarios) {
-      expect(a).not.toHaveProperty('nombre_actor');
-      expect(a).not.toHaveProperty('rup');
-      expect(a).not.toHaveProperty('user_id');
-    }
+
     for (const al of m.alertas) {
       expect(al).not.toHaveProperty('producto');
       expect(al).not.toHaveProperty('actor_id');
     }
-    expect(m.comunas.find((c) => c.comuna === 'Queilén')?.actores_activos).toBe(1);
+
+    const queilenComuna = m.comunas.find((c) => c.comuna === 'Queilén');
+    expect(queilenComuna?.actores_activos).toBe(1);
+    expect(queilenComuna?.apiarios_externos).toBe(1);
     expect(m.privacidad.nivel).toBe('publico_anonimizado');
+    expect(m.privacidad.modelo_defensa).toBe('agregacion_comunal_k_anonymity');
   });
 
-  it('incluye apiarios del registro local anonimizados con banda de colmenas', () => {
+  it('agrega asentamientos de apiarios_registro a nivel comunal sin exponer coordenadas', () => {
     const m = buildMapaChiloePublico({
       apiariosExternos: [],
       apiariosRegistro: [
@@ -99,8 +107,8 @@ describe('buildMapaChiloePublico', () => {
         {
           id: 'reg2',
           comuna: 'Castro',
-          lat_aproximada: null,
-          lng_aproximada: null,
+          lat_aproximada: -42.48,
+          lng_aproximada: -73.77,
           n_colmenas: 5,
           activo: true,
         },
@@ -109,20 +117,11 @@ describe('buildMapaChiloePublico', () => {
       alertas: [],
     });
 
-    expect(m.apiarios).toHaveLength(1);
-    expect(m.apiarios[0]?.tipo).toBe('local');
-    expect(m.apiarios[0]?.comuna).toBe('Ancud');
-    expect(m.apiarios[0]?.colmenas_banda).toBe('6-20');
-    expect(m.apiarios[0]?.lat).toBe(-41.83);
-    expect(m.apiarios[0]?.lng).toBe(-73.52);
-  });
-
-  it('omite puntos sin coords', () => {
-    const m = buildMapaChiloePublico({
-      apiariosExternos: [{ id: 'x', n_colmenas: 2, comuna_destino: 'Ancud' }],
-      predios: [],
-      alertas: [],
-    });
+    // Cero coordenadas de colmenas individuales
     expect(m.apiarios).toHaveLength(0);
+    const ancudZona = m.zonas_comunales.find((z) => z.comuna === 'Ancud');
+    const castroZona = m.zonas_comunales.find((z) => z.comuna === 'Castro');
+    expect(ancudZona?.asentamientos_protegidos).toBe(1);
+    expect(castroZona?.asentamientos_protegidos).toBe(1);
   });
 });

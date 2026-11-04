@@ -18,8 +18,7 @@ const MAP_MIEL = 'hsl(44 85% 46%)';
 const MAP_ALERTA = 'hsl(0 72% 51%)';
 const MAP_FLOR = 'hsl(145 30% 48%)';
 
-const ICON_EXT = createMapBadgeIcon(MAP_BOSQUE, '🐝', 28);
-const ICON_PREDIO = createMapBadgeIcon(MAP_MIEL, '🏞️', 28);
+const ICON_ZONA_COMUNAL = createMapBadgeIcon(MAP_BOSQUE, '🛡️', 32);
 const ICON_ALERTA = createMapBadgeIcon(MAP_ALERTA, '⚠️', 28);
 const ICON_FLOR = createMapBadgeIcon(MAP_FLOR, '🌸', 28);
 
@@ -27,7 +26,7 @@ function FitBounds({ data }: { data: MapaChiloePublico }) {
   const map = useMap();
   useEffect(() => {
     const pts: [number, number][] = [
-      ...data.apiarios.map((a) => [a.lat, a.lng] as [number, number]),
+      ...(data.zonas_comunales ?? []).map((z) => [z.lat, z.lng] as [number, number]),
       ...data.alertas.map((a) => [a.lat, a.lng] as [number, number]),
       ...data.floraciones.map((f) => [f.lat, f.lng] as [number, number]),
     ];
@@ -63,59 +62,65 @@ export function MapaChiloePublicoBase({
       <EsriSatelliteTileLayers />
       <FitBounds data={data} />
 
+      {/* Zonas Comunales de Pecoreo Protegido (Atlas Territorial Soberano) */}
       {showApiarios &&
-        data.apiarios.map((a) => (
-          <Fragment key={a.id}>
+        (data.zonas_comunales ?? []).map((z) => (
+          <Fragment key={z.id}>
             <Circle
-              center={[a.lat, a.lng]}
-              radius={1200}
+              center={[z.lat, z.lng]}
+              radius={z.radio_metros}
               pathOptions={{
-                color: a.tipo === 'predio' ? MAP_MIEL : MAP_BOSQUE,
-                fillColor: a.tipo === 'predio' ? MAP_MIEL : MAP_BOSQUE,
-                fillOpacity: 0.18,
-                weight: 1.2,
+                color: MAP_BOSQUE,
+                fillColor: MAP_BOSQUE,
+                fillOpacity: 0.12,
+                weight: 1.5,
+                dashArray: '5, 5',
               }}
             />
-            <Marker
-              position={[a.lat, a.lng]}
-              icon={a.tipo === 'predio' ? ICON_PREDIO : ICON_EXT}
-            >
+            <Marker position={[z.lat, z.lng]} icon={ICON_ZONA_COMUNAL}>
               <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
-                <div className="text-sm space-y-1">
-                  <p className="font-bold">
-                    {a.tipo === 'local'
-                      ? '🐝 Asentamiento de la red'
-                      : a.tipo === 'externo'
-                        ? '🚚 Apiario trashumante'
-                        : '🏞️ Predio facilitador'}
-                  </p>
-                  <p>
-                    <strong>Comuna:</strong> {a.comuna}
-                  </p>
-                  {a.zona && (
-                    <p>
-                      <strong>Zona:</strong> {a.zona}
+                <div className="text-sm space-y-1.5 p-0.5 max-w-[240px]">
+                  <div className="flex items-center gap-1.5 border-b border-border/60 pb-1.5">
+                    <span className="text-base">🛡️</span>
+                    <div>
+                      <p className="font-bold text-foreground leading-tight text-xs sm:text-sm">
+                        Cuenca Apícola · {z.comuna}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        Resguardo Territorial (Ley 21.489)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs space-y-1 text-foreground">
+                    <p className="flex justify-between">
+                      <span className="text-muted-foreground">Asentamientos en red:</span>
+                      <strong className="font-mono tabular-nums">{z.asentamientos_protegidos}</strong>
                     </p>
-                  )}
-                  {a.tipo !== 'predio' && (
-                    <p>
-                      <strong>Colmenas:</strong> {a.colmenas_banda}
+                    <p className="flex justify-between">
+                      <span className="text-muted-foreground">Apicultores locales:</span>
+                      <strong className="font-mono tabular-nums">{z.actores_activos}</strong>
                     </p>
-                  )}
-                  {a.tipo === 'externo' && a.comuna_origen && (
-                    <p>
-                      <strong>Origen:</strong> {a.comuna_origen}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Zona de pecoreo protegida (±1.5 km · Ley 21.489)
-                  </p>
+                    {z.alertas_activas > 0 ? (
+                      <p className="text-destructive font-medium flex justify-between pt-0.5">
+                        <span>Alertas sanitarias:</span>
+                        <strong className="font-mono tabular-nums">{z.alertas_activas} activa(s)</strong>
+                      </p>
+                    ) : (
+                      <p className="text-emerald-700 dark:text-emerald-400 font-medium text-[11px] pt-0.5">
+                        ✓ Sin avisos de pesticidas vigentes
+                      </p>
+                    )}
+                    <div className="pt-1.5 mt-1 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
+                      <strong className="text-foreground">Floración nativa:</strong> {z.floracion_dominante}
+                    </div>
+                  </div>
                 </div>
               </Popup>
             </Marker>
           </Fragment>
         ))}
 
+      {/* Alertas Fitosanitarias Preventivas */}
       {showAlertas &&
         data.alertas.map((al) => (
           <Fragment key={al.id}>
@@ -125,19 +130,22 @@ export function MapaChiloePublicoBase({
               pathOptions={{
                 color: MAP_ALERTA,
                 fillColor: MAP_ALERTA,
-                fillOpacity: 0.15,
-                weight: 1,
+                fillOpacity: 0.16,
+                weight: 1.2,
+                dashArray: '6, 6',
               }}
             />
             <Marker position={[al.lat, al.lng]} icon={ICON_ALERTA}>
               <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
                 <div className="text-sm space-y-1">
-                  <p className="font-bold text-destructive">Alerta fitosanitaria</p>
-                  <p>
-                    <strong>Tipo:</strong> {al.tipo_producto || 'aplicación'}
+                  <p className="font-bold text-destructive flex items-center gap-1">
+                    ⚠️ Alerta preventiva de aplicación
                   </p>
                   <p>
-                    <strong>Comuna / zona:</strong> {al.comuna} · {al.zona}
+                    <strong>Tipo:</strong> {al.tipo_producto || 'aplicación agrícola'}
+                  </p>
+                  <p>
+                    <strong>Sector:</strong> {al.comuna} · {al.zona}
                   </p>
                   {al.fecha_programada && (
                     <p>
@@ -145,8 +153,8 @@ export function MapaChiloePublicoBase({
                       {new Date(al.fecha_programada).toLocaleString('es-CL')}
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    Radio ~{al.radio_km} km · sin nombre comercial
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Radio de resguardo ~{al.radio_km} km (sin marca comercial)
                   </p>
                 </div>
               </Popup>
@@ -154,17 +162,18 @@ export function MapaChiloePublicoBase({
           </Fragment>
         ))}
 
+      {/* Estaciones Fenológicas de Floración Nativa */}
       {showFloraciones &&
         data.floraciones.map((f) => (
           <Marker key={f.id} position={[f.lat, f.lng]} icon={ICON_FLOR}>
             <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
               <div className="text-sm space-y-1">
-                <p className="font-bold">Floración / estación</p>
-                {f.especie && <p>{f.especie}</p>}
-                {f.fase && <p className="text-xs">{f.fase}</p>}
+                <p className="font-bold flex items-center gap-1">🌸 Estación Fenológica</p>
+                {f.especie && <p className="font-medium text-foreground">{f.especie}</p>}
+                {f.fase && <p className="text-xs text-muted-foreground">{f.fase}</p>}
                 {f.fecha && (
                   <p className="text-xs text-muted-foreground">
-                    {new Date(f.fecha).toLocaleDateString('es-CL')}
+                    Observación: {new Date(f.fecha).toLocaleDateString('es-CL')}
                   </p>
                 )}
               </div>

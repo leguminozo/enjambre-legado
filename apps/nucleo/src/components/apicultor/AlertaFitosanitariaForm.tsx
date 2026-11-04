@@ -67,13 +67,14 @@ export function AlertaFitosanitariaForm({ onClose, onSuccess }: AlertaFitosanita
       });
 
       if (!res.ok) {
-        throw new Error('Error al generar aviso preventivo');
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Error al generar aviso preventivo');
       }
 
       toast.success('Aviso publicado. Se notificará a los apicultores en un radio de 3 km.');
       onSuccess();
-    } catch {
-      toast.error('Ocurrió un error al publicar el aviso preventivo');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ocurrió un error al publicar el aviso preventivo');
     } finally {
       setLoading(false);
     }

@@ -39,8 +39,8 @@ export function resolveTerritorialWriteGate(
   }
 
   if (method === 'POST') {
-    // Inscripción / auto-registro: siempre permitido para territorial.
-    if (pathname.endsWith('/actores')) return { allow: true };
+    // Inscripción / auto-registro o reclamo de asentamiento: siempre permitido para territorial.
+    if (pathname.endsWith('/actores') || pathname.includes('/reclamar')) return { allow: true };
     // Acuse de recepción: cualquier actor inscrito (ownership en la ruta).
     if (pathname.endsWith('/confirmar')) return { allow: true };
     // Carve-outs por sub-rol (la acción ES el propósito del rol).

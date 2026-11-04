@@ -7,14 +7,11 @@ import dynamic from 'next/dynamic';
 import { useTranslations, useLocale } from 'next-intl';
 import {
   ArrowRight,
-  Home,
   Waves,
-  UtensilsCrossed,
   Coffee,
   Hotel,
   ShoppingBag,
   Users,
-  Compass,
 } from 'lucide-react';
 
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -903,18 +900,21 @@ export function TiendaLandingView({
           const card1Desc = resolveLocalized(exp.card1_desc, exp.card1_desc_en, currentLocale);
           const card1Cta = resolveLocalized(exp.card1_cta, exp.card1_cta_en, currentLocale);
           const card1Href = exp.card1_href || '/experiencias/territorio';
+          const card1Image = exp.card1_image || '/assets/editorial/hero-bosque-tronco.jpg';
 
           const card2Tag = resolveLocalized(exp.card2_tag, exp.card2_tag_en, currentLocale);
           const card2Title = resolveLocalized(exp.card2_title, exp.card2_title_en, currentLocale);
           const card2Desc = resolveLocalized(exp.card2_desc, exp.card2_desc_en, currentLocale);
           const card2Cta = resolveLocalized(exp.card2_cta, exp.card2_cta_en, currentLocale);
           const card2Href = exp.card2_href || '/experiencias/degustaciones';
+          const card2Image = exp.card2_image || '/assets/editorial/honey-jar.png';
 
           const card3Tag = resolveLocalized(exp.card3_tag, exp.card3_tag_en, currentLocale);
           const card3Title = resolveLocalized(exp.card3_title, exp.card3_title_en, currentLocale);
           const card3Desc = resolveLocalized(exp.card3_desc, exp.card3_desc_en, currentLocale);
           const card3Cta = resolveLocalized(exp.card3_cta, exp.card3_cta_en, currentLocale);
           const card3Href = exp.card3_href || '/experiencias/talleres';
+          const card3Image = exp.card3_image || '/assets/editorial/hero-hueco.jpg';
 
           return (
             <section
@@ -944,32 +944,48 @@ export function TiendaLandingView({
                   {/* Territorio */}
                   <Link
                     href={card1Href}
-                    className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+                    className="group rounded-3xl border border-border/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent/60 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50"
                   >
                     <div>
-                      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                        <Home className="w-5 h-5" />
+                      {/* Portada fotográfica con gradiente */}
+                      <div className="relative h-56 sm:h-60 w-full overflow-hidden bg-surface-raised">
+                        <Image
+                          src={card1Image}
+                          alt={card1Title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-85"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                        {card1Tag ? (
+                          <div className="absolute top-4 left-4 z-10">
+                            <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-border/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                              {card1Tag}
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
-                      {card1Tag ? (
-                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                          {card1Tag}
-                        </span>
-                      ) : null}
-                      {card1Title ? (
-                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                          {card1Title}
-                        </h3>
-                      ) : null}
-                      {card1Desc ? (
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {card1Desc}
-                        </p>
-                      ) : null}
+
+                      <div className="p-6 sm:p-7">
+                        {card1Title ? (
+                          <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
+                            {card1Title}
+                          </h3>
+                        ) : null}
+                        {card1Desc ? (
+                          <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(exp.text_align)}`}>
+                            {card1Desc}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
+
                     {card1Cta ? (
-                      <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                        <span>{card1Cta}</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      <div className="p-6 sm:p-7 pt-0">
+                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text group-hover:text-foreground transition-colors">
+                          <span>{card1Cta}</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     ) : null}
                   </Link>
@@ -977,32 +993,48 @@ export function TiendaLandingView({
                   {/* Degustaciones */}
                   <Link
                     href={card2Href}
-                    className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+                    className="group rounded-3xl border border-accent/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent transition-all duration-300 shadow-xl shadow-accent/5 hover:shadow-2xl hover:shadow-accent/15 relative"
                   >
                     <div>
-                      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                        <UtensilsCrossed className="w-5 h-5" />
+                      {/* Portada fotográfica con gradiente */}
+                      <div className="relative h-56 sm:h-60 w-full overflow-hidden bg-surface-raised">
+                        <Image
+                          src={card2Image}
+                          alt={card2Title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className={`${card2Image.includes('honey-jar') ? 'object-contain p-6' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 ease-out opacity-90`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                        {card2Tag ? (
+                          <div className="absolute top-4 left-4 z-10">
+                            <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-accent/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                              {card2Tag}
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
-                      {card2Tag ? (
-                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                          {card2Tag}
-                        </span>
-                      ) : null}
-                      {card2Title ? (
-                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                          {card2Title}
-                        </h3>
-                      ) : null}
-                      {card2Desc ? (
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {card2Desc}
-                        </p>
-                      ) : null}
+
+                      <div className="p-6 sm:p-7">
+                        {card2Title ? (
+                          <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
+                            {card2Title}
+                          </h3>
+                        ) : null}
+                        {card2Desc ? (
+                          <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(exp.text_align)}`}>
+                            {card2Desc}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
+
                     {card2Cta ? (
-                      <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                        <span>{card2Cta}</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      <div className="p-6 sm:p-7 pt-0">
+                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text group-hover:text-foreground transition-colors">
+                          <span>{card2Cta}</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     ) : null}
                   </Link>
@@ -1010,32 +1042,48 @@ export function TiendaLandingView({
                   {/* Talleres */}
                   <Link
                     href={card3Href}
-                    className="group sm:col-span-2 lg:col-span-1 rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+                    className="group sm:col-span-2 lg:col-span-1 rounded-3xl border border-border/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent/60 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50"
                   >
                     <div>
-                      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                        <Compass className="w-5 h-5" />
+                      {/* Portada fotográfica con gradiente */}
+                      <div className="relative h-56 sm:h-60 w-full overflow-hidden bg-surface-raised">
+                        <Image
+                          src={card3Image}
+                          alt={card3Title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-85"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                        {card3Tag ? (
+                          <div className="absolute top-4 left-4 z-10">
+                            <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-border/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                              {card3Tag}
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
-                      {card3Tag ? (
-                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                          {card3Tag}
-                        </span>
-                      ) : null}
-                      {card3Title ? (
-                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                          {card3Title}
-                        </h3>
-                      ) : null}
-                      {card3Desc ? (
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {card3Desc}
-                        </p>
-                      ) : null}
+
+                      <div className="p-6 sm:p-7">
+                        {card3Title ? (
+                          <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
+                            {card3Title}
+                          </h3>
+                        ) : null}
+                        {card3Desc ? (
+                          <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(exp.text_align)}`}>
+                            {card3Desc}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
+
                     {card3Cta ? (
-                      <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                        <span>{card3Cta}</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      <div className="p-6 sm:p-7 pt-0">
+                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text group-hover:text-foreground transition-colors">
+                          <span>{card3Cta}</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     ) : null}
                   </Link>

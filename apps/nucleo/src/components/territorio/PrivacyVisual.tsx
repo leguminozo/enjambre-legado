@@ -20,7 +20,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
               <Eye className="w-3.5 h-3.5" />
               Mapa público abierto
             </span>
-            <span className="text-xs font-mono text-muted-foreground/70">~1.000 m radio</span>
+            <span className="text-xs font-mono text-muted-foreground/70">Zonas comunales</span>
           </div>
 
           {/* Mini-mapa esquemático SVG: Zona difusa */}
@@ -42,7 +42,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
             <div className="relative flex flex-col items-center justify-center">
               <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-primary/10 border border-primary/30 border-dashed animate-pulse flex items-center justify-center">
                 <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center text-xs text-primary font-mono text-center px-1">
-                  Zona ~1 km
+                  Resguardo Comunal
                 </div>
               </div>
             </div>
@@ -50,17 +50,17 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
             {/* Etiqueta de anonimización */}
             <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[11px] text-muted-foreground/80 font-mono bg-background/80 px-2.5 py-1 rounded border border-border/40 backdrop-blur-sm">
               <span>Sin RUT ni nombres</span>
-              <span className="text-primary font-medium">Zona aproximada</span>
+              <span className="text-primary font-medium">Cuenca protegida</span>
             </div>
           </div>
 
           <div>
             <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5 flex items-center gap-2">
               <Lock className="w-4 h-4 text-primary shrink-0" />
-              Visualización pública anonimizada
+              Visualización pública agregada
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Radio aproximado de pecoreo (~1 km). La visualización cartográfica no asocia identidades, contactos ni coordenadas de precisión.
+              Zonas agregadas de pecoreo comunal (Ley 21.489). La visualización cartográfica pública no expone coordenadas individuales, identidades ni marcas prediales para proteger a las colmenas contra robos y competencia predatoria.
             </p>
           </div>
         </div>

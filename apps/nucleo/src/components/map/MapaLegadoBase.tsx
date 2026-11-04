@@ -239,6 +239,18 @@ interface CensoApiario {
   activo: boolean;
   lat_aproximada?: number | null;
   lng_aproximada?: number | null;
+  // Campos reservados del titular para prospección y compra de miel
+  titular?: string | null;
+  rut?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  rup?: string | null;
+  rol_apicola?: string | null;
+  practicas_sanitarias?: string | null;
+  metodo_control_varroa?: string | null;
+  declaracion_sag?: boolean;
+  nivel_acreditacion?: string | null;
+  consentimiento_mapa?: boolean;
 }
 
 interface CosechaMapa {
@@ -589,12 +601,12 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
           });
         });
 
-        // 8. Registro Territorial (Chiloé)
+        // 8. Registro Territorial (Chiloé) — Catastro reservado para el fundador
         const [alertasRes, trashumRes, prediosRes, censoRes] = await Promise.all([
           apiFetch('/api/registro-territorial/alertas'),
           apiFetch('/api/registro-territorial/apiarios-externos'),
           apiFetch('/api/registro-territorial/predios'),
-          apiFetch('/api/registro-territorial/apiarios'),
+          apiFetch('/api/mapa/censo-detallado'),
         ]);
         const alertasJson = alertasRes.ok ? await alertasRes.json() : { data: [] };
         const trashumJson = trashumRes.ok ? await trashumRes.json() : { data: [] };
@@ -1508,22 +1520,119 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
 
           {showTerritorialLayers && !filterRole && showCensoApiarios && censoApiarios
             .filter((a) => a.activo && a.lat_aproximada != null && a.lng_aproximada != null)
-            .map((a) => (
-              <Marker key={`censo-${a.id}`} position={[a.lat_aproximada as number, a.lng_aproximada as number]} icon={ICON_CENSO}>
-                <Popup>
-                  <div style={{ minWidth: 180 }}>
-                    <div style={{ fontSize: '0.7rem', color: 'hsl(var(--primary))', marginBottom: 4 }}>🐝 Apiario del Registro</div>
-                    <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{a.nombre ?? 'Apiario comunal'}</strong>
-                    <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>
-                      {a.zona} · {a.comuna}
-                    </p>
-                    <p style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
-                      🐝 {a.n_colmenas} colmenas · {a.categoria}
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            .map((a) => {
+              const telLimpio = a.telefono ? a.telefono.replace(/[^0-9+]/g, '') : '';
+              const telWa = telLimpio.startsWith('+') ? telLimpio.slice(1) : telLimpio.startsWith('56') ? telLimpio : `56${telLimpio}`;
+              const waText = encodeURIComponent(
+                `Hola ${a.titular || 'estimado apicultor'}, te contacto desde la dirección de Enjambre Legado. Quisiéramos consultar disponibilidad de miel de tu apiario ${a.nombre || ''} en ${a.comuna} para una eventual compra directa de microlote.`
+              );
+
+              return (
+                <Marker key={`censo-${a.id}`} position={[a.lat_aproximada as number, a.lng_aproximada as number]} icon={ICON_CENSO}>
+                  <Popup autoPan={true} autoPanPadding={[50, 50]}>
+                    <div className="p-1 min-w-[260px] max-w-[300px] space-y-2 text-xs">
+                      {/* Cabecera */}
+                      <div className="border-b border-border/60 pb-1.5">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
+                            🐝 Reserva Territorial · {a.comuna}
+                          </span>
+                          {a.nivel_acreditacion && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-medium">
+                              {a.nivel_acreditacion}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-sm text-foreground leading-tight">
+                          {a.nombre ?? 'Apiario comunal'}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {a.zona ? `${a.zona} · ` : ''}{a.comuna}
+                        </p>
+                      </div>
+
+                      {/* Identidad del Productor */}
+                      <div className="bg-surface-sunken/80 rounded-lg p-2 border border-border/50 space-y-1 text-[11px]">
+                        <p className="flex justify-between">
+                          <span className="text-muted-foreground">Titular:</span>
+                          <strong className="text-foreground text-right">{a.titular || 'No declarado'}</strong>
+                        </p>
+                        {a.rut && (
+                          <p className="flex justify-between">
+                            <span className="text-muted-foreground">RUT:</span>
+                            <span className="font-mono text-foreground">{a.rut}</span>
+                          </p>
+                        )}
+                        {a.rup && (
+                          <p className="flex justify-between">
+                            <span className="text-muted-foreground">RUP SAG:</span>
+                            <span className="font-mono text-foreground font-semibold">{a.rup}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Biología y Sanidad */}
+                      <div className="space-y-1 text-[11px]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Colmenas declaradas:</span>
+                          <span className="font-bold text-foreground font-mono tabular-nums">{a.n_colmenas} ({a.categoria})</span>
+                        </div>
+                        {a.metodo_control_varroa && (
+                          <p className="text-muted-foreground text-[10px] leading-tight">
+                            <strong className="text-foreground">Control Varroa:</strong> {a.metodo_control_varroa}
+                          </p>
+                        )}
+                        {a.practicas_sanitarias && (
+                          <p className="text-muted-foreground text-[10px] leading-tight truncate">
+                            <strong className="text-foreground">Sanidad:</strong> {a.practicas_sanitarias}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Contacto Directo para Abastecimiento / Compra de Miel */}
+                      <div className="pt-2 border-t border-border/60 space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">
+                          Abastecimiento & Compra Directa:
+                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {a.telefono && (
+                            <>
+                              <a
+                                href={`tel:${telLimpio}`}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
+                              >
+                                📞 Llamar
+                              </a>
+                              <a
+                                href={`https://wa.me/${telWa}?text=${waText}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600/15 border border-emerald-600/30 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600/25 transition-colors"
+                              >
+                                💬 WhatsApp
+                              </a>
+                            </>
+                          )}
+                          {a.email && (
+                            <a
+                              href={`mailto:${a.email}?subject=${encodeURIComponent(`Enjambre Legado - Consulta Miel Apiario ${a.nombre || ''}`)}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
+                            >
+                              ✉️ Email
+                            </a>
+                          )}
+                          {!a.telefono && !a.email && (
+                            <span className="text-[10px] text-muted-foreground italic">
+                              Sin datos de contacto directo aún
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
         </MapContainer>
       </div>
 

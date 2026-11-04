@@ -1,6 +1,9 @@
 /**
- * Capa pública del mapa apícola de Chiloé (mov. 11).
- * Anonimiza: sin nombres, RUP, contactos ni GPS exacto.
+ * Capa pública del mapa apícola de Chiloé (mov. 11 & Arquitectura de Soberanía Territorial).
+ * Principio de Defensa en Profundidad:
+ * 1. La API pública NUNCA emite coordenadas GPS individuales de colmenas.
+ * 2. Agrupa la presencia apícola en Zonas Comunales de Pecoreo Protegido (Ley 21.489).
+ * 3. Las coordenadas exactas se resguardan exclusivamente en la capa privada/restringida.
  */
 
 import { roundCoordsApprox, COORD_DECIMALS_PUBLIC } from './lote-pasaporte-publico';
@@ -40,11 +43,21 @@ export type PuntoApiarioPublico = {
   zona: string | null;
   lat: number;
   lng: number;
-  /** Banda, no número exacto (anti-fingerprinting). */
   colmenas_banda: ColmenasBanda;
-  /** Solo trashumantes: comuna de origen (sin actor). */
   comuna_origen?: string | null;
   estado?: string | null;
+};
+
+export type ZonaComunalPublica = {
+  id: string;
+  comuna: string;
+  lat: number;
+  lng: number;
+  radio_metros: number;
+  asentamientos_protegidos: number;
+  actores_activos: number;
+  alertas_activas: number;
+  floracion_dominante: string;
 };
 
 export type AlertaPublica = {
@@ -54,7 +67,6 @@ export type AlertaPublica = {
   lat: number;
   lng: number;
   radio_km: number;
-  /** Tipo genérico; no se publica el nombre comercial del producto. */
   tipo_producto: string | null;
   fecha_programada: string;
   estado: string;
@@ -72,6 +84,7 @@ export type FloracionPublica = {
 export type ComunaResumen = {
   comuna: string;
   actores_activos: number;
+  asentamientos_protegidos: number;
   apiarios_externos: number;
   alertas_activas: number;
 };
@@ -81,10 +94,13 @@ export type MapaChiloePublico = {
   territorio: string;
   privacidad: {
     nivel: 'publico_anonimizado';
+    modelo_defensa: 'agregacion_comunal_k_anonymity';
     nota: string;
     precision_coords: string;
   };
   centro: { lat: number; lng: number; zoom: number };
+  zonas_comunales: ZonaComunalPublica[];
+  /** @deprecated Vaciado por política de seguridad territorial para evitar triangulación de colmenas */
   apiarios: PuntoApiarioPublico[];
   alertas: AlertaPublica[];
   floraciones: FloracionPublica[];
@@ -92,7 +108,26 @@ export type MapaChiloePublico = {
   generado_en: string;
 };
 
-export const MAPA_CHILOE_PUBLICO_VERSION = '2026.08.1';
+export const MAPA_CHILOE_PUBLICO_VERSION = '2026.11.1';
+
+/**
+ * Centros geográficos y botánica dominante por comuna de Chiloé
+ */
+export const COMUNAS_CHILOE_CONFIG: Record<
+  string,
+  { center: [number, number]; radio_metros: number; floracion: string }
+> = {
+  Ancud: { center: [-41.87, -73.83], radio_metros: 9000, floracion: 'Ulmo, Tiaca y Huillipatagua' },
+  Quemchi: { center: [-42.14, -73.48], radio_metros: 7500, floracion: 'Ulmo, Melí y Tepú' },
+  Dalcahue: { center: [-42.38, -73.65], radio_metros: 8000, floracion: 'Bosque siempreverde y Tiaca' },
+  'Curaco de Vélez': { center: [-42.44, -73.60], radio_metros: 5000, floracion: 'Flora costera nativa' },
+  Quinchao: { center: [-42.47, -73.50], radio_metros: 6500, floracion: 'Bosque insular nativo' },
+  Castro: { center: [-42.48, -73.77], radio_metros: 7000, floracion: 'Ulmo, Tiaca y Arrayán' },
+  'Puqueldón': { center: [-42.59, -73.65], radio_metros: 6000, floracion: 'Bosque templado de Isla Lemuy' },
+  Chonchi: { center: [-42.62, -73.77], radio_metros: 8500, floracion: 'Cuencas lacustres y Ulmo nativo' },
+  'Queilén': { center: [-42.89, -73.47], radio_metros: 7000, floracion: 'Matorral costero y Tiaca' },
+  'Quellón': { center: [-43.12, -73.61], radio_metros: 11000, floracion: 'Bosque austral prístino y Tiaca' },
+};
 
 export function buildMapaChiloePublico(input: {
   apiariosExternos: Array<{
@@ -144,63 +179,66 @@ export function buildMapaChiloePublico(input: {
   actores?: Array<{ comuna?: string | null; estado?: string | null }>;
   now?: Date;
 }): MapaChiloePublico {
-  const apiarios: PuntoApiarioPublico[] = [];
+  // Conteo agregado por comuna para el Atlas Territorial Soberano
+  const mapaComunas = new Map<string, ComunaResumen>();
 
-  for (const a of input.apiariosExternos) {
-    const coords = publicCoords(a.lat_aproximada, a.lng_aproximada);
-    if (!coords) continue;
-    apiarios.push({
-      id: `ext-${a.id}`,
-      tipo: 'externo',
-      comuna: a.comuna_destino?.trim() || 'Chiloé',
-      zona: a.zona_destino?.trim() || null,
-      lat: coords.lat,
-      lng: coords.lng,
-      colmenas_banda: bandNColmenas(a.n_colmenas),
-      comuna_origen: a.comuna_origen?.trim() || null,
-      estado: a.estado ?? null,
-    });
+  const getOrInitComuna = (rawComuna: string | null | undefined): ComunaResumen => {
+    const c = (rawComuna && rawComuna.trim()) || 'Chiloé';
+    let row = mapaComunas.get(c);
+    if (!row) {
+      row = {
+        comuna: c,
+        actores_activos: 0,
+        asentamientos_protegidos: 0,
+        apiarios_externos: 0,
+        alertas_activas: 0,
+      };
+      mapaComunas.set(c, row);
+    }
+    return row;
+  };
+
+  // 1. Actores registrados
+  for (const a of input.actores ?? []) {
+    if (a.estado && a.estado !== 'activo') continue;
+    const row = getOrInitComuna(a.comuna);
+    row.actores_activos += 1;
   }
 
-  for (const p of input.predios) {
-    if (p.activo === false) continue;
-    const coords = publicCoords(p.lat_aproximada, p.lng_aproximada);
-    if (!coords) continue;
-    apiarios.push({
-      id: `pre-${p.id}`,
-      tipo: 'predio',
-      comuna: p.comuna?.trim() || 'Chiloé',
-      zona: p.zona?.trim() || null,
-      lat: coords.lat,
-      lng: coords.lng,
-      colmenas_banda: 's/d',
-    });
-  }
-
+  // 2. Apiarios locales del registro (asentamientos protegidos)
   for (const r of input.apiariosRegistro ?? []) {
     if (r.activo === false) continue;
-    const coords = publicCoords(r.lat_aproximada, r.lng_aproximada);
-    if (!coords) continue;
-    apiarios.push({
-      id: `reg-${r.id}`,
-      tipo: 'local',
-      comuna: r.comuna?.trim() || 'Chiloé',
-      zona: r.zona?.trim() || null,
-      lat: coords.lat,
-      lng: coords.lng,
-      colmenas_banda: bandNColmenas(r.n_colmenas),
-    });
+    const row = getOrInitComuna(r.comuna);
+    row.asentamientos_protegidos += 1;
   }
 
+  // 3. Predios facilitadores
+  for (const p of input.predios ?? []) {
+    if (p.activo === false) continue;
+    const row = getOrInitComuna(p.comuna);
+    row.asentamientos_protegidos += 1;
+  }
+
+  // 4. Apiarios externos / trashumantes
+  for (const ext of input.apiariosExternos ?? []) {
+    const row = getOrInitComuna(ext.comuna_destino);
+    row.apiarios_externos += 1;
+  }
+
+  // 5. Alertas públicas
   const alertas: AlertaPublica[] = [];
-  for (const al of input.alertas) {
+  for (const al of input.alertas ?? []) {
     if (al.estado && al.estado !== 'activa' && al.estado !== 'programada') continue;
     const coords = publicCoords(al.lat_aproximada, al.lng_aproximada);
     if (!coords) continue;
+
+    const row = getOrInitComuna(al.comuna);
+    row.alertas_activas += 1;
+
     alertas.push({
       id: al.id,
       comuna: al.comuna?.trim() || 'Chiloé',
-      zona: al.zona?.trim() || '—',
+      zona: al.zona?.trim() || 'Sector rural',
       lat: coords.lat,
       lng: coords.lng,
       radio_km:
@@ -211,6 +249,7 @@ export function buildMapaChiloePublico(input: {
     });
   }
 
+  // 6. Floraciones fenológicas
   const floraciones: FloracionPublica[] = [];
   for (const f of input.floraciones ?? []) {
     const coords = publicCoords(f.lat, f.lng);
@@ -225,29 +264,26 @@ export function buildMapaChiloePublico(input: {
     });
   }
 
-  // Resumen por comuna
-  const map = new Map<string, ComunaResumen>();
-  const bump = (comuna: string, key: keyof Omit<ComunaResumen, 'comuna'>) => {
-    const c = comuna.trim() || 'Chiloé';
-    const row = map.get(c) ?? {
-      comuna: c,
-      actores_activos: 0,
-      apiarios_externos: 0,
-      alertas_activas: 0,
-    };
-    row[key] += 1;
-    map.set(c, row);
-  };
+  // 7. Generar Zonas Comunales para el mapa satelital soberano
+  // Aseguramos que las 10 comunas de Chiloé siempre existan en el mapa si tienen configuración
+  for (const [comuna] of Object.entries(COMUNAS_CHILOE_CONFIG)) {
+    getOrInitComuna(comuna);
+  }
 
-  for (const a of input.actores ?? []) {
-    if (a.estado && a.estado !== 'activo') continue;
-    if (a.comuna) bump(a.comuna, 'actores_activos');
-  }
-  for (const a of apiarios.filter((x) => x.tipo === 'externo')) {
-    bump(a.comuna, 'apiarios_externos');
-  }
-  for (const al of alertas) {
-    bump(al.comuna, 'alertas_activas');
+  const zonas_comunales: ZonaComunalPublica[] = [];
+  for (const [comuna, config] of Object.entries(COMUNAS_CHILOE_CONFIG)) {
+    const datos = mapaComunas.get(comuna);
+    zonas_comunales.push({
+      id: `zona-${comuna.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+      comuna,
+      lat: config.center[0],
+      lng: config.center[1],
+      radio_metros: config.radio_metros,
+      asentamientos_protegidos: datos?.asentamientos_protegidos ?? 0,
+      actores_activos: datos?.actores_activos ?? 0,
+      alertas_activas: datos?.alertas_activas ?? 0,
+      floracion_dominante: config.floracion,
+    });
   }
 
   return {
@@ -255,15 +291,18 @@ export function buildMapaChiloePublico(input: {
     territorio: 'Archipiélago de Chiloé · Región de Los Lagos',
     privacidad: {
       nivel: 'publico_anonimizado',
+      modelo_defensa: 'agregacion_comunal_k_anonymity',
       nota:
-        'Sin nombres de actores, RUP, contactos ni GPS exacto. Coordenadas redondeadas ~1 km. Colmenas en bandas. Alertas muestran tipo de producto, no marca comercial.',
-      precision_coords: `±~1 km (${COORD_DECIMALS_PUBLIC} decimales)`,
+        'Soberanía y protección territorial: El mapa público presenta zonas agregadas por cuenca comunal (Ley 21.489). Se omiten deliberadamente coordenadas individuales, RUP y nombres de predios para evitar triangulación satelital o riesgos sanitarios.',
+      precision_coords: 'Zonal / Macro-cuenca comunal (Sin coordenadas individuales de apiarios)',
     },
     centro: { lat: -42.48, lng: -73.76, zoom: 9 },
-    apiarios,
+    zonas_comunales,
+    // En la API pública no emitimos puntos individuales de colmenas
+    apiarios: [],
     alertas,
     floraciones,
-    comunas: [...map.values()].sort((a, b) => a.comuna.localeCompare(b.comuna, 'es')),
+    comunas: [...mapaComunas.values()].sort((a, b) => a.comuna.localeCompare(b.comuna, 'es')),
     generado_en: (input.now ?? new Date()).toISOString(),
   };
 }

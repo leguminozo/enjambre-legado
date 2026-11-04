@@ -23,11 +23,30 @@ import { resolveTerritorialWriteGate } from "@/lib/territorial-write-gate";
 export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>();
 
 // UI: /territorio y /registro-territorial solo territorial|admin (ROUTE_ROLE_GUARDS).
-registroTerritorialRoutes.use(
-  "*",
-  authMiddleware,
-  requireProfileRole("territorial", "admin"),
-);
+// Excepciones públicas y de auto-incorporación:
+// 1. buscar-unclaimed es público para autocompletar asentamientos durante signup / inscripción.
+// 2. POST /actores y POST /actores/:id/reclamar permiten a cualquier usuario autenticado inscribirse/reclamar.
+registroTerritorialRoutes.use("*", async (c, next) => {
+  const path = c.req.path;
+  if (path.endsWith("/actores/buscar-unclaimed")) {
+    return next();
+  }
+  const runAuth = authMiddleware as unknown as (
+    ctx: unknown,
+    nxt: () => Promise<unknown>,
+  ) => Promise<Response | void>;
+  const runRole = requireProfileRole("territorial", "admin") as unknown as (
+    ctx: unknown,
+    nxt: () => Promise<unknown>,
+  ) => Promise<Response | void>;
+
+  return runAuth(c, async () => {
+    if ((path.endsWith("/actores") && c.req.method === "POST") || path.includes("/reclamar")) {
+      return next();
+    }
+    return runRole(c, next);
+  });
+});
 
 /**
  * Gate de escrituras centralizado (lib/territorial-write-gate): oleada 2a +
@@ -125,6 +144,18 @@ const CreateActorSchema = z.object({
   acepta_politica_datos: z.boolean().optional(),
   consentimientos: ConsentimientosSchema.optional(),
   observaciones: z.string().max(1000).nullable().optional(),
+  reclamar_actor_id: z.string().uuid().optional(),
+}).strict();
+
+const ReclamarActorSchema = z.object({
+  rut: z.string().nullable().optional().refine((rut) => !rut || validarRUT(rut), {
+    message: "RUT inválido",
+  }),
+  telefono: z.string().max(30).nullable().optional(),
+  rup: z.string().nullable().optional(),
+  acepta_carta: z.boolean().default(true),
+  acepta_politica_datos: z.boolean().default(true),
+  consentimientos: ConsentimientosSchema.optional(),
 }).strict();
 
 const CreatePredioSchema = z.object({
@@ -265,6 +296,68 @@ registroTerritorialRoutes.get("/actores/me", async (c) => {
   if (error) return c.json({ error: error.message }, 500);
 
   return c.json({ data });
+});
+
+/** GET /api/registro-territorial/actores/buscar-unclaimed
+ *  Busca asentamientos comunitarios pre-cargados que no han sido reclamados
+ *  (user_id IS NULL) para sugerir adopción y reclamo con 1 clic al apicultor. */
+registroTerritorialRoutes.get("/actores/buscar-unclaimed", async (c) => {
+  const q = c.req.query("q")?.trim();
+  if (!q || q.length < 2) {
+    return c.json({ data: [] });
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("actores_registro")
+    .select(`
+      id,
+      nombre_actor,
+      comuna,
+      region,
+      rol,
+      apiarios_registro (
+        id,
+        nombre,
+        comuna,
+        zona,
+        n_colmenas
+      )
+    `)
+    .is("user_id", null)
+    .eq("estado", "activo")
+    .ilike("nombre_actor", `%${q}%`)
+    .limit(6);
+
+  if (error) return c.json({ error: error.message }, 500);
+
+  const mapped = (data ?? []).map((a) => {
+    const apiarios = (a.apiarios_registro as unknown as Array<{
+      id: string;
+      nombre: string | null;
+      comuna: string;
+      zona: string;
+      n_colmenas: number;
+    }>) ?? [];
+
+    const totalColmenas = apiarios.reduce((acc, curr) => acc + (curr.n_colmenas || 0), 0);
+    const nombresApiarios = apiarios
+      .map((ap) => ap.nombre)
+      .filter((n): n is string => Boolean(n));
+
+    return {
+      id: a.id,
+      nombre_actor: a.nombre_actor,
+      comuna: a.comuna,
+      region: a.region,
+      rol: a.rol,
+      n_apiarios: apiarios.length,
+      n_colmenas: totalColmenas,
+      apiarios_nombres: nombresApiarios,
+    };
+  });
+
+  return c.json({ data: mapped });
 });
 
 /** GET /api/registro-territorial/mi-historial-sanitario
@@ -660,7 +753,7 @@ registroTerritorialRoutes.post(
   }
 );
 
-/** POST /api/registro-territorial/actores — inscribir un nuevo actor */
+/** POST /api/registro-territorial/actores — inscribir un nuevo actor o reclamar asentamiento */
 registroTerritorialRoutes.post(
   "/actores",
   zValidator("json", CreateActorSchema),
@@ -668,6 +761,54 @@ registroTerritorialRoutes.post(
     const supabase = c.get("supabase");
     const user = c.get("user");
     const body = c.req.valid("json");
+
+    // Si viene reclamar_actor_id, derivar al flujo de reclamo atómico
+    if (body.reclamar_actor_id) {
+      const admin = createAdminClient();
+      const { data: actorObj, error: actorErr } = await admin
+        .from("actores_registro")
+        .select("id, user_id, nombre_actor, comuna")
+        .eq("id", body.reclamar_actor_id)
+        .maybeSingle();
+
+      if (actorErr) return c.json({ error: actorErr.message }, 500);
+      if (!actorObj) return c.json({ error: "Asentamiento no encontrado en el catastro." }, 404);
+      if (actorObj.user_id != null) {
+        return c.json({ error: "Este asentamiento ya fue reclamado por otro apicultor." }, 409);
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        user_id: user.id,
+        nombre_actor: body.nombre_actor,
+        comuna: body.comuna,
+        region: body.region,
+        acepta_carta: body.acepta_carta ?? true,
+        acepta_politica_datos: body.acepta_politica_datos ?? true,
+        updated_at: new Date().toISOString(),
+      };
+      if (body.rut) updatePayload.rut = body.rut;
+      if (body.telefono) updatePayload.telefono = body.telefono;
+      if (body.rup) updatePayload.rup = body.rup;
+      if (body.consentimientos) updatePayload.consentimientos = body.consentimientos;
+
+      const { data: updatedActor, error: updateErr } = await admin
+        .from("actores_registro")
+        .update(updatePayload)
+        .eq("id", body.reclamar_actor_id)
+        .is("user_id", null)
+        .select()
+        .single();
+
+      if (updateErr) return c.json({ error: updateErr.message }, 500);
+
+      await admin
+        .from("profiles")
+        .update({ role: "territorial" })
+        .eq("id", user.id)
+        .eq("role", "cliente");
+
+      return c.json({ data: updatedActor }, 201);
+    }
 
     // Incluir campos del censo legal (mig 1004) — el form de inscripción los envía.
     const { data, error } = await supabase
@@ -712,6 +853,87 @@ registroTerritorialRoutes.post(
   }
 );
 
+/** POST /api/registro-territorial/actores/:id/reclamar — vincular actor pre-cargado a la cuenta */
+registroTerritorialRoutes.post(
+  "/actores/:id/reclamar",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", ReclamarActorSchema),
+  async (c) => {
+    const user = c.get("user");
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const admin = createAdminClient();
+
+    // 1. Verificar si el usuario ya tiene un actor asignado
+    const { data: miActorPrevio } = await admin
+      .from("actores_registro")
+      .select("id, nombre_actor")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (miActorPrevio) {
+      return c.json(
+        { error: `Tu cuenta ya tiene un actor territorial vinculado (${miActorPrevio.nombre_actor}).` },
+        409,
+      );
+    }
+
+    // 2. Verificar que el actor objetivo exista y no esté reclamado
+    const { data: actorObj, error: actorErr } = await admin
+      .from("actores_registro")
+      .select("id, user_id, nombre_actor, comuna, rol")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (actorErr) return c.json({ error: actorErr.message }, 500);
+    if (!actorObj) return c.json({ error: "Asentamiento no encontrado en el catastro." }, 404);
+    if (actorObj.user_id != null) {
+      return c.json({ error: "Este asentamiento ya fue reclamado por otro apicultor." }, 409);
+    }
+
+    // 3. Vincular actor
+    const updatePayload: Record<string, unknown> = {
+      user_id: user.id,
+      acepta_carta: body.acepta_carta ?? true,
+      acepta_politica_datos: body.acepta_politica_datos ?? true,
+      updated_at: new Date().toISOString(),
+    };
+    if (body.rut) updatePayload.rut = body.rut;
+    if (body.telefono) updatePayload.telefono = body.telefono;
+    if (body.rup) updatePayload.rup = body.rup;
+    if (body.consentimientos) updatePayload.consentimientos = body.consentimientos;
+
+    const { data: updatedActor, error: updateErr } = await admin
+      .from("actores_registro")
+      .update(updatePayload)
+      .eq("id", id)
+      .is("user_id", null)
+      .select()
+      .single();
+
+    if (updateErr) return c.json({ error: updateErr.message }, 500);
+
+    // 4. Promover perfil a rol territorial si era cliente
+    await admin
+      .from("profiles")
+      .update({ role: "territorial" })
+      .eq("id", user.id)
+      .eq("role", "cliente");
+
+    // 5. Traer los apiarios que quedaron desbloqueados
+    const { data: apiarios } = await admin
+      .from("apiarios_registro")
+      .select("id, nombre, comuna, zona, n_colmenas, categoria, lat_aproximada, lng_aproximada")
+      .eq("actor_id", id);
+
+    return c.json({
+      data: updatedActor,
+      apiarios: apiarios ?? [],
+      message: `Asentamiento ${actorObj.nombre_actor} reclamado con éxito. Se desbloquearon ${apiarios?.length ?? 0} apiarios en ${actorObj.comuna}.`,
+    }, 200);
+  }
+);
+
 /** PATCH /api/registro-territorial/actores/:id — actualizar perfil del actor (propio o admin) */
 registroTerritorialRoutes.patch(
   "/actores/:id",
@@ -728,7 +950,7 @@ registroTerritorialRoutes.patch(
     // `completo` no viaja aquí: solo POST /actores/:id/completar-censo (service_role).
     // `rol` tampoco: el sub-rol es la llave del gate de escrituras — cambiarlo
     // uno mismo sería escalación. Solo admin lo muta (vía admin-identidades).
-    const updates = { ...body };
+    const { reclamar_actor_id: _ignored, ...updates } = body;
     if (profileRole !== "admin") {
       delete updates.rol;
     }
@@ -1160,12 +1382,6 @@ registroTerritorialRoutes.post(
       return c.json(
         { error: "Debes estar inscrito en el Registro Territorial para publicar apiarios." },
         400,
-      );
-    }
-    if (profileRole !== "admin" && !territorialWritesUnlocked(miActor.completo)) {
-      return c.json(
-        { code: CENSO_WRITE_LOCK_CODE, error: CENSO_WRITE_LOCK_MESSAGE },
-        403,
       );
     }
 

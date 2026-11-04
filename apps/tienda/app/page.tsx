@@ -30,6 +30,7 @@ import {
   parseConservationContent,
   parseIdentidadSettings,
   parseClubLegadoSettings,
+  parseExperienciasSettings,
   parseExperienciasHomeSettings,
   parseAlianzasHomeSettings,
   parseHomeMediaItem,
@@ -106,6 +107,7 @@ export default async function TiendaPage({
         'map_settings',
         'products_settings',
         'experiencias_home_settings',
+        'experiencias_settings',
         'alianzas_home_settings',
         'galeria',
       ],
@@ -152,9 +154,19 @@ export default async function TiendaPage({
     ? parseClubLegadoSettings(cmsBatch.club_legado_settings[0].content as Record<string, unknown>)
     : DEFAULT_CLUB_LEGADO_SETTINGS;
 
-  const experienciasHomeSettings: ExperienciasHomeSettings = cmsBatch.experiencias_home_settings?.[0]
-    ? parseExperienciasHomeSettings(cmsBatch.experiencias_home_settings[0].content as Record<string, unknown>)
-    : DEFAULT_EXPERIENCIAS_HOME_SETTINGS;
+  const expSettings = parseExperienciasSettings(
+    (cmsBatch.experiencias_settings?.[0]?.content as Record<string, unknown>) ?? null,
+  );
+
+  const rawExpHome = (cmsBatch.experiencias_home_settings?.[0]?.content as Record<string, unknown>) ?? null;
+  const experienciasHomeSettings: ExperienciasHomeSettings = parseExperienciasHomeSettings(
+    rawExpHome,
+    {
+      card1_image: expSettings.card1_image,
+      card2_image: expSettings.flagship_image,
+      card3_image: expSettings.card3_image,
+    },
+  );
 
   const alianzasHomeSettings: AlianzasHomeSettings = cmsBatch.alianzas_home_settings?.[0]
     ? parseAlianzasHomeSettings(cmsBatch.alianzas_home_settings[0].content as Record<string, unknown>)
