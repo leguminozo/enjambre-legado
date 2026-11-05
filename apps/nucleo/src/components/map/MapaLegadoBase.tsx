@@ -235,12 +235,18 @@ interface CensoApiario {
   comuna: string;
   zona: string;
   n_colmenas: number;
+  n_colmenas_vivo?: number | null;
+  es_catastro_kmz?: boolean;
   categoria: string;
   activo: boolean;
+  observaciones?: string | null;
   lat_aproximada?: number | null;
   lng_aproximada?: number | null;
-  // Campos reservados del titular para prospección y compra de miel
+  // Campos reservados exclusivamente para el fundador (prospección y compra directa de miel)
+  actor_id?: string | null;
   titular?: string | null;
+  reclamado?: boolean;
+  censo_completo?: boolean;
   rut?: string | null;
   telefono?: string | null;
   email?: string | null;
@@ -250,7 +256,12 @@ interface CensoApiario {
   metodo_control_varroa?: string | null;
   declaracion_sag?: boolean;
   nivel_acreditacion?: string | null;
+  acepta_carta?: boolean;
+  acepta_politica_datos?: boolean;
   consentimiento_mapa?: boolean;
+  consentimiento_acopio?: boolean;
+  consentimientos_version?: string | null;
+  consentimientos_at?: string | null;
 }
 
 interface CosechaMapa {
@@ -366,6 +377,7 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
   const [apiarioSeleccionado, setApiarioSeleccionado] = useState<{ id: string; name: string } | null>(null);
   const [historialApiario, setHistorialApiario] = useState<HistorialApiario | null>(null);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [censoSeleccionado, setCensoSeleccionado] = useState<CensoApiario | null>(null);
 
   const cerrarFichaApiario = () => {
     setApiarioSeleccionado(null);
@@ -1524,26 +1536,27 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
               const telLimpio = a.telefono ? a.telefono.replace(/[^0-9+]/g, '') : '';
               const telWa = telLimpio.startsWith('+') ? telLimpio.slice(1) : telLimpio.startsWith('56') ? telLimpio : `56${telLimpio}`;
               const waText = encodeURIComponent(
-                `Hola ${a.titular || 'estimado apicultor'}, te contacto desde la dirección de Enjambre Legado. Quisiéramos consultar disponibilidad de miel de tu apiario ${a.nombre || ''} en ${a.comuna} para una eventual compra directa de microlote.`
+                `Hola ${a.titular || 'estimado apicultor'}, te contacto desde la dirección de Obrera y Zángano / Registro Apícola de Chiloé. Quisiéramos consultar disponibilidad de miel de tu apiario ${a.nombre || ''} en ${a.comuna} para una eventual compra directa.`
               );
+              const esVerificado = Boolean(a.censo_completo || a.reclamado);
 
               return (
                 <Marker key={`censo-${a.id}`} position={[a.lat_aproximada as number, a.lng_aproximada as number]} icon={ICON_CENSO}>
                   <Popup autoPan={true} autoPanPadding={[50, 50]}>
-                    <div className="p-1 min-w-[260px] max-w-[300px] space-y-2 text-xs">
+                    <div className="p-1 min-w-[280px] max-w-[320px] space-y-2.5 text-xs">
                       {/* Cabecera */}
                       <div className="border-b border-border/60 pb-1.5">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
                           <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
-                            🐝 Reserva Territorial · {a.comuna}
+                            🐝 Censo Reservado · {a.comuna}
                           </span>
-                          {a.email || a.rut ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-medium">
-                              {a.nivel_acreditacion ?? 'Vinculado'}
+                          {esVerificado ? (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 font-medium">
+                              {a.censo_completo ? 'Censo Completo' : `Reclamado · ${a.nivel_acreditacion ?? 'base'}`}
                             </span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-medium">
-                              Catastro SAG (Disponible)
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-warning/15 text-warning border border-warning/30 font-medium">
+                              Catastro KMZ (Sin reclamar)
                             </span>
                           )}
                         </div>
@@ -1555,41 +1568,76 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
                         </p>
                       </div>
 
-                      {/* Identidad del Productor */}
+                      {/* 1 & 2. Identidad Legal y Registro SAG (RUP) */}
                       <div className="bg-surface-sunken/80 rounded-lg p-2 border border-border/50 space-y-1 text-[11px]">
-                        <p className="flex justify-between">
-                          <span className="text-muted-foreground">Titular:</span>
-                          <strong className="text-foreground text-right">{a.titular || 'No declarado'}</strong>
+                        <p className="flex justify-between gap-2">
+                          <span className="text-muted-foreground shrink-0">Titular:</span>
+                          <strong className="text-foreground text-right truncate">{a.titular || 'No declarado'}</strong>
                         </p>
-                        {a.rut && (
-                          <p className="flex justify-between">
-                            <span className="text-muted-foreground">RUT:</span>
-                            <span className="font-mono text-foreground">{a.rut}</span>
-                          </p>
-                        )}
-                        {a.rup && (
-                          <p className="flex justify-between">
-                            <span className="text-muted-foreground">RUP SAG:</span>
-                            <span className="font-mono text-foreground font-semibold">{a.rup}</span>
-                          </p>
-                        )}
+                        <p className="flex justify-between gap-2">
+                          <span className="text-muted-foreground shrink-0">RUT:</span>
+                          <span className="font-mono text-foreground">{a.rut || 'Pendiente censo'}</span>
+                        </p>
+                        <p className="flex justify-between gap-2">
+                          <span className="text-muted-foreground shrink-0">RUP SAG:</span>
+                          <span className="font-mono text-foreground font-semibold">{a.rup || 'Sin RUP / En trámite'}</span>
+                        </p>
+                        <p className="flex justify-between gap-2">
+                          <span className="text-muted-foreground shrink-0">Decl. Anual SAG:</span>
+                          <span className={a.declaracion_sag ? 'text-success font-medium' : 'text-muted-foreground'}>
+                            {a.declaracion_sag ? '✓ Declarada' : 'Pendiente'}
+                          </span>
+                        </p>
                       </div>
 
-                      {/* Biología y Sanidad */}
-                      <div className="space-y-1 text-[11px]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Colmenas declaradas:</span>
-                          <span className="font-bold text-foreground font-mono tabular-nums">{a.n_colmenas} ({a.categoria})</span>
+                      {/* 3 & 4. Colmenas y Estado Sanitario (Ley 21.489) */}
+                      <div className="space-y-1 text-[11px] bg-surface-sunken/50 rounded-lg p-2 border border-border/40">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground">Colmenas:</span>
+                          <span className="font-bold text-foreground font-mono tabular-nums text-right">
+                            {a.n_colmenas}{' '}
+                            <span className="text-[10px] font-normal text-muted-foreground">
+                              {a.es_catastro_kmz ? '(est. KMZ)' : `(${a.categoria})`}
+                            </span>
+                            {a.n_colmenas_vivo != null && (
+                              <span className="text-[10px] text-primary ml-1">· {a.n_colmenas_vivo} vivas</span>
+                            )}
+                          </span>
                         </div>
-                        {a.metodo_control_varroa && (
-                          <p className="text-muted-foreground text-[10px] leading-tight">
-                            <strong className="text-foreground">Control Varroa:</strong> {a.metodo_control_varroa}
-                          </p>
-                        )}
-                        {a.practicas_sanitarias && (
-                          <p className="text-muted-foreground text-[10px] leading-tight truncate">
-                            <strong className="text-foreground">Sanidad:</strong> {a.practicas_sanitarias}
-                          </p>
+                        <p className="text-muted-foreground text-[10px] leading-snug">
+                          <strong className="text-foreground">Control Varroa:</strong>{' '}
+                          {a.metodo_control_varroa || 'No especificado aún'}
+                        </p>
+                        <p className="text-muted-foreground text-[10px] leading-snug line-clamp-2">
+                          <strong className="text-foreground">Prácticas sanitarias:</strong>{' '}
+                          {a.practicas_sanitarias || 'No especificadas aún'}
+                        </p>
+                      </div>
+
+                      {/* 5. Consentimientos Informados */}
+                      <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                        <span
+                          className={`px-1.5 py-0.5 rounded border ${
+                            a.consentimiento_acopio
+                              ? 'bg-success/10 text-success border-success/30'
+                              : 'bg-surface-sunken text-muted-foreground border-border'
+                          }`}
+                        >
+                          {a.consentimiento_acopio ? '✓ Compra miel autorizada' : 'Compra miel: consultar'}
+                        </span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded border ${
+                            a.consentimiento_mapa
+                              ? 'bg-primary/10 text-primary border-primary/30'
+                              : 'bg-surface-sunken text-muted-foreground border-border'
+                          }`}
+                        >
+                          {a.consentimiento_mapa ? '✓ Halo 2 km activo' : 'Mapa comunitario: privado'}
+                        </span>
+                        {a.acepta_carta && (
+                          <span className="px-1.5 py-0.5 rounded border bg-surface-sunken text-muted-foreground border-border font-mono">
+                            Carta v{a.consentimientos_version || '0.4.0'}
+                          </span>
                         )}
                       </div>
 
@@ -1611,7 +1659,7 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
                                 href={`https://wa.me/${telWa}?text=${waText}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600/15 border border-emerald-600/30 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600/25 transition-colors"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-success/15 border border-success/30 text-[11px] font-medium text-success hover:bg-success/25 transition-colors"
                               >
                                 💬 WhatsApp
                               </a>
@@ -1619,18 +1667,25 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
                           )}
                           {a.email && (
                             <a
-                              href={`mailto:${a.email}?subject=${encodeURIComponent(`Enjambre Legado - Consulta Miel Apiario ${a.nombre || ''}`)}`}
+                              href={`mailto:${a.email}?subject=${encodeURIComponent(`Obrera y Zángano - Consulta Miel Apiario ${a.nombre || ''}`)}`}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
                             >
                               ✉️ Email
                             </a>
                           )}
                           {!a.telefono && !a.email && (
-                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                              Catastro SAG · Disponible para adopción o contacto presencial
+                            <span className="text-[10px] text-warning font-medium">
+                              Catastro KMZ · Pendiente reclamo del titular
                             </span>
                           )}
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setCensoSeleccionado(a)}
+                          className="w-full mt-1 py-1.5 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-semibold text-[11px] transition-colors text-center"
+                        >
+                          Abrir ficha censal completa →
+                        </button>
                       </div>
                     </div>
                   </Popup>
@@ -1639,6 +1694,200 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
             })}
         </MapContainer>
       </div>
+
+      {/* Ficha Lateral Censal Completa (Exclusiva Fundador / Admin) */}
+      {censoSeleccionado && (
+        <>
+          <div
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-[1100] transition-opacity"
+            onClick={() => setCensoSeleccionado(null)}
+          />
+          <div className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-card border-l border-border shadow-2xl z-[1110] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-surface-raised">
+              <div>
+                <span className="text-[10px] uppercase font-mono tracking-wider text-primary">
+                  Ficha Censal Reservada · {censoSeleccionado.comuna}
+                </span>
+                <h3 className="font-serif text-lg text-foreground font-semibold">
+                  {censoSeleccionado.nombre || 'Apiario registrado'}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {censoSeleccionado.zona ? `${censoSeleccionado.zona} · ` : ''}{censoSeleccionado.comuna}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCensoSeleccionado(null)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-sunken"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+              {/* 1. Identidad y Contacto */}
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground font-semibold">
+                    1. Identidad y Contacto
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${
+                      censoSeleccionado.censo_completo
+                        ? 'bg-success/15 text-success border-success/30'
+                        : censoSeleccionado.reclamado
+                          ? 'bg-primary/15 text-primary border-primary/30'
+                          : 'bg-warning/15 text-warning border-warning/30'
+                    }`}
+                  >
+                    {censoSeleccionado.censo_completo
+                      ? 'Censo Completo'
+                      : censoSeleccionado.reclamado
+                        ? 'Cuenta Vinculada'
+                        : 'Base KMZ sin reclamar'}
+                  </span>
+                </div>
+                <div className="space-y-1.5 pt-1">
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Titular:</span>
+                    <strong className="text-foreground text-right">{censoSeleccionado.titular || 'No declarado'}</strong>
+                  </p>
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">RUT:</span>
+                    <span className="font-mono text-foreground">{censoSeleccionado.rut || 'No registrado'}</span>
+                  </p>
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Teléfono:</span>
+                    <span className="font-mono text-foreground">{censoSeleccionado.telefono || 'No registrado'}</span>
+                  </p>
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Correo:</span>
+                    <span className="font-mono text-foreground truncate max-w-[220px]">
+                      {censoSeleccionado.email || 'No registrado'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* 2. Registro Único Pecuario (RUP SAG) */}
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border space-y-2">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground font-semibold block">
+                  2. Registro SAG (Ley 21.489)
+                </span>
+                <p className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">RUP SAG:</span>
+                  <strong className="font-mono text-foreground">
+                    {censoSeleccionado.rup || 'Sin RUP / En trámite'}
+                  </strong>
+                </p>
+                <p className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Declaración Anual Existencias:</span>
+                  <span className={censoSeleccionado.declaracion_sag ? 'text-success font-semibold' : 'text-muted-foreground'}>
+                    {censoSeleccionado.declaracion_sag ? '✓ Al día ante el SAG' : 'Pendiente de declaración'}
+                  </span>
+                </p>
+                <p className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Nivel acreditación:</span>
+                  <span className="uppercase font-mono text-primary font-semibold">
+                    {censoSeleccionado.nivel_acreditacion || 'base'}
+                  </span>
+                </p>
+              </div>
+
+              {/* 3. Número de Colmenas */}
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border space-y-2">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground font-semibold block">
+                  3. Dotación de Colmenas
+                </span>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="p-2.5 rounded-lg bg-background border border-border/60">
+                    <span className="text-[10px] text-muted-foreground block">Colmenas declaradas</span>
+                    <strong className="text-base font-mono text-foreground">{censoSeleccionado.n_colmenas}</strong>
+                    <span className="block text-[10px] text-muted-foreground mt-0.5">
+                      {censoSeleccionado.es_catastro_kmz
+                        ? 'Estimación base KMZ (por confirmar)'
+                        : `Categoría: ${censoSeleccionado.categoria}`}
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-background border border-border/60">
+                    <span className="text-[10px] text-muted-foreground block">Colmenas operativas vivas</span>
+                    <strong className="text-base font-mono text-primary">
+                      {censoSeleccionado.n_colmenas_vivo != null ? censoSeleccionado.n_colmenas_vivo : '—'}
+                    </strong>
+                    <span className="block text-[10px] text-muted-foreground mt-0.5">
+                      {censoSeleccionado.n_colmenas_vivo != null
+                        ? 'Sincronizadas desde cuaderno'
+                        : 'Sin cruce operativo aún'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Estado Sanitario (Ley 21.489) */}
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border space-y-2">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground font-semibold block">
+                  4. Estado Sanitario y Manejo (Ley 21.489)
+                </span>
+                <div>
+                  <span className="text-[11px] text-muted-foreground block mb-1">Método de control de Varroa:</span>
+                  <div className="p-2.5 rounded-lg bg-background border border-border/60 text-foreground leading-relaxed">
+                    {censoSeleccionado.metodo_control_varroa || 'No declarado aún por el titular.'}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[11px] text-muted-foreground block mb-1">Prácticas sanitarias y alimentación:</span>
+                  <div className="p-2.5 rounded-lg bg-background border border-border/60 text-foreground leading-relaxed whitespace-pre-wrap">
+                    {censoSeleccionado.practicas_sanitarias || 'No declaradas aún por el titular.'}
+                  </div>
+                </div>
+                {censoSeleccionado.observaciones && (
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block mb-1">Observaciones del registro:</span>
+                    <div className="p-2 rounded-lg bg-background/60 border border-border/40 text-muted-foreground">
+                      {censoSeleccionado.observaciones}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Consentimiento Informado (Ley 19.628 / 21.719) */}
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border space-y-2">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground font-semibold block">
+                  5. Consentimiento Informado (Ley 19.628 / 21.719)
+                </span>
+                <div className="space-y-1.5">
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Carta Constitutiva aceptada:</span>
+                    <span className={censoSeleccionado.acepta_carta ? 'text-success font-medium' : 'text-muted-foreground'}>
+                      {censoSeleccionado.acepta_carta
+                        ? `✓ Sí (v${censoSeleccionado.consentimientos_version || '0.4.0'})`
+                        : 'Pendiente'}
+                    </span>
+                  </p>
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Política de Privacidad aceptada:</span>
+                    <span className={censoSeleccionado.acepta_politica_datos ? 'text-success font-medium' : 'text-muted-foreground'}>
+                      {censoSeleccionado.acepta_politica_datos ? '✓ Sí' : 'Pendiente'}
+                    </span>
+                  </p>
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Halo en Mapa Comunitario (~2 km):</span>
+                    <span className={censoSeleccionado.consentimiento_mapa ? 'text-primary font-medium' : 'text-muted-foreground'}>
+                      {censoSeleccionado.consentimiento_mapa ? '✓ Autorizado' : 'No autorizado (solo privado)'}
+                    </span>
+                  </p>
+                  <p className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Contacto directo compra de miel:</span>
+                    <span className={censoSeleccionado.consentimiento_acopio ? 'text-success font-medium' : 'text-muted-foreground'}>
+                      {censoSeleccionado.consentimiento_acopio ? '✓ Autorizado' : 'No marcado expresamente'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Ficha Lateral del Apiario Propio */}
       {apiarioSeleccionado && (

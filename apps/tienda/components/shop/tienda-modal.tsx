@@ -18,7 +18,9 @@ type TiendaModalProps = {
   /** Fallback cuando no hay `title` (galería sin título, etc.) */
   ariaLabel?: string;
   showClose?: boolean;
-  size?: 'md' | 'lg';
+  size?: 'md' | 'lg' | 'xl' | '2xl';
+  className?: string;
+  bodyClassName?: string;
   headerExtra?: ReactNode;
   testId?: string;
 };
@@ -35,6 +37,8 @@ export function TiendaModal({
   ariaLabel = 'Diálogo',
   showClose = true,
   size = 'md',
+  className,
+  bodyClassName,
   headerExtra,
   testId,
 }: TiendaModalProps) {
@@ -48,6 +52,8 @@ export function TiendaModal({
   if (!open || typeof document === 'undefined') return null;
 
   const hasHeader = Boolean(title || kicker || subtitle || showClose || headerExtra);
+  const sizeClass =
+    size === '2xl' ? 'is-2xl' : size === 'xl' ? 'is-xl' : size === 'lg' ? 'is-lg' : '';
 
   return createPortal(
     <div className="tienda-modal-root">
@@ -60,7 +66,7 @@ export function TiendaModal({
       <div
         ref={panelRef}
         data-testid={testId}
-        className={`tienda-modal-panel ${size === 'lg' ? 'is-lg' : ''}`}
+        className={`tienda-modal-panel ${sizeClass} ${className ?? ''}`.trim()}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
@@ -91,7 +97,7 @@ export function TiendaModal({
             )}
           </div>
         )}
-        <div className="tienda-modal-body">{children}</div>
+        <div className={`tienda-modal-body ${bodyClassName ?? ''}`.trim()}>{children}</div>
         {footer ? <div className="tienda-modal-footer">{footer}</div> : null}
       </div>
     </div>,

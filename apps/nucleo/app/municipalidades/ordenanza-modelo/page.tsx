@@ -8,6 +8,7 @@ import { Scale, ShieldCheck, ArrowLeft, ExternalLink } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Borrador Canónico de Ordenanza Apícola — Kit Municipal de Chiloé',
   description:
     'Borrador para Jurídica: registro comunal complementario al SIPEC, sin nombrar proveedor. Competencias Ley 18.695; Ley 21.489 no convierte al municipio en registrador nacional.',

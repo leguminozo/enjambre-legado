@@ -3,7 +3,9 @@ import { TerritorioLogo } from './TerritorioLogo';
 
 /**
  * Footer público del territorio.
- * Municipalidades / carta / FAQ van aquí — no en el hero.
+ * Sin enlaces institucionales/B2G (municipalidades, kit) ni a la tienda, y sin
+ * datos del operador: esos viven en Términos (sección «operador») y en las
+ * páginas institucionales no listadas.
  */
 export function TerritorioFooter() {
   return (
@@ -26,14 +28,6 @@ export function TerritorioFooter() {
           <Link href="/planes-territoriales" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Planes
           </Link>
-          {process.env.NEXT_PUBLIC_URL_TIENDA && (
-            <a
-              href={`${process.env.NEXT_PUBLIC_URL_TIENDA}/impacto`}
-              className="min-h-9 inline-flex items-center hover:text-foreground transition-colors"
-            >
-              Impacto
-            </a>
-          )}
           <Link href="/carta" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Carta territorial
           </Link>
@@ -43,24 +37,15 @@ export function TerritorioFooter() {
           <Link href="/terminos" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Términos
           </Link>
-          <Link href="/municipalidades" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
-            Instituciones / Municipios
-          </Link>
           <Link href="/comuna" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Informes comunales
-          </Link>
-          <Link href="/municipalidades/kit" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
-            Kit
-          </Link>
-          <Link href="/#faq" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
-            Preguntas
           </Link>
         </nav>
 
         <div className="space-y-2 max-w-md">
-          <p className="text-sm text-muted-foreground">Hecho en Chiloé. Opera Trama SpA.</p>
+          <p className="text-sm text-muted-foreground">Hecho en Chiloé.</p>
           <p className="text-xs text-muted-foreground/70 leading-relaxed">
-            La red es un bien común. Trama SpA (RUT 78.500.141-9) es el operador técnico.
+            La red es un bien común.
           </p>
           <p className="text-xs text-muted-foreground/60 pt-2">
             © {new Date().getFullYear()} Registro Territorial Apícola de Chiloé

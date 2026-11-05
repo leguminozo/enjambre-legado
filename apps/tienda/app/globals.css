@@ -1115,6 +1115,16 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
   max-height: min(94dvh, 100%);
 }
 
+.tienda-modal-panel.is-xl {
+  max-height: min(96vh, 100%);
+  max-height: min(96dvh, 100%);
+}
+
+.tienda-modal-panel.is-2xl {
+  max-height: min(96vh, 100%);
+  max-height: min(96dvh, 100%);
+}
+
 .tienda-modal-header {
   display: flex;
   align-items: flex-start;
@@ -1190,6 +1200,16 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
   .tienda-modal-panel.is-lg {
     max-width: 42rem;
     max-height: min(90vh, 44rem);
+  }
+
+  .tienda-modal-panel.is-xl {
+    max-width: 56rem;
+    max-height: min(92vh, 52rem);
+  }
+
+  .tienda-modal-panel.is-2xl {
+    max-width: 74rem;
+    max-height: min(94vh, 56rem);
   }
 
   .tienda-modal-footer {

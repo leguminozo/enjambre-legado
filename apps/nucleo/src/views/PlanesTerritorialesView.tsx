@@ -339,7 +339,7 @@ export function PlanesTerritorialesView({ variant = 'dashboard' }: PlanesTerrito
                     {[
                       'Inscripción oficial en Censo Comunal (Ley 21.489)',
                       'Alertas fitosanitarias en tu radio (3 a 5 km)',
-                      'Zona de pecoreo en mapa comunitario (~1 km)',
+                      'Zona de pecoreo en mapa comunitario (~2 km)',
                       'Declaración SAG anual pre-llenada en octubre',
                       '1 Pasaporte QR de cortesía por temporada',
                       'Credencial comunitaria de apicultor registrado',

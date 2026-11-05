@@ -19,6 +19,7 @@ import { CONTACTO_INSTITUCIONAL, lineaProveedor } from '@/lib/contacto-instituci
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Piloto 90 días — Registro comunal apícola para DIDECO',
   description:
     'La Ley 21.489 deja a la comuna mal parada si no hace nada. Piloto de 90 días: censo, panel, ordenanza y Compra Ágil bajo 100 UTM. No sustituye al SIPEC.',
@@ -214,7 +215,9 @@ export default async function MunicipalidadesPage() {
               <dt className="shrink-0 font-medium text-foreground w-32">Proveedor</dt>
               <dd>
                 {lineaProveedor()}. Sociedad constituida el {CONTACTO_INSTITUCIONAL.constituida} en{' '}
-                {CONTACTO_INSTITUCIONAL.comuna}. Inicio de actividades SII y ChileProveedores en trámite.
+                {CONTACTO_INSTITUCIONAL.comuna}, con inicio de actividades SII vigente desde el{' '}
+                {CONTACTO_INSTITUCIONAL.inicioActividadesSii} (Primera Categoría, cód.{' '}
+                {CONTACTO_INSTITUCIONAL.codigoActividadSii}). ChileProveedores en trámite.
               </dd>
             </div>
             <div className="flex gap-3 px-5 py-3">

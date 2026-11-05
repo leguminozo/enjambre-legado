@@ -28,7 +28,7 @@ export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>()
 // 2. POST /actores y POST /actores/:id/reclamar permiten a cualquier usuario autenticado inscribirse/reclamar.
 registroTerritorialRoutes.use("*", async (c, next) => {
   const path = c.req.path;
-  if (path.endsWith("/actores/buscar-unclaimed")) {
+  if (path.includes("/actores/buscar-unclaimed")) {
     return next();
   }
   const runAuth = authMiddleware as unknown as (
@@ -262,9 +262,11 @@ async function resolveMiActor(
 // ACTORES
 // ---------------------------------------------------------------------------
 
-/** GET /api/registro-territorial/actores — actores de una comuna */
+/** GET /api/registro-territorial/actores — actores del registro (admin ve todos; apicultor solo el suyo) */
 registroTerritorialRoutes.get("/actores", async (c) => {
   const supabase = c.get("supabase");
+  const user = c.get("user");
+  const profileRole = c.get("profileRole");
   const { comuna, rol, estado } = c.req.query();
 
   let query = supabase
@@ -272,6 +274,9 @@ registroTerritorialRoutes.get("/actores", async (c) => {
     .select("id, rol, nombre_actor, comuna, nivel_acreditacion, estado, rup, completo, created_at")
     .order("created_at", { ascending: false });
 
+  if (profileRole !== "admin") {
+    query = query.eq("user_id", user.id);
+  }
   if (comuna) query = query.eq("comuna", comuna);
   if (rol) query = query.eq("rol", rol);
   if (estado) query = query.eq("estado", estado);
@@ -782,6 +787,7 @@ registroTerritorialRoutes.post(
         return c.json({ error: "Este asentamiento ya fue reclamado por otro apicultor." }, 409);
       }
 
+      const nowIso = new Date().toISOString();
       const updatePayload: Record<string, unknown> = {
         user_id: user.id,
         nombre_actor: body.nombre_actor,
@@ -789,7 +795,9 @@ registroTerritorialRoutes.post(
         region: body.region,
         acepta_carta: body.acepta_carta ?? true,
         acepta_politica_datos: body.acepta_politica_datos ?? true,
-        updated_at: new Date().toISOString(),
+        consentimientos_version: "0.4.0",
+        consentimientos_at: nowIso,
+        updated_at: nowIso,
       };
       if (body.rut) updatePayload.rut = body.rut;
       if (body.telefono) updatePayload.telefono = body.telefono;
@@ -815,6 +823,7 @@ registroTerritorialRoutes.post(
       return c.json({ data: updatedActor }, 201);
     }
 
+    const nowIso = new Date().toISOString();
     // Incluir campos del censo legal (mig 1004) — el form de inscripción los envía.
     const { data, error } = await supabase
       .from("actores_registro")
@@ -832,11 +841,13 @@ registroTerritorialRoutes.post(
         declaracion_existencia_animal: body.declaracion_existencia_animal ?? false,
         acepta_carta: body.acepta_carta ?? false,
         acepta_politica_datos: body.acepta_politica_datos ?? false,
+        consentimientos_version: "0.4.0",
+        consentimientos_at: (body.acepta_carta || body.acepta_politica_datos) ? nowIso : null,
         consentimientos: body.consentimientos ?? {
           mapa_comunitario: false,
           alertas_fitosanitarias: true,
           catalogo_infraestructura: false,
-          acopio_cooperativo: false,
+          acopio_cooperativo: true,
         },
         observaciones: body.observaciones ?? null,
       })
@@ -897,11 +908,14 @@ registroTerritorialRoutes.post(
     }
 
     // 3. Vincular actor
+    const nowIso = new Date().toISOString();
     const updatePayload: Record<string, unknown> = {
       user_id: user.id,
       acepta_carta: body.acepta_carta ?? true,
       acepta_politica_datos: body.acepta_politica_datos ?? true,
-      updated_at: new Date().toISOString(),
+      consentimientos_version: "0.4.0",
+      consentimientos_at: nowIso,
+      updated_at: nowIso,
     };
     if (body.rut) updatePayload.rut = body.rut;
     if (body.telefono) updatePayload.telefono = body.telefono;
@@ -959,9 +973,14 @@ registroTerritorialRoutes.patch(
     if (profileRole !== "admin") {
       delete updates.rol;
     }
+    const nowIso = new Date().toISOString();
+    const consentMeta =
+      updates.consentimientos || updates.acepta_carta || updates.acepta_politica_datos
+        ? { consentimientos_version: "0.4.0", consentimientos_at: nowIso }
+        : {};
     let query = supabase
       .from("actores_registro")
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update({ ...updates, ...consentMeta, updated_at: nowIso })
       .eq("id", id);
     if (profileRole !== "admin") {
       query = query.eq("user_id", user.id);
@@ -1038,13 +1057,16 @@ registroTerritorialRoutes.post(
       }
     }
 
+    const nowIso = new Date().toISOString();
     const { data, error } = await admin
       .from("actores_registro")
       .update({
         completo: true,
         acepta_carta: true,
         acepta_politica_datos: true,
-        updated_at: new Date().toISOString(),
+        consentimientos_version: "0.4.0",
+        consentimientos_at: nowIso,
+        updated_at: nowIso,
       })
       .eq("id", id)
       .select()
@@ -1223,12 +1245,17 @@ function degradarCoordenadas(
  *  Las coordenadas siempre se degradan a ~1 km para blindar la privacidad comunitaria. */
 registroTerritorialRoutes.get("/apiarios", async (c) => {
   const supabase = c.get("supabase");
+  const user = c.get("user");
+  const profileRole = c.get("profileRole");
   const { comuna, categoria, actor_id } = c.req.query();
+
+  const miActor =
+    profileRole !== "admin" ? await resolveMiActor(supabase, user.id) : null;
 
   let query = supabase
     .from("apiarios_registro")
     .select(
-      "id, nombre, comuna, zona, lat_aproximada, lng_aproximada, n_colmenas, categoria, activo, observaciones, created_at, predio_id"
+      "id, actor_id, nombre, comuna, zona, lat_aproximada, lng_aproximada, n_colmenas, categoria, activo, observaciones, created_at, predio_id"
     )
     .order("created_at", { ascending: false });
 
@@ -1241,8 +1268,14 @@ registroTerritorialRoutes.get("/apiarios", async (c) => {
 
   const sanitized = (data ?? []).map((a) => {
     const deg = degradarCoordenadas(a.lat_aproximada, a.lng_aproximada);
+    const isOwnOrAdmin =
+      profileRole === "admin" || (miActor != null && a.actor_id === miActor.id);
     return {
       ...a,
+      nombre: isOwnOrAdmin ? a.nombre : null,
+      n_colmenas: isOwnOrAdmin ? a.n_colmenas : 0,
+      observaciones: isOwnOrAdmin ? a.observaciones : null,
+      predio_id: isOwnOrAdmin ? a.predio_id : null,
       lat_aproximada: deg.lat_aproximada,
       lng_aproximada: deg.lng_aproximada,
     };
@@ -1559,11 +1592,12 @@ registroTerritorialRoutes.get("/apiarios/operativos-pendientes", async (c) => {
 registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
+  const profileRole = c.get("profileRole");
   const { comuna, estado, actor_id } = c.req.query();
 
-  // El documento del certificado solo se expone al dueño de la declaración:
+  // El documento del certificado solo se expone al dueño de la declaración o admin:
   // si se filtra por un actor ajeno, la consulta cae en la visibilidad
-  // comunitaria (sin certificado).
+  // comunitaria (sin certificado ni identidad).
   const { data: miActor } = actor_id
     ? await supabase
         .from("actores_registro")
@@ -1571,7 +1605,8 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
         .eq("user_id", user.id)
         .maybeSingle()
     : { data: null };
-  const includeCert = Boolean(actor_id && miActor && actor_id === miActor.id);
+  const includeCert =
+    profileRole === "admin" || Boolean(actor_id && miActor && actor_id === miActor.id);
 
   // Selects estáticos: el parser de tipos de supabase-js no acepta template literals.
   const selectConCert =
@@ -1636,6 +1671,10 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
     );
     return {
       ...row,
+      nombre: includeCert ? row.nombre : null,
+      actores_registro: includeCert
+        ? row.actores_registro
+        : { nombre_actor: "Apicultor en tránsito" },
       lat_aproximada: deg.lat_aproximada,
       lng_aproximada: deg.lng_aproximada,
     };

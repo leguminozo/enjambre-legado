@@ -11,6 +11,7 @@ import { FileSpreadsheet, BookOpen, ShieldCheck, Scale, CheckCircle2, ArrowLeft,
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Kit Municipal — Piloto 90 días para DIDECO',
   description:
     'Carpeta para DIDECO: piloto de 90 días, borrador de ordenanza, TDR de Compra Ágil (100 UTM, tres cotizaciones) e informe comunal. No sustituye al SIPEC.',
@@ -93,7 +94,7 @@ const TDR_ITEMS = [
   },
   {
     k: 'Proveedor',
-    v: `${lineaProveedor()}. Sociedad constituida el ${CONTACTO_INSTITUCIONAL.constituida} en ${CONTACTO_INSTITUCIONAL.comuna}. Inicio de actividades SII y habilitación en ChileProveedores en trámite al momento de publicar esta ficha.`,
+    v: `${lineaProveedor()}. Sociedad constituida el ${CONTACTO_INSTITUCIONAL.constituida} en ${CONTACTO_INSTITUCIONAL.comuna} (${CONTACTO_INSTITUCIONAL.domicilioLegal}). Inicio de actividades SII vigente desde el ${CONTACTO_INSTITUCIONAL.inicioActividadesSii} en Primera Categoría (cód. ${CONTACTO_INSTITUCIONAL.codigoActividadSii}: ${CONTACTO_INSTITUCIONAL.giroSii}). Habilitación en ChileProveedores en trámite.`,
   },
   {
     k: 'Mecanismo de Contratación',
@@ -347,8 +348,8 @@ export default async function KitMunicipalPage() {
 
         <footer className="pt-8 border-t border-border/80 text-xs text-muted-foreground leading-relaxed space-y-2">
           <p>
-            <strong className="text-foreground">Operador:</strong> {lineaProveedor()} · Queilén,
-            Chiloé. Inicio de actividades SII y ChileProveedores en trámite.
+            <strong className="text-foreground">Operador:</strong> {lineaProveedor()} ·{' '}
+            {CONTACTO_INSTITUCIONAL.domicilioLegal}. Inicio de actividades SII vigente ({CONTACTO_INSTITUCIONAL.inicioActividadesSii}, cód. {CONTACTO_INSTITUCIONAL.codigoActividadSii}); ChileProveedores en trámite.
           </p>
           <p>
             Este kit no constituye asesoría legal vinculante. Complementa las facultades del SAG; no

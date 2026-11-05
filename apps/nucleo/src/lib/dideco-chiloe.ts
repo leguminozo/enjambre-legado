@@ -167,7 +167,7 @@ Por eso proponemos un piloto de 90 días, no un recambio del SIPEC:
 
 No sustituye al SAG ni al SIPEC. No hay interoperabilidad automática con el registro nacional. Las distancias que muestra el sistema son geodésicas (Haversine) y quedan sujetas a revisión humana.
 
-El piloto se cotiza entre $2.400.000 y $3.600.000 + IVA según la comuna (bajo 100 UTM). La vía habitual es Compra Ágil (Ley N° 21.634): no es trato directo; requiere al menos tres cotizaciones y primer llamado a Empresa de Menor Tamaño. El proveedor es ${lineaProveedor()}, sociedad constituida en Queilén; el inicio de actividades ante el SII y la habilitación en ChileProveedores están en trámite.
+El piloto se cotiza entre $2.400.000 y $3.600.000 + IVA según la comuna (bajo 100 UTM). La vía habitual es Compra Ágil (Ley N° 21.634): no es trato directo; requiere al menos tres cotizaciones y primer llamado a Empresa de Menor Tamaño. El proveedor es ${lineaProveedor()}, sociedad constituida en Queilén con inicio de actividades vigente en Primera Categoría ante el SII (${CONTACTO_INSTITUCIONAL.inicioActividadesSii}, giro informática cód. ${CONTACTO_INSTITUCIONAL.codigoActividadSii}); la habilitación en ChileProveedores está en trámite.
 
 ¿Es posible agendar 25 minutos para revisar el modelo y el informe de ${d.comuna}?
 

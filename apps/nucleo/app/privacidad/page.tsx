@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { getTerritorioCmsContent } from '@/lib/territorio-cms';
+import { CONTACTO_INSTITUCIONAL } from '@/lib/contacto-institucional';
 
 import type { Metadata } from 'next';
 
@@ -53,37 +54,58 @@ export default async function PrivacidadTerritorialPage() {
           <div>
             <h2 className="font-medium text-foreground mb-2">Datos solicitados</h2>
             <p className="text-muted-foreground">
-              Identidad de contacto, calidad de operación (residente, trashumante, entidad institucional) y ubicación georreferenciada de los apiarios. Las coordenadas exactas permanecen bajo estricta reserva: en el mapa público únicamente se visualiza un área aproximada de ~1 km de radio, sin asociar nombres, RUT ni teléfonos.
+              Identidad de contacto (nombre, RUT, teléfono y correo electrónico), Rol Único Pecuario (RUP SAG, si dispone de él), calidad de operación (residente, trashumante, entidad institucional), prácticas sanitarias y método de control de varroa conforme a la Ley N° 21.489, número de colmenas y ubicación georreferenciada de los apiarios. Las coordenadas exactas permanecen bajo estricta reserva: el mapa público abierto muestra únicamente macro-cuencas agregadas por comuna (radios comunales de 5 a 11 km), sin coordenadas individuales. Quienes tienen cuenta y otorgaron su consentimiento informado aparecen en el mapa comunitario interno como un halo aproximado de pecoreo de ~2,0 km de radio (coordenadas degradadas), sin asociar nombres, RUT, RUP ni teléfonos frente a terceros.
             </p>
           </div>
           <div>
             <h2 className="font-medium text-foreground mb-2">Finalidad del tratamiento</h2>
             <p className="text-muted-foreground">
-              Resguardo de zonas de pecoreo, emisión de alertas sanitarias ante aplicaciones fitosanitarias o cercanía de colmenares, asistencia técnica para la declaración anual de existencias ante el SAG y, de ser solicitado por el titular, emisión de pasaportes digitales de trazabilidad. No comercializamos bases de datos ni empleamos coordenadas para fines publicitarios.
+              Los datos se tratan exclusivamente para: (1) resguardo de zonas de pecoreo y prevención de saturación territorial; (2) emisión de alertas sanitarias ante aplicaciones fitosanitarias (Res. Exenta SAG N° 7.068/2024) o cercanía de colmenares; (3) asistencia técnica para preparar la Declaración Anual de Existencias ante el SAG y el Cuaderno de Campo Apícola; (4) emisión de pasaportes digitales de trazabilidad cuando el titular lo solicite; y (5) vinculación productiva y abastecimiento local directo, consistente en la posibilidad de que la dirección del registro (o su comercializadora vinculada de miel de origen en Chiloé, Obrera y Zángano) tome contacto privado, directo e individual con el productor inscrito con el único propósito de consultar disponibilidad y ofrecer la compra directa de miel o productos de la colmena en períodos de alta demanda o escasez estacional. Jamás vendemos, arrendamos ni cedemos bases de datos a terceros ajenos ni empleamos las coordenadas para publicidad masiva. El titular puede desactivar u oponerse en cualquier momento al contacto por abastecimiento sin que ello afecte su acceso gratuito a los servicios esenciales del registro.
             </p>
           </div>
           <div>
             <h2 className="font-medium text-foreground mb-2">Niveles de acceso</h2>
             <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-              <li>Público general: zonas aproximadas difusas (~1 km), sin coordenadas exactas.</li>
-              <li>Titular: acceso íntegro y exclusivo a sus coordenadas y fichas de manejo.</li>
-              <li>Terceros autorizados: exclusivamente la información que el titular decida compartir mediante credencial o pasaporte.</li>
+              <li>Público general: zonas comunales agregadas de pecoreo protegido (macro-cuencas de 5 a 11 km por comuna), sin coordenadas individuales de apiarios.</li>
+              <li>Usuarios registrados (Red Comunitaria): halos aproximados de pecoreo (~2,0 km de radio, coordenadas degradadas) únicamente de quienes autorizaron el mapa comunitario, sin coordenadas exactas ni datos de contacto.</li>
+              <li>Titular: acceso íntegro y exclusivo a sus propias coordenadas, fichas de manejo y declaraciones.</li>
+              <li>Dirección del registro (Acceso restringido y blindado): acceso reservado únicamente para soporte técnico, resguardo sanitario y contacto directo y privado con el productor para eventuales adquisiciones de miel local conforme a la finalidad declarada, bajo estricto deber de confidencialidad.</li>
+              <li>Terceros autorizados: exclusivamente la información que el propio titular decida compartir mediante credencial o pasaporte.</li>
             </ul>
+          </div>
+          <div>
+            <h2 className="font-medium text-foreground mb-2">Encargados tecnológicos y plazo de conservación</h2>
+            <p className="text-muted-foreground">
+              Para operar de forma segura, la plataforma utiliza infraestructura en la nube provista por subencargados sujetos a estándares internacionales de seguridad y acuerdos de procesamiento de datos: alojamiento de base de datos y autenticación en Supabase Inc. (AWS), despliegue de aplicación web en Vercel Inc., envío de notificaciones transaccionales en Resend Inc. y, únicamente cuando el usuario utiliza el dictado por voz en su bitácora, transcripción automatizada mediante Groq Inc. Los datos se conservan mientras el titular mantenga activa su inscripción en el registro territorial o hasta que solicite su supresión o retiro, procediéndose a su eliminación o disociación dentro de un plazo máximo de 30 días corridos, salvo las obligaciones legales o tributarias aplicables a servicios facturados. Cada aceptación de la Carta Constitutiva y de esta Política registra su versión vigente y fecha de suscripción.
+            </p>
           </div>
           <div>
             <h2 className="font-medium text-foreground mb-2">Responsable del tratamiento</h2>
             <p className="text-muted-foreground">
-              El operador técnico del censo territorial es Trama SpA (RUT 78.500.141-9). El
-              apicultor es titular de sus datos. En un convenio municipal, el municipio es
-              responsable del tratamiento del registro comunal y Trama SpA actúa como encargado, si
-              se contrata. La comercialización de miel corresponde a una actividad productiva
+              El responsable del tratamiento es el operador técnico del censo territorial, identificado con
+              sus datos legales en la sección{' '}
+              <Link href="/terminos#operador" className="underline underline-offset-4">
+                Identificación del operador
+              </Link>{' '}
+              de los Términos de uso. El apicultor es titular de sus datos. En un convenio municipal, el
+              municipio es responsable del tratamiento del registro comunal y el operador actúa como
+              encargado, si se contrata. La comercialización de miel corresponde a una actividad productiva
               distinta, con persona jurídica propia.
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Derechos de rectificación y cancelación</h2>
+            <h2 className="font-medium text-foreground mb-2">Derechos de los titulares</h2>
             <p className="text-muted-foreground">
-              El titular puede rectificar o solicitar la eliminación de sus datos en cualquier momento conforme a las Leyes N° 19.628 y N° 21.719. La negativa a suministrar datos optativos en ningún caso restringe el acceso a los servicios esenciales del registro. Puede gestionar su solicitud vía digital o mediante los canales presenciales de la red.
+              Reconocemos los derechos de acceso, rectificación, supresión, oposición, portabilidad y bloqueo
+              sobre tus datos, conforme a la Ley N° 19.628 y, desde su entrada en vigencia, a la Ley N° 21.719.
+              Puedes ejercerlos en cualquier momento escribiendo a{' '}
+              <a href={`mailto:${CONTACTO_INSTITUCIONAL.email}`} className="underline underline-offset-4">
+                {CONTACTO_INSTITUCIONAL.email}
+              </a>{' '}
+              o desde los canales digitales y presenciales de la red. Respondemos dentro de 30 días corridos.
+              La negativa a suministrar datos optativos en ningún caso restringe el acceso a los servicios
+              esenciales del registro. Si consideras que tus derechos no fueron atendidos, puedes recurrir a la
+              autoridad competente en materia de protección de datos personales.
             </p>
           </div>
         </section>

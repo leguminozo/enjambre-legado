@@ -3,6 +3,7 @@ import { getUrlTienda } from '@/lib/publicUrls';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { getTerritorioCmsContent } from '@/lib/territorio-cms';
+import { CONTACTO_INSTITUCIONAL } from '@/lib/contacto-institucional';
 
 import type { Metadata } from 'next';
 
@@ -83,11 +84,73 @@ export default async function TerminosTerritorialesPage() {
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Operador y gobernanza</h2>
+            <h2 className="font-medium text-foreground mb-2">Gobernanza y vinculación productiva</h2>
             <p className="text-muted-foreground">
-              Trama SpA (RUT 78.500.141-9) opera la infraestructura tecnológica del registro territorial. La tienda de miel se rige por sus propios términos y corresponde a una actividad productiva distinta, con persona jurídica propia. Los principios de gobernanza se detallan en la{' '}
+              Los principios de gobernanza, visibilidad de datos y derechos de los titulares se detallan en la{' '}
               <Link href="/carta" className="underline underline-offset-4">
                 Carta Constitutiva Apícola Territorial
+              </Link>
+              . La tienda de miel se rige por sus propios términos y corresponde a una actividad productiva distinta, con persona jurídica propia. No obstante, conforme a la finalidad declarada en la{' '}
+              <Link href="/privacidad" className="underline underline-offset-4">
+                Política de datos del censo
+              </Link>
+              , la administración del registro podrá tomar contacto privado, directo e individual con apicultores inscritos para consultar disponibilidad y proponer adquisiciones directas de miel o productos de la colmena ante necesidades de abastecimiento local, facultad a la que el titular puede oponerse en cualquier momento sin afectar su acceso gratuito al registro.
+            </p>
+          </div>
+          <div>
+            <h2 className="font-medium text-foreground mb-2">Derechos del consumidor</h2>
+            <p className="text-muted-foreground">
+              La contratación de planes de pago se entiende sin perjuicio de los derechos irrenunciables que la Ley N° 19.496 y el Decreto Supremo N° 6/2021 (Reglamento de Comercio Electrónico) reconocen a quienes contratan como destinatarios finales.
+            </p>
+          </div>
+          <div id="operador" className="scroll-mt-24">
+            <h2 className="font-medium text-foreground mb-2">Identificación del operador</h2>
+            <p className="text-muted-foreground mb-3">
+              La infraestructura tecnológica del registro territorial es operada por:
+            </p>
+            <dl className="rounded-md border border-border/70 bg-surface-sunken/50 px-5 py-4 grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-x-6 gap-y-2 text-muted-foreground">
+              <dt className="text-foreground">Razón social</dt>
+              <dd>{CONTACTO_INSTITUCIONAL.razonSocial}</dd>
+              <dt className="text-foreground">Tipo de sociedad</dt>
+              <dd>{CONTACTO_INSTITUCIONAL.tipoSociedad}</dd>
+              <dt className="text-foreground">RUT</dt>
+              <dd>{CONTACTO_INSTITUCIONAL.rut}</dd>
+              <dt className="text-foreground">Giro y actividad SII</dt>
+              <dd>
+                {CONTACTO_INSTITUCIONAL.giroSii} (Código SII {CONTACTO_INSTITUCIONAL.codigoActividadSii}) · {CONTACTO_INSTITUCIONAL.glosaDescriptiva}
+              </dd>
+              <dt className="text-foreground">Inicio de actividades</dt>
+              <dd>
+                {CONTACTO_INSTITUCIONAL.inicioActividadesSii} · {CONTACTO_INSTITUCIONAL.categoriaTributaria} · {CONTACTO_INSTITUCIONAL.regimenTributario}
+              </dd>
+              <dt className="text-foreground">Domicilio legal</dt>
+              <dd>{CONTACTO_INSTITUCIONAL.domicilioLegal}</dd>
+              <dt className="text-foreground">Representante legal</dt>
+              <dd>{CONTACTO_INSTITUCIONAL.representante}</dd>
+              <dt className="text-foreground">Teléfono de contacto</dt>
+              <dd>
+                <a href={`tel:+${CONTACTO_INSTITUCIONAL.whatsappE164}`} className="underline underline-offset-4">
+                  {CONTACTO_INSTITUCIONAL.whatsappDisplay}
+                </a>
+              </dd>
+              <dt className="text-foreground">Correo de contacto</dt>
+              <dd>
+                <a href={`mailto:${CONTACTO_INSTITUCIONAL.email}`} className="underline underline-offset-4">
+                  {CONTACTO_INSTITUCIONAL.email}
+                </a>
+              </dd>
+            </dl>
+          </div>
+          <div>
+            <h2 className="font-medium text-foreground mb-2">Contacto, reclamos y datos personales</h2>
+            <p className="text-muted-foreground">
+              Consultas, reclamos y solicitudes de acceso, rectificación, supresión u otros derechos sobre tus datos se reciben en{' '}
+              <a href={`mailto:${CONTACTO_INSTITUCIONAL.email}`} className="underline underline-offset-4">
+                {CONTACTO_INSTITUCIONAL.email}
+              </a>
+              . El tratamiento de datos se rige por la{' '}
+              <Link href="/privacidad" className="underline underline-offset-4">
+                política de datos del censo
               </Link>
               .
             </p>

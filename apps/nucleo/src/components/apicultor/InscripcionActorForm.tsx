@@ -132,6 +132,9 @@ export function InscripcionActorForm({
   const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(
     consent.alertas_fitosanitarias !== false,
   );
+  const [acopioCooperativo, setAcopioCooperativo] = useState(
+    consent.acopio_cooperativo !== false,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +170,7 @@ export function InscripcionActorForm({
           consentimientos: {
             mapa_comunitario: mapaComunitario,
             alertas_fitosanitarias: alertasFitosanitarias,
+            acopio_cooperativo: acopioCooperativo,
           }
         }),
       });
@@ -423,7 +427,7 @@ export function InscripcionActorForm({
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Mapa Comunitario</span>
-                    <span className="text-xs text-muted-foreground">Acepto aparecer en el mapa comunitario (solo con ubicación aproximada, nunca exacta).</span>
+                    <span className="text-xs text-muted-foreground">Acepto aparecer en el mapa comunitario (solo con halo aproximado de ~2 km, nunca ubicación exacta).</span>
                   </div>
                 </label>
                 
@@ -441,6 +445,21 @@ export function InscripcionActorForm({
                     <span className="text-xs text-muted-foreground">Deseo recibir y emitir notificaciones sobre aplicaciones de plaguicidas en mi sector.</span>
                   </div>
                 </label>
+
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      checked={acopioCooperativo}
+                      onChange={(e) => setAcopioCooperativo(e.target.checked)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Contacto directo por abastecimiento de miel</span>
+                    <span className="text-xs text-muted-foreground">Autorizo ser contactado de forma privada y directa por la dirección del registro ante eventuales compras de miel local.</span>
+                  </div>
+                </label>
               </div>
             </div>
 
@@ -456,7 +475,7 @@ export function InscripcionActorForm({
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                    Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Carta Constitutiva Apícola Territorial</a> <span className="text-destructive">*</span>
+                    Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Carta Constitutiva Apícola Territorial (v0.4.0)</a> <span className="text-destructive">*</span>
                   </span>
                   <span className="text-xs text-muted-foreground">Infraestructura colectiva, autónoma y no extractiva: consentimiento informado y beneficio recíproco.</span>
                 </div>
@@ -473,9 +492,9 @@ export function InscripcionActorForm({
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                    Acepto la política de datos y privacidad <span className="text-destructive">*</span>
+                    Acepto la <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Política de Privacidad</a> y <a href="/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Términos de Uso</a> <span className="text-destructive">*</span>
                   </span>
-                  <span className="text-xs text-muted-foreground">Tus datos quedan bajo resguardo: puedes corregirlos, descargarlos y retirar consentimientos.</span>
+                  <span className="text-xs text-muted-foreground">Tus datos quedan bajo resguardo: puedes corregirlos, descargarlos y retirar consentimientos en todo momento.</span>
                 </div>
               </label>
             </div>

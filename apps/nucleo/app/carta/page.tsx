@@ -4,14 +4,14 @@ import { Shield, Scale, FileText, CheckCircle2, ArrowLeft, ExternalLink } from '
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Carta Constitutiva Apícola Territorial de Chiloé (v0.3.2)',
+  title: 'Carta Constitutiva Apícola Territorial de Chiloé (v0.4.0)',
   description:
     'Boceto de ideas e infraestructura colectiva, autónoma, verificable y de beneficio compartido para la apicultura de Chiloé. Adhesión voluntaria, soberanía de datos y marco legal chileno.',
   alternates: {
     canonical: 'https://www.registroapicolachiloe.me/carta',
   },
   openGraph: {
-    title: 'Carta Constitutiva Apícola Territorial de Chiloé (v0.3.2)',
+    title: 'Carta Constitutiva Apícola Territorial de Chiloé (v0.4.0)',
     description:
       'Bases comunes y marco legal para la defensa, soberanía y cuidado de la apicultura comunitaria en el archipiélago.',
     url: 'https://www.registroapicolachiloe.me/carta',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Carta Constitutiva Apícola Territorial de Chiloé (v0.3.2)',
+    title: 'Carta Constitutiva Apícola Territorial de Chiloé (v0.4.0)',
     description:
       'Bases comunes y marco legal para la defensa, soberanía y cuidado de la apicultura comunitaria en el archipiélago.',
   },
@@ -50,7 +50,8 @@ const MARCO_LEGAL = [
   { ley: 'Res. Exenta SAG N° 7.068 / 2024', desc: 'Avisos obligatorios de aplicaciones fitosanitarias con 48h de anticipación', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1207738' },
   { ley: 'Res. Exenta SAG N° 7.067 / 2024', desc: 'Formulario de Movimiento de Colmenas (FMC) y ordenamiento de trashumancia (72h)', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1208041' },
   { ley: 'Res. SAG N° 4.590 / 2025', desc: 'Estándar oficial de Cuaderno de Campo Apícola digital', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1215312' },
-  { ley: 'Ley N° 19.628 y Ley N° 21.719', desc: 'Protección estricta de datos personales y secreto de coordenadas exactas', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1209272' },
+  { ley: 'Ley N° 19.628', desc: 'Protección de datos personales: régimen vigente a la fecha', href: 'https://www.bcn.cl/leychile/navegar?idNorma=141599' },
+  { ley: 'Ley N° 21.719', desc: 'Nuevo estándar de datos personales y Agencia de Protección de Datos, desde su entrada en vigencia', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1209272' },
 ];
 
 const ARTICULOS: Articulo[] = [
@@ -92,7 +93,7 @@ const ARTICULOS: Articulo[] = [
           'Facilitar el cumplimiento legal y sanitario de los apicultores locales ante el SAG (Ley N° 21.489), asistiendo la preparación de antecedentes para el SIPEC Apícola y la Declaración Anual de Existencias. La Red no inscribe al apicultor ante el SAG ni opera interoperabilidad automática con el registro nacional.',
           'Prevenir daños y mortandades por aplicaciones de plaguicidas, canalizando de forma expedita los avisos obligatorios con 48 horas de anticipación conforme a la Resolución Exenta SAG N° 7.068/2024.',
           'Ordenar y transparentar la trashumancia y traslado de colmenas, facilitando la coordinación de predios y el cumplimiento de las exigencias del Formulario de Movimiento de Colmenas (FMC - Res. Exenta SAG N° 7.067/2024).',
-          'Valorizar la miel y productos de la colmena de Chiloé, destacando su identidad botánica, su origen y su proceso de elaboración.',
+          'Valorizar la miel y productos de la colmena de Chiloé, destacando su identidad botánica, su origen y su proceso de elaboración, y habilitar —bajo consentimiento informado y derecho de oposición en todo momento— un canal de vinculación productiva y contacto directo y privado con apicultores inscritos para eventuales compras directas de miel local ante necesidades de abastecimiento.',
           'Mantener una interlocución técnica y constructiva con servicios públicos (SAG, INDAP, INIA), municipios y gremios agrícolas.',
         ],
       },
@@ -107,7 +108,7 @@ const ARTICULOS: Articulo[] = [
         tipo: 'lista',
         items: [
           'Voluntariedad: Nadie puede ser obligado a integrarse a la Red ni condicionado en el ejercicio de sus derechos legítimos.',
-          'Privacidad por Diseño y Resguardo Ético: Los datos personales y las coordenadas precisas de apiarios son de propiedad exclusiva de cada titular (Ley N° 19.628 y Ley N° 21.719). Se resguardan bajo reserva absoluta y nunca se exponen al público general.',
+          'Privacidad por Diseño y Resguardo Ético: Los datos personales y las coordenadas precisas de apiarios son de propiedad exclusiva de cada titular (Ley N° 19.628 y Ley N° 21.719). Se resguardan bajo reserva y nunca se exponen al público general.',
           'Universalidad del Suelo Base Gratuito: El registro base, el mapa de pecoreo protegido y el sistema de alertas de emergencia son y serán de libre acceso para todo apicultor del territorio (desde 1 colmena).',
           'Prevención y Buena Fe: Se privilegia la información temprana, la mediación vecinal y la adopción de buenas prácticas por sobre cualquier controversia.',
           'No Discriminación: Todo apicultor (residente o con movilidad) es valorado por el cumplimiento sanitario de sus apiarios y su compromiso con el territorio.',
@@ -171,9 +172,9 @@ const ARTICULOS: Articulo[] = [
       {
         tipo: 'lista',
         items: [
-          'Capa Pública: Zonas geográficas generales a nivel comunal/sectorial, floraciones de interés y puntos de venta autorizados.',
-          'Capa Comunitaria Protegida (Solo usuarios registrados): Visualización de áreas de influencia aproximadas (~1 km de radio de pecoreo), alertas fitosanitarias activas y disponibilidad de predios facilitadores autorizados por sus dueños.',
-          'Capa Restringida y Privada: Coordenadas GPS exactas, inventarios detallados y antecedentes sanitarios. Solo accesibles por el propio apicultor y bajo su exclusiva administración.',
+          'Capa Pública: Macro-cuencas comunales de pecoreo protegido (radios comunales agregados de 5 a 11 km por comuna), floraciones de interés, alertas fitosanitarias activas y puntos de venta autorizados. Sin coordenadas individuales ni círculos por colmenar.',
+          'Capa Comunitaria Protegida (Solo usuarios registrados): Visualización de áreas de influencia aproximadas (~2,0 km de radio de pecoreo, con coordenadas degradadas) únicamente de quienes autorizaron su aparición en el mapa comunitario, sin exponer datos personales ni ubicaciones exactas, junto a la disponibilidad de predios facilitadores autorizados por sus dueños.',
+          'Capa Restringida y Reservada: Coordenadas GPS exactas, Rol Único Pecuario (RUP), inventarios de colmenas, estado sanitario (Ley N° 21.489) y datos de contacto directo. Son accesibles únicamente por el propio apicultor titular y, bajo estricto deber de reserva y blindaje técnico, por la dirección fundadora del registro para soporte, resguardo sanitario territorial y contacto privado e individual de compra de miel local.',
         ],
       },
     ],
@@ -226,15 +227,16 @@ const ARTICULOS: Articulo[] = [
       {
         tipo: 'parrafo',
         texto:
-          'De conformidad con la Ley N° 19.628 y los estándares de la Ley N° 21.719, se consagran los derechos fundamentales sobre la información:',
+          'De conformidad con la Ley N° 19.628 y, desde su entrada en vigencia, con la Ley N° 21.719, se consagran los derechos fundamentales sobre la información:',
       },
       {
         tipo: 'lista',
         items: [
           'Acceso y Transparencia: Conocer en todo momento qué datos constan en el registro.',
           'Rectificación y Actualización: Modificar existencias de colmenas, ubicaciones o datos de contacto.',
-          'Cancelación y Retiro: Darse de baja de la Red y solicitar la eliminación de registros operativos en cualquier momento.',
-          'Inviolabilidad de Secretos: La Red no comercializa bases de datos ni entrega información individual a terceros sin autorización expresa por escrito.',
+          'Supresión y Retiro: Darse de baja de la Red y solicitar la eliminación de registros operativos en cualquier momento.',
+          'Oposición, Portabilidad y Bloqueo: Oponerse a un tratamiento, recibir sus datos en formato de uso común y suspender temporalmente su uso mientras se resuelve una solicitud.',
+          'Inviolabilidad de Secretos: La Red no comercializa bases de datos ni entrega información individual a terceros sin autorización expresa por escrito. Los convenios con municipios operan sobre informes agregados por comuna y no alteran estos derechos.',
         ],
       },
     ],
@@ -253,8 +255,20 @@ const ARTICULOS: Articulo[] = [
         tipo: 'lista',
         items: [
           'La base territorial, el censo, las alertas fitosanitarias y el apoyo a la declaración SAG son bienes públicos locales y permanecerán siempre gratuitos.',
-          'La plataforma podrá financiar su soporte y desarrollo mediante la oferta de módulos avanzados y optativos para apicultores comerciales (trazabilidad de lotes con Código QR, Cuaderno de Campo oficial bajo Res. SAG N° 4.590/2025, herramientas de gestión predial y venta directa), aportes institucionales transparentes y proyectos de fomento.',
+          'La plataforma podrá financiar su soporte y desarrollo mediante la oferta de módulos avanzados y optativos para apicultores comerciales (trazabilidad de lotes con Código QR, Cuaderno de Campo oficial bajo Res. SAG N° 4.590/2025, herramientas de gestión predial y venta directa), convenios institucionales con municipios, aportes transparentes y proyectos de fomento.',
         ],
+      },
+    ],
+  },
+  {
+    numero: '11',
+    titulo: 'Operación Técnica y Contacto',
+    badge: 'Operador',
+    bloques: [
+      {
+        tipo: 'parrafo',
+        texto:
+          'La infraestructura técnica de la Red es operada por una sociedad constituida en Queilén, Chiloé. Sus datos legales, tributarios y el correo de contacto para consultas, reclamos y ejercicio de derechos sobre datos personales se publican en la sección «Identificación del operador» de los Términos de uso del registro (/terminos#operador).',
       },
     ],
   },
@@ -275,7 +289,7 @@ export default function CartaPage() {
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-[0.65rem] uppercase tracking-widest text-primary border border-primary/30 bg-primary/5 rounded-full px-3 py-1 font-medium">
-              Versión 0.3.2 · Presentación Territorial
+              Versión 0.4.0 · Presentación Territorial
             </span>
             <PrintButton label="Imprimir / PDF" />
           </div>
@@ -437,12 +451,12 @@ export default function CartaPage() {
         </footer>
 
         {/* Pie de cotejo formal visible solo en impresión */}
-        <div className="hidden print:block pt-8 border-t border-slate-300 text-center text-xs text-slate-500 space-y-1">
-          <p className="font-semibold text-slate-800">
-            Carta Constitutiva Apícola Territorial de Chiloé (Versión 0.3.2)
+        <div className="hidden print:block pt-8 border-t border-border text-center text-xs text-muted-foreground space-y-1">
+          <p className="font-semibold text-foreground">
+            Carta Constitutiva Apícola Territorial de Chiloé (Versión 0.4.0)
           </p>
           <p>
-            Documento de acuerdo comunitario y resguardo soberano · Operador técnico: Trama SpA · RUT 78.500.141-9
+            Documento de acuerdo comunitario y resguardo soberano · Datos del operador técnico en los Términos de uso del registro
           </p>
         </div>
       </article>

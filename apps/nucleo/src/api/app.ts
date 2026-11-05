@@ -205,6 +205,8 @@ app.use("*", async (c, next) => {
     "/api/push",
     // Variantes y fortificaciones de producto (lectura pública para Tienda y Campo POS)
     "/api/variantes",
+    // Sugerencias de adopción / reclamo de asentamientos territoriales pre-cargados (signup público)
+    "/api/registro-territorial/actores/buscar-unclaimed",
   ];
   const path = new URL(c.req.url).pathname;
 

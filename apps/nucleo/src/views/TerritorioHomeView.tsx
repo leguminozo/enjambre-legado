@@ -214,7 +214,7 @@ export function TerritorioHomeView() {
     mapa: {
       eyebrow: 'Red Apícola · Territorio',
       title: 'Mapa de la Red',
-      desc: 'Zonas aproximadas de pecoreo de la red apícola de Chiloé (~1 km). Tus coordenadas exactas nunca se publican.',
+      desc: 'Zonas aproximadas de pecoreo de la red apícola de Chiloé (~2,0 km). Tus coordenadas exactas nunca se publican.',
     },
     alertas: {
       eyebrow: 'Prevención · Fitosanitarios',
@@ -272,7 +272,7 @@ export function TerritorioHomeView() {
                 </Button>
               )}
               <span className="text-[11px] font-mono text-muted-foreground/80 bg-surface-raised px-3 py-1.5 rounded-xl border border-border/60">
-                Pecoreo ±1.5 km · GPS protegido
+                Pecoreo ±2,0 km · GPS protegido
               </span>
             </div>
           ) : undefined

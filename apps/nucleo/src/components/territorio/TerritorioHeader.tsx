@@ -124,67 +124,69 @@ export function TerritorioHeader({ content }: TerritorioHeaderProps = {}) {
   return (
     <header
       data-cms-section="territorio_header"
-      className={`sticky top-0 z-50 h-14 sm:h-16 print:hidden flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-10 lg:px-16 xl:px-24 transition-[background-color,border-color,box-shadow] duration-300 ${
+      className={`sticky top-0 z-50 w-full print:hidden transition-[background-color,border-color,box-shadow] duration-300 ${
         scrolled
-          ? 'bg-background/85 backdrop-blur-xl border-b border-border/50 shadow-sm'
+          ? 'bg-background/90 backdrop-blur-xl border-b border-border/50 shadow-sm'
           : 'bg-transparent border-b border-transparent'
       }`}
     >
-      <Link
-        href="/"
-        className="min-h-11 flex items-center gap-2.5 sm:gap-3.5 min-w-0 group shrink"
-        aria-label="Registro Apícola de Chiloé — inicio"
-      >
-        <TerritorioLogo className="w-9 h-9 sm:w-11 sm:h-11 shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_12px_rgba(212,154,42,0.2)]" />
-        <span className="font-existencial font-semibold tracking-tight text-sm sm:text-base text-foreground truncate">
-          <span className="hidden sm:inline">Registro Apícola Chiloé</span>
-          <span className="sm:hidden">Registro Chiloé</span>
-        </span>
-      </Link>
+      <div className="max-w-7xl mx-auto w-full h-16 sm:h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 sm:gap-6">
+        <Link
+          href="/"
+          className="min-h-11 flex items-center gap-3 sm:gap-4 min-w-0 group shrink"
+          aria-label="Registro Apícola de Chiloé — inicio"
+        >
+          <TerritorioLogo className="w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_14px_rgba(212,154,42,0.25)]" />
+          <span className="font-existencial font-bold tracking-tight text-base sm:text-lg md:text-xl text-foreground truncate">
+            <span className="hidden sm:inline">Registro Apícola Chiloé</span>
+            <span className="sm:hidden">Registro Chiloé</span>
+          </span>
+        </Link>
 
-      <nav className="flex items-center gap-1 sm:gap-2 shrink-0" aria-label="Navegación pública">
-        {cfg.show_carta && cfg.carta_label && (
-          <Link
-            href={cfg.carta_href || '/carta'}
-            className="hidden sm:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {cfg.carta_label}
-          </Link>
-        )}
-        {cfg.show_mapa && cfg.mapa_label && (
-          <Link
-            href={cfg.mapa_href || '/mapa-chiloe'}
-            className="hidden md:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {cfg.mapa_label}
-          </Link>
-        )}
-        {cfg.show_municipios && cfg.municipios_label && (
-          <Link
-            href={cfg.municipios_href || '/municipalidades'}
-            className="hidden lg:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {cfg.municipios_label}
-          </Link>
-        )}
-        {cfg.show_theme_toggle && <ThemeToggle />}
-        {cfg.show_login && cfg.login_label && (
-          <Link
-            href={cfg.login_href || '/login'}
-            className="inline-flex min-h-11 items-center px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {cfg.login_label}
-          </Link>
-        )}
-        {cfg.show_signup && cfg.signup_label && (
-          <Link
-            href={cfg.signup_href || '/login?mode=signup'}
-            className="inline-flex min-h-10 sm:min-h-11 items-center justify-center rounded-md bg-primary px-3 sm:px-5 text-xs sm:text-sm font-medium text-primary-foreground transition-all hover:opacity-95 shadow-sm active:scale-[0.98]"
-          >
-            {cfg.signup_label}
-          </Link>
-        )}
-      </nav>
+        <nav className="flex items-center gap-1 sm:gap-2.5 shrink-0" aria-label="Navegación pública">
+          {cfg.show_carta && cfg.carta_label && (
+            <Link
+              href={cfg.carta_href || '/carta'}
+              className="hidden sm:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {cfg.carta_label}
+            </Link>
+          )}
+          {cfg.show_mapa && cfg.mapa_label && (
+            <Link
+              href={cfg.mapa_href || '/mapa-chiloe'}
+              className="hidden md:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {cfg.mapa_label}
+            </Link>
+          )}
+          {cfg.show_municipios && cfg.municipios_label && (
+            <Link
+              href={cfg.municipios_href || '/municipalidades'}
+              className="hidden lg:inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {cfg.municipios_label}
+            </Link>
+          )}
+          {cfg.show_theme_toggle && <ThemeToggle />}
+          {cfg.show_login && cfg.login_label && (
+            <Link
+              href={cfg.login_href || '/login'}
+              className="inline-flex min-h-11 items-center px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {cfg.login_label}
+            </Link>
+          )}
+          {cfg.show_signup && cfg.signup_label && (
+            <Link
+              href={cfg.signup_href || '/login?mode=signup'}
+              className="inline-flex min-h-10 sm:min-h-11 items-center justify-center rounded-xl bg-primary px-3.5 sm:px-5 text-xs sm:text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 shadow-sm active:scale-[0.98]"
+            >
+              {cfg.signup_label}
+            </Link>
+          )}
+        </nav>
+      </div>
     </header>
   );
 }

@@ -18,6 +18,7 @@ import {
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'Minuta Ejecutiva para Alcalde y Concejo — Kit Municipal Chiloé',
   description:
     'Minuta sintética de respaldo legal, técnico y presupuestario del piloto comunal apícola de 90 días (bajo 100 UTM / Compra Ágil) para presentar ante Alcaldía, Concejo o DIDECO.',

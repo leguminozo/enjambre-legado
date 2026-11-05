@@ -1614,7 +1614,7 @@ function PublicarRegistroModal({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                 <p className="text-sm text-muted-foreground">
                     El número de colmenas se cuenta en vivo desde tus colmenas. La ubicación se
-                    degrada a ~1 km para proteger tu mapa comunitario.
+                    proyecta como halo aproximado de ~2 km para proteger tu mapa comunitario.
                 </p>
                 <div>
                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>

@@ -71,7 +71,7 @@ function MapaChiloeContent({ headerContent }: MapaChiloeClientProps) {
     return (
       <div className="relative h-[var(--vh-full)] w-full bg-background overflow-hidden">
         <div className="absolute top-3 left-3 right-3 z-[500] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-          <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/90 backdrop-blur-md px-3 py-1.5 text-[0.65rem] font-medium text-foreground shadow-sm">
+          <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/95 dark:bg-card/95 backdrop-blur-md px-3 py-1.5 text-[0.7rem] font-semibold text-foreground shadow-md">
             <MapPin className="w-3 h-3 text-primary" />
             Mapa público
           </span>
@@ -125,41 +125,41 @@ function MapaChiloeContent({ headerContent }: MapaChiloeClientProps) {
     <div className="min-h-[var(--vh-full)] bg-background text-foreground flex flex-col">
       <TerritorioHeader content={headerContent} />
 
+      {/* Cabecera Editorial Separada del Mapa */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-3 sm:pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-2.5 rounded-lg border border-border/60 hover:bg-surface-raised font-medium"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Inicio</span>
+            </Link>
+            <span className="text-[10px] uppercase font-mono tracking-widest text-primary font-semibold">
+              Atlas Territorial Soberano
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground font-existencial tracking-tight leading-tight">
+            Mapa Apícola Territorial · Chiloé
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Zonas Comunales de Pecoreo Protegido · Resguardo Soberano Ley 21.489
+          </p>
+        </div>
+      </div>
+
       {/* Visor Inmersivo Enmarcado — Ocupa la vertical con elegancia contenida */}
-      <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-6 flex flex-col">
-        <div className="relative w-full h-[76vh] sm:h-[82vh] lg:h-[85vh] min-h-[520px] rounded-3xl border border-border/80 shadow-2xl overflow-hidden bg-surface-sunken">
-          {/* Barra de control flotante sobre el mapa — Título editorial perfectamente centrado */}
-          <div className="absolute top-3 sm:top-4 inset-x-3 sm:inset-x-4 z-[400] flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-2xl bg-background/90 dark:bg-card/90 backdrop-blur-xl border border-border/70 shadow-lg pointer-events-auto">
-            {/* Lado Izquierdo: Volver al inicio */}
-            <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5 px-3 rounded-xl border border-border/60 hover:bg-surface-raised font-medium"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Inicio</span>
-              </Link>
-            </div>
-
-            {/* Centro: Título y Ley Centrados */}
-            <div className="text-center px-2 flex-1">
-              <h1 className="text-sm sm:text-base md:text-lg font-bold text-foreground font-existencial tracking-tight leading-tight">
-                Mapa Apícola Territorial · Chiloé
-              </h1>
-              <p className="text-[11px] text-muted-foreground tracking-normal hidden sm:block">
-                Zonas Comunales de Pecoreo Protegido · Resguardo Soberano Ley 21.489
-              </p>
-            </div>
-
-            {/* Lado Derecho: Filtros y capas */}
-            <div className="flex items-center gap-1.5 self-end md:self-auto shrink-0">
-              {layerToggles}
-            </div>
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 pb-6 flex flex-col">
+        <div className="relative w-full h-[72vh] sm:h-[78vh] lg:h-[82vh] min-h-[500px] rounded-3xl border border-border/80 shadow-2xl overflow-hidden bg-surface-sunken">
+          {/* Herramientas selectoras de capa — Las únicas dentro del mapa */}
+          <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-[400] flex items-center gap-1.5 pointer-events-auto">
+            {layerToggles}
           </div>
 
-          {/* Badge flotante inferior con alcance */}
-          <div className="absolute bottom-4 left-4 z-[400] hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background/85 dark:bg-card/85 backdrop-blur-md border border-border/60 text-xs text-muted-foreground shadow-md pointer-events-none">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          {/* Badge flotante inferior con alcance — posicionado para no solapar controles de zoom Leaflet */}
+          <div className="absolute bottom-4 left-16 sm:left-[58px] z-[400] hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background/95 dark:bg-card/95 backdrop-blur-md border border-border/80 text-xs text-foreground/90 font-medium shadow-md pointer-events-none">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
             <span>10 comunas insulares protegidas</span>
           </div>
 
@@ -331,10 +331,10 @@ function Toggle({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`inline-flex items-center gap-1.5 min-h-9 px-3 py-1.5 rounded-full border backdrop-blur-md text-xs font-medium transition-all shadow-sm active:scale-[0.98] ${
+      className={`inline-flex items-center gap-1.5 min-h-9 px-3.5 py-1.5 rounded-full border backdrop-blur-md text-xs transition-all shadow-md active:scale-[0.98] ${
         active
-          ? 'bg-primary/20 border-primary/45 text-foreground ring-1 ring-primary/25'
-          : 'bg-background/85 border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-raised'
+          ? 'bg-primary text-primary-foreground border-primary font-semibold ring-1 ring-primary/40 shadow-emerald-950/20'
+          : 'bg-background/95 dark:bg-card/95 border-border/80 text-foreground/90 hover:text-foreground hover:bg-surface-raised font-medium'
       }`}
     >
       {icon}

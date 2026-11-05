@@ -11,8 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/mapa-chiloe',
-          '/municipalidades',
-          '/municipalidades/*',
           '/comuna',
           '/comuna/*',
           '/planes-territoriales',

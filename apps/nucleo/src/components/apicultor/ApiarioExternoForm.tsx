@@ -180,7 +180,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
         Registre apiarios externos entrando al territorio
       </p>
       <p className="text-xs text-muted-foreground bg-surface-sunken border border-border rounded-lg px-3 py-2 mb-4 leading-relaxed">
-        Al declarar, tu zona de destino aproximada (~1 km) será visible para la red durante la temporada. Tus coordenadas exactas nunca se publican.
+        Al declarar, tu zona de destino aproximada (~2 km) será visible para la red durante la temporada. Tus coordenadas exactas nunca se publican.
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
             {!fixedActorId && (

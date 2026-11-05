@@ -39,6 +39,8 @@ export interface ActorLegal {
   declaracion_existencia_animal?: boolean | null;
   acepta_carta?: boolean | null;
   acepta_politica_datos?: boolean | null;
+  consentimientos?: Record<string, unknown> | null;
+  carta_version?: string | null;
   completo?: boolean | null;
   estado: string;
   nivel_acreditacion: string;
@@ -112,6 +114,15 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   // ---- Aceptación de Carta y política (suscritas en el alta y ratificadas al completar) ----
   const [aceptaCartaLocal] = useState(true);
   const [aceptaPoliticaLocal] = useState(true);
+  const [mapaComunitario, setMapaComunitario] = useState(
+    actor.consentimientos?.mapa_comunitario !== false,
+  );
+  const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(
+    actor.consentimientos?.alertas_fitosanitarias !== false,
+  );
+  const [acopioCooperativo, setAcopioCooperativo] = useState(
+    actor.consentimientos?.acopio_cooperativo !== false,
+  );
   const [savingCompletar, setSavingCompletar] = useState(false);
 
   // ---- Paso 3: Apiarios ----
@@ -407,12 +418,16 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
     }
     setSavingCompletar(true);
     try {
-      if (!actor.acepta_carta || !actor.acepta_politica_datos) {
-        await guardarActor({
-          acepta_carta: true,
-          acepta_politica_datos: true,
-        });
-      }
+      await guardarActor({
+        acepta_carta: true,
+        acepta_politica_datos: true,
+        consentimientos: {
+          ...(actor.consentimientos ?? {}),
+          mapa_comunitario: mapaComunitario,
+          alertas_fitosanitarias: alertasFitosanitarias,
+          acopio_cooperativo: acopioCooperativo,
+        },
+      });
       const res = await apiFetch(`/api/registro-territorial/actores/${actor.id}/completar-censo`, {
         method: 'POST',
       });
@@ -931,8 +946,47 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     ))}
                   </div>
 
+                  <div className="rounded-xl border border-border/60 bg-surface-raised/40 p-4 space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Preferencias de visibilidad y contacto (modificables en todo momento)
+                    </p>
+                    <label className="flex items-start gap-2.5 text-xs text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={mapaComunitario}
+                        onChange={(e) => setMapaComunitario(e.target.checked)}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span>
+                        <strong>Mapa comunitario:</strong> proyectar un halo aproximado de ~2 km en el mapa de la red (nunca coordenadas exactas ni nombres).
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2.5 text-xs text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={alertasFitosanitarias}
+                        onChange={(e) => setAlertasFitosanitarias(e.target.checked)}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span>
+                        <strong>Alertas fitosanitarias:</strong> recibir avisos preventivos de fumigación en mi sector (Res. SAG N° 7.068/2024).
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2.5 text-xs text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={acopioCooperativo}
+                        onChange={(e) => setAcopioCooperativo(e.target.checked)}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span>
+                        <strong>Contacto directo por abastecimiento de miel:</strong> autorizo ser contactado de forma privada y directa por la dirección del registro ante eventuales compras de miel local.
+                      </span>
+                    </label>
+                  </div>
+
                   <p className="text-xs text-muted-foreground pt-1">
-                    ✓ Tus consentimientos de la Carta Constitutiva y política de privacidad ya quedaron suscritos al crear tu cuenta.
+                    ✓ Tus consentimientos de la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline">Carta Constitutiva (v0.4.0)</a> y <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline">Política de Privacidad</a> quedan ratificados al guardar.
                   </p>
 
                   <Button onClick={completarInscripcion} disabled={!todoListo || savingCompletar} size="sm">

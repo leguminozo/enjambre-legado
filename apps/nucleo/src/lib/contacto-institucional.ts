@@ -2,6 +2,10 @@
  * Canal B2G del Registro Territorial Apícola de Chiloé.
  * Operador: Trama SpA (RUT 78.500.141-9), constituida el 26-08-2026 en Queilén.
  *
+ * Datos legales del operador: se publican solo en Términos de uso (sección
+ * «operador») y en las superficies institucionales no listadas. No van en el
+ * footer ni en la landing pública.
+ *
  * El correo y WhatsApp son el buzón operativo actual. No son la razón social.
  * La EIRL apícola (marca de miel) es otra persona jurídica: no es el proveedor
  * municipal. Solo se nombra cuando hay que distinguir productos.
@@ -9,16 +13,23 @@
 export const CONTACTO_INSTITUCIONAL = {
   proveedor: 'Trama SpA',
   razonSocial: 'Trama SpA',
+  tipoSociedad: 'Sociedad por Acciones (SpA)',
   rut: '78.500.141-9',
   constituida: '26-08-2026',
+  inicioActividadesSii: '06-09-2026',
+  categoriaTributaria: 'Primera Categoría (Afecta a IVA)',
+  regimenTributario: 'Régimen Pro Pyme Transparente (Art. 14 letra D N° 8 LIR)',
+  codigoActividadSii: '620200',
+  giroSii: 'Actividades de consultoría de informática y de gestión de instalaciones informáticas',
+  glosaDescriptiva: 'Desarrollo de plataformas y análisis de datos territoriales',
   comuna: 'Queilén',
+  domicilioLegal: 'Pureo Km 8.560 (Lote D), Comuna de Queilén, Provincia de Chiloé, Región de Los Lagos, Chile',
   representante: 'Gabriel Román Cuevas Miranda',
   rolPublico: 'Coordinador de infraestructura territorial',
-  email: 'obrerayzangano@gmail.com',
+  email: 'contacto@obrerayzangano.cl',
   whatsappE164: '56940831358',
   whatsappDisplay: '+56 9 408 31 358',
   chileProveedores: 'en-tramite',
-  inicioActividadesSii: 'en-tramite',
 } as const;
 
 /** Línea corta para fichas, pies y TDR. */

@@ -126,7 +126,7 @@ function LoginContent() {
   const [consentMapa, setConsentMapa] = useState(false);
   const [consentAlertas, setConsentAlertas] = useState(true);
   const [consentCatalogo, setConsentCatalogo] = useState(false);
-  const [consentAcopio, setConsentAcopio] = useState(false);
+  const [consentAcopio, setConsentAcopio] = useState(true);
   const [aceptaCarta, setAceptaCarta] = useState(false);
   const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(false);
   const [verificacionPendiente, setVerificacionPendiente] = useState(false);
@@ -960,7 +960,28 @@ function LoginContent() {
                       <span className="leading-snug">
                         <strong className="block text-foreground font-medium">Mapa comunitario</strong>
                         <span className="text-muted-foreground text-[0.7rem]">
-                          Presencia básica para la red local.
+                          Halo aproximado (~2 km) en la red local.
+                        </span>
+                      </span>
+                    </label>
+
+                    <label
+                      htmlFor="consent-acopio"
+                      className="flex items-start gap-2.5 p-3 rounded-xl border border-border/50 bg-background/50 cursor-pointer hover:border-border transition-colors text-xs sm:col-span-2"
+                    >
+                      <input
+                        id="consent-acopio"
+                        type="checkbox"
+                        checked={consentAcopio}
+                        onChange={(e) => setConsentAcopio(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="leading-snug">
+                        <strong className="block text-foreground font-medium">
+                          Contacto directo por abastecimiento de miel
+                        </strong>
+                        <span className="text-muted-foreground text-[0.7rem]">
+                          Autorizo ser contactado de forma privada y directa por la dirección del registro ante eventuales compras de miel local.
                         </span>
                       </span>
                     </label>

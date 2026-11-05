@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, Badge, Button } from '@enjambre/ui';
+import { useAuthStore } from '@enjambre/auth';
 import { Shield, Users, Eye, Navigation, Layers, Compass } from 'lucide-react';
 import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
 import { MapGestureOverlay, useMapGestureLock } from '@/components/map/MapGestureLock';
@@ -93,8 +94,11 @@ export function MapaTerritorial({
   apiariosExternos = [],
   apiariosRegistro = [],
 }: MapaTerritorialProps) {
+  const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const [comunaSeleccionada, setComunaSeleccionada] = useState<string>('todo');
-  const [capaActiva, setCapaActiva] = useState<'publica' | 'comunitaria' | 'restringida'>('comunitaria');
+  const [capaSeleccionada, setCapaSeleccionada] = useState<'publica' | 'comunitaria' | 'restringida'>('comunitaria');
+  const capaActiva: 'publica' | 'comunitaria' | 'restringida' =
+    capaSeleccionada === 'restringida' && !isAdmin ? 'comunitaria' : capaSeleccionada;
   const [mostrarLeyenda, setMostrarLeyenda] = useState(true);
   const mapGestures = useMapGestureLock();
 
@@ -142,7 +146,7 @@ export function MapaTerritorial({
           <div className="flex items-center gap-2 shrink-0 self-end lg:self-auto">
             <div className="flex bg-background border border-border rounded-xl p-1 shadow-sm">
               <button
-                onClick={() => setCapaActiva('publica')}
+                onClick={() => setCapaSeleccionada('publica')}
                 className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
                   capaActiva === 'publica'
                     ? 'bg-surface-raised text-foreground shadow-xs'
@@ -154,7 +158,7 @@ export function MapaTerritorial({
                 Pública
               </button>
               <button
-                onClick={() => setCapaActiva('comunitaria')}
+                onClick={() => setCapaSeleccionada('comunitaria')}
                 className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
                   capaActiva === 'comunitaria'
                     ? 'bg-primary/15 text-primary font-semibold shadow-xs'
@@ -165,18 +169,20 @@ export function MapaTerritorial({
                 <Users className="w-3.5 h-3.5" />
                 Comunitaria
               </button>
-              <button
-                onClick={() => setCapaActiva('restringida')}
-                className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-                  capaActiva === 'restringida'
-                    ? 'bg-destructive/15 text-destructive font-semibold shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                title="Vista restringida / administración"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                Restringida
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setCapaSeleccionada('restringida')}
+                  className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
+                    capaActiva === 'restringida'
+                      ? 'bg-destructive/15 text-destructive font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Vista restringida / dirección del registro"
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  Restringida
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -383,7 +389,7 @@ export function MapaTerritorial({
                     <span className="w-3.5 h-3.5 rounded-full bg-primary/20 border border-primary flex items-center justify-center text-[8px]">
                       🐝
                     </span>
-                    <span className="text-foreground">Halo pecoreo de la red (1.5 km)</span>
+                    <span className="text-foreground">Halo pecoreo de la red (2,0 km)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-3.5 h-3.5 rounded-full bg-accent/20 border border-accent flex items-center justify-center text-[8px]">

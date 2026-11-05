@@ -83,12 +83,12 @@ export const DEFAULT_TERRITORIO_HERO: TerritorioHeroContent = {
   description:
     'Inscribe tus apiarios sin costo. El mapa visibiliza áreas de pecoreo para defender tu espacio y coordinar distancias, resguardando siempre tu coordenada exacta.',
   nota_comunitaria: 'Iniciativa comunitaria nacida en Queilén para ordenar el territorio. Lee la',
-  carta_link_text: 'Carta Territorial (v0.3.2)',
+  carta_link_text: 'Carta Territorial (v0.4.0)',
   cta_primary_label: 'Inscribirme sin costo',
   cta_primary_href: '/login?mode=signup',
   cta_secondary_label: 'Abrir mapa completo',
   cta_secondary_href: '/mapa-chiloe',
-  badge_info: 'Zonas de ~1 km · sin nombres ni contactos',
+  badge_info: 'Halos de ~2 km en red · sin nombres ni contactos',
   login_prompt: '¿Ya tienes cuenta?',
   login_link_text: 'Entrar',
   seo_title: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial',
@@ -136,7 +136,7 @@ export const DEFAULT_TERRITORIO_HERRAMIENTAS: TerritorioHerramientasContent = {
   tab2_desc:
     'Cumple la obligación del cuaderno de manejo sanitario (Res. SAG N° 4.590/2025) sin papeles sueltos que se deterioran en el bosque. Dictado por voz en terreno sin quitarte los guantes, con exportación oficial foliada en PDF.',
   tab3_title: 'Capas Territoriales',
-  tab3_desc: 'Defensa comunitaria con radio difuso de pecoreo de ~1 km y alertas sanitarias.',
+  tab3_desc: 'Defensa comunitaria con radio difuso de pecoreo de ~2 km y alertas sanitarias.',
   feat1_title: 'Capa de distanciamiento legal',
   feat1_desc:
     'Calcula automáticamente los perímetros mínimos fijados por la Ley 21.489 cuando un colmenar trashumante ingresa a tu comuna.',
@@ -172,12 +172,12 @@ export const DEFAULT_TERRITORIO_PRIVACIDAD: TerritorioPrivacidadContent = {
   badge: 'Privacidad y soberanía de datos',
   title: 'Tu ubicación exacta no se publica.',
   description:
-    'El mapa público muestra zonas aproximadas de pecoreo, sin RUT, nombres ni contactos. Tus coordenadas exactas y tus registros de manejo permanecen privados.',
+    'El mapa público muestra macro-cuencas comunales de pecoreo, sin RUT, nombres ni contactos. En la red comunitaria solo se proyectan halos aproximados (~2 km), mientras tus coordenadas exactas permanecen privadas.',
   map_link_text: 'Ver mapa público →',
-  card1_badge: 'Mapa público abierto',
-  card1_title: 'Zona ~1 km',
+  card1_badge: 'Mapa protegido',
+  card1_title: 'Zona ~2 km',
   card1_desc:
-    'Radio aproximado de pecoreo (~1 km). La visualización cartográfica no asocia identidades, contactos ni coordenadas de precisión.',
+    'Macro-cuencas comunales en el mapa público y radio aproximado de pecoreo (~2 km) en la red comunitaria. La visualización no asocia identidades, contactos ni coordenadas de precisión.',
   card2_badge: 'Cuaderno de manejo privado',
   card2_title: 'Información de control privado',
   card2_desc:
@@ -260,7 +260,7 @@ export const DEFAULT_TERRITORIO_ORIGEN: TerritorioOrigenContent = {
   badge: 'Identidad territorial',
   title: 'Hecho en Chiloé',
   description:
-    'Nació en una apicultura real de Pureo y Queilén, más de veinte años con bosque nativo. La misma herramienta con la que ordenamos apiarios es la que abrimos a toda la isla. La opera Trama SpA. El registro base es y seguirá siendo gratuito para todo apicultor del archipiélago — un bien común, no un servicio.',
+    'Nació en una apicultura real de Pureo y Queilén, más de veinte años con bosque nativo. La misma herramienta con la que ordenamos apiarios es la que abrimos a toda la isla. El registro base es y seguirá siendo gratuito para todo apicultor del archipiélago — un bien común, no un servicio.',
   image_url: '/assets/territorio/origen-bosque-chiloe.webp',
 };
 
@@ -286,7 +286,7 @@ export interface TerritorioCartaContent {
 
 export const DEFAULT_TERRITORIO_CARTA: TerritorioCartaContent = {
   badge: 'Propuesta comunitaria',
-  version: 'v0.3.2',
+  version: 'v0.4.0',
   title: 'La Carta Constitutiva Apícola Territorial',
   description:
     'Una propuesta de acuerdo comunitario nacida desde el trabajo apícola en Queilén y abierta a la deliberación de todo el archipiélago. Define el suelo base de protección, soberanía de datos y convivencia territorial, en estricta consonancia con la Ley N° 21.489 y las resoluciones del SAG.',
@@ -297,7 +297,7 @@ export const DEFAULT_TERRITORIO_CARTA: TerritorioCartaContent = {
   pilar2_badge: 'Ley 19.628 y 21.719',
   pilar2_title: 'Privacidad & Anti-Abigeato',
   pilar2_description:
-    'Tus coordenadas GPS exactas están protegidas (Ley 19.628 y 21.719). En el mapa público solo se proyecta un radio difuso de ~1 km para resguardar tu zona de pecoreo sin exponer la ubicación exacta.',
+    'Tus coordenadas GPS exactas están protegidas (Ley 19.628 y 21.719). El mapa público muestra macro-cuencas comunales y la red comunitaria un halo difuso de ~2 km, sin exponer tu ubicación exacta.',
   pilar3_badge: 'Res. SAG N° 7.068 y 7.067',
   pilar3_title: 'Prevención Fitosanitaria',
   pilar3_description:
@@ -388,7 +388,7 @@ export const DEFAULT_TERRITORIO_FAQS: TerritorioFaqItem[] = [
   {
     pregunta: '¿Quién puede ver mis apiarios?',
     respuesta:
-      'Nadie ve tus coordenadas exactas. En el mapa público abierto solo se proyecta un círculo difuso de ~1 km de radio que señala la presencia de abejas sin nombre, RUT ni teléfono.',
+      'Nadie ve tus coordenadas exactas. El mapa público abierto muestra únicamente macro-cuencas agregadas por comuna (5 a 11 km), y la red comunitaria interna proyecta un círculo difuso de ~2 km de radio solo si lo autorizas, sin nombre, RUT ni teléfono.',
   },
   {
     pregunta: 'No me manejo con la computadora',
@@ -464,7 +464,7 @@ export const DEFAULT_TERRITORIO_SECTIONS: TerritorioSectionConfig[] = [
   { id: 'territorio_herramientas', type: 'system', enabled: true, order: 4 },
   { id: 'territorio_origen', type: 'system', enabled: true, order: 5 },
   { id: 'territorio_carta', type: 'system', enabled: true, order: 6 },
-  { id: 'territorio_institucional', type: 'system', enabled: true, order: 7 },
+  { id: 'territorio_institucional', type: 'system', enabled: false, order: 7 },
   { id: 'territorio_faq', type: 'system', enabled: true, order: 8 },
   { id: 'territorio_censo', type: 'system', enabled: true, order: 9 },
 ];
@@ -488,7 +488,7 @@ export const TERRITORIO_SECTION_LABELS: Record<string, string> = {
 
 export const TERRITORIO_SECTION_HINTS: Record<string, string> = {
   territorio_hero: 'Titular principal, bajada, llamados a la acción y defensa territorial',
-  territorio_privacidad: 'Demostración gráfica de zona difusa (~1 km) vs coordenada exacta protegida',
+  territorio_privacidad: 'Demostración gráfica de zona difusa (~2 km) vs coordenada exacta protegida',
   territorio_beneficios: 'Defensa de zona de pecoreo, trazabilidad y amparo territorial',
   territorio_pasos: 'Guía clara en tres pasos para la incorporación al registro',
   territorio_herramientas: 'Apiario digital 3D, cuaderno de campo y capas territoriales',

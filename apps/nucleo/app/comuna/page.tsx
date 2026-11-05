@@ -65,12 +65,6 @@ export default async function ComunasIndexPage() {
           </p>
           <div className="flex flex-wrap gap-3 mb-8 print:hidden">
             <PrintButton label="Imprimir tabla / PDF" />
-            <Link
-              href="/municipalidades"
-              className="inline-flex min-h-11 items-center px-5 border border-border rounded-xl text-sm font-medium hover:bg-surface-sunken"
-            >
-              Propuesta municipal
-            </Link>
           </div>
           {generado && (
             <p className="text-xs text-muted-foreground mb-4">Generado: {generado}</p>

@@ -184,7 +184,7 @@ export function CredencialTerritorialModal({
                 <span>Anonimización Espacial Comunitaria:</span>
               </p>
               <p>
-                Las coordenadas de pecoreo se resguardan bajo radio difuso de ~1 km para cautelar la sanidad y prevenir el abigeato apícola (Ley N° 21.719).
+                Las coordenadas de pecoreo se resguardan bajo radio difuso de ~2 km en la red comunitaria y macro-cuencas comunales en el mapa público para cautelar la sanidad y prevenir el abigeato apícola (Ley N° 21.719).
               </p>
             </div>
           </div>

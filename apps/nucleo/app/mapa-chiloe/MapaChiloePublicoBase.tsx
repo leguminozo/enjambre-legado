@@ -18,16 +18,16 @@ const MAP_MIEL = 'hsl(44 85% 46%)';
 const MAP_ALERTA = 'hsl(0 72% 51%)';
 const MAP_FLOR = 'hsl(145 30% 48%)';
 
-function createTerritorialSealIcon(size = 34): L.DivIcon {
+function createTerritorialSealIcon(size = 32): L.DivIcon {
   const half = Math.round(size / 2);
   const html = `
     <div style="position:relative;width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-      <div style="position:absolute;inset:0;border-radius:50%;background:rgba(16,185,129,0.24);border:1px solid rgba(16,185,129,0.45);box-shadow:0 0 14px rgba(16,185,129,0.3);"></div>
-      <div style="position:relative;width:${size - 8}px;height:${size - 8}px;border-radius:50%;background:linear-gradient(135deg,#064e3b,#022c22);border:1.5px solid #d4af37;box-shadow:0 4px 12px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fef3c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3.5"/>
-          <path d="M12 2v3m0 14v3M2 12h3m14 0h3"/>
-          <path d="m4.93 4.93 2.12 2.12m9.9 9.9 2.12 2.12M4.93 19.07l2.12-2.12m9.9-9.9 2.12-2.12"/>
+      <div style="width:${size}px;height:${size}px;border-radius:50%;background:#064e3b;border:1.5px solid #ffffff;box-shadow:0 3px 10px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fef3c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
       </div>
     </div>
@@ -41,7 +41,7 @@ function createTerritorialSealIcon(size = 34): L.DivIcon {
   });
 }
 
-const ICON_ZONA_COMUNAL = createTerritorialSealIcon(34);
+const ICON_ZONA_COMUNAL = createTerritorialSealIcon(32);
 const ICON_ALERTA = createMapBadgeIcon(MAP_ALERTA, '⚠️', 28);
 const ICON_FLOR = createMapBadgeIcon(MAP_FLOR, '🌸', 28);
 
@@ -57,6 +57,38 @@ function FitBounds({ data }: { data: MapaChiloePublico }) {
       map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 11 });
     }
   }, [data, map]);
+  return null;
+}
+
+/**
+ * Cierra automáticamente cualquier popup abierto al hacer clic en un área
+ * vacía del mapa o fuera de los marcadores / modales.
+ */
+function MapPopupAutoCloser() {
+  const map = useMap();
+
+  useEffect(() => {
+    const onMapClick = () => {
+      map.closePopup();
+    };
+    map.on('click', onMapClick);
+
+    const onDocClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (!target.closest('.leaflet-popup') && !target.closest('.leaflet-marker-icon')) {
+        map.closePopup();
+      }
+    };
+
+    document.addEventListener('pointerdown', onDocClick);
+
+    return () => {
+      map.off('click', onMapClick);
+      document.removeEventListener('pointerdown', onDocClick);
+    };
+  }, [map]);
+
   return null;
 }
 
@@ -87,12 +119,14 @@ export function MapaChiloePublicoBase({
       inertiaDeceleration={3000}
       zoomControl={false}
       attributionControl={false}
+      closePopupOnClick={true}
       className="h-full w-full z-0 cursor-grab active:cursor-grabbing"
       style={{ minHeight: 420 }}
     >
       <ZoomControl position="bottomleft" />
       <EsriSatelliteTileLayers />
       <FitBounds data={data} />
+      <MapPopupAutoCloser />
 
       {/* Zonas Comunales de Pecoreo Protegido (Atlas Territorial Soberano) */}
       {showApiarios &&
@@ -101,6 +135,7 @@ export function MapaChiloePublicoBase({
             <Circle
               center={[z.lat, z.lng]}
               radius={z.radio_metros}
+              interactive={false}
               pathOptions={{
                 color: MAP_BOSQUE,
                 fillColor: MAP_BOSQUE,
@@ -166,6 +201,7 @@ export function MapaChiloePublicoBase({
             <Circle
               center={[al.lat, al.lng]}
               radius={al.radio_km * 1000}
+              interactive={false}
               pathOptions={{
                 color: MAP_ALERTA,
                 fillColor: MAP_ALERTA,

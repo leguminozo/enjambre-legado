@@ -3,6 +3,8 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import { createAdminClient } from "@enjambre/auth/server-index";
+import { fromLoose } from "@/api/lib/supabase-loose";
 import type { BitacoraSupabase } from "@/lib/bitacora-types";
 
 export const mapaRoutes = new Hono<{ Variables: AppVariables }>();
@@ -104,9 +106,9 @@ mapaRoutes.get(
 // BLINDADO: Solo accesible por rol 'admin'.
 // ---------------------------------------------------------------------------
 mapaRoutes.get("/censo-detallado", async (c) => {
-  const supabase = c.get("supabase");
+  const admin = createAdminClient();
 
-  const { data: apiarios, error: errApiarios } = await supabase
+  const { data: apiarios, error: errApiarios } = await admin
     .from("apiarios_registro")
     .select(`
       id,
@@ -121,6 +123,7 @@ mapaRoutes.get("/censo-detallado", async (c) => {
       observaciones,
       created_at,
       actor_id,
+      apiario_origen_id,
       actores_registro (
         id,
         user_id,
@@ -133,7 +136,13 @@ mapaRoutes.get("/censo-detallado", async (c) => {
         metodo_control_varroa,
         declaracion_existencia_animal,
         nivel_acreditacion,
-        consentimientos
+        completo,
+        acepta_carta,
+        acepta_politica_datos,
+        consentimientos,
+        consentimientos_version,
+        consentimientos_at,
+        observaciones
       )
     `)
     .eq("activo", true)
@@ -153,10 +162,10 @@ mapaRoutes.get("/censo-detallado", async (c) => {
 
   const emailByUserId: Record<string, string> = {};
   if (userIds.length > 0) {
-    const { data: profilesRows } = await supabase
+    const { data: profilesRows } = await admin
       .from("profiles")
       .select("id, email")
-      .in("id", userIds);
+      .in("id", [...new Set(userIds)]);
 
     for (const p of profilesRows ?? []) {
       if (p.id && typeof p.email === "string" && p.email) {
@@ -165,10 +174,35 @@ mapaRoutes.get("/censo-detallado", async (c) => {
     }
   }
 
+  // Contar colmenas vivas enlazadas por apiario_origen_id
+  const origenIds = (apiarios ?? [])
+    .map((a) => (a as { apiario_origen_id?: string | null }).apiario_origen_id)
+    .filter((id): id is string => typeof id === "string" && Boolean(id));
+
+  const vivosPorOrigen = new Map<string, number>();
+  if (origenIds.length > 0) {
+    const { data: cols } = await fromLoose(admin, "colmenas")
+      .select("apiario_id")
+      .in("apiario_id", [...new Set(origenIds)]);
+    for (const col of (cols ?? []) as Array<{ apiario_id: string | null }>) {
+      if (!col.apiario_id) continue;
+      vivosPorOrigen.set(col.apiario_id, (vivosPorOrigen.get(col.apiario_id) ?? 0) + 1);
+    }
+  }
+
   const sanitized = (apiarios ?? []).map((a) => {
     const actor = Array.isArray(a.actores_registro) ? a.actores_registro[0] : a.actores_registro;
     const actorEmail = actor?.user_id ? emailByUserId[actor.user_id] ?? null : null;
     const consentimientos = (actor?.consentimientos as Record<string, unknown>) ?? {};
+    const origenId = (a as { apiario_origen_id?: string | null }).apiario_origen_id ?? null;
+    const reclamado = Boolean(actor?.user_id);
+    const censoCompleto = Boolean(actor?.completo);
+    const esCatastroKmz =
+      !reclamado &&
+      !censoCompleto &&
+      (Boolean(a.observaciones?.includes("Catastro")) ||
+        Boolean(actor?.observaciones?.includes("Catastro")) ||
+        a.n_colmenas === 10);
 
     return {
       id: a.id,
@@ -178,12 +212,17 @@ mapaRoutes.get("/censo-detallado", async (c) => {
       lat_aproximada: a.lat_aproximada,
       lng_aproximada: a.lng_aproximada,
       n_colmenas: a.n_colmenas,
+      n_colmenas_vivo: origenId ? (vivosPorOrigen.get(origenId) ?? 0) : null,
+      es_catastro_kmz: esCatastroKmz,
       categoria: a.categoria,
       activo: a.activo,
       observaciones: a.observaciones,
       created_at: a.created_at,
-      // Datos reservados para el fundador
+      // Datos reservados exclusivamente para el fundador (admin)
+      actor_id: a.actor_id,
       titular: actor?.nombre_actor ?? null,
+      reclamado,
+      censo_completo: censoCompleto,
       rut: actor?.rut ?? null,
       telefono: actor?.telefono ?? null,
       email: actorEmail,
@@ -193,7 +232,14 @@ mapaRoutes.get("/censo-detallado", async (c) => {
       metodo_control_varroa: actor?.metodo_control_varroa ?? null,
       declaracion_sag: actor?.declaracion_existencia_animal ?? false,
       nivel_acreditacion: actor?.nivel_acreditacion ?? "base",
-      consentimiento_mapa: consentimientos.mapa_comunitario === true || consentimientos.mapa_comunitario === "true",
+      acepta_carta: Boolean(actor?.acepta_carta),
+      acepta_politica_datos: Boolean(actor?.acepta_politica_datos),
+      consentimiento_mapa:
+        consentimientos.mapa_comunitario === true || consentimientos.mapa_comunitario === "true",
+      consentimiento_acopio:
+        consentimientos.acopio_cooperativo === true || consentimientos.acopio_cooperativo === "true",
+      consentimientos_version: actor?.consentimientos_version ?? "0.4.0",
+      consentimientos_at: actor?.consentimientos_at ?? null,
     };
   });
 

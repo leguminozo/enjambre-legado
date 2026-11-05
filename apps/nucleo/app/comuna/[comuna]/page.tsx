@@ -162,15 +162,6 @@ export default async function InformeComunalPage({ params }: Props) {
 
           <p className="text-xs text-muted-foreground leading-relaxed mb-8">{INFORME_DISCLAIMER}</p>
 
-          <p className="text-sm print:hidden">
-            <Link href="/municipalidades" className="underline underline-offset-4">
-              Cómo se usa esto en un convenio municipal
-            </Link>
-            {' · '}
-            <Link href="/municipalidades/kit" className="underline underline-offset-4">
-              Kit municipal
-            </Link>
-          </p>
         </div>
       </article>
 
