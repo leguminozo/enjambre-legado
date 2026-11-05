@@ -476,7 +476,7 @@ export const sesionPercepcionSchema = z.object({
   pares: z.array(z.object({ par: z.string().min(1), valor: z.number().int().min(-3).max(3) })).min(1),
   chips: z.array(z.object({ bloque: z.enum(['sabor', 'aroma', 'textura', 'color']), chip: z.string().min(1) })).min(1),
   abierta: z.string().max(280).optional().or(z.literal('')),
-  agrado: z.number().int().min(1).max(7),
+  agrado: z.number().int().min(1).max(10),
   intencion_recompra: z.boolean(),
   tipo_evaluador: z.enum(['consumidor', 'semi_entrenado']).default('consumidor'),
 })

@@ -45,6 +45,61 @@ b2bPublicoRoutes.get("/condiciones-comerciales", async (c) => {
   });
 });
 
+/** GET /api/b2b-publico/degustacion-config — configuración editable de cata y degustación en vivo */
+b2bPublicoRoutes.get("/degustacion-config", async (c) => {
+  const supabase = admin();
+  const { data: row } = await supabase
+    .from("site_content")
+    .select("content, updated_at")
+    .eq("section_key", "degustacion_feria_config")
+    .maybeSingle();
+
+  return c.json({
+    data: row?.content ?? null,
+    updated_at: row?.updated_at ?? null,
+  });
+});
+
+/** PUT /api/b2b-publico/degustacion-config — guardar configuración de cata en vivo */
+b2bPublicoRoutes.put("/degustacion-config", async (c) => {
+  const supabase = admin();
+  const body = await c.req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return c.json({ code: "bad_request", message: "Configuración inválida" }, 400);
+  }
+
+  const { data: existing } = await supabase
+    .from("site_content")
+    .select("id")
+    .eq("section_key", "degustacion_feria_config")
+    .maybeSingle();
+
+  const nowIso = new Date().toISOString();
+  if (existing?.id) {
+    const { error } = await supabase
+      .from("site_content")
+      .update({
+        content: body,
+        updated_at: nowIso,
+      })
+      .eq("id", existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from("site_content")
+      .insert({
+        section_key: "degustacion_feria_config",
+        item_order: 0,
+        content: body,
+        is_active: true,
+        updated_at: nowIso,
+      });
+    if (error) throw error;
+  }
+
+  return c.json({ success: true, updated_at: nowIso });
+});
+
 /** GET /api/b2b-publico/portal/:codigo — info pública del punto (landing) */
 b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
   const codigo = c.req.param("codigo").trim().toUpperCase();
@@ -66,6 +121,14 @@ b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
       codigo === "MIELES_CHILE"
     ) {
       const isChile = codigo === "CHILE" || codigo === "MIELES_CHILE";
+
+      // Cargar personalización de textos / variantes si existe en site_content
+      const { data: configRow } = await supabase
+        .from("site_content")
+        .select("content")
+        .eq("section_key", "degustacion_feria_config")
+        .maybeSingle();
+
       const fallbackPunto = {
         id: isChile ? "chile-canonico" : "feria-canonica",
         nombre: isChile
@@ -74,10 +137,12 @@ b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
         tipo: "feria_evento",
         ciudad: "Chile",
         codigo_acceso: codigo,
+        configuracion: configRow?.content ?? null,
       };
       return c.json({
         data: {
           punto: fallbackPunto,
+          configuracion: configRow?.content ?? null,
           sets: [],
           programa: null,
         },

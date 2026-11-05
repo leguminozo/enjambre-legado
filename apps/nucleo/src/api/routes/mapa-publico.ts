@@ -122,7 +122,7 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
     });
 
     // Cache corto en CDN / browser (datos semi-estáticos)
-    c.header("Cache-Control", "public, s-maxage=120, stale-while-revalidate=600");
+    c.header("Cache-Control", "public, s-maxage=600, stale-while-revalidate=3600");
 
     return c.json({ data: payload });
   } catch (err) {

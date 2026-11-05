@@ -14,12 +14,19 @@ import {
   ExternalLink,
   CheckCircle2,
   SlidersHorizontal,
+  RotateCcw,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, friendlySupabaseError, ImmersiveModal, QRCodeSVG, Skeleton } from '@enjambre/ui';
 import { downloadQrSvg, downloadQrPng } from '@/lib/qr-export';
+import {
+  DEGUSTACION_CONFIG_DEFAULT,
+  type DegustacionConfig,
+  type MielGeograficaConfig,
+  type VariedadMesaConfig,
+} from '@enjambre/resenas';
 
 interface ProductoOption {
   id: string;
@@ -109,6 +116,111 @@ export function HubPhygitalView() {
     qr_cta_resena: '',
   });
 
+  // Configuración del Flujo Maestro de Degustación en Vivo (Trípode / Stand / Feria)
+  const [modalDegustacionOpen, setModalDegustacionOpen] = useState(false);
+  const [tabDegustacionModal, setTabDegustacionModal] = useState<
+    'textos' | 'variedades' | 'mieles' | 'ejes' | 'salida'
+  >('textos');
+  const [degustacionDraft, setDegustacionDraft] = useState<DegustacionConfig>(DEGUSTACION_CONFIG_DEFAULT);
+  const [savingDegustacion, setSavingDegustacion] = useState(false);
+
+  const updateTextosDraft = (key: keyof DegustacionConfig['textos'], val: string) => {
+    setDegustacionDraft((prev) => ({
+      ...prev,
+      textos: {
+        ...prev.textos,
+        [key]: val,
+      },
+    }));
+  };
+
+  const updateVariedadDraft = (index: number, field: keyof VariedadMesaConfig, val: string) => {
+    setDegustacionDraft((prev) => {
+      const nextVar = [...prev.variedadesMesa];
+      if (nextVar[index]) {
+        nextVar[index] = { ...nextVar[index], [field]: val };
+      }
+      return { ...prev, variedadesMesa: nextVar };
+    });
+  };
+
+  const updateEjeDraft = (index: number, val: string) => {
+    setDegustacionDraft((prev) => {
+      const nextEjes = [...prev.ejesSensorialesCanonicos];
+      nextEjes[index] = val;
+      return { ...prev, ejesSensorialesCanonicos: nextEjes };
+    });
+  };
+
+  const updateMielDraft = (index: number, field: keyof MielGeograficaConfig, val: string) => {
+    setDegustacionDraft((prev) => {
+      const nextMieles = [...prev.mielesGeograficas];
+      if (nextMieles[index]) {
+        nextMieles[index] = { ...nextMieles[index], [field]: val };
+      }
+      return { ...prev, mielesGeograficas: nextMieles };
+    });
+  };
+
+  const addMielDraft = () => {
+    setDegustacionDraft((prev) => ({
+      ...prev,
+      mielesGeograficas: [
+        ...prev.mielesGeograficas,
+        {
+          key: `miel-${prev.mielesGeograficas.length + 1}`,
+          nombre: 'Nueva Miel Botánica',
+          nombreCientifico: 'Especie botánica',
+          macroZona: 'Zona geográfica',
+          tagline: 'Notas aromáticas principales',
+          perfilResumido: 'Textura, cuerpo y carácter en boca.',
+          floracionSlug: 'ulmo',
+        },
+      ],
+    }));
+  };
+
+  const removeMielDraft = (index: number) => {
+    setDegustacionDraft((prev) => ({
+      ...prev,
+      mielesGeograficas: prev.mielesGeograficas.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  const updateDescriptorRatingDraft = (nota: number, val: string) => {
+    setDegustacionDraft((prev) => ({
+      ...prev,
+      descriptoresRating: {
+        ...prev.descriptoresRating,
+        [nota]: val,
+      },
+    }));
+  };
+
+  const handleGuardarDegustacionConfig = async () => {
+    setSavingDegustacion(true);
+    try {
+      const res = await apiFetch('/api/b2b-publico/degustacion-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(degustacionDraft),
+      });
+      if (!res.ok) throw new Error('Error al guardar la configuración');
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
+      toast('Configuración de Degustación en Vivo actualizada con éxito en tienda', { type: 'success' });
+      setModalDegustacionOpen(false);
+    } catch (err) {
+      toast(friendlyError(err, 'No fue posible guardar la configuración'), { type: 'error' });
+    } finally {
+      setSavingDegustacion(false);
+    }
+  };
+
+  const handleResetDegustacionConfig = () => {
+    setDegustacionDraft(DEGUSTACION_CONFIG_DEFAULT);
+    toast('Borrador restablecido con los valores canónicos recomendados', { type: 'info' });
+  };
+
   const abrirModalQrConfig = (prod: ProductoOption) => {
     setQrConfigProduct(prod);
     setQrConfigDraft({
@@ -160,14 +272,41 @@ export function HubPhygitalView() {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const [resProd, resLotes, resQr] = await Promise.all([
+      const [resProd, resLotes, resQr, resDeg] = await Promise.all([
         supabase
           .from('productos')
           .select('id, nombre, formato, slug, fotos, tipo_sensorial, perfil_sensorial')
           .order('nombre'),
         supabase.from('lotes').select('id, nombre_lote, variedad_floral').order('created_at', { ascending: false }),
         apiFetch('/api/phygital/qr?limit=100'),
+        apiFetch('/api/b2b-publico/degustacion-config').catch(() => null),
       ]);
+
+      if (resDeg && resDeg.ok) {
+        const jsonDeg = await resDeg.json().catch(() => null);
+        if (jsonDeg?.data) {
+          setDegustacionDraft({
+            ...DEGUSTACION_CONFIG_DEFAULT,
+            ...jsonDeg.data,
+            textos: {
+              ...DEGUSTACION_CONFIG_DEFAULT.textos,
+              ...(jsonDeg.data.textos || {}),
+            },
+            variedadesMesa:
+              jsonDeg.data.variedadesMesa && jsonDeg.data.variedadesMesa.length > 0
+                ? jsonDeg.data.variedadesMesa
+                : DEGUSTACION_CONFIG_DEFAULT.variedadesMesa,
+            mielesGeograficas:
+              jsonDeg.data.mielesGeograficas && jsonDeg.data.mielesGeograficas.length > 0
+                ? jsonDeg.data.mielesGeograficas
+                : DEGUSTACION_CONFIG_DEFAULT.mielesGeograficas,
+            descriptoresRating: {
+              ...DEGUSTACION_CONFIG_DEFAULT.descriptoresRating,
+              ...(jsonDeg.data.descriptoresRating || {}),
+            },
+          });
+        }
+      }
 
       if (resProd.data) {
         const soloProductosReales = (resProd.data as ProductoOption[]).filter(
@@ -375,7 +514,7 @@ export function HubPhygitalView() {
         {/* QRs Maestros para Estaciones de Degustación en Vivo */}
         {tipoVistaQr === 'oficiales' && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
                   QRs Maestros de Degustación en Vivo
@@ -384,6 +523,14 @@ export function HubPhygitalView() {
                   Elige el QR según el contexto físico de tu stand o evento. Cada uno calibra en tiempo real la constelación sensorial (8 vértices) en la tienda oficial.
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setModalDegustacionOpen(true)}
+                className="btn btn-outline text-xs py-1.5 px-3 flex items-center gap-1.5 self-start sm:self-auto border-primary/40 text-primary hover:bg-primary/10 transition-colors shadow-sm"
+              >
+                <SlidersHorizontal size={13} />
+                <span>Personalizar Flujo & Variantes</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
@@ -1121,6 +1268,758 @@ export function HubPhygitalView() {
               className="input-field text-xs w-full"
             />
           </div>
+        </div>
+      </ImmersiveModal>
+
+      {/* Modal: Personalizador Integral del Flujo de Degustación en Vivo */}
+      <ImmersiveModal
+        open={modalDegustacionOpen}
+        onClose={() => setModalDegustacionOpen(false)}
+        title="Personalizador · Degustación en Vivo & Trípode de Feria"
+        eyebrow="Textos, creaciones de mesa, red sensorial y enlaces a tienda"
+        size="lg"
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <button
+              type="button"
+              onClick={handleResetDegustacionConfig}
+              disabled={savingDegustacion}
+              className="btn btn-outline text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+              title="Restablecer los valores recomendados por defecto"
+            >
+              <RotateCcw size={12} />
+              <span>Restablecer Canónicos</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setModalDegustacionOpen(false)}
+                disabled={savingDegustacion}
+                className="btn btn-outline text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleGuardarDegustacionConfig}
+                disabled={savingDegustacion}
+                className="btn btn-gold text-xs flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {savingDegustacion ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                <span>Guardar Configuración en Vivo</span>
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          {/* Navegación por Pestañas */}
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-surface-sunken rounded-xl border border-border/80 text-xs">
+            <button
+              type="button"
+              onClick={() => setTabDegustacionModal('textos')}
+              className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg font-medium transition-colors ${
+                tabDegustacionModal === 'textos'
+                  ? 'bg-card text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              1. Títulos & Pabellones
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabDegustacionModal('variedades')}
+              className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg font-medium transition-colors ${
+                tabDegustacionModal === 'variedades'
+                  ? 'bg-card text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              2. Creaciones en Mesa ({degustacionDraft.variedadesMesa.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabDegustacionModal('mieles')}
+              className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg font-medium transition-colors ${
+                tabDegustacionModal === 'mieles'
+                  ? 'bg-card text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              3. Mieles de Chile ({degustacionDraft.mielesGeograficas.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabDegustacionModal('ejes')}
+              className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg font-medium transition-colors ${
+                tabDegustacionModal === 'ejes'
+                  ? 'bg-card text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              4. Red Sensorial (8 Vértices)
+            </button>
+            <button
+              type="button"
+              onClick={() => setTabDegustacionModal('salida')}
+              className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg font-medium transition-colors ${
+                tabDegustacionModal === 'salida'
+                  ? 'bg-card text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              5. Reseña & Salida a Tienda
+            </button>
+          </div>
+
+          {/* TAB 1: Títulos & Pabellones */}
+          {tabDegustacionModal === 'textos' && (
+            <div className="space-y-3.5">
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-[0.72rem] text-muted-foreground leading-relaxed">
+                Estos textos aparecen en la cabecera del móvil al escanear cualquiera de los QRs Maestros (<strong className="text-foreground">/cata/FERIA</strong>, <strong className="text-foreground">/cata/CHILE</strong> o <strong className="text-foreground">/cata/DEGUSTACION</strong>).
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Título Principal de Selección
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.tituloSeleccion}
+                    onChange={(e) => updateTextosDraft('tituloSeleccion', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Estación de Degustación en Vivo"
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Badge Superior en Mesa
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.badgeFeria}
+                    onChange={(e) => updateTextosDraft('badgeFeria', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Trípode de Mesa · Registro Sensorial Directo"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                  Subtítulo / Pregunta Guía
+                </label>
+                <input
+                  type="text"
+                  value={degustacionDraft.textos.subtituloSeleccion}
+                  onChange={(e) => updateTextosDraft('subtituloSeleccion', e.target.value)}
+                  className="input-field text-xs w-full"
+                  placeholder="¿Qué variante estás degustando en este momento?"
+                />
+              </div>
+
+              <div className="border-t border-border/60 pt-3">
+                <h4 className="text-[0.7rem] uppercase tracking-wider text-primary font-bold mb-2">
+                  Configuración de Pestañas / Pabellones (Conmutador)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-card border border-border/80 space-y-2">
+                    <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-bold">
+                      Pabellón 1 · Creaciones de la Casa
+                    </span>
+                    <div>
+                      <label className="text-[0.62rem] text-muted-foreground block mb-0.5">Nombre Pestaña</label>
+                      <input
+                        type="text"
+                        value={degustacionDraft.textos.pabellonCasaLabel}
+                        onChange={(e) => updateTextosDraft('pabellonCasaLabel', e.target.value)}
+                        className="input-field text-xs w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.62rem] text-muted-foreground block mb-0.5">Subtítulo Descriptivo</label>
+                      <input
+                        type="text"
+                        value={degustacionDraft.textos.pabellonCasaSubtitle}
+                        onChange={(e) => updateTextosDraft('pabellonCasaSubtitle', e.target.value)}
+                        className="input-field text-xs w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.62rem] text-muted-foreground block mb-0.5">Nota de Contexto</label>
+                      <input
+                        type="text"
+                        value={degustacionDraft.textos.pabellonCasaDesc}
+                        onChange={(e) => updateTextosDraft('pabellonCasaDesc', e.target.value)}
+                        className="input-field text-xs w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-card border border-border/80 space-y-2">
+                    <span className="text-[0.6rem] font-mono uppercase tracking-wider text-accent-text font-bold">
+                      Pabellón 2 · Atlas Botánico de Chile
+                    </span>
+                    <div>
+                      <label className="text-[0.62rem] text-muted-foreground block mb-0.5">Nombre Pestaña</label>
+                      <input
+                        type="text"
+                        value={degustacionDraft.textos.pabellonGeografiasLabel}
+                        onChange={(e) => updateTextosDraft('pabellonGeografiasLabel', e.target.value)}
+                        className="input-field text-xs w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.62rem] text-muted-foreground block mb-0.5">Subtítulo Descriptivo</label>
+                      <input
+                        type="text"
+                        value={degustacionDraft.textos.pabellonGeografiasSubtitle}
+                        onChange={(e) => updateTextosDraft('pabellonGeografiasSubtitle', e.target.value)}
+                        className="input-field text-xs w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.62rem] text-muted-foreground block mb-0.5">Nota de Contexto</label>
+                      <input
+                        type="text"
+                        value={degustacionDraft.textos.pabellonGeografiasDesc}
+                        onChange={(e) => updateTextosDraft('pabellonGeografiasDesc', e.target.value)}
+                        className="input-field text-xs w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border/60 pt-3 space-y-2.5">
+                <h4 className="text-[0.7rem] uppercase tracking-wider text-primary font-bold">
+                  Cabecera del Paso 2 · Red Sensorial (8 Vértices)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Badge Superior Paso 2
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.paso2Badge}
+                      onChange={(e) => updateTextosDraft('paso2Badge', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="Paso 2 de 3 · Perfil Sensorial"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Título Paso 2
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.paso2Titulo}
+                      onChange={(e) => updateTextosDraft('paso2Titulo', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="Geometría de la Red Sensorial"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Subtítulo / Instrucción Paso 2
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.paso2Subtitulo}
+                    onChange={(e) => updateTextosDraft('paso2Subtitulo', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Calibra los 8 vértices en escala 1.0 a 10.0 según tu percepción directa en el paladar."
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: Creaciones en Mesa */}
+          {tabDegustacionModal === 'variedades' && (
+            <div className="space-y-3">
+              <p className="text-[0.72rem] text-muted-foreground leading-relaxed">
+                Estas son las 4 recetas activas en tu mesa de degustación. Cada una se vincula a su slug de producto oficial en la tienda para que las reseñas alimenten su constelación sensorial real.
+              </p>
+
+              <div className="space-y-2.5">
+                {degustacionDraft.variedadesMesa.map((variedad, idx) => (
+                  <div
+                    key={variedad.id || idx}
+                    className="p-3.5 rounded-xl bg-card border border-border/80 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[0.65rem] font-mono flex items-center justify-center font-bold">
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs font-semibold text-foreground">
+                          {variedad.name || `Variante #${idx + 1}`}
+                        </span>
+                      </div>
+                      <span className="text-[0.6rem] font-mono text-muted-foreground">ID: {variedad.id}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Nombre Visible de la Variante
+                        </label>
+                        <input
+                          type="text"
+                          value={variedad.name}
+                          onChange={(e) => updateVariedadDraft(idx, 'name', e.target.value)}
+                          className="input-field text-xs w-full"
+                          placeholder="Nombre de la receta"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Nota / Matiz Descriptivo Breve
+                        </label>
+                        <input
+                          type="text"
+                          value={variedad.note}
+                          onChange={(e) => updateVariedadDraft(idx, 'note', e.target.value)}
+                          className="input-field text-xs w-full"
+                          placeholder="Descripción breve que verá el cliente"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Slug de Producto Vinculado (Tienda)
+                        </label>
+                        <input
+                          type="text"
+                          value={variedad.productSlug || ''}
+                          onChange={(e) => updateVariedadDraft(idx, 'productSlug', e.target.value)}
+                          className="input-field text-xs w-full font-mono"
+                          placeholder="ej: crema-de-miel-batida-frio-250g"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          O vincular desde catálogo existente
+                        </label>
+                        <select
+                          value={variedad.productSlug || ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              updateVariedadDraft(idx, 'productSlug', e.target.value);
+                            }
+                          }}
+                          className="input-field text-xs w-full"
+                        >
+                          <option value="">Seleccionar del catálogo de productos...</option>
+                          {productos
+                            .filter((p) => Boolean(p.slug))
+                            .map((p) => (
+                              <option key={p.id} value={p.slug || ''}>
+                                {p.nombre} ({p.slug})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Mieles de Chile (Atlas Botánico) */}
+          {tabDegustacionModal === 'mieles' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[0.72rem] text-muted-foreground leading-relaxed">
+                  Configura las mieles monoflorales y orígenes geográficos del pabellón <strong className="text-foreground">Mieles de Chile</strong> (<span className="font-mono">/cata/CHILE</span> y <span className="font-mono">/cata/DEGUSTACION</span>).
+                </p>
+                <button
+                  type="button"
+                  onClick={addMielDraft}
+                  className="btn btn-outline text-xs py-1 px-2.5 flex items-center gap-1 shrink-0"
+                >
+                  <Plus size={12} />
+                  <span>Añadir Origen</span>
+                </button>
+              </div>
+
+              <div className="space-y-2.5">
+                {degustacionDraft.mielesGeograficas.map((miel, idx) => (
+                  <div
+                    key={miel.key || idx}
+                    className="p-3.5 rounded-xl bg-card border border-border/80 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-accent/20 text-accent-text text-[0.65rem] font-mono flex items-center justify-center font-bold">
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs font-semibold text-foreground">
+                          {miel.nombre || `Miel #${idx + 1}`}
+                        </span>
+                        <span className="text-[0.62rem] italic text-muted-foreground">
+                          ({miel.nombreCientifico})
+                        </span>
+                      </div>
+                      {degustacionDraft.mielesGeograficas.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMielDraft(idx)}
+                          className="text-[0.62rem] text-destructive hover:underline font-mono"
+                        >
+                          Quitar
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Nombre de la Miel
+                        </label>
+                        <input
+                          type="text"
+                          value={miel.nombre}
+                          onChange={(e) => updateMielDraft(idx, 'nombre', e.target.value)}
+                          className="input-field text-xs w-full"
+                          placeholder="Ej: Miel de Ulmo"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Nombre Científico
+                        </label>
+                        <input
+                          type="text"
+                          value={miel.nombreCientifico}
+                          onChange={(e) => updateMielDraft(idx, 'nombreCientifico', e.target.value)}
+                          className="input-field text-xs w-full italic"
+                          placeholder="Ej: Eucryphia cordifolia"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Macrozona / Territorio
+                        </label>
+                        <input
+                          type="text"
+                          value={miel.macroZona}
+                          onChange={(e) => updateMielDraft(idx, 'macroZona', e.target.value)}
+                          className="input-field text-xs w-full"
+                          placeholder="Ej: Cordillera de la Costa · Los Lagos"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Nota Aromática Principal (Tagline)
+                        </label>
+                        <input
+                          type="text"
+                          value={miel.tagline}
+                          onChange={(e) => updateMielDraft(idx, 'tagline', e.target.value)}
+                          className="input-field text-xs w-full"
+                          placeholder="Aroma a jazmín silvestre, notas anisadas."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Perfil Resumido en Boca
+                        </label>
+                        <input
+                          type="text"
+                          value={miel.perfilResumido}
+                          onChange={(e) => updateMielDraft(idx, 'perfilResumido', e.target.value)}
+                          className="input-field text-xs w-full"
+                          placeholder="Cremosa, floral intenso, acidez equilibrada."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.62rem] text-muted-foreground block mb-0.5">
+                          Slug de Floración (Biblioteca)
+                        </label>
+                        <input
+                          type="text"
+                          value={miel.floracionSlug}
+                          onChange={(e) => {
+                            updateMielDraft(idx, 'floracionSlug', e.target.value);
+                            updateMielDraft(idx, 'key', e.target.value || `miel-${idx + 1}`);
+                          }}
+                          className="input-field text-xs w-full font-mono"
+                          placeholder="ulmo"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: Red Sensorial (8 Vértices) */}
+          {tabDegustacionModal === 'ejes' && (
+            <div className="space-y-3.5">
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/30 flex items-start gap-2 text-[0.72rem] text-foreground leading-relaxed">
+                <CheckCircle2 size={16} className="text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-primary">Regla Canónica de Calibración Neutral</p>
+                  <p className="text-muted-foreground mt-0.5">
+                    Al escanear desde el teléfono móvil, <strong className="text-foreground">todos los 8 vértices inician en 1.0</strong> (intensidad sutil basal). Esto asegura que el cliente calibre activamente cada eje con su propia percepción en boca, sin sesgo de partida.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="text-[0.68rem] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Nombres de los 8 Vértices del Polígono Sensorial
+                </h4>
+                <p className="text-[0.65rem] text-muted-foreground">
+                  Puedes afinar la redacción de cada arista para adaptarla al lenguaje de tu cata o evento.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {degustacionDraft.ejesSensorialesCanonicos.map((eje, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-xl bg-card border border-border/80 flex items-center gap-2.5"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[0.65rem] font-mono flex items-center justify-center font-bold shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1">
+                      <label className="text-[0.6rem] text-muted-foreground block mb-0.5">
+                        Vértice #{idx + 1}
+                      </label>
+                      <input
+                        type="text"
+                        value={eje}
+                        onChange={(e) => updateEjeDraft(idx, e.target.value)}
+                        className="input-field text-xs w-full"
+                        placeholder={`Vértice ${idx + 1}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: Reseña & Salida a Tienda */}
+          {tabDegustacionModal === 'salida' && (
+            <div className="space-y-3.5">
+              <p className="text-[0.72rem] text-muted-foreground leading-relaxed">
+                Controla todos los textos del Paso 3 (Notas, Escala 1 a 10 y Comentario) y de la pantalla final de Pasaporte Sensorial y salida a tienda.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Badge Paso 3
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.paso3Badge}
+                    onChange={(e) => updateTextosDraft('paso3Badge', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Paso 3 de 3"
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Título Paso 3 · Apreciación Global
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.paso3Titulo}
+                    onChange={(e) => updateTextosDraft('paso3Titulo', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Notas de Sabor y Reseña"
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Etiqueta de Calificación (Escala 1 a 10)
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.ratingLabel}
+                    onChange={(e) => updateTextosDraft('ratingLabel', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Evaluación Global (Escala 1 a 10)"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                  Subtítulo Paso 3 · Instrucción al Catador
+                </label>
+                <input
+                  type="text"
+                  value={degustacionDraft.textos.paso3Subtitulo}
+                  onChange={(e) => updateTextosDraft('paso3Subtitulo', e.target.value)}
+                  className="input-field text-xs w-full"
+                  placeholder="Selecciona los matices que logras percibir en esta muestra."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Etiqueta del Campo de Reseña Escrita
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.comentarioLabel}
+                    onChange={(e) => updateTextosDraft('comentarioLabel', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Tu reseña oficial (Opcional)"
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Placeholder del Comentario
+                  </label>
+                  <input
+                    type="text"
+                    value={degustacionDraft.textos.comentarioPlaceholder}
+                    onChange={(e) => updateTextosDraft('comentarioPlaceholder', e.target.value)}
+                    className="input-field text-xs w-full"
+                    placeholder="Describe los matices que sentiste al probar esta miel..."
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-border/60 pt-3 space-y-2.5">
+                <h4 className="text-[0.7rem] uppercase tracking-wider text-primary font-bold">
+                  Descriptores de la Escala 1 a 10
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((nota) => (
+                    <div key={nota} className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-primary/15 text-primary font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                        {nota}
+                      </span>
+                      <input
+                        type="text"
+                        value={degustacionDraft.descriptoresRating[nota] || ''}
+                        onChange={(e) => updateDescriptorRatingDraft(nota, e.target.value)}
+                        className="input-field text-xs w-full"
+                        placeholder={`Descriptor nota ${nota}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-border/60 pt-3 space-y-3">
+                <h4 className="text-[0.7rem] uppercase tracking-wider text-primary font-bold">
+                  Pantalla de Éxito (Pasaporte Sensorial) & Salida Diferida a Tienda
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Título de Éxito
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.exitoTitulo}
+                      onChange={(e) => updateTextosDraft('exitoTitulo', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="Tu Pasaporte Sensorial"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Badge Sello ({'{punto}'})
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.exitoBadgeSello}
+                      onChange={(e) => updateTextosDraft('exitoBadgeSello', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="1 Sello en {punto}"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Badge Puntos ({'{puntos}'})
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.exitoBadgePuntos}
+                      onChange={(e) => updateTextosDraft('exitoBadgePuntos', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="+{puntos} Puntos del Bosque"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Título Salida (Creaciones Casa)
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.salidaDiferidaTitulo}
+                      onChange={(e) => updateTextosDraft('salidaDiferidaTitulo', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="Lleva esta experiencia a tu casa"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Título Salida (Mieles de Chile)
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.salidaGeografiasTitulo}
+                      onChange={(e) => updateTextosDraft('salidaGeografiasTitulo', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="Despensa Austral de Pureo"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                      Texto del Botón a Tienda
+                    </label>
+                    <input
+                      type="text"
+                      value={degustacionDraft.textos.salidaDiferidaBoton}
+                      onChange={(e) => updateTextosDraft('salidaDiferidaBoton', e.target.value)}
+                      className="input-field text-xs w-full"
+                      placeholder="Explorar Catálogo Oficial"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+                    Descripción del Bloque de Despensa
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={degustacionDraft.textos.salidaDiferidaDesc}
+                    onChange={(e) => updateTextosDraft('salidaDiferidaDesc', e.target.value)}
+                    className="input-field text-xs w-full resize-none"
+                    placeholder="Puedes recibirla en tu domicilio o continuar explorando los orígenes del bosque nativo."
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </ImmersiveModal>
     </div>

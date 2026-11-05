@@ -36,10 +36,12 @@ export default async function CataPage({
   });
   
   let punto: { id: string; nombre: string; tipo: string; ciudad: string | null; codigo_acceso?: string } | null = null;
+  let customConfig: unknown = null;
 
   if (res.ok) {
     const json = await res.json().catch(() => null);
     punto = json?.data?.punto ?? null;
+    customConfig = json?.data?.configuracion ?? null;
   }
 
   if (!punto) {
@@ -146,6 +148,7 @@ export default async function CataPage({
           initialVarianteId={initialVarianteId}
           initialPabellon={initialPabellon}
           lockPabellon={lockPabellon}
+          config={customConfig as never}
         />
       </main>
       <ShopFooter />

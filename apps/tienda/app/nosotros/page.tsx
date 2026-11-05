@@ -6,7 +6,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseNosotrosSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
+import { parseNosotrosSettings, parseNosotrosContent, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { ArrowRight, Edit3 } from 'lucide-react';
@@ -29,9 +29,9 @@ import { createPageMetadata } from '@/lib/shop/page-metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata('/nosotros', {
-    title: 'Nosotros · Trayectoria y Vínculo',
+    title: 'Nosotros · Renacer de las Cenizas en Chiloé',
     description:
-      'Presencia en el bosque nativo de Chiloé, estándar de recolección apícola y regeneración territorial — La Obrera y el Zángano.',
+      'Desde el año 2003, un camino de aprendizajes, cambios y experiencia. Presencia en el bosque nativo de Chiloé y estándar de recolección apícola — La Obrera y el Zángano.',
     ogType: 'article',
   });
 }
@@ -55,6 +55,7 @@ export default async function NosotrosPage({
 
   const cmsRows = batch.nosotros ?? [];
   const nosotrosSettings = parseNosotrosSettings((batch.nosotros_settings?.[0]?.content as Record<string, unknown>) ?? null);
+  const nosotrosContent = parseNosotrosContent((cmsRows[0]?.content as Record<string, unknown>) ?? null);
 
   const rawGaleria = batch.galeria ?? [];
   const galeriaCmsItems = rawGaleria
@@ -112,89 +113,122 @@ export default async function NosotrosPage({
 
   const archiveImages = galeriaCmsItems.length > 0 ? galeriaCmsItems.slice(0, 6) : defaultArchiveImages;
 
-  const cms = cmsRows[0]?.content as Record<string, string | undefined> | undefined;
   const heroKicker =
-    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale) ||
-    (locale === 'en' ? 'Trajectory & Origin' : 'Trayectoria & Origen');
+    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale);
   const heroTitle =
-    resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale) ||
-    resolveLocalized(cms?.title, cms?.title_en, locale) ||
-    (locale === 'en' ? 'Born from the Ashes in Chiloé' : 'Renacer de las Cenizas en Chiloé');
+    resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale);
   const heroDesc =
-    resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale) ||
-    resolveLocalized(cms?.desc, cms?.desc_en, locale) ||
-    (locale === 'en'
-      ? 'A bridge between the maritime territory of Chiloé, the temperate rainforest, and beekeeping mastery without compromise.'
-      : 'Un puente vivo entre el maritorio de Chiloé, el bosque templado lluvioso y una técnica apícola sin concesiones.');
+    resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale);
   const heroImage =
     (typeof nosotrosSettings.hero_image === 'string' && nosotrosSettings.hero_image) ||
-    (typeof cms?.image === 'string' && (cms.image.startsWith('http') || cms.image.startsWith('/')) ? cms.image : null) ||
     '/assets/editorial/nosotros-hero.jpg';
-  const historia = resolveLocalized(cms?.historia, cms?.historia_en, locale) || null;
 
-  const isLegacyMision = !cms?.mision_title || cms.mision_title === 'Nuestra Misión';
-  const misionTitle = isLegacyMision
-    ? (locale === 'en' ? 'The Standard of Origin' : 'El Estándar de Origen')
-    : resolveLocalized(cms.mision_title, cms.mision_title_en, locale);
-  const mision = resolveLocalized(cms?.mision, cms?.mision_en, locale) || null;
+  const giroKicker = resolveLocalized(nosotrosContent.giro_kicker, nosotrosContent.giro_kicker_en, locale);
+  const giroTitle = resolveLocalized(nosotrosContent.giro_title, nosotrosContent.giro_title_en, locale);
+  const giroP1 = resolveLocalized(nosotrosContent.giro_p1, nosotrosContent.giro_p1_en, locale);
+  const giroP2 = resolveLocalized(nosotrosContent.giro_p2, nosotrosContent.giro_p2_en, locale);
+  const giroP3 = resolveLocalized(nosotrosContent.giro_p3, nosotrosContent.giro_p3_en, locale);
+  const historia = resolveLocalized(nosotrosContent.historia, nosotrosContent.historia_en, locale);
 
-  const isLegacyVision = !cms?.vision_title || cms.vision_title === 'Nuestra Visión';
-  const visionTitle = isLegacyVision
-    ? (locale === 'en' ? 'Territorial Protection' : 'El Resguardo del Territorio')
-    : resolveLocalized(cms.vision_title, cms.vision_title_en, locale);
-  const vision = resolveLocalized(cms?.vision, cms?.vision_en, locale) || null;
+  const cronicaKicker = resolveLocalized(nosotrosContent.cronica_kicker, nosotrosContent.cronica_kicker_en, locale);
+  const cronicaTitle = resolveLocalized(nosotrosContent.cronica_title, nosotrosContent.cronica_title_en, locale);
+
+  const movimientos = [
+    {
+      year: nosotrosContent.mov1_year,
+      title: resolveLocalized(nosotrosContent.mov1_title, nosotrosContent.mov1_title_en, locale),
+      desc: resolveLocalized(nosotrosContent.mov1_desc, nosotrosContent.mov1_desc_en, locale),
+    },
+    {
+      year: nosotrosContent.mov2_year,
+      title: resolveLocalized(nosotrosContent.mov2_title, nosotrosContent.mov2_title_en, locale),
+      desc: resolveLocalized(nosotrosContent.mov2_desc, nosotrosContent.mov2_desc_en, locale),
+    },
+    {
+      year: nosotrosContent.mov3_year,
+      title: resolveLocalized(nosotrosContent.mov3_title, nosotrosContent.mov3_title_en, locale),
+      desc: resolveLocalized(nosotrosContent.mov3_desc, nosotrosContent.mov3_desc_en, locale),
+    },
+    {
+      year: nosotrosContent.mov4_year,
+      title: resolveLocalized(nosotrosContent.mov4_title, nosotrosContent.mov4_title_en, locale),
+      desc: resolveLocalized(nosotrosContent.mov4_desc, nosotrosContent.mov4_desc_en, locale),
+    },
+    {
+      year: resolveLocalized(nosotrosContent.mov5_year, nosotrosContent.mov5_year_en, locale),
+      title: resolveLocalized(nosotrosContent.mov5_title, nosotrosContent.mov5_title_en, locale),
+      desc: resolveLocalized(nosotrosContent.mov5_desc, nosotrosContent.mov5_desc_en, locale),
+    },
+  ];
+
+  const principiosKicker = resolveLocalized(nosotrosContent.principios_kicker, nosotrosContent.principios_kicker_en, locale);
+  const principiosTitle = resolveLocalized(nosotrosContent.principios_title, nosotrosContent.principios_title_en, locale);
+
+  const misionKicker = resolveLocalized(nosotrosContent.mision_kicker, nosotrosContent.mision_kicker_en, locale);
+  const misionTitle = resolveLocalized(nosotrosContent.mision_title, nosotrosContent.mision_title_en, locale);
+  const mision = resolveLocalized(nosotrosContent.mision, nosotrosContent.mision_en, locale);
+  const misionFooterLeft = resolveLocalized(nosotrosContent.mision_footer_left, nosotrosContent.mision_footer_left_en, locale);
+  const misionFooterRight = resolveLocalized(nosotrosContent.mision_footer_right, nosotrosContent.mision_footer_right_en, locale);
+
+  const visionKicker = resolveLocalized(nosotrosContent.vision_kicker, nosotrosContent.vision_kicker_en, locale);
+  const visionTitle = resolveLocalized(nosotrosContent.vision_title, nosotrosContent.vision_title_en, locale);
+  const vision = resolveLocalized(nosotrosContent.vision, nosotrosContent.vision_en, locale);
+  const visionFooterLeft = resolveLocalized(nosotrosContent.vision_footer_left, nosotrosContent.vision_footer_left_en, locale);
+  const visionFooterRight = resolveLocalized(nosotrosContent.vision_footer_right, nosotrosContent.vision_footer_right_en, locale);
 
   const aspectClass = aspectClassMap[nosotrosSettings.image_aspect_ratio] || 'aspect-[16/9]';
   const fitClass = nosotrosSettings.image_fit === 'contain' ? 'object-contain p-4' : 'object-cover';
 
-  // Stats: etiqueta/valor desde CMS con fallback a cifras verificadas
-  const statDefs = [
-    { label: locale === 'en' ? 'Years of Presence' : 'Años de Presencia', value: '22' },
-    { label: locale === 'en' ? 'Botanical Species' : 'Especies Botánicas', value: '18+' },
-    { label: locale === 'en' ? 'Cold-creamed' : 'Batido en Frío', value: '48h' },
-    { label: locale === 'en' ? 'Native Forest' : 'Bosque Nativo*', value: '100%' },
+  const stats = [
+    {
+      label: resolveLocalized(nosotrosContent.stat1_label, nosotrosContent.stat1_label_en, locale),
+      value: nosotrosContent.stat1_value,
+    },
+    {
+      label: resolveLocalized(nosotrosContent.stat2_label, nosotrosContent.stat2_label_en, locale),
+      value: nosotrosContent.stat2_value,
+    },
+    {
+      label: resolveLocalized(nosotrosContent.stat3_label, nosotrosContent.stat3_label_en, locale),
+      value: nosotrosContent.stat3_value,
+    },
+    {
+      label: resolveLocalized(nosotrosContent.stat4_label, nosotrosContent.stat4_label_en, locale),
+      value: nosotrosContent.stat4_value,
+    },
   ];
-  const stats = statDefs.map((s, i) => {
-    const rawLabel = resolveLocalized(
-      cms?.[`stat${i + 1}_label`],
-      cms?.[`stat${i + 1}_label_en`],
-      locale,
-    );
-    const rawVal =
-      typeof cms?.[`stat${i + 1}_value`] === 'string' &&
-      (cms[`stat${i + 1}_value`] as string).trim()
-        ? (cms[`stat${i + 1}_value`] as string)
-        : s.value;
-    return {
-      label: rawLabel || s.label,
-      value: rawVal,
-    };
-  });
-  const statsDisclaimer =
-    resolveLocalized(cms?.stats_disclaimer, cms?.stats_disclaimer_en, locale) ||
-    (locale === 'en'
-      ? '* 100% native forest: apiaries situated strictly within native canopy enclosures in Chiloé, without agrochemical exposure. See /ciencia.'
-      : '* 100% bosque nativo: colmenas emplazadas exclusivamente en predios rodeados de dosel autóctono en Chiloé, sin cultivos industriales ni agroquímicos. Ver detalles analíticos en /ciencia.');
+  const statsDisclaimer = resolveLocalized(nosotrosContent.stats_disclaimer, nosotrosContent.stats_disclaimer_en, locale);
+
+  const archivoKicker = resolveLocalized(nosotrosContent.archivo_kicker, nosotrosContent.archivo_kicker_en, locale);
+  const archivoTitle = resolveLocalized(nosotrosContent.archivo_title, nosotrosContent.archivo_title_en, locale);
+  const archivoDesc = resolveLocalized(nosotrosContent.archivo_desc, nosotrosContent.archivo_desc_en, locale);
+  const archivoCtaLabel = resolveLocalized(nosotrosContent.archivo_cta_label, nosotrosContent.archivo_cta_label_en, locale);
+  const archivoCtaHref = nosotrosContent.archivo_cta_href || '/galeria';
+
+  const cienciaKicker = resolveLocalized(nosotrosContent.ciencia_kicker, nosotrosContent.ciencia_kicker_en, locale);
+  const cienciaTitle = resolveLocalized(nosotrosContent.ciencia_title, nosotrosContent.ciencia_title_en, locale);
+  const cienciaDesc = resolveLocalized(nosotrosContent.ciencia_desc, nosotrosContent.ciencia_desc_en, locale);
+  const cienciaCtaLabel = resolveLocalized(nosotrosContent.ciencia_cta_label, nosotrosContent.ciencia_cta_label_en, locale);
+  const cienciaCtaHref = nosotrosContent.ciencia_cta_href || '/ciencia';
 
   // CTA final de página configurable
   const ctaKicker = resolveLocalized(nosotrosSettings.cta_kicker, nosotrosSettings.cta_kicker_en, locale);
   const ctaTitle = resolveLocalized(nosotrosSettings.cta_title, nosotrosSettings.cta_title_en, locale);
-  const ctaLabel = resolveLocalized(nosotrosSettings.cta_label, nosotrosSettings.cta_label_en, locale) ||
-    (locale === 'en' ? 'Explore Catalog' : 'Explorar Catálogo');
+  const ctaLabel = resolveLocalized(nosotrosSettings.cta_label, nosotrosSettings.cta_label_en, locale);
   const ctaHref = nosotrosSettings.cta_href || '/catalogo';
   const nucleoAppUrl = getNucleoAppUrl();
 
   const nosotrosJsonLd = mergeJsonLd([
     articleJsonLd({
-      headline: 'Renacer de las Cenizas en Chiloé',
+      headline: heroTitle || 'Renacer de las Cenizas en Chiloé',
       description:
-        '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
+        heroDesc || 'Desde el año 2003, un camino de aprendizajes, cambios y experiencia.',
       url: `${SITE_URL}/nosotros`,
       datePublished: '2025-07-02',
     }),
     breadcrumbJsonLd([
       { name: 'Inicio', href: '/' },
-      { name: 'Nuestra Historia', href: '/nosotros' },
+      { name: heroKicker || 'Nuestra Historia', href: '/nosotros' },
     ]),
   ]);
 
@@ -241,34 +275,24 @@ export default async function NosotrosPage({
         <section className="mb-20 rounded-3xl border border-border/40 bg-surface-raised/20 p-6 sm:p-10 md:p-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto text-left">
-            <span className="block text-[0.65rem] uppercase tracking-[0.35em] text-accent-text mb-3">
-              {locale === 'en' ? 'The Vital Turning Point' : 'El Giro Vital · Pureo, Chiloé'}
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground mb-6 leading-tight text-balance">
-              {locale === 'en'
-                ? 'From artisanal fishing to the rainforest canopy'
-                : 'Del maritorio austral a la cordillera de la Costa'}
-            </h2>
+            {giroKicker ? (
+              <span className="block text-[0.65rem] uppercase tracking-[0.35em] text-accent-text mb-3">
+                {giroKicker}
+              </span>
+            ) : null}
+            {giroTitle ? (
+              <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground mb-6 leading-tight text-balance">
+                {giroTitle}
+              </h2>
+            ) : null}
             <div className="space-y-4 text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed text-pretty">
-              <p>
-                {locale === 'en'
-                  ? 'At the beginning of the 2000s, Cristina Miranda Rojas and Guillermo Cuevas faced a radical turning point. Having spent their lives tied to artisanal fishing and navigating the inner sea channels of Chiloé, severe economic shifts in the marine sector compelled them to reimagine their path. They chose not to abandon the archipelago, but to journey deeper inland: into the rugged slopes of Pureo, in the commune of Queilén.'
-                  : 'A inicios de la década del 2000, Cristina Miranda Rojas y Guillermo Cuevas enfrentaron un punto de inflexión decisivo. Vinculados durante años a la pesca artesanal y a la navegación por los canales interiores de Chiloé, las sucesivas crisis en el maritorio los impulsaron a una reinvención total. En lugar de abandonar el archipiélago, decidieron internarse hacia el relieve agreste de Pureo, en la comuna de Queilén.'}
-              </p>
-              <p>
-                {locale === 'en'
-                  ? 'They arrived at a parcel severely eroded by historic fires across the coastal range: bare soil, recovering scrubland, and open ash exposed to the maritime winds of the Corcovado Gulf. Rather than an obstacle, they embraced this remote sanctuary as their life commitment: healing the land through patient botanical enrichment, collecting native seeds from untouched rainforest ravines to restore ulmo, tepú, tiaca, hazelnut, and canelo.'
-                  : 'Llegaron a un predio marcado por la erosión de antiguos incendios forestales en la cordillera de la Costa: laderas desnudas, matorral de rebrote y suelo expuesto a la intemperie marítima del golfo Corcovado. Lejos de desalentarse, asumieron el predio como un compromiso de vida: sanar la tierra mediante un enriquecimiento botánico paciente, recolectando semillas y plántulas en quebradas vírgenes para devolver el dosel de ulmo, tepú, tiaca, avellano chileno y canelo.'}
-              </p>
-              <p>
-                {locale === 'en'
-                  ? 'Chiloé challenges beekeeping with rain falling 9 to 10 months a year and high relative humidity. Paradoxically, this harsh climate became the ultimate standard of origin: an impassable ecological barrier that keeps industrial monocultures, chemical sprays, and agrochemicals away, forging honeybee colonies of extraordinary hardiness and dense, raw honey of unmatched purity.'
-                  : 'Chiloé impone un rigor severo: llueve entre 9 y 10 meses al año, con persistente humedad y viento austral. Paradójicamente, esta adversidad climática se convirtió en su mayor virtud de origen: un filtro natural infranqueable que mantiene alejados los monocultivos y agroquímicos del continente, forjando colonias de abejas con un vigor biológico excepcional y una miel cruda densa, silvestre y pura.'}
-              </p>
+              {giroP1 ? <p>{giroP1}</p> : null}
+              {giroP2 ? <p>{giroP2}</p> : null}
+              {giroP3 ? <p>{giroP3}</p> : null}
             </div>
 
             {historia ? (
-              <div className="mt-8 pt-6 border-t border-border/40 text-sm sm:text-base text-foreground/90 italic font-light leading-relaxed">
+              <div className="mt-8 pt-6 border-t border-border/40 text-sm sm:text-base text-foreground/90 italic font-light leading-relaxed whitespace-pre-line">
                 «{historia}»
               </div>
             ) : null}
@@ -278,149 +302,108 @@ export default async function NosotrosPage({
         {/* Capítulo II: Crónica Territorial en 5 Movimientos */}
         <div className="max-w-4xl mx-auto mb-24">
           <div className="text-center mb-12">
-            <span className="block text-[0.65rem] uppercase tracking-[0.35em] text-accent-text mb-3">
-              {locale === 'en' ? 'Two Decades of Presence' : 'Crónica de Territorio y Origen'}
-            </span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground text-balance">
-              {locale === 'en' ? '22 Years in Five Movements' : '22 Años en Cinco Movimientos'}
-            </h2>
+            {cronicaKicker ? (
+              <span className="block text-[0.65rem] uppercase tracking-[0.35em] text-accent-text mb-3">
+                {cronicaKicker}
+              </span>
+            ) : null}
+            {cronicaTitle ? (
+              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground text-balance">
+                {cronicaTitle}
+              </h2>
+            ) : null}
           </div>
 
           <div className="relative border-l border-border/60 pl-6 sm:pl-10 ml-4 sm:ml-8 space-y-12">
-            {/* Movimiento 1 */}
-            <div className="relative group">
-              <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-accent bg-background group-hover:bg-accent transition-colors" />
-              <div className="text-xs uppercase tracking-[0.25em] text-accent-text font-semibold mb-1">
-                2004
+            {movimientos.map((mov, idx) => (
+              <div key={idx} className="relative group">
+                <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-accent bg-background group-hover:bg-accent transition-colors" />
+                <div className="text-xs uppercase tracking-[0.25em] text-accent-text font-semibold mb-1">
+                  {mov.year}
+                </div>
+                <h3 className="font-display text-xl sm:text-2xl font-light text-foreground mb-2">
+                  {mov.title}
+                </h3>
+                <p className="text-sm sm:text-base leading-relaxed text-muted-foreground text-pretty whitespace-pre-line">
+                  {mov.desc}
+                </p>
               </div>
-              <h3 className="font-display text-xl sm:text-2xl font-light text-foreground mb-2">
-                {locale === 'en' ? 'The Soil and the Ashes' : 'El Terreno y las Cenizas'}
-              </h3>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground text-pretty">
-                {locale === 'en'
-                  ? 'Cristina Miranda Rojas, Guillermo Cuevas, and their family established themselves in Pureo, Queilén. Facing soils scorched by historic fires, they set the founding principle: no artificial chemicals, no clearcutting, and absolute respect for the rainforest recovery cycle.'
-                  : 'Cristina Miranda Rojas, Guillermo Cuevas y su familia se asientan en el sector de Pureo, Queilén. Frente a laderas calcinadas por incendios históricos, definen el principio fundacional: no forzar el suelo con agroquímicos, no talar y respetar la cadencia de regeneración del bosque templado.'}
-              </p>
-            </div>
-
-            {/* Movimiento 2 */}
-            <div className="relative group">
-              <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-accent bg-background group-hover:bg-accent transition-colors" />
-              <div className="text-xs uppercase tracking-[0.25em] text-accent-text font-semibold mb-1">
-                2006–2010
-              </div>
-              <h3 className="font-display text-xl sm:text-2xl font-light text-foreground mb-2">
-                {locale === 'en' ? 'Restoring the Native Canopy' : 'La Siembra del Dosel'}
-              </h3>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground text-pretty">
-                {locale === 'en'
-                  ? 'Four intense seasons of manual botanical enrichment. Reintroducing ulmo (Eucryphia cordifolia), tepú (Tepualia stipularis), tiaca (Caldcluvia paniculata), Chilean hazelnut (Gevuina avellana), and canelo (Drimys winteri), rebuilding the humid microclimate necessary for forest longevity.'
-                  : 'Cuatro temporadas continuas de enriquecimiento botánico manual. Se reintroducen doseles de ulmo (Eucryphia cordifolia), tepú (Tepualia stipularis), tiaca (Caldcluvia paniculata), avellano chileno (Gevuina avellana) y canelo (Drimys winteri), devolviendo la humedad estructural al suelo.'}
-              </p>
-            </div>
-
-            {/* Movimiento 3 */}
-            <div className="relative group">
-              <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-accent bg-background group-hover:bg-accent transition-colors" />
-              <div className="text-xs uppercase tracking-[0.25em] text-accent-text font-semibold mb-1">
-                2012
-              </div>
-              <h3 className="font-display text-xl sm:text-2xl font-light text-foreground mb-2">
-                {locale === 'en' ? 'The First Rustic Hives' : 'La Colmena Rústica'}
-              </h3>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground text-pretty">
-                {locale === 'en'
-                  ? 'The first nuclei of Apis mellifera arrived in the sanctuary. Handling hives under 2,000+ mm of annual rainfall demanded a tailored insular technique: elevated screened bases, rigorous organic health monitoring without synthetic waxes, and the firm rule of never feeding sugar syrups during honey flows.'
-                  : 'Llegan los primeros núcleos de Apis mellifera al santuario. Manejar abejas bajo más de 2.000 mm de lluvia anual exigió una técnica insular adaptada: alzas ventiladas, monitoreo sanitario estricto sin residuos en cera, y la regla inquebrantable de jamás alimentar con jarabes de azúcar durante los flujos de néctar.'}
-              </p>
-            </div>
-
-            {/* Movimiento 4 */}
-            <div className="relative group">
-              <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-accent bg-background group-hover:bg-accent transition-colors" />
-              <div className="text-xs uppercase tracking-[0.25em] text-accent-text font-semibold mb-1">
-                2018–2022
-              </div>
-              <h3 className="font-display text-xl sm:text-2xl font-light text-foreground mb-2">
-                {locale === 'en' ? 'Pioneering Formats & Cold Creaming' : 'La Maestría del Formato'}
-              </h3>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground text-pretty">
-                {locale === 'en'
-                  ? 'Innovation born in the field: pioneer release of "Gotas de Néctar" (15g individual raw honey sachets) to promote natural intake among athletes, followed by "Panal del Bosque" (vacuum-sealed virgin comb with intact operculum) and the mastery of 48-hour cold creaming at 14°–18°C without pasteurization.'
-                  : 'Innovación pionera nacida en Chiloé: creación de "Gotas de Néctar" (sachets individuales de 15g de miel virgen) para promover el consumo sano en deportistas, junto al "Panal del Bosque" (trozo de panal sellado al vacío con opérculo intacto) y el perfeccionamiento del batido en frío de 48 horas a 14°–18°C sin daño térmico.'}
-              </p>
-            </div>
-
-            {/* Movimiento 5 */}
-            <div className="relative group">
-              <div className="absolute -left-[31px] sm:-left-[47px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-accent bg-background group-hover:bg-accent transition-colors" />
-              <div className="text-xs uppercase tracking-[0.25em] text-accent-text font-semibold mb-1">
-                {locale === 'en' ? 'Present' : 'Presente'}
-              </div>
-              <h3 className="font-display text-xl sm:text-2xl font-light text-foreground mb-2">
-                {locale === 'en' ? 'Enjambre Legado & Digital Sovereignty' : 'Enjambre Legado & Soberanía Territorial'}
-              </h3>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground text-pretty">
-                {locale === 'en'
-                  ? 'The second generation, led by Gabriel Cuevas Miranda (anthropology, design, and code), steps in to build sovereign technology: rejecting external commercial intermediaries to build the Enjambre Legado monorepo, direct SII fiscal compliance, offline POS for rural fairs, and community beekeeping protection under Law 21.489.'
-                  : 'La segunda generación, encabezada por Gabriel Cuevas Miranda (antropología, diseño y código), consolida la soberanía del proyecto: reemplazo de plataformas intermediarias por el monorepo territorial Enjambre Legado, facturación directa SII, terminal ferial offline-first y articulación del Registro Territorial Apícola (Ley 21.489) para defender el origen de Chiloé.'}
-              </p>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Capítulo III: Díptico de Convicción Apícola (El Estándar de Origen & El Resguardo del Territorio) */}
         <section className="mb-24">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="block text-[0.65rem] uppercase tracking-[0.35em] text-accent-text mb-3">
-              {locale === 'en' ? 'Founding Convictions' : 'Principios Fundacionales'}
-            </span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground text-balance">
-              {locale === 'en' ? 'Our Standard & Territorial Commitment' : 'El Estándar y el Resguardo'}
-            </h2>
+            {principiosKicker ? (
+              <span className="block text-[0.65rem] uppercase tracking-[0.35em] text-accent-text mb-3">
+                {principiosKicker}
+              </span>
+            ) : null}
+            {principiosTitle ? (
+              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground text-balance">
+                {principiosTitle}
+              </h2>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {/* Tarjeta 1: El Estándar de Origen */}
             <div className="rounded-3xl border border-border/50 bg-card p-8 sm:p-10 flex flex-col justify-between hover:border-accent/50 transition-colors">
               <div>
-                <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text block mb-3">
-                  01 · {locale === 'en' ? 'Technique & Purity' : 'Técnica & Pureza'}
-                </span>
-                <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-4">
-                  {misionTitle}
-                </h3>
-                <p className="text-sm sm:text-base leading-relaxed text-muted-foreground whitespace-pre-line text-pretty">
-                  {mision ?? (locale === 'en'
-                    ? 'Preserving the living cadence of Chiloé through origin-based, non-invasive beekeeping. We craft raw, cold-creamed honey where ulmo and tepú nectars reach your table without heat degradation, artificial feeding, or pasteurization.'
-                    : 'Preservar la cadencia viva del territorio mediante una técnica apícola de origen, no invasiva y de alta pureza. Elaboramos alimentos nobles, crudos y trazables, donde el néctar de ulmo, tiaca y tepú llega a la mesa sin daño térmico, jarabes sustitutos ni pasteurización.')}
-                </p>
+                {misionKicker ? (
+                  <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text block mb-3">
+                    {misionKicker}
+                  </span>
+                ) : null}
+                {misionTitle ? (
+                  <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-4">
+                    {misionTitle}
+                  </h3>
+                ) : null}
+                {mision ? (
+                  <p className="text-sm sm:text-base leading-relaxed text-muted-foreground whitespace-pre-line text-pretty">
+                    {mision}
+                  </p>
+                ) : null}
               </div>
-              <div className="mt-8 pt-6 border-t border-border/30 text-xs text-muted-foreground flex items-center justify-between">
-                <span>{locale === 'en' ? 'Cold-creamed 48h · Raw Honey' : 'Batido en Frío 48h · Miel Cruda'}</span>
-                <span className="text-accent-text font-mono">Codex Standard</span>
-              </div>
+              {misionFooterLeft || misionFooterRight ? (
+                <div className="mt-8 pt-6 border-t border-border/30 text-xs text-muted-foreground flex items-center justify-between">
+                  <span>{misionFooterLeft}</span>
+                  {misionFooterRight ? (
+                    <span className="text-accent-text font-mono">{misionFooterRight}</span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             {/* Tarjeta 2: El Resguardo del Territorio */}
             <div className="rounded-3xl border border-border/50 bg-card p-8 sm:p-10 flex flex-col justify-between hover:border-accent/50 transition-colors">
               <div>
-                <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text block mb-3">
-                  02 · {locale === 'en' ? 'Sanctuary & Future' : 'Santuario & Futuro'}
-                </span>
-                <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-4">
-                  {visionTitle}
-                </h3>
-                <p className="text-sm sm:text-base leading-relaxed text-muted-foreground whitespace-pre-line text-pretty">
-                  {vision ?? (locale === 'en'
-                    ? 'Consolidating Chiloé as an international apicultural sanctuary, integrating field mastery, scientific evidence, and fine gastronomy, safeguarding the native temperate rainforest from chemical exposure through batch-level verification.'
-                    : 'Consolidar a Chiloé como santuario apícola de referencia internacional, integrando maestría apícola, evidencia científica y alta gastronomía, resguardando la biodiversidad del bosque templado lluvioso frente a monocultivos y garantizando trazabilidad lote a lote.')}
-                </p>
+                {visionKicker ? (
+                  <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text block mb-3">
+                    {visionKicker}
+                  </span>
+                ) : null}
+                {visionTitle ? (
+                  <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-4">
+                    {visionTitle}
+                  </h3>
+                ) : null}
+                {vision ? (
+                  <p className="text-sm sm:text-base leading-relaxed text-muted-foreground whitespace-pre-line text-pretty">
+                    {vision}
+                  </p>
+                ) : null}
               </div>
-              <div className="mt-8 pt-6 border-t border-border/30 text-xs text-muted-foreground flex items-center justify-between">
-                <span>{locale === 'en' ? 'Stationary Apiary · Zero Transhumance' : 'Apiarios Fijos · Sin Trashumancia'}</span>
-                <span className="text-accent-text font-mono">Pureo · Queilén</span>
-              </div>
+              {visionFooterLeft || visionFooterRight ? (
+                <div className="mt-8 pt-6 border-t border-border/30 text-xs text-muted-foreground flex items-center justify-between">
+                  <span>{visionFooterLeft}</span>
+                  {visionFooterRight ? (
+                    <span className="text-accent-text font-mono">{visionFooterRight}</span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -428,8 +411,8 @@ export default async function NosotrosPage({
         {/* Capítulo IV: Cifras de Territorio (Stats) */}
         <section className="border-t border-border/50 pt-16 mb-20">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
+            {stats.map((s, idx) => (
+              <div key={`${s.label}-${idx}`} className="text-center">
                 <div className="font-display text-4xl sm:text-5xl lg:text-6xl text-accent-text mb-2 font-light tracking-tight">
                   {s.value}
                 </div>
@@ -439,92 +422,106 @@ export default async function NosotrosPage({
               </div>
             ))}
           </div>
-          <p className="mt-8 text-xs text-muted-foreground text-center max-w-2xl mx-auto leading-relaxed">
-            {statsDisclaimer}
-          </p>
-        </section>
-
-{/* ── Archivo Territorial & Memoria Viva ── */}
-<section className="border-t border-border pt-20 mb-20">
-  <div className="text-center max-w-3xl mx-auto mb-12">
-    <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-3">
-      {locale === 'en' ? 'Territorial Archive & Living Memory' : 'Archivo Territorial & Memoria Viva'}
-    </span>
-    <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
-      {locale === 'en' ? 'Traces in the Forest & the Hive' : 'Huellas en el Bosque y la Colmena'}
-    </h2>
-    <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
-      {locale === 'en'
-        ? '22 years of records in Pureo: native botany, maritime territory, historic frames, and field life.'
-        : '22 años de registros en Pureo: botánica nativa, maritorio, panales históricos y vida de campo.'}
-    </p>
-  </div>
-
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-12">
-    {archiveImages.map((img, idx) => (
-      <Link
-        key={img.id || idx}
-        href="/galeria"
-        className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-card border border-border/40 hover:border-accent/60 transition-all duration-300 hover:shadow-xl hover:shadow-black/40"
-      >
-        <Image
-          src={img.url}
-          alt={img.titulo || 'Registro de Pureo'}
-          fill
-          sizes="(max-width: 768px) 50vw, 33vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
-          <h3 className="font-display text-base sm:text-lg text-foreground font-light mb-0.5 group-hover:text-accent transition-colors">
-            {img.titulo}
-          </h3>
-          {img.descripcion ? (
-            <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-1">
-              {img.descripcion}
+          {statsDisclaimer ? (
+            <p className="mt-8 text-xs text-muted-foreground text-center max-w-2xl mx-auto leading-relaxed">
+              {statsDisclaimer}
             </p>
           ) : null}
-        </div>
-      </Link>
-    ))}
-  </div>
+        </section>
 
-  <div className="flex justify-center">
-    <Link
-      href="/galeria"
-      className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-accent-text transition hover:bg-accent hover:text-accent-foreground cursor-pointer"
-    >
-      <span>{locale === 'en' ? 'Open Full Archive' : 'Abrir Archivo Completo'}</span>
-      <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-    </Link>
-  </div>
-</section>
+        {/* ── Archivo Territorial & Memoria Viva ── */}
+        <section className="border-t border-border pt-20 mb-20">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            {archivoKicker ? (
+              <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-3">
+                {archivoKicker}
+              </span>
+            ) : null}
+            {archivoTitle ? (
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
+                {archivoTitle}
+              </h2>
+            ) : null}
+            {archivoDesc ? (
+              <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
+                {archivoDesc}
+              </p>
+            ) : null}
+          </div>
 
-{/* Capítulo VI: Evidencia Científica & Protocolo */}
-<section className="border-t border-border/50 pt-16 mb-16">
-  <div className="rounded-3xl border border-border/40 bg-surface-raised/40 p-6 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-    <div className="max-w-xl">
-      <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text block mb-2">
-        {locale === 'en' ? 'Analytical Rigor' : 'Rigor Analítico & Laboratorio'}
-      </span>
-      <h3 className="font-display text-2xl font-light text-foreground mb-2">
-        {locale === 'en' ? 'Scientific Evidence & Sensory Protocol' : 'Evidencia Científica & Protocolo Sensorial'}
-      </h3>
-      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-        {locale === 'en'
-          ? 'Observed flowering curves, physical-chemical batch analysis (Codex moisture <18%, HMF), and ST-CATA sensory radar documented in detail.'
-          : 'Curvas de floración observadas, análisis físico-químico por lote (humedad Codex <18%, HMF) y metodología sensorial ST-CATA documentados en detalle.'}
-      </p>
-    </div>
-    <Link
-      href="/ciencia"
-      className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent bg-accent/10 px-7 text-xs font-semibold uppercase tracking-wider text-accent-text hover:bg-accent hover:text-accent-foreground transition-all shrink-0 cursor-pointer"
-    >
-      <span>{locale === 'en' ? 'Explore /ciencia' : 'Explorar /ciencia'}</span>
-      <ArrowRight className="w-3.5 h-3.5" />
-    </Link>
-  </div>
-</section>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-12">
+            {archiveImages.map((img, idx) => (
+              <Link
+                key={img.id || idx}
+                href="/galeria"
+                className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-card border border-border/40 hover:border-accent/60 transition-all duration-300 hover:shadow-xl hover:shadow-black/40"
+              >
+                <Image
+                  src={img.url}
+                  alt={img.titulo || 'Registro de Pureo'}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                  <h3 className="font-display text-base sm:text-lg text-foreground font-light mb-0.5 group-hover:text-accent transition-colors">
+                    {img.titulo}
+                  </h3>
+                  {img.descripcion ? (
+                    <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-1">
+                      {img.descripcion}
+                    </p>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {archivoCtaLabel ? (
+            <div className="flex justify-center">
+              <Link
+                href={archivoCtaHref}
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-accent-text transition hover:bg-accent hover:text-accent-foreground cursor-pointer"
+              >
+                <span>{archivoCtaLabel}</span>
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          ) : null}
+        </section>
+
+        {/* Capítulo VI: Evidencia Científica & Protocolo */}
+        <section className="border-t border-border/50 pt-16 mb-16">
+          <div className="rounded-3xl border border-border/40 bg-surface-raised/40 p-6 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="max-w-xl">
+              {cienciaKicker ? (
+                <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text block mb-2">
+                  {cienciaKicker}
+                </span>
+              ) : null}
+              {cienciaTitle ? (
+                <h3 className="font-display text-2xl font-light text-foreground mb-2">
+                  {cienciaTitle}
+                </h3>
+              ) : null}
+              {cienciaDesc ? (
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  {cienciaDesc}
+                </p>
+              ) : null}
+            </div>
+            {cienciaCtaLabel ? (
+              <Link
+                href={cienciaCtaHref}
+                className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent bg-accent/10 px-7 text-xs font-semibold uppercase tracking-wider text-accent-text hover:bg-accent hover:text-accent-foreground transition-all shrink-0 cursor-pointer"
+              >
+                <span>{cienciaCtaLabel}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            ) : null}
+          </div>
+        </section>
 
 {/* CTA Cierre de Página — configurable desde el CMS para redirigir donde se desee */}
 {ctaLabel ? (

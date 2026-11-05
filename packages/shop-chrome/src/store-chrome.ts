@@ -963,10 +963,10 @@ export type NosotrosSettings = {
 export const DEFAULT_NOSOTROS_SETTINGS: NosotrosSettings = {
   kicker: 'Nuestra Historia',
   kicker_en: 'Our Story',
-  title: 'Trayectoria y Vínculo',
-  title_en: 'Journey and Legacy',
-  subtitle: 'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen.',
-  subtitle_en: 'Our presence in the native rainforest of Chiloé and dedication to the wild bee.',
+  title: 'Renacer de las Cenizas en Chiloé',
+  title_en: 'Rebirth from the Ashes in Chiloé',
+  subtitle: 'Desde el año 2003, un camino de aprendizajes, cambios y experiencia',
+  subtitle_en: 'Since 2003, a journey of learning, transformation, and experience',
   hero_image: '/assets/editorial/nosotros-hero.jpg',
   image_aspect_ratio: '16/9',
   image_fit: 'cover',
@@ -977,6 +977,252 @@ export const DEFAULT_NOSOTROS_SETTINGS: NosotrosSettings = {
 };
 
 export const NOSOTROS_SETTINGS_TEMPLATE = { ...DEFAULT_NOSOTROS_SETTINGS };
+
+export type NosotrosContent = {
+  giro_kicker: string;
+  giro_kicker_en?: string;
+  giro_title: string;
+  giro_title_en?: string;
+  giro_p1: string;
+  giro_p1_en?: string;
+  giro_p2: string;
+  giro_p2_en?: string;
+  giro_p3: string;
+  giro_p3_en?: string;
+  historia: string;
+  historia_en?: string;
+  fuentes_intro?: string;
+  fuentes_intro_en?: string;
+
+  cronica_kicker: string;
+  cronica_kicker_en?: string;
+  cronica_title: string;
+  cronica_title_en?: string;
+  mov1_year: string;
+  mov1_title: string;
+  mov1_title_en?: string;
+  mov1_desc: string;
+  mov1_desc_en?: string;
+  mov2_year: string;
+  mov2_title: string;
+  mov2_title_en?: string;
+  mov2_desc: string;
+  mov2_desc_en?: string;
+  mov3_year: string;
+  mov3_title: string;
+  mov3_title_en?: string;
+  mov3_desc: string;
+  mov3_desc_en?: string;
+  mov4_year: string;
+  mov4_title: string;
+  mov4_title_en?: string;
+  mov4_desc: string;
+  mov4_desc_en?: string;
+  mov5_year: string;
+  mov5_year_en?: string;
+  mov5_title: string;
+  mov5_title_en?: string;
+  mov5_desc: string;
+  mov5_desc_en?: string;
+
+  principios_kicker: string;
+  principios_kicker_en?: string;
+  principios_title: string;
+  principios_title_en?: string;
+  mision_kicker: string;
+  mision_kicker_en?: string;
+  mision_title: string;
+  mision_title_en?: string;
+  mision: string;
+  mision_en?: string;
+  mision_footer_left: string;
+  mision_footer_left_en?: string;
+  mision_footer_right: string;
+  mision_footer_right_en?: string;
+  vision_kicker: string;
+  vision_kicker_en?: string;
+  vision_title: string;
+  vision_title_en?: string;
+  vision: string;
+  vision_en?: string;
+  vision_footer_left: string;
+  vision_footer_left_en?: string;
+  vision_footer_right: string;
+  vision_footer_right_en?: string;
+
+  stat1_label: string;
+  stat1_label_en?: string;
+  stat1_value: string;
+  stat2_label: string;
+  stat2_label_en?: string;
+  stat2_value: string;
+  stat3_label: string;
+  stat3_label_en?: string;
+  stat3_value: string;
+  stat4_label: string;
+  stat4_label_en?: string;
+  stat4_value: string;
+  stats_disclaimer: string;
+  stats_disclaimer_en?: string;
+
+  archivo_kicker: string;
+  archivo_kicker_en?: string;
+  archivo_title: string;
+  archivo_title_en?: string;
+  archivo_desc: string;
+  archivo_desc_en?: string;
+  archivo_cta_label: string;
+  archivo_cta_label_en?: string;
+  archivo_cta_href: string;
+
+  ciencia_kicker: string;
+  ciencia_kicker_en?: string;
+  ciencia_title: string;
+  ciencia_title_en?: string;
+  ciencia_desc: string;
+  ciencia_desc_en?: string;
+  ciencia_cta_label: string;
+  ciencia_cta_label_en?: string;
+  ciencia_cta_href: string;
+};
+
+export const DEFAULT_NOSOTROS_CONTENT: NosotrosContent = {
+  giro_kicker: 'El Giro Vital · Pureo, Chiloé',
+  giro_kicker_en: 'The Vital Turning Point',
+  giro_title: 'Del maritorio austral a la cordillera de la Costa',
+  giro_title_en: 'From artisanal fishing to the rainforest canopy',
+  giro_p1:
+    'A inicios de la década del 2000, Cristina Miranda Rojas y Guillermo Cuevas enfrentaron un punto de inflexión decisivo. Vinculados durante años a la pesca artesanal y a la navegación por los canales interiores de Chiloé, las sucesivas crisis en el maritorio los impulsaron a una reinvención total. En lugar de abandonar el archipiélago, decidieron internarse hacia el relieve agreste de Pureo, en la comuna de Queilén.',
+  giro_p1_en:
+    'At the beginning of the 2000s, Cristina Miranda Rojas and Guillermo Cuevas faced a radical turning point. Having spent their lives tied to artisanal fishing and navigating the inner sea channels of Chiloé, severe economic shifts in the marine sector compelled them to reimagine their path. They chose not to abandon the archipelago, but to journey deeper inland: into the rugged slopes of Pureo, in the commune of Queilén.',
+  giro_p2:
+    'Llegaron a un predio marcado por la erosión de antiguos incendios forestales en la cordillera de la Costa: laderas desnudas, matorral de rebrote y suelo expuesto a la intemperie marítima del golfo Corcovado. Lejos de desalentarse, asumieron el predio como un compromiso de vida: sanar la tierra mediante un enriquecimiento botánico paciente, recolectando semillas y plántulas en quebradas vírgenes para devolver el dosel de ulmo, tepú, tiaca, avellano chileno y canelo.',
+  giro_p2_en:
+    'They arrived at a parcel severely eroded by historic fires across the coastal range: bare soil, recovering scrubland, and open ash exposed to the maritime winds of the Corcovado Gulf. Rather than an obstacle, they embraced this remote sanctuary as their life commitment: healing the land through patient botanical enrichment, collecting native seeds from untouched rainforest ravines to restore ulmo, tepú, tiaca, hazelnut, and canelo.',
+  giro_p3:
+    'Chiloé impone un rigor severo: llueve entre 9 y 10 meses al año, con persistente humedad y viento austral. Paradójicamente, esta adversidad climática se convirtió en su mayor virtud de origen: un filtro natural infranqueable que mantiene alejados los monocultivos y agroquímicos del continente, forjando colonias de abejas con un vigor biológico excepcional y una miel cruda densa, silvestre y pura.',
+  giro_p3_en:
+    'Chiloé challenges beekeeping with rain falling 9 to 10 months a year and high relative humidity. Paradoxically, this harsh climate became the ultimate standard of origin: an impassable ecological barrier that keeps industrial monocultures, chemical sprays, and agrochemicals away, forging honeybee colonies of extraordinary hardiness and dense, raw honey of unmatched purity.',
+  historia:
+    'En términos generales, hacemos que la miel de Chiloé sea un puente entre el bosque nativo y una mesa consciente. La recolectamos en bosques antiguos y regenerados; el néctar llega crudo, batido en frío, con el perfil de las floraciones de ulmo y tepú. Cada frasco es un alimento de origen, no un medicamento ni un sustituto etiquetado de azúcar. Hace 22 años iniciamos la recuperación forestal en un predio erosionado por incendios históricos en Pureo, Chiloé. Con paciencia y selección cuidada, reintrodujimos doseles de ulmo, tepú, tiaca y avellano chileno hasta conformar un refugio vivo de bosque templado lluvioso. En este entorno aislado, las colmenas recolectan néctar silvestre libre de agroquímicos, transformándolo en una miel cruda, ámbar y de textura cremosa natural. Nuestra labor no persigue la extracción masiva, sino preservar la cadencia viva del territorio: un alimento noble que nace de la floración nativa y se proyecta como estándar de origen.',
+  historia_en:
+    'Broadly speaking, we make Chiloé honey a bridge between the native forest and a mindful table. We gather it from old-growth and regenerated forests; the nectar arrives raw, cold-creamed, carrying the sensory profile of ulmo and tepú blossoms. Each jar is a food of origin, neither a medicine nor a labeled sugar substitute.\n\nTwenty-two years ago we began forest recovery on land eroded by historic fires in Pureo, Chiloé. With patience and careful selection, we reintroduced canopies of ulmo, tepú, tiaca, and Chilean hazel until we shaped a living temperate rainforest refuge. In this isolated haven, the hives gather wild, agrochemical-free nectar, transforming it into a raw, amber, naturally creamy honey.\n\nOur craft never pursues mass extraction; it cherishes the living cadence of the land: a noble food born of native blossom and projected as a standard of origin.',
+  fuentes_intro: '',
+  fuentes_intro_en: '',
+
+  cronica_kicker: 'Crónica de Territorio y Origen',
+  cronica_kicker_en: 'Two Decades of Presence',
+  cronica_title: '22 Años en Cinco Movimientos',
+  cronica_title_en: '22 Years in Five Movements',
+  mov1_year: '2004',
+  mov1_title: 'El Terreno y las Cenizas',
+  mov1_title_en: 'The Soil and the Ashes',
+  mov1_desc:
+    'Cristina Miranda Rojas, Guillermo Cuevas y su familia se asientan en el sector de Pureo, Queilén. Frente a laderas calcinadas por incendios históricos, definen el principio fundacional: no forzar el suelo con agroquímicos, no talar y respetar la cadencia de regeneración del bosque templado.',
+  mov1_desc_en:
+    'Cristina Miranda Rojas, Guillermo Cuevas, and their family established themselves in Pureo, Queilén. Facing soils scorched by historic fires, they set the founding principle: no artificial chemicals, no clearcutting, and absolute respect for the rainforest recovery cycle.',
+  mov2_year: '2006–2010',
+  mov2_title: 'La Siembra del Dosel',
+  mov2_title_en: 'Restoring the Native Canopy',
+  mov2_desc:
+    'Cuatro temporadas continuas de enriquecimiento botánico manual. Se reintroducen doseles de ulmo (Eucryphia cordifolia), tepú (Tepualia stipularis), tiaca (Caldcluvia paniculata), avellano chileno (Gevuina avellana) y canelo (Drimys winteri), devolviendo la humedad estructural al suelo.',
+  mov2_desc_en:
+    'Four intense seasons of manual botanical enrichment. Reintroducing ulmo (Eucryphia cordifolia), tepú (Tepualia stipularis), tiaca (Caldcluvia paniculata), Chilean hazelnut (Gevuina avellana), and canelo (Drimys winteri), rebuilding the humid microclimate necessary for forest longevity.',
+  mov3_year: '2012',
+  mov3_title: 'La Colmena Rústica',
+  mov3_title_en: 'The First Rustic Hives',
+  mov3_desc:
+    'Llegan los primeros núcleos de Apis mellifera al santuario. Manejar abejas bajo más de 2.000 mm de lluvia anual exigió una técnica insular adaptada: alzas ventiladas, monitoreo sanitario estricto sin residuos en cera, y la regla inquebrantable de jamás alimentar con jarabes de azúcar durante los flujos de néctar.',
+  mov3_desc_en:
+    'The first nuclei of Apis mellifera arrived in the sanctuary. Handling hives under 2,000+ mm of annual rainfall demanded a tailored insular technique: elevated screened bases, rigorous organic health monitoring without synthetic waxes, and the firm rule of never feeding sugar syrups during honey flows.',
+  mov4_year: '2018–2022',
+  mov4_title: 'La Maestría del Formato',
+  mov4_title_en: 'Pioneering Formats & Cold Creaming',
+  mov4_desc:
+    'Innovación pionera nacida en Chiloé: creación de "Gotas de Néctar" (sachets individuales de 15g de miel virgen) para promover el consumo sano en deportistas, junto al "Panal del Bosque" (trozo de panal sellado al vacío con opérculo intacto) y el perfeccionamiento del batido en frío de 48 horas a 14°–18°C sin daño térmico.',
+  mov4_desc_en:
+    'Innovation born in the field: pioneer release of "Gotas de Néctar" (15g individual raw honey sachets) to promote natural intake among athletes, followed by "Panal del Bosque" (vacuum-sealed virgin comb with intact operculum) and the mastery of 48-hour cold creaming at 14°–18°C without pasteurization.',
+  mov5_year: 'Presente',
+  mov5_year_en: 'Present',
+  mov5_title: 'Enjambre Legado & Soberanía Territorial',
+  mov5_title_en: 'Enjambre Legado & Digital Sovereignty',
+  mov5_desc:
+    'La segunda generación, encabezada por Gabriel Cuevas Miranda (antropología, diseño y código), consolida la soberanía del proyecto: reemplazo de plataformas intermediarias por el monorepo territorial Enjambre Legado, facturación directa SII, terminal ferial offline-first y articulación del Registro Territorial Apícola (Ley 21.489) para defender el origen de Chiloé.',
+  mov5_desc_en:
+    'The second generation, led by Gabriel Cuevas Miranda (anthropology, design, and code), steps in to build sovereign technology: rejecting external commercial intermediaries to build the Enjambre Legado monorepo, direct SII fiscal compliance, offline POS for rural fairs, and community beekeeping protection under Law 21.489.',
+
+  principios_kicker: 'Principios Fundacionales',
+  principios_kicker_en: 'Founding Convictions',
+  principios_title: 'El Estándar y el Resguardo',
+  principios_title_en: 'Our Standard & Territorial Commitment',
+  mision_kicker: '01 · Técnica & Pureza',
+  mision_kicker_en: '01 · Technique & Purity',
+  mision_title: 'El Estándar de Origen',
+  mision_title_en: 'The Standard of Origin',
+  mision:
+    'Preservar la cadencia viva del territorio mediante una apicultura de origen, no invasiva y de alta pureza.',
+  mision_en:
+    'Preserving the living cadence of Chiloé through origin-based, non-invasive beekeeping, crafting pure foods without thermal damage or pasteurization.',
+  mision_footer_left: 'Batido en Frío 48h · Miel Cruda',
+  mision_footer_left_en: 'Cold-creamed 48h · Raw Honey',
+  mision_footer_right: 'Codex Standard',
+  mision_footer_right_en: 'Codex Standard',
+  vision_kicker: '02 · Santuario & Futuro',
+  vision_kicker_en: '02 · Sanctuary & Future',
+  vision_title: 'El Resguardo del Territorio',
+  vision_title_en: 'Territorial Protection',
+  vision:
+    'Consolidar a Chiloé como santuario apícola de referencia internacional, integrando ciencia, ecología y alta gastronomía.',
+  vision_en:
+    'Consolidating Chiloé as an international apicultural sanctuary, integrating field mastery, scientific evidence, and fine gastronomy.',
+  vision_footer_left: 'Apiarios Fijos · Sin Trashumancia',
+  vision_footer_left_en: 'Stationary Apiary · Zero Transhumance',
+  vision_footer_right: 'Pureo · Queilén',
+  vision_footer_right_en: 'Pureo · Queilén',
+
+  stat1_label: 'Años de presencia',
+  stat1_label_en: 'Years of Presence',
+  stat1_value: '22',
+  stat2_label: 'Especies botánicas',
+  stat2_label_en: 'Botanical Species',
+  stat2_value: '18+',
+  stat3_label: 'Batido en frío',
+  stat3_label_en: 'Cold-creamed',
+  stat3_value: '48h',
+  stat4_label: 'Origen Bosque Nativo',
+  stat4_label_en: 'Native Forest',
+  stat4_value: '100%',
+  stats_disclaimer:
+    '* 100% bosque nativo: colmenas emplazadas exclusivamente en predios rodeados de dosel autóctono en Chiloé, sin cultivos industriales ni agroquímicos. Ver detalles analíticos en /ciencia.',
+  stats_disclaimer_en:
+    '* 100% native forest: apiaries situated strictly within native canopy enclosures in Chiloé, without agrochemical exposure. See /ciencia.',
+
+  archivo_kicker: 'Archivo Territorial & Memoria Viva',
+  archivo_kicker_en: 'Territorial Archive & Living Memory',
+  archivo_title: 'Huellas en el Bosque y la Colmena',
+  archivo_title_en: 'Traces in the Forest & the Hive',
+  archivo_desc:
+    '22 años de registros en Pureo: botánica nativa, maritorio, panales históricos y vida de campo.',
+  archivo_desc_en:
+    '22 years of records in Pureo: native botany, maritime territory, historic frames, and field life.',
+  archivo_cta_label: 'Abrir Archivo Completo',
+  archivo_cta_label_en: 'Open Full Archive',
+  archivo_cta_href: '/galeria',
+
+  ciencia_kicker: 'Rigor Analítico & Laboratorio',
+  ciencia_kicker_en: 'Analytical Rigor',
+  ciencia_title: 'Evidencia Científica & Protocolo Sensorial',
+  ciencia_title_en: 'Scientific Evidence & Sensory Protocol',
+  ciencia_desc:
+    'Curvas de floración observadas, análisis físico-químico por lote (humedad Codex <18%, HMF) y metodología sensorial ST-CATA documentados en detalle.',
+  ciencia_desc_en:
+    'Observed flowering curves, physical-chemical batch analysis (Codex moisture <18%, HMF), and ST-CATA sensory radar documented in detail.',
+  ciencia_cta_label: 'Explorar /ciencia',
+  ciencia_cta_label_en: 'Explore /ciencia',
+  ciencia_cta_href: '/ciencia',
+};
+
+export const NOSOTROS_TEMPLATE: NosotrosContent = { ...DEFAULT_NOSOTROS_CONTENT };
 
 export type MediaSettings = {
   carousel_height: CarouselHeightMode;
@@ -4157,6 +4403,120 @@ export function parseNosotrosSettings(
     cta_label: typeof raw.cta_label === 'string' ? raw.cta_label : d.cta_label,
     cta_label_en: typeof raw.cta_label_en === 'string' ? raw.cta_label_en : d.cta_label_en,
     cta_href: typeof raw.cta_href === 'string' ? raw.cta_href : d.cta_href,
+  };
+}
+
+export function parseNosotrosContent(
+  raw: Record<string, unknown> | null | undefined,
+): NosotrosContent {
+  const d = DEFAULT_NOSOTROS_CONTENT;
+  if (!raw) return { ...d };
+  return {
+    giro_kicker: asString(raw.giro_kicker, d.giro_kicker),
+    giro_kicker_en: typeof raw.giro_kicker_en === 'string' ? raw.giro_kicker_en : d.giro_kicker_en,
+    giro_title: asString(raw.giro_title, d.giro_title),
+    giro_title_en: typeof raw.giro_title_en === 'string' ? raw.giro_title_en : d.giro_title_en,
+    giro_p1: asString(raw.giro_p1, d.giro_p1),
+    giro_p1_en: typeof raw.giro_p1_en === 'string' ? raw.giro_p1_en : d.giro_p1_en,
+    giro_p2: asString(raw.giro_p2, d.giro_p2),
+    giro_p2_en: typeof raw.giro_p2_en === 'string' ? raw.giro_p2_en : d.giro_p2_en,
+    giro_p3: asString(raw.giro_p3, d.giro_p3),
+    giro_p3_en: typeof raw.giro_p3_en === 'string' ? raw.giro_p3_en : d.giro_p3_en,
+    historia: asString(raw.historia, d.historia),
+    historia_en: typeof raw.historia_en === 'string' ? raw.historia_en : d.historia_en,
+    fuentes_intro: typeof raw.fuentes_intro === 'string' ? raw.fuentes_intro : d.fuentes_intro,
+    fuentes_intro_en: typeof raw.fuentes_intro_en === 'string' ? raw.fuentes_intro_en : d.fuentes_intro_en,
+
+    cronica_kicker: asString(raw.cronica_kicker, d.cronica_kicker),
+    cronica_kicker_en: typeof raw.cronica_kicker_en === 'string' ? raw.cronica_kicker_en : d.cronica_kicker_en,
+    cronica_title: asString(raw.cronica_title, d.cronica_title),
+    cronica_title_en: typeof raw.cronica_title_en === 'string' ? raw.cronica_title_en : d.cronica_title_en,
+    mov1_year: asString(raw.mov1_year, d.mov1_year),
+    mov1_title: asString(raw.mov1_title, d.mov1_title),
+    mov1_title_en: typeof raw.mov1_title_en === 'string' ? raw.mov1_title_en : d.mov1_title_en,
+    mov1_desc: asString(raw.mov1_desc, d.mov1_desc),
+    mov1_desc_en: typeof raw.mov1_desc_en === 'string' ? raw.mov1_desc_en : d.mov1_desc_en,
+    mov2_year: asString(raw.mov2_year, d.mov2_year),
+    mov2_title: asString(raw.mov2_title, d.mov2_title),
+    mov2_title_en: typeof raw.mov2_title_en === 'string' ? raw.mov2_title_en : d.mov2_title_en,
+    mov2_desc: asString(raw.mov2_desc, d.mov2_desc),
+    mov2_desc_en: typeof raw.mov2_desc_en === 'string' ? raw.mov2_desc_en : d.mov2_desc_en,
+    mov3_year: asString(raw.mov3_year, d.mov3_year),
+    mov3_title: asString(raw.mov3_title, d.mov3_title),
+    mov3_title_en: typeof raw.mov3_title_en === 'string' ? raw.mov3_title_en : d.mov3_title_en,
+    mov3_desc: asString(raw.mov3_desc, d.mov3_desc),
+    mov3_desc_en: typeof raw.mov3_desc_en === 'string' ? raw.mov3_desc_en : d.mov3_desc_en,
+    mov4_year: asString(raw.mov4_year, d.mov4_year),
+    mov4_title: asString(raw.mov4_title, d.mov4_title),
+    mov4_title_en: typeof raw.mov4_title_en === 'string' ? raw.mov4_title_en : d.mov4_title_en,
+    mov4_desc: asString(raw.mov4_desc, d.mov4_desc),
+    mov4_desc_en: typeof raw.mov4_desc_en === 'string' ? raw.mov4_desc_en : d.mov4_desc_en,
+    mov5_year: asString(raw.mov5_year, d.mov5_year),
+    mov5_year_en: typeof raw.mov5_year_en === 'string' ? raw.mov5_year_en : d.mov5_year_en,
+    mov5_title: asString(raw.mov5_title, d.mov5_title),
+    mov5_title_en: typeof raw.mov5_title_en === 'string' ? raw.mov5_title_en : d.mov5_title_en,
+    mov5_desc: asString(raw.mov5_desc, d.mov5_desc),
+    mov5_desc_en: typeof raw.mov5_desc_en === 'string' ? raw.mov5_desc_en : d.mov5_desc_en,
+
+    principios_kicker: asString(raw.principios_kicker, d.principios_kicker),
+    principios_kicker_en: typeof raw.principios_kicker_en === 'string' ? raw.principios_kicker_en : d.principios_kicker_en,
+    principios_title: asString(raw.principios_title, d.principios_title),
+    principios_title_en: typeof raw.principios_title_en === 'string' ? raw.principios_title_en : d.principios_title_en,
+    mision_kicker: asString(raw.mision_kicker, d.mision_kicker),
+    mision_kicker_en: typeof raw.mision_kicker_en === 'string' ? raw.mision_kicker_en : d.mision_kicker_en,
+    mision_title: asString(raw.mision_title, d.mision_title),
+    mision_title_en: typeof raw.mision_title_en === 'string' ? raw.mision_title_en : d.mision_title_en,
+    mision: asString(raw.mision, d.mision),
+    mision_en: typeof raw.mision_en === 'string' ? raw.mision_en : d.mision_en,
+    mision_footer_left: asString(raw.mision_footer_left, d.mision_footer_left),
+    mision_footer_left_en: typeof raw.mision_footer_left_en === 'string' ? raw.mision_footer_left_en : d.mision_footer_left_en,
+    mision_footer_right: asString(raw.mision_footer_right, d.mision_footer_right),
+    mision_footer_right_en: typeof raw.mision_footer_right_en === 'string' ? raw.mision_footer_right_en : d.mision_footer_right_en,
+    vision_kicker: asString(raw.vision_kicker, d.vision_kicker),
+    vision_kicker_en: typeof raw.vision_kicker_en === 'string' ? raw.vision_kicker_en : d.vision_kicker_en,
+    vision_title: asString(raw.vision_title, d.vision_title),
+    vision_title_en: typeof raw.vision_title_en === 'string' ? raw.vision_title_en : d.vision_title_en,
+    vision: asString(raw.vision, d.vision),
+    vision_en: typeof raw.vision_en === 'string' ? raw.vision_en : d.vision_en,
+    vision_footer_left: asString(raw.vision_footer_left, d.vision_footer_left),
+    vision_footer_left_en: typeof raw.vision_footer_left_en === 'string' ? raw.vision_footer_left_en : d.vision_footer_left_en,
+    vision_footer_right: asString(raw.vision_footer_right, d.vision_footer_right),
+    vision_footer_right_en: typeof raw.vision_footer_right_en === 'string' ? raw.vision_footer_right_en : d.vision_footer_right_en,
+
+    stat1_label: asString(raw.stat1_label, d.stat1_label),
+    stat1_label_en: typeof raw.stat1_label_en === 'string' ? raw.stat1_label_en : d.stat1_label_en,
+    stat1_value: asString(raw.stat1_value, d.stat1_value),
+    stat2_label: asString(raw.stat2_label, d.stat2_label),
+    stat2_label_en: typeof raw.stat2_label_en === 'string' ? raw.stat2_label_en : d.stat2_label_en,
+    stat2_value: asString(raw.stat2_value, d.stat2_value),
+    stat3_label: asString(raw.stat3_label, d.stat3_label),
+    stat3_label_en: typeof raw.stat3_label_en === 'string' ? raw.stat3_label_en : d.stat3_label_en,
+    stat3_value: asString(raw.stat3_value, d.stat3_value),
+    stat4_label: asString(raw.stat4_label, d.stat4_label),
+    stat4_label_en: typeof raw.stat4_label_en === 'string' ? raw.stat4_label_en : d.stat4_label_en,
+    stat4_value: asString(raw.stat4_value, d.stat4_value),
+    stats_disclaimer: asString(raw.stats_disclaimer, d.stats_disclaimer),
+    stats_disclaimer_en: typeof raw.stats_disclaimer_en === 'string' ? raw.stats_disclaimer_en : d.stats_disclaimer_en,
+
+    archivo_kicker: asString(raw.archivo_kicker, d.archivo_kicker),
+    archivo_kicker_en: typeof raw.archivo_kicker_en === 'string' ? raw.archivo_kicker_en : d.archivo_kicker_en,
+    archivo_title: asString(raw.archivo_title, d.archivo_title),
+    archivo_title_en: typeof raw.archivo_title_en === 'string' ? raw.archivo_title_en : d.archivo_title_en,
+    archivo_desc: asString(raw.archivo_desc, d.archivo_desc),
+    archivo_desc_en: typeof raw.archivo_desc_en === 'string' ? raw.archivo_desc_en : d.archivo_desc_en,
+    archivo_cta_label: asString(raw.archivo_cta_label, d.archivo_cta_label),
+    archivo_cta_label_en: typeof raw.archivo_cta_label_en === 'string' ? raw.archivo_cta_label_en : d.archivo_cta_label_en,
+    archivo_cta_href: asString(raw.archivo_cta_href, d.archivo_cta_href),
+
+    ciencia_kicker: asString(raw.ciencia_kicker, d.ciencia_kicker),
+    ciencia_kicker_en: typeof raw.ciencia_kicker_en === 'string' ? raw.ciencia_kicker_en : d.ciencia_kicker_en,
+    ciencia_title: asString(raw.ciencia_title, d.ciencia_title),
+    ciencia_title_en: typeof raw.ciencia_title_en === 'string' ? raw.ciencia_title_en : d.ciencia_title_en,
+    ciencia_desc: asString(raw.ciencia_desc, d.ciencia_desc),
+    ciencia_desc_en: typeof raw.ciencia_desc_en === 'string' ? raw.ciencia_desc_en : d.ciencia_desc_en,
+    ciencia_cta_label: asString(raw.ciencia_cta_label, d.ciencia_cta_label),
+    ciencia_cta_label_en: typeof raw.ciencia_cta_label_en === 'string' ? raw.ciencia_cta_label_en : d.ciencia_cta_label_en,
+    ciencia_cta_href: asString(raw.ciencia_cta_href, d.ciencia_cta_href),
   };
 }
 

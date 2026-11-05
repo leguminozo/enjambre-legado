@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Droplet,
@@ -31,6 +31,10 @@ import {
   EJES_SENSORIALES_POR_CATEGORIA,
   VALORES_DEFAULT_EJES,
   resolverEjesSensoriales,
+  DEGUSTACION_CONFIG_DEFAULT,
+  type DegustacionConfig,
+  type VariedadMesaConfig,
+  type MielGeograficaConfig,
   type CategoriaSensorial,
   type FortificanteCanonico,
   type TipoSensorial,
@@ -47,143 +51,34 @@ export interface CataVarianteOption {
   activo?: boolean;
 }
 
-export interface MielGeograficaOption {
-  key: string;
-  nombre: string;
-  nombreCientifico: string;
-  macroZona: string;
-  tagline: string;
-  perfilResumido: string;
-  floracionSlug: string;
+function getIconForName(iconName?: string) {
+  switch (iconName) {
+    case 'Nut':
+      return Nut;
+    case 'Flower2':
+      return Flower2;
+    case 'Sparkle':
+      return Sparkle;
+    case 'Compass':
+      return Compass;
+    case 'Droplet':
+    default:
+      return Droplet;
+  }
 }
-
-export const MIELES_GEOGRAFICAS_CHILE: MielGeograficaOption[] = [
-  // Norte & Atacama
-  {
-    key: 'chanar',
-    nombre: 'Chañar de Atacama',
-    nombreCientifico: 'Geoffroea decorticans',
-    macroZona: 'Norte (Desierto & Oasis)',
-    tagline: 'Oasis desérticos y quebradas áridas de Atacama.',
-    perfilResumido: 'Notas tostadas a arrope, caramelo profundo y mineralidad salina.',
-    floracionSlug: 'chanar',
-  },
-  {
-    key: 'algarrobo',
-    nombre: 'Algarrobo del Desierto',
-    nombreCientifico: 'Prosopis chilensis',
-    macroZona: 'Norte (Desierto & Oasis)',
-    tagline: 'Valles secos y floración resistente.',
-    perfilResumido: 'Densidad espesa, notas a melaza y frutos secos confitados.',
-    floracionSlug: 'algarrobo',
-  },
-  // Zona Centro
-  {
-    key: 'quillay',
-    nombre: 'Quillay de la Zona Central',
-    nombreCientifico: 'Quillaja saponaria',
-    macroZona: 'Zona Centro (Bosque Esclerófilo)',
-    tagline: 'Bosque mediterráneo de floración estival.',
-    perfilResumido: 'Floral puro y limpio, notas herbáceas secas y final refrescante.',
-    floracionSlug: 'quillay',
-  },
-  {
-    key: 'peumo',
-    nombre: 'Peumo de Quebrada Central',
-    nombreCientifico: 'Cryptocarya alba',
-    macroZona: 'Zona Centro (Bosque Esclerófilo)',
-    tagline: 'Follaje aromático y sotobosque esclerófilo.',
-    perfilResumido: 'Balsámico limpio, resina vegetal y retrogusto fresco.',
-    floracionSlug: 'peumo',
-  },
-  {
-    key: 'corontillo',
-    nombre: 'Corontillo Silvestre',
-    nombreCientifico: 'Escallonia virgata',
-    macroZona: 'Zona Centro (Bosque Esclerófilo)',
-    tagline: 'Laderas soleadas y floración nativa.',
-    perfilResumido: 'Herbal silvestre, matiz resinoso y dulzor sobrio.',
-    floracionSlug: 'corontillo',
-  },
-  // Zona Sur & Austral
-  {
-    key: 'ulmo',
-    nombre: 'Ulmo del Bosque Nativo',
-    nombreCientifico: 'Eucryphia cordifolia',
-    macroZona: 'Zona Sur & Austral (Chiloé)',
-    tagline: 'Árbol nodriza del dosel templado lluvioso.',
-    perfilResumido: 'Benzaldehído puro, almendra amarga, flor de azahar y textura cremosa.',
-    floracionSlug: 'ulmo',
-  },
-  {
-    key: 'tiaca',
-    nombre: 'Tiaca de Quebradas Húmedas',
-    nombreCientifico: 'Caldcluvia paniculata',
-    macroZona: 'Zona Sur & Austral (Chiloé)',
-    tagline: 'Riberas y cuencas de alta pluviosidad.',
-    perfilResumido: 'Herbal balsámico vivaz, mentol y acidez cítrica natural.',
-    floracionSlug: 'tiaca',
-  },
-  {
-    key: 'meli',
-    nombre: 'Melí de Bosque Profundo',
-    nombreCientifico: 'Amomyrtus meli',
-    macroZona: 'Zona Sur & Austral (Chiloé)',
-    tagline: 'Mirtácea endémica aromática de Chiloé.',
-    perfilResumido: 'Rico en eugenol, clavo de olor, pimienta dulce y madera húmeda.',
-    floracionSlug: 'meli',
-  },
-  {
-    key: 'tepu',
-    nombre: 'Tepú de Turberas Milenarias',
-    nombreCientifico: 'Tepualia stipularis',
-    macroZona: 'Zona Sur & Austral (Chiloé)',
-    tagline: 'Suelos fósiles y turbales insulares.',
-    perfilResumido: 'Amaderado resinoso profundo, color cobrizo y alta mineralidad.',
-    floracionSlug: 'tepu',
-  },
-];
-
-const DEGUSTACION_VARIEDADES = [
-  {
-    id: 'crema-pura',
-    name: 'Crema de Miel Batida en Frío',
-    icon: Droplet,
-    note: 'Batido mecánico lento en frío · Textura sedosa de bosque nativo',
-    fortificante: 'ninguno' as const,
-    keywords: ['crema de miel', 'batida', 'crema', 'pura'],
-  },
-  {
-    id: 'crema-avellanas',
-    name: 'Crema de Miel con Avellana Chilena',
-    icon: Nut,
-    note: 'Avellana nativa tostada y molida de bosque templado',
-    fortificante: 'avellana_chilena' as const,
-    keywords: ['avellana', 'avellanas'],
-  },
-  {
-    id: 'crema-polen',
-    name: 'Crema de Miel con Polen Floral',
-    icon: Flower2,
-    note: 'Polen multifloral silvestre recolectado en el archipiélago',
-    fortificante: 'polen_floral' as const,
-    keywords: ['polen'],
-  },
-  {
-    id: 'crema-cacao',
-    name: 'Crema de Miel con Nibs de Cacao',
-    icon: Sparkle,
-    note: 'Nibs de cacao crudo de origen · Contraste tostado y floral',
-    fortificante: 'cacao_crudo' as const,
-    keywords: ['cacao', 'nibs'],
-  },
-];
 
 function findCatalogProductForVariety(
   products: ShopProduct[],
   varietyName: string,
   keywords: string[] = [],
+  productSlug?: string,
 ): ShopProduct | undefined {
+  if (productSlug) {
+    const bySlug = products.find(
+      (p) => p.slug.toLowerCase() === productSlug.toLowerCase(),
+    );
+    if (bySlug) return bySlug;
+  }
   const normName = varietyName.toLowerCase();
   const exact = products.find((p) => p.name.toLowerCase().includes(normName));
   if (exact) return exact;
@@ -199,7 +94,13 @@ function findCatalogProductForVariety(
 }
 
 interface CataViewProps {
-  punto: { id: string; nombre: string; tipo: string; ciudad: string | null };
+  punto: {
+    id: string;
+    nombre: string;
+    tipo: string;
+    ciudad: string | null;
+    configuracion?: Partial<DegustacionConfig> | null;
+  };
   codigo: string;
   chipsCatalog: {
     id: string;
@@ -213,17 +114,8 @@ interface CataViewProps {
   initialVarianteId?: string;
   initialPabellon?: 'casa' | 'geografias';
   lockPabellon?: 'casa' | 'geografias' | null;
+  config?: Partial<DegustacionConfig> | null;
 }
-
-const DESCRIPTORES_RATING: Record<number, string> = {
-  7: 'Excepcional · Calidad Superior de Origen',
-  6: 'Sobresaliente · Expresión Botánica Viva',
-  5: 'Muy Buena · Carácter Genuino',
-  4: 'Buena · Correcta y Balanceada',
-  3: 'Regular',
-  2: 'Deficiente',
-  1: 'Atípica',
-};
 
 function RadarConstellation({
   axes,
@@ -241,7 +133,7 @@ function RadarConstellation({
   const levels = [0.25, 0.5, 0.75, 1.0];
 
   const points = axes.map((axis, i) => {
-    const val = Math.max(1.0, Math.min(10.0, scores[axis] ?? 7.5)) / 10;
+    const val = Math.max(1.0, Math.min(10.0, scores[axis] ?? 1.0)) / 10;
     const angle = ((Math.PI * 2) / totalAxes) * i - Math.PI / 2;
     const r = val * rMax;
     const x = cx + r * Math.cos(angle);
@@ -333,7 +225,32 @@ export function CataView({
   initialVarianteId,
   initialPabellon = 'casa',
   lockPabellon = null,
+  config = null,
 }: CataViewProps) {
+  const activeConfig = useMemo<DegustacionConfig>(() => {
+    const raw = config ?? punto.configuracion ?? {};
+    return {
+      ...DEGUSTACION_CONFIG_DEFAULT,
+      ...raw,
+      textos: {
+        ...DEGUSTACION_CONFIG_DEFAULT.textos,
+        ...(raw.textos || {}),
+      },
+      variedadesMesa:
+        raw.variedadesMesa && raw.variedadesMesa.length > 0
+          ? raw.variedadesMesa
+          : DEGUSTACION_CONFIG_DEFAULT.variedadesMesa,
+      mielesGeograficas:
+        raw.mielesGeograficas && raw.mielesGeograficas.length > 0
+          ? raw.mielesGeograficas
+          : DEGUSTACION_CONFIG_DEFAULT.mielesGeograficas,
+      descriptoresRating: {
+        ...DEGUSTACION_CONFIG_DEFAULT.descriptoresRating,
+        ...(raw.descriptoresRating || {}),
+      },
+    };
+  }, [config, punto.configuracion]);
+
   const foundInitialVariant = variantes.find(
     (v) =>
       v.id === initialVarianteId ||
@@ -358,7 +275,10 @@ export function CataView({
       : ((foundInitial?.tipo_sensorial as CategoriaSensorial) || 'miel'),
   );
   const [selectedProductName, setSelectedProductName] = useState<string>(
-    foundInitialVariant?.nombre_variante ?? foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name,
+    foundInitialVariant?.nombre_variante ??
+      foundInitial?.name ??
+      activeConfig.variedadesMesa[0]?.name ??
+      'Crema de Miel Batida en Frío',
   );
 
   const [pabellon, setPabellon] = useState<'casa' | 'geografias'>(lockPabellon ?? initialPabellon);
@@ -370,23 +290,47 @@ export function CataView({
   );
   const [loading, setLoading] = useState(false);
 
-  // Form state
-  const activeAxes = useMemo(() => {
-    return resolverEjesSensoriales(tipoSensorial, selectedProductName);
-  }, [tipoSensorial, selectedProductName]);
+  // Subir la pantalla al tope cada vez que se navega entre pasos
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [step]);
 
+  const cambiarPaso = (nextStep: typeof step) => {
+    setStep(nextStep);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  };
+
+  // Form state
+  const resolveAxesForCurrentSelection = (cat: CategoriaSensorial, prodName: string): readonly string[] => {
+    if (activeConfig.ejesSensorialesCanonicos && activeConfig.ejesSensorialesCanonicos.length > 0) {
+      return activeConfig.ejesSensorialesCanonicos;
+    }
+    return resolverEjesSensoriales(cat, prodName);
+  };
+
+  const activeAxes = useMemo(() => {
+    if (activeConfig.ejesSensorialesCanonicos && activeConfig.ejesSensorialesCanonicos.length > 0) {
+      return activeConfig.ejesSensorialesCanonicos;
+    }
+    return resolverEjesSensoriales(tipoSensorial, selectedProductName);
+  }, [activeConfig.ejesSensorialesCanonicos, tipoSensorial, selectedProductName]);
+
+  // LA RED COMIENZA CON TODO EN NOTA 1.0 (Calibración limpia y deliberada)
   const [ejesCalibracionState, setEjesCalibracionState] = useState<Record<string, number>>(() => {
-    const axes = resolverEjesSensoriales(tipoSensorial, selectedProductName);
+    const axes = resolveAxesForCurrentSelection(tipoSensorial, selectedProductName);
     const initialEjes: Record<string, number> = {};
-    axes.forEach((axis) => {
-      const def = VALORES_DEFAULT_EJES[axis] ?? 75;
-      initialEjes[axis] = Number((def / 10).toFixed(1));
+    axes.forEach((axis: string) => {
+      initialEjes[axis] = activeConfig.valorInicialEje ?? 1.0;
     });
     return initialEjes;
   });
 
   const [selectedChips, setSelectedChips] = useState<Set<string>>(new Set());
-  const [agrado, setAgrado] = useState(7);
+  const [agrado, setAgrado] = useState(10);
   const [comentarioAbierto, setComentarioAbierto] = useState('');
   const [email, setEmail] = useState('');
   const [puntosGanados, setPuntosGanados] = useState<number>(25);
@@ -406,22 +350,14 @@ export function CataView({
     setSelectedFloracionSlug(floracionSlug || null);
     setEsGeografica(geografica);
 
-    const axes = resolverEjesSensoriales(category, name);
-    const matchedProduct = products.find((p) => p.id === prodId);
-    const prodCal = matchedProduct?.perfil_sensorial?.ejes_calibracion;
+    const axes = resolveAxesForCurrentSelection(category, name);
     const initialEjes: Record<string, number> = {};
-    axes.forEach((axis) => {
-      const pVal = prodCal?.[axis];
-      if (typeof pVal === 'number') {
-        initialEjes[axis] = pVal > 10 ? Number((pVal / 10).toFixed(1)) : Number(pVal.toFixed(1));
-      } else {
-        const def = VALORES_DEFAULT_EJES[axis] ?? 75;
-        initialEjes[axis] = Number((def / 10).toFixed(1));
-      }
+    axes.forEach((axis: string) => {
+      initialEjes[axis] = activeConfig.valorInicialEje ?? 1.0;
     });
     setEjesCalibracionState(initialEjes);
     setSelectedChips(new Set());
-    setStep('pares');
+    cambiarPaso('pares');
   };
 
   const selectProduct = (prodId: string | null, name: string) => {
@@ -492,11 +428,12 @@ export function CataView({
 
       let finalProductId = selectedProductId;
       if (!finalProductId) {
-        const selectedVariety = DEGUSTACION_VARIEDADES.find((v) => v.name === selectedProductName);
+        const selectedVariety = activeConfig.variedadesMesa.find((v) => v.name === selectedProductName);
         const match = findCatalogProductForVariety(
           products,
           selectedProductName,
           selectedVariety?.keywords ?? [],
+          selectedVariety?.productSlug,
         );
         finalProductId = match?.id ?? products[0]?.id ?? '146073e1-ac90-45d9-9fb3-9ece4a4e877d';
       }
@@ -532,7 +469,7 @@ export function CataView({
         setPuntosGanados(data.data.puntos_ganados);
       }
 
-      setStep('success');
+      cambiarPaso('success');
     } catch (e: unknown) {
       toast(friendlyError(e, 'No fue posible registrar la cata en este momento'), { type: 'error' });
     } finally {
@@ -549,7 +486,7 @@ export function CataView({
           </div>
           <span className="block text-xs font-mono uppercase tracking-[0.2em] text-primary">
             {punto.tipo === 'feria_evento'
-              ? 'Estación de Degustación en Vivo'
+              ? activeConfig.textos.badgeFeria
               : punto.tipo === 'hotel'
                 ? 'Cortesía Botánica de Habitación'
                 : punto.tipo === 'tienda_gourmet'
@@ -569,7 +506,7 @@ export function CataView({
             variant="primary"
             size="lg"
             className="w-full mt-8"
-            onClick={() => setStep('producto')}
+            onClick={() => cambiarPaso('producto')}
           >
             Comenzar Cata
           </Button>
@@ -582,14 +519,14 @@ export function CataView({
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-[10px] font-mono uppercase tracking-[0.18em] text-primary">
               <Droplet className="w-3 h-3" />
               {punto.tipo === 'feria_evento'
-                ? 'Estación de Degustación en Vivo'
+                ? activeConfig.textos.badgeFeria
                 : punto.nombre}
             </span>
             <h1 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight pt-1">
-              ¿Qué variante estás degustando?
+              {activeConfig.textos.tituloSeleccion}
             </h1>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Toca la creación que tienes en tu paladar para calibrar sus notas sensoriales y dejar tu reseña.
+              {activeConfig.textos.subtituloSeleccion}
             </p>
           </div>
 
@@ -606,8 +543,8 @@ export function CataView({
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <span className="font-medium text-xs sm:text-sm">Creaciones en Mesa</span>
-                <span className="text-[10px] text-primary font-mono">Pureo · Chiloé</span>
+                <span className="font-medium text-xs sm:text-sm">{activeConfig.textos.pabellonCasaLabel}</span>
+                <span className="text-[10px] text-primary font-mono">{activeConfig.textos.pabellonCasaSubtitle}</span>
               </button>
               <button
                 type="button"
@@ -619,8 +556,8 @@ export function CataView({
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <span className="font-medium text-xs sm:text-sm">Mieles de Chile</span>
-                <span className="text-[10px] text-accent-text font-mono">Atlas Botánico</span>
+                <span className="font-medium text-xs sm:text-sm">{activeConfig.textos.pabellonGeografiasLabel}</span>
+                <span className="text-[10px] text-accent-text font-mono">{activeConfig.textos.pabellonGeografiasSubtitle}</span>
               </button>
             </div>
           )}
@@ -628,16 +565,16 @@ export function CataView({
           {pabellon === 'casa' ? (
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground px-1">
-                Selecciona la variante que acabas de probar. Tu evaluación se suma directamente a la{' '}
-                <strong className="text-foreground">ficha oficial de esa creación</strong>.
+                {activeConfig.textos.pabellonCasaDesc}
               </p>
               <div className="grid grid-cols-1 gap-3">
-                {DEGUSTACION_VARIEDADES.map((v) => {
-                  const IconComponent = v.icon;
+                {activeConfig.variedadesMesa.map((v) => {
+                  const IconComponent = getIconForName(v.iconName);
                   const matchedProduct = findCatalogProductForVariety(
                     products,
                     v.name,
                     v.keywords,
+                    v.productSlug,
                   );
                   return (
                     <button
@@ -675,11 +612,10 @@ export function CataView({
           ) : (
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground px-1">
-                Mieles monoflorales en copa técnica. Su evaluación alimenta directamente la{' '}
-                <strong className="text-foreground">Biblioteca de Floraciones pública</strong> de Chile.
+                {activeConfig.textos.pabellonGeografiasDesc}
               </p>
               <div className="grid grid-cols-1 gap-3">
-                {MIELES_GEOGRAFICAS_CHILE.map((m) => (
+                {activeConfig.mielesGeograficas.map((m) => (
                   <button
                     key={m.key}
                     type="button"
@@ -727,16 +663,16 @@ export function CataView({
         <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-400">
           <div className="text-center space-y-2">
             <span className="block text-xs font-mono uppercase tracking-[0.2em] text-primary">
-              Paso 2 de 3 · Perfil Sensorial
+              {activeConfig.textos.paso2Badge}
             </span>
             <Badge variant="outline" className="mb-1">
               {selectedProductName}
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
-              Geometría de la Red Sensorial
+              {activeConfig.textos.paso2Titulo}
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Calibra los 8 vértices en escala 1.0 a 10.0 según tu percepción directa en el paladar. La red poligonal se calibra en vivo.
+              {activeConfig.textos.paso2Subtitulo}
             </p>
           </div>
 
@@ -762,7 +698,7 @@ export function CataView({
 
             <div className="grid grid-cols-1 gap-3 pt-1">
               {activeAxes.map((axis: string, idx: number) => {
-                const val = ejesCalibracionState[axis] ?? 7.5;
+                const val = ejesCalibracionState[axis] ?? (activeConfig.valorInicialEje ?? 1.0);
                 const updateVal = (newVal: number) => {
                   const clamped = Math.max(1.0, Math.min(10.0, Number(newVal.toFixed(1))));
                   setEjesCalibracionState((prev) => ({ ...prev, [axis]: clamped }));
@@ -830,14 +766,14 @@ export function CataView({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="ghost" size="lg" onClick={() => setStep('producto')}>
+            <Button variant="ghost" size="lg" onClick={() => cambiarPaso('producto')}>
               Atrás
             </Button>
             <Button
               variant="primary"
               size="lg"
               className="flex-1"
-              onClick={() => setStep('chips')}
+              onClick={() => cambiarPaso('chips')}
             >
               Siguiente: Notas & Reseña
             </Button>
@@ -849,16 +785,16 @@ export function CataView({
         <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-400">
           <div className="text-center space-y-2">
             <span className="block text-xs font-mono uppercase tracking-[0.2em] text-primary">
-              Paso 3 de 3
+              {activeConfig.textos.paso3Badge}
             </span>
             <Badge variant="outline" className="mb-1">
               {selectedProductName}
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
-              Notas de Sabor y Reseña
+              {activeConfig.textos.paso3Titulo}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Selecciona los matices que logras percibir en esta muestra.
+              {activeConfig.textos.paso3Subtitulo}
             </p>
           </div>
 
@@ -890,40 +826,48 @@ export function CataView({
 
           <div className="space-y-3 pt-6 border-t border-border/70">
             <p className="text-center text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              Evaluación Global (Escala de Excelencia Territorial 1 a 7 Estrellas)
+              {activeConfig.textos.ratingLabel}
             </p>
             <div
-              className="flex justify-center items-center gap-1.5"
+              className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 max-w-md mx-auto"
               role="radiogroup"
-              aria-label="Agrado general"
+              aria-label="Agrado general en escala de 1 a 10"
             >
-              {[1, 2, 3, 4, 5, 6, 7].map((star) => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => {
                 const isActive = agrado >= star;
+                const isSelected = agrado === star;
                 return (
                   <button
                     key={star}
                     type="button"
                     role="radio"
-                    aria-checked={agrado === star}
-                    aria-label={`${star} de 7 estrellas`}
+                    aria-checked={isSelected}
+                    aria-label={`${star} de 10`}
                     onClick={() => setAgrado(star)}
-                    className="min-h-[44px] min-w-[38px] flex flex-col items-center justify-center rounded-lg hover:bg-surface-raised transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className={cn(
+                      'min-h-[44px] flex flex-col items-center justify-center rounded-xl border transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                      isSelected
+                        ? 'bg-primary/15 border-primary text-primary shadow-xs scale-105'
+                        : isActive
+                          ? 'bg-card border-primary/40 text-primary'
+                          : 'bg-card border-border/60 text-muted-foreground/50 hover:border-border hover:text-foreground',
+                    )}
                   >
                     <Star
                       className={cn(
-                        'w-6 h-6 transition-all duration-150',
+                        'w-4 h-4 transition-all duration-150',
                         isActive
-                          ? 'fill-primary text-primary scale-105'
-                          : 'text-muted-foreground/30 hover:text-muted-foreground/60',
+                          ? 'fill-primary text-primary'
+                          : 'text-muted-foreground/30',
                       )}
                     />
-                    <span className="text-[9px] text-muted-foreground/70 font-mono mt-0.5">{star}</span>
+                    <span className="text-[10px] font-mono font-semibold mt-0.5 tabular-nums">{star}</span>
                   </button>
                 );
               })}
             </div>
             <p className="text-center text-xs font-semibold text-foreground tabular-nums">
-              {agrado} / 7 · <span className="text-primary font-normal">{DESCRIPTORES_RATING[agrado] || ''}</span>
+              {agrado} / 10 · <span className="text-primary font-normal">{activeConfig.descriptoresRating[agrado] || ''}</span>
             </p>
           </div>
 
@@ -932,7 +876,7 @@ export function CataView({
               htmlFor="comentario-abierto"
               className="block text-xs font-mono uppercase tracking-wider text-muted-foreground"
             >
-              Tu reseña oficial (Opcional)
+              {activeConfig.textos.comentarioLabel}
             </label>
             <textarea
               id="comentario-abierto"
@@ -940,7 +884,7 @@ export function CataView({
               onChange={(e) => setComentarioAbierto(e.target.value)}
               rows={3}
               maxLength={280}
-              placeholder="Describe los matices que sentiste al probar esta miel. Tu comentario aportará a la caracterización sensorial comunitaria..."
+              placeholder={activeConfig.textos.comentarioPlaceholder}
               className="w-full rounded-lg border border-border bg-card px-4 py-3 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
             <p className="text-[11px] font-mono text-muted-foreground/70 text-right">
@@ -949,14 +893,14 @@ export function CataView({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="ghost" size="lg" onClick={() => setStep('pares')}>
+            <Button variant="ghost" size="lg" onClick={() => cambiarPaso('pares')}>
               Atrás
             </Button>
             <Button
               variant="primary"
               size="lg"
               className="flex-1"
-              onClick={() => setStep('user')}
+              onClick={() => cambiarPaso('user')}
             >
               Siguiente: Guardar Pasaporte
             </Button>
@@ -999,7 +943,7 @@ export function CataView({
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => setStep('chips')}
+              onClick={() => cambiarPaso('chips')}
               disabled={loading}
             >
               Atrás
@@ -1027,7 +971,7 @@ export function CataView({
               <Badge variant="gold">+{puntosGanados} Puntos del Bosque</Badge>
             </div>
             <h2 className="text-3xl sm:text-4xl font-display font-medium text-foreground tracking-tight">
-              Tu Pasaporte Sensorial
+              {activeConfig.textos.exitoTitulo}
             </h2>
             <p className="text-sm text-muted-foreground">
               Evaluación registrada para{' '}
@@ -1160,16 +1104,16 @@ export function CataView({
           {/* Salida Diferida Respetuosa (Sin datáfonos ni transacciones en mesa) */}
           <div className="bg-surface-raised border border-border p-6 rounded-2xl text-center space-y-4">
             <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
-              {esGeografica ? 'Despensa Austral de Pureo' : 'Lleva esta experiencia a tu casa'}
+              {esGeografica ? 'Despensa Austral de Pureo' : activeConfig.textos.salidaDiferidaTitulo}
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-              La cata se disfruta sin prisa ni transacciones en mesa. Puedes revisar nuestras creaciones de temporada con despacho en frío a domicilio en 48 a 72 horas desde Chiloé.
+              {activeConfig.textos.salidaDiferidaDesc}
             </p>
             <Link
               href="/catalogo"
               className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-8 text-xs uppercase tracking-[0.2em] font-medium text-primary-foreground transition-all hover:bg-primary/90 w-full active:scale-[0.99] shadow-sm"
             >
-              Explorar Catálogo Oficial (Salida Diferida)
+              {activeConfig.textos.salidaDiferidaBoton}
             </Link>
           </div>
         </div>

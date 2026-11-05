@@ -217,7 +217,8 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
         createdAt: row.created_at,
       }));
     },
-    refetchInterval: 30000,
+    // 5 min: 30 s no aporta a un panel de auditoría y suma queries a una instancia de 500 MB.
+    refetchInterval: 5 * 60_000,
   });
 
   const [editingUmbrales, setEditingUmbrales] = useState<Record<string, Umbral>>({});

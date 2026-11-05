@@ -118,25 +118,38 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
   }
 
   // Sesión con contrabalanceo (seed del orden de chips)
-  const { data: sesion } = await supabase
+  const sesionPayload = {
+    punto_venta_id: punto.id,
+    producto_id: input.producto_id ?? null,
+    variante_id: input.variante_id ?? null,
+    tipo_sensorial: input.tipo_sensorial ?? 'miel',
+    cliente_id: clienteId,
+    codigo_punto: input.codigo_punto.trim().toUpperCase(),
+    origen: "qr" as const,
+    completo: true,
+    seed_orden: Math.floor(Math.random() * 100000),
+    agrado_1_5: input.agrado,
+    intencion_recompra: input.intencion_recompra,
+    tipo_evaluador: input.tipo_evaluador,
+    consentimiento: input.consentimiento,
+  };
+
+  let { data: sesion } = await supabase
     .from("perc_sesiones")
-    .insert({
-      punto_venta_id: punto.id,
-      producto_id: input.producto_id ?? null,
-      variante_id: input.variante_id ?? null,
-      tipo_sensorial: input.tipo_sensorial ?? 'miel',
-      cliente_id: clienteId,
-      codigo_punto: input.codigo_punto.trim().toUpperCase(),
-      origen: "qr",
-      completo: true,
-      seed_orden: Math.floor(Math.random() * 100000),
-      agrado_1_5: input.agrado,
-      intencion_recompra: input.intencion_recompra,
-      tipo_evaluador: input.tipo_evaluador,
-      consentimiento: input.consentimiento,
-    })
+    .insert(sesionPayload)
     .select("id")
     .single();
+
+  if (!sesion && input.agrado > 5) {
+    const fallbackAgrado = Math.max(1, Math.min(5, Math.round(input.agrado / 2)));
+    const retry = await supabase
+      .from("perc_sesiones")
+      .insert({ ...sesionPayload, agrado_1_5: fallbackAgrado })
+      .select("id")
+      .single();
+    sesion = retry.data;
+  }
+
   if (!sesion) return c.json({ code: "create_failed", message: "No se pudo guardar la sesión" }, 500);
 
   await supabase.from("perc_pares").insert(
@@ -190,12 +203,12 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
     const locationSuffix = punto.ciudad ? ` · ${punto.ciudad}` : '';
     const cleanDisplayName = `${tipoTexto}${locationSuffix}`;
 
-    await supabase.from("resenas_producto").insert({
+    const resenaPayload = {
       producto_id: input.producto_id,
       variante_id: input.variante_id ?? null,
       tipo_sensorial: input.tipo_sensorial ?? 'miel',
-      modo: "anonima",
-      estado: "pendiente",
+      modo: "anonima" as const,
+      estado: "pendiente" as const,
       rating: input.agrado,
       comentario_corto: (input.abierta || `Degustación sensorial en ${punto.nombre || 'punto aliado'}`).slice(0, 280),
       display_name: cleanDisplayName,
@@ -207,10 +220,20 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
         pares: input.pares,
         chips: input.chips,
         ejes_calibracion: input.ejes_calibracion ?? null,
+        rating_1_10: input.agrado,
         codigo_punto: input.codigo_punto,
         punto_nombre: punto.nombre,
       },
-    });
+    };
+
+    const { error: resenaError } = await supabase.from("resenas_producto").insert(resenaPayload);
+    if (resenaError && input.agrado > 7) {
+      const fallbackRating = Math.max(1, Math.min(7, Math.round((input.agrado * 7) / 10)));
+      await supabase.from("resenas_producto").insert({
+        ...resenaPayload,
+        rating: fallbackRating,
+      });
+    }
   }
 
   return c.json({

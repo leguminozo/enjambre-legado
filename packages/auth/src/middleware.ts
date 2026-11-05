@@ -38,6 +38,12 @@ export interface AuthMiddlewareConfig {
   timeoutMs?: number
 }
 
+function hasSessionCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'))
+}
+
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
   return Promise.race([
     promise,
@@ -97,6 +103,12 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
       const url = request.nextUrl.clone()
       url.pathname = authRedirect
       return NextResponse.redirect(url)
+    }
+
+    // Visitante anónimo en ruta pública: sin cookie de sesión no hay nada que validar,
+    // así evitamos 2 llamadas a Supabase por cada visita (clave con plan Free).
+    if (isPublicPath(pathname, publicRoutes, publicPathPrefixes) && !hasSessionCookie(request)) {
+      return supabaseResponse
     }
 
     const supabaseUrl = getSupabaseUrl()

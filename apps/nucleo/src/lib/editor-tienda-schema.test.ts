@@ -11,6 +11,8 @@ import {
   SECTION_SCHEMA_BY_KEY,
   SETTINGS_SECTION_KEYS,
   TALLERES_SCHEMA,
+  NOSOTROS_SCHEMA,
+  NOSOTROS_SETTINGS_SCHEMA,
 } from '@/lib/editor-tienda-schema';
 
 describe('registro de schemas del editor', () => {
@@ -253,6 +255,52 @@ describe('registro de schemas del editor', () => {
     expect(prog2Tag).toBeDefined();
     expect(prog3Tag).toBeDefined();
     expect(convocatoriasTitle).toBeDefined();
+  });
+
+  it('Nosotros y nosotros_settings declaran los campos del canon para ser full editable', () => {
+    // Hero & CTA en nosotros_settings
+    expect(NOSOTROS_SETTINGS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'kicker')).toBe(true);
+    expect(NOSOTROS_SETTINGS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'title')).toBe(true);
+    expect(NOSOTROS_SETTINGS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'subtitle')).toBe(true);
+    expect(NOSOTROS_SETTINGS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'cta_label')).toBe(true);
+
+    // Capítulo I: El Giro Vital & Historia
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'giro_kicker')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'giro_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'giro_p1')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'giro_p2')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'giro_p3')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'historia')).toBe(true);
+
+    // Capítulo II: Crónica en 5 Movimientos
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'cronica_kicker')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'cronica_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'mov1_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'mov2_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'mov3_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'mov4_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'mov5_title')).toBe(true);
+
+    // Capítulo III: Convicciones y Principios
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'principios_kicker')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'principios_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'mision_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'vision_title')).toBe(true);
+
+    // Capítulo IV: Stats
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'stat1_label')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'stat2_label')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'stat3_label')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'stat4_label')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'stats_disclaimer')).toBe(true);
+
+    // Capítulo V & VI: Archivo y Ciencia
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'archivo_kicker')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'archivo_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'archivo_cta_label')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'ciencia_kicker')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'ciencia_title')).toBe(true);
+    expect(NOSOTROS_SCHEMA.fields.some((f) => 'id' in f && f.id === 'ciencia_cta_label')).toBe(true);
   });
 
   it('SCHEMA_SECTION_TEMPLATES materializa todos los defaults y nunca devuelve {} vacío', () => {

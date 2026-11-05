@@ -22,7 +22,7 @@ export function useSecurityAlerts({
   supabaseClient,
   limit = 50,
   autoRefresh = true,
-  refreshIntervalMs = 30000,
+  refreshIntervalMs = 5 * 60_000,
 }: UseSecurityAlertsOptions): UseSecurityAlertsReturn {
   const [events, setEvents] = useState<SecurityEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)

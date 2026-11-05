@@ -13,7 +13,7 @@ import {
   MOMENTO_RECOLECCION_OPCIONES,
 } from './constants';
 
-const ratingSchema = z.number().int().min(1).max(7);
+const ratingSchema = z.number().int().min(1).max(10);
 
 // ── Atributos sensoriales especializados por familia de producto ────────────
 
