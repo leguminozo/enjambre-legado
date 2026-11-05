@@ -921,15 +921,15 @@ export function ProductForm({
     setImageUploading(true);
     try {
       const uploadPromises = validFiles.map(async (originalFile) => {
-        // Optimizar: max 1200px + WEBP 80% (pipeline compartido con logo/CMS)
+        // Optimizar: max 1200px + WEBP/JPEG dentro del presupuesto de egress (pipeline compartido con logo/CMS)
         const file = await processImage(originalFile, { maxSize: 1200, quality: 0.8 });
-
-        const fileName = `${crypto.randomUUID()}.webp`;
+        const ext = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp';
+        const fileName = `${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from('productos')
           .upload(fileName, file, {
             upsert: true,
-            contentType: 'image/webp',
+            contentType: file.type || 'image/webp',
             cacheControl: '31536000',
           });
 

@@ -6,8 +6,10 @@
 export type ProcessImageOptions = {
   /** Longest side max (px). Default 1600 (Retina-ready, lightweight WebP). */
   maxSize?: number;
-  /** WEBP quality 0–1 when using lossy WEBP. Default 0.88 (near-lossless, prevents gradient banding). */
+  /** WEBP quality 0–1 when using lossy WEBP. Default 0.82 (crisp Retina quality within Storage egress budget). */
   quality?: number;
+  /** Target max byte budget for non-alpha photos (default 450 KB). Adaptive quality steps down if exceeded. */
+  maxBytes?: number;
   /**
    * Logo / brand assets: keep transparency (PNG), never force lossy WEBP.
    * Prefer original file when already small enough.
@@ -123,6 +125,14 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   return loadImageFromSource(file);
 }
 
+const DEFAULT_MAX_PHOTO_BYTES = 450 * 1024; // 450 KB target budget for Storage CDN egress
+
+function extForMime(mime: string): string {
+  if (mime === 'image/png') return 'png';
+  if (mime === 'image/jpeg') return 'jpg';
+  return 'webp';
+}
+
 function canvasToFile(
   canvas: HTMLCanvasElement,
   type: 'image/png' | 'image/webp' | 'image/jpeg',
@@ -130,18 +140,20 @@ function canvasToFile(
   baseName: string,
 ): Promise<File> {
   return new Promise((resolve, reject) => {
-    const ext = type === 'image/png' ? 'png' : type === 'image/jpeg' ? 'jpg' : 'webp';
     // quality ignored for PNG; for WEBP/JPEG 0–1
     canvas.toBlob(
       (blob) => {
         if (!blob) {
-          reject(new Error(`No se pudo codificar como ${ext.toUpperCase()}`));
+          reject(new Error(`No se pudo codificar como ${type}`));
           return;
         }
+        // Safari/WebKit fallback detection: if image/webp silently produced image/png
+        const actualType = blob.type || type;
+        const ext = extForMime(actualType);
         const name = baseName.replace(/\.[^/.]+$/, '') + `.${ext}`;
         resolve(
           new File([blob], name, {
-            type,
+            type: actualType,
             lastModified: Date.now(),
           }),
         );
@@ -152,14 +164,53 @@ function canvasToFile(
   });
 }
 
+async function encodeWithinBudget(
+  canvas: HTMLCanvasElement,
+  initialQuality: number,
+  maxBytes: number,
+  baseName: string,
+): Promise<File> {
+  const qualities = [initialQuality, 0.76, 0.68].filter(
+    (q, idx, arr) => q <= initialQuality && arr.indexOf(q) === idx,
+  );
+
+  let bestFile: File | null = null;
+
+  for (const q of qualities) {
+    const candidate = await canvasToFile(canvas, 'image/webp', q, baseName);
+    // If Safari silently fell back to PNG, break and use JPEG lossy encoder instead
+    if (candidate.type === 'image/png') {
+      break;
+    }
+    bestFile = candidate;
+    if (candidate.size <= maxBytes) {
+      return candidate;
+    }
+  }
+
+  // Fallback for Safari WebP-to-PNG quirk or stubbornly large WebP: try progressive JPEG
+  for (const q of [0.82, 0.74]) {
+    const jpegCandidate = await canvasToFile(canvas, 'image/jpeg', q, baseName);
+    if (!bestFile || jpegCandidate.size < bestFile.size) {
+      bestFile = jpegCandidate;
+    }
+    if (jpegCandidate.size <= maxBytes) {
+      return jpegCandidate;
+    }
+  }
+
+  return bestFile!;
+}
+
 /**
  * Resize longest side; choose output format by options.
  * - preserveAlpha → PNG (alpha + crisp logo)
- * - else → WEBP lossy (product / gallery photos, quality 0.88, multi-step downsampling)
+ * - else → WEBP lossy (product / gallery photos, adaptive quality within byte budget, multi-step downsampling)
  */
 export async function processImage(file: File, options: ProcessImageOptions = {}): Promise<File> {
   const maxSize = options.maxSize ?? 1600;
-  const quality = options.quality ?? 0.88;
+  const quality = options.quality ?? 0.82;
+  const maxBytes = options.maxBytes ?? DEFAULT_MAX_PHOTO_BYTES;
   const preserveAlpha = options.preserveAlpha ?? fieldPreservesAlpha(options.fieldName);
   const mime = resolveFileMime(file);
 
@@ -233,7 +284,7 @@ export async function processImage(file: File, options: ProcessImageOptions = {}
     return canvasToFile(canvas, 'image/png', 1, file.name);
   }
 
-  return canvasToFile(canvas, 'image/webp', quality, file.name);
+  return encodeWithinBudget(canvas, quality, maxBytes, file.name);
 }
 
 export type SquareAdjustOptions = {
@@ -470,7 +521,8 @@ export async function prepareImageForUpload(
   try {
     return await processImage(file, {
       maxSize,
-      quality: options.quality ?? (preserveAlpha ? 1 : 0.88),
+      quality: options.quality ?? (preserveAlpha ? 1 : 0.82),
+      maxBytes: options.maxBytes,
       preserveAlpha,
       fieldName,
     });

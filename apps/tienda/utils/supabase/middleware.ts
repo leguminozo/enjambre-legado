@@ -17,6 +17,12 @@ export interface AuthResult {
   supabase: SupabaseClient
 }
 
+function hasSessionCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'))
+}
+
 export async function updateSession(request: NextRequest): Promise<AuthResult> {
   const requestHeaders = new Headers(request.headers)
   const response = NextResponse.next({ request: { headers: requestHeaders } })
@@ -34,6 +40,11 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
       },
     },
   })
+
+  // Visitante anónimo sin cookie sb-*-auth-token: evita round-trip a GoTrue en cada visita.
+  if (!hasSessionCookie(request)) {
+    return { response, user: null, supabase }
+  }
 
   // getUser() validates the user JWT with the Supabase Auth server on every request.
   // Protegido con timeout fail-soft (2.5s) para evitar 504 Gateway Timeout si Supabase Auth

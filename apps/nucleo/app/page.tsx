@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { headers } from 'next/headers';
+import { unstable_cache } from 'next/cache';
+import { createClient } from '@supabase/supabase-js';
 import { Lock, Shield, Scale, FileText, ArrowRight } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
@@ -55,17 +56,38 @@ export async function generateMetadata(): Promise<Metadata> {
  * Landing pública del Registro Territorial Apícola de Chiloé.
  * Arco: hero → privacidad visual → por qué → cómo → origen → FAQ → cierre.
  */
-async function getCensoStats(): Promise<CensoStatsData | null> {
+async function fetchCensoStatsDirect(): Promise<CensoStatsData | null> {
   try {
-    const h = await headers();
-    const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-    const proto = h.get('x-forwarded-proto') ?? 'http';
-    const res = await fetch(`${proto}://${host}/api/censo-publico/stats`, {
-      next: { revalidate: 120 },
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { data?: CensoStatsData };
-    return json.data ?? null;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+    if (!url || !key) return null;
+    const supabase = createClient(url, key, { auth: { persistSession: false } });
+    const rpcPromise = supabase.rpc('censo_stats_public');
+    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: 'timeout' } }), 4000),
+    );
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+    if (error || !data) return null;
+    return data as CensoStatsData;
+  } catch {
+    return null;
+  }
+}
+
+const getCachedCensoStats = unstable_cache(
+  fetchCensoStatsDirect,
+  ['censo_stats_public_landing'],
+  { revalidate: 300, tags: ['censo_stats'] },
+);
+
+async function getCensoStats(): Promise<CensoStatsData | null> {
+  if (process.env.NODE_ENV !== 'production') {
+    return fetchCensoStatsDirect();
+  }
+  try {
+    return await getCachedCensoStats();
   } catch {
     return null;
   }

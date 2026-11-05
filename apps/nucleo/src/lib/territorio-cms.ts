@@ -1,3 +1,5 @@
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseServerClient() {
@@ -588,7 +590,7 @@ export interface TerritorioCmsData {
   faqs: TerritorioFaqItem[];
 }
 
-export async function getTerritorioCmsContent(options?: { draft?: boolean }): Promise<TerritorioCmsData> {
+async function fetchTerritorioCmsContentDirect(options?: { draft?: boolean }): Promise<TerritorioCmsData> {
   const fallback: TerritorioCmsData = {
     header: DEFAULT_TERRITORIO_HEADER,
     layout: DEFAULT_TERRITORIO_LAYOUT,
@@ -611,26 +613,41 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
       return fallback;
     }
 
-    const { data, error } = await client
-      .from('site_content')
-      .select('section_key, content, draft_content, item_order')
-      .in('section_key', [
-        'territorio_header',
-        'territorio_layout',
-        'territorio_hero',
-        'territorio_herramientas',
-        'territorio_privacidad',
-        'territorio_beneficios',
-        'territorio_pasos',
-        'territorio_origen',
-        'territorio_carta',
-        'territorio_censo',
-        'territorio_institucional',
-        'territorio_faq_settings',
-        'territorio_faq',
-      ])
-      .eq('is_active', true)
-      .order('item_order', { ascending: true });
+    const sectionKeys = [
+      'territorio_header',
+      'territorio_layout',
+      'territorio_hero',
+      'territorio_herramientas',
+      'territorio_privacidad',
+      'territorio_beneficios',
+      'territorio_pasos',
+      'territorio_origen',
+      'territorio_carta',
+      'territorio_censo',
+      'territorio_institucional',
+      'territorio_faq_settings',
+      'territorio_faq',
+    ];
+
+    const queryPromise = options?.draft
+      ? client
+          .from('site_content')
+          .select('section_key, content, draft_content, item_order')
+          .in('section_key', sectionKeys)
+          .eq('is_active', true)
+          .order('item_order', { ascending: true })
+      : client
+          .from('site_content')
+          .select('section_key, content, item_order')
+          .in('section_key', sectionKeys)
+          .eq('is_active', true)
+          .order('item_order', { ascending: true });
+
+    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: 'timeout' } }), 5000),
+    );
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error || !data || data.length === 0) {
       return fallback;
@@ -639,7 +656,8 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
     const byKey = new Map<string, { content: unknown; draft_content?: unknown }[]>();
     for (const row of data) {
       const list = byKey.get(row.section_key) ?? [];
-      list.push({ content: row.content, draft_content: row.draft_content });
+      const draftVal = 'draft_content' in row ? row.draft_content : undefined;
+      list.push({ content: row.content, draft_content: draftVal });
       byKey.set(row.section_key, list);
     }
 
@@ -723,3 +741,25 @@ export async function getTerritorioCmsContent(options?: { draft?: boolean }): Pr
     return fallback;
   }
 }
+
+const getCachedTerritorioCms = unstable_cache(
+  async () => fetchTerritorioCmsContentDirect({ draft: false }),
+  ['territorio_cms_published'],
+  { revalidate: 3600, tags: ['territorio_cms', 'site_content'] },
+);
+
+export const getTerritorioCmsContent = cache(async function getTerritorioCmsContent(
+  options?: { draft?: boolean },
+): Promise<TerritorioCmsData> {
+  if (options?.draft) {
+    return fetchTerritorioCmsContentDirect({ draft: true });
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    return fetchTerritorioCmsContentDirect({ draft: false });
+  }
+  try {
+    return await getCachedTerritorioCms();
+  } catch {
+    return fetchTerritorioCmsContentDirect({ draft: false });
+  }
+});

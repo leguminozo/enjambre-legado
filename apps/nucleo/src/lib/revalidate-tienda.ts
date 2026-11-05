@@ -4,6 +4,7 @@
  * el editor avisa al operador; el save de site_content no se revierte.
  */
 
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CANONICAL_PRODUCTION_URLS } from './publicUrls';
 
 export type RevalidateTiendaResult = {
@@ -40,6 +41,22 @@ function revalidateSecret(): string {
 }
 
 export async function revalidateTiendaCms(): Promise<RevalidateTiendaResult> {
+  // Invalidar primero el cache local de Núcleo (superficie pública de Registro Territorial)
+  try {
+    revalidateTag('territorio_cms', 'default');
+    revalidateTag('site_content', 'default');
+    revalidatePath('/');
+    revalidatePath('/mapa-chiloe');
+    revalidatePath('/carta');
+    revalidatePath('/privacidad');
+    revalidatePath('/terminos');
+    revalidatePath('/planes-territoriales');
+    revalidatePath('/municipalidades');
+    revalidatePath('/comuna');
+  } catch {
+    // Fuera de request context de Next (ej. tests unitarios puros)
+  }
+
   const base = tiendaBaseUrl();
   if (!base) {
     if (process.env.NODE_ENV === 'development') {

@@ -136,10 +136,10 @@ async function fetchBatchFromSupabase(
           .eq('is_active', true)
           .order('item_order', { ascending: true });
 
-  const timeoutMs = 20000;
+  const timeoutMs = 5000;
   let lastError: Error | null = null;
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= 1; attempt++) {
     try {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
@@ -236,11 +236,7 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
     return await getCachedSiteContentBatch(sortedKeys, requested);
   } catch (err) {
     console.warn('Failing soft for getCachedSiteContentBatch:', (err as Error)?.message);
-    try {
-      return await fetchBatchFromSupabase(sectionKeys, requested, false);
-    } catch {
-      return Object.fromEntries(sectionKeys.map((k) => [k, []]));
-    }
+    return Object.fromEntries(sectionKeys.map((k) => [k, []]));
   }
 });
 

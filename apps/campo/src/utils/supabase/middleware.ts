@@ -7,8 +7,14 @@ export interface AuthResult {
   user: { id: string; email: string; app_metadata?: Record<string, unknown> } | null;
 }
 
+function hasSessionCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+}
+
 export async function updateSession(request: NextRequest): Promise<AuthResult> {
-  if (!isSupabaseConfigured()) {
+  if (!isSupabaseConfigured() || !hasSessionCookie(request)) {
     return { response: NextResponse.next({ request }), user: null };
   }
 
@@ -32,7 +38,13 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
       },
     });
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { user: null } }), 2500),
+    );
+    const { data: { user } } = await Promise.race([
+      supabase.auth.getUser(),
+      timeoutPromise,
+    ]);
 
     return {
       response: supabaseResponse,
