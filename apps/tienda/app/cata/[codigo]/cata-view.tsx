@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Droplet,
@@ -28,8 +28,12 @@ import {
   PARES_SEMANTICOS_POR_CATEGORIA,
   PARES_SEMANTICOS,
   FORTIFICANTES_LABELS,
+  EJES_SENSORIALES_POR_CATEGORIA,
+  VALORES_DEFAULT_EJES,
+  resolverEjesSensoriales,
   type CategoriaSensorial,
   type FortificanteCanonico,
+  type TipoSensorial,
 } from '@enjambre/resenas';
 
 export interface CataVarianteOption {
@@ -147,7 +151,7 @@ const DEGUSTACION_VARIEDADES = [
     icon: Droplet,
     note: 'Batido mecánico lento en frío · Textura sedosa de bosque nativo',
     fortificante: 'ninguno' as const,
-    keywords: ['crema de miel', 'batida', 'crema'],
+    keywords: ['crema de miel', 'batida', 'crema', 'pura'],
   },
   {
     id: 'crema-avellanas',
@@ -172,22 +176,6 @@ const DEGUSTACION_VARIEDADES = [
     note: 'Nibs de cacao crudo de origen · Contraste tostado y floral',
     fortificante: 'cacao_crudo' as const,
     keywords: ['cacao', 'nibs'],
-  },
-  {
-    id: 'crema-virgen',
-    name: 'Miel Virgen con Trocito de Panal',
-    icon: Droplet,
-    note: 'Con trozo de panal natural intacto de Pureo, Chiloé',
-    fortificante: 'panal_virgen' as const,
-    keywords: ['panal', 'virgen', 'ulmo'],
-  },
-  {
-    id: 'prototipo-porvenir',
-    name: 'Edición Experimental / Reserva de Autor',
-    icon: Sparkle,
-    note: 'Muestra especial de feria · Recolección estacional o barrica',
-    fortificante: 'ninguno' as const,
-    keywords: ['reserva', 'experimental'],
   },
 ];
 
@@ -223,6 +211,116 @@ interface CataViewProps {
   variantes?: CataVarianteOption[];
   initialProductSlugOrId?: string;
   initialVarianteId?: string;
+  initialPabellon?: 'casa' | 'geografias';
+  lockPabellon?: 'casa' | 'geografias' | null;
+}
+
+const DESCRIPTORES_RATING: Record<number, string> = {
+  7: 'Excepcional · Calidad Superior de Origen',
+  6: 'Sobresaliente · Expresión Botánica Viva',
+  5: 'Muy Buena · Carácter Genuino',
+  4: 'Buena · Correcta y Balanceada',
+  3: 'Regular',
+  2: 'Deficiente',
+  1: 'Atípica',
+};
+
+function RadarConstellation({
+  axes,
+  scores,
+  size = 200,
+}: {
+  axes: readonly string[];
+  scores: Record<string, number>;
+  size?: number;
+}) {
+  const totalAxes = axes.length || 8;
+  const cx = size / 2;
+  const cy = size / 2;
+  const rMax = (size / 2) * 0.68;
+  const levels = [0.25, 0.5, 0.75, 1.0];
+
+  const points = axes.map((axis, i) => {
+    const val = Math.max(1.0, Math.min(10.0, scores[axis] ?? 7.5)) / 10;
+    const angle = ((Math.PI * 2) / totalAxes) * i - Math.PI / 2;
+    const r = val * rMax;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), val, axis };
+  });
+
+  const polyStr = points.map((p) => `${p.x},${p.y}`).join(' ');
+
+  return (
+    <div className="relative mx-auto flex items-center justify-center select-none" style={{ width: size, height: size }}>
+      <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full overflow-visible">
+        <defs>
+          <radialGradient id="radar-constellation-grad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.08" />
+          </radialGradient>
+        </defs>
+
+        {levels.map((lvl) => {
+          const pts = axes
+            .map((_, i) => {
+              const angle = ((Math.PI * 2) / totalAxes) * i - Math.PI / 2;
+              const r = lvl * rMax;
+              return `${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`;
+            })
+            .join(' ');
+          return (
+            <polygon
+              key={lvl}
+              points={pts}
+              fill="none"
+              stroke="currentColor"
+              className="text-border/50"
+              strokeWidth="0.8"
+              strokeDasharray={lvl === 1.0 ? undefined : '2 2'}
+            />
+          );
+        })}
+
+        {axes.map((_, i) => {
+          const angle = ((Math.PI * 2) / totalAxes) * i - Math.PI / 2;
+          const x2 = cx + rMax * Math.cos(angle);
+          const y2 = cy + rMax * Math.sin(angle);
+          return (
+            <line
+              key={i}
+              x1={cx}
+              y1={cy}
+              x2={x2.toFixed(1)}
+              y2={y2.toFixed(1)}
+              stroke="currentColor"
+              className="text-border/40"
+              strokeWidth="0.8"
+            />
+          );
+        })}
+
+        <polygon
+          points={polyStr}
+          fill="url(#radar-constellation-grad)"
+          stroke="var(--primary)"
+          strokeWidth="2"
+          className="transition-all duration-300 ease-out"
+        />
+
+        {points.map((pt, i) => (
+          <circle
+            key={i}
+            cx={pt.x}
+            cy={pt.y}
+            r="3.5"
+            className="fill-primary stroke-card transition-all duration-300 ease-out"
+            strokeWidth="1.5"
+          />
+        ))}
+      </svg>
+    </div>
+  );
 }
 
 export function CataView({
@@ -233,6 +331,8 @@ export function CataView({
   variantes = [],
   initialProductSlugOrId,
   initialVarianteId,
+  initialPabellon = 'casa',
+  lockPabellon = null,
 }: CataViewProps) {
   const foundInitialVariant = variantes.find(
     (v) =>
@@ -261,8 +361,8 @@ export function CataView({
     foundInitialVariant?.nombre_variante ?? foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name,
   );
 
-  const [pabellon, setPabellon] = useState<'casa' | 'geografias'>('casa');
-  const [esGeografica, setEsGeografica] = useState<boolean>(false);
+  const [pabellon, setPabellon] = useState<'casa' | 'geografias'>(lockPabellon ?? initialPabellon);
+  const [esGeografica, setEsGeografica] = useState<boolean>((lockPabellon ?? initialPabellon) === 'geografias');
   const [selectedFloracionSlug, setSelectedFloracionSlug] = useState<string | null>(null);
 
   const [step, setStep] = useState<'intro' | 'producto' | 'pares' | 'chips' | 'user' | 'success'>(
@@ -271,7 +371,20 @@ export function CataView({
   const [loading, setLoading] = useState(false);
 
   // Form state
-  const [paresState, setParesState] = useState<Record<string, number>>({});
+  const activeAxes = useMemo(() => {
+    return resolverEjesSensoriales(tipoSensorial, selectedProductName);
+  }, [tipoSensorial, selectedProductName]);
+
+  const [ejesCalibracionState, setEjesCalibracionState] = useState<Record<string, number>>(() => {
+    const axes = resolverEjesSensoriales(tipoSensorial, selectedProductName);
+    const initialEjes: Record<string, number> = {};
+    axes.forEach((axis) => {
+      const def = VALORES_DEFAULT_EJES[axis] ?? 75;
+      initialEjes[axis] = Number((def / 10).toFixed(1));
+    });
+    return initialEjes;
+  });
+
   const [selectedChips, setSelectedChips] = useState<Set<string>>(new Set());
   const [agrado, setAgrado] = useState(7);
   const [comentarioAbierto, setComentarioAbierto] = useState('');
@@ -292,7 +405,21 @@ export function CataView({
     setTipoSensorial(category);
     setSelectedFloracionSlug(floracionSlug || null);
     setEsGeografica(geografica);
-    setParesState({});
+
+    const axes = resolverEjesSensoriales(category, name);
+    const matchedProduct = products.find((p) => p.id === prodId);
+    const prodCal = matchedProduct?.perfil_sensorial?.ejes_calibracion;
+    const initialEjes: Record<string, number> = {};
+    axes.forEach((axis) => {
+      const pVal = prodCal?.[axis];
+      if (typeof pVal === 'number') {
+        initialEjes[axis] = pVal > 10 ? Number((pVal / 10).toFixed(1)) : Number(pVal.toFixed(1));
+      } else {
+        const def = VALORES_DEFAULT_EJES[axis] ?? 75;
+        initialEjes[axis] = Number((def / 10).toFixed(1));
+      }
+    });
+    setEjesCalibracionState(initialEjes);
     setSelectedChips(new Set());
     setStep('pares');
   };
@@ -316,10 +443,6 @@ export function CataView({
   };
 
   const currentProduct = products.find((p) => p.id === selectedProductId);
-  const currentSemanticPairs =
-    (currentProduct?.perfil_sensorial as { pares_semanticos?: Array<{ par: string; izq: string; der: string }> })?.pares_semanticos ||
-    PARES_SEMANTICOS_POR_CATEGORIA[tipoSensorial] ||
-    PARES_SEMANTICOS_POR_CATEGORIA.miel;
 
   const filteredChips = chipsCatalog.filter((c) => {
     if (!c.categoria_producto || c.categoria_producto === 'miel') return true;
@@ -343,10 +466,20 @@ export function CataView({
 
     setLoading(true);
     try {
-      const paresArray = currentSemanticPairs.map((p) => ({
-        par: p.par,
-        valor: paresState[p.par] || 0,
-      }));
+      const ejes100: Record<string, number> = {};
+      activeAxes.forEach((axis: string) => {
+        const v10 = ejesCalibracionState[axis] ?? 7.5;
+        ejes100[axis] = Math.round(v10 * 10);
+      });
+
+      const paresArray = activeAxes.slice(0, 4).map((axis: string) => {
+        const val10 = ejesCalibracionState[axis] ?? 7.5;
+        const valBipolar = Math.round(((val10 - 1) / 9) * 6 - 3);
+        return {
+          par: axis,
+          valor: Math.max(-3, Math.min(3, valBipolar)),
+        };
+      });
 
       let chipsArray = Array.from(selectedChips).map((chipName) => {
         const cat = chipsCatalog.find((c) => c.chip === chipName);
@@ -354,7 +487,7 @@ export function CataView({
       });
 
       if (chipsArray.length === 0) {
-        chipsArray = [{ bloque: 'sabor', chip: 'Dulce' }];
+        chipsArray = [{ bloque: 'sabor', chip: 'Cremosa' }];
       }
 
       let finalProductId = selectedProductId;
@@ -380,6 +513,7 @@ export function CataView({
           tipo_sensorial: tipoSensorial,
           email: email.trim(),
           consentimiento: true,
+          ejes_calibracion: ejes100,
           pares: paresArray,
           chips: chipsArray,
           abierta: comentarioAbierto.trim() || undefined,
@@ -405,12 +539,6 @@ export function CataView({
       setLoading(false);
     }
   };
-
-  const profileScores = currentSemanticPairs.map((p) => {
-    const val = paresState[p.par] || 0;
-    const percentage = ((val + 3) / 6) * 100;
-    return { name: p.der, inverse: p.izq, percentage, val };
-  });
 
   return (
     <div className="max-w-xl mx-auto px-4 w-full">
@@ -466,34 +594,36 @@ export function CataView({
           </div>
 
           {/* Selector de Doble Pabellón */}
-          <div className="grid grid-cols-2 p-1 bg-surface-sunken rounded-2xl border border-border/60">
-            <button
-              type="button"
-              onClick={() => setPabellon('casa')}
-              className={cn(
-                "py-3 px-3 rounded-xl text-xs font-medium transition-all text-center flex flex-col items-center justify-center gap-0.5",
-                pabellon === 'casa'
-                  ? "bg-card text-foreground shadow-sm border border-border/80"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span className="font-medium text-xs sm:text-sm">Creaciones en Mesa</span>
-              <span className="text-[10px] text-primary font-mono">Pureo · Chiloé</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPabellon('geografias')}
-              className={cn(
-                "py-3 px-3 rounded-xl text-xs font-medium transition-all text-center flex flex-col items-center justify-center gap-0.5",
-                pabellon === 'geografias'
-                  ? "bg-card text-foreground shadow-sm border border-border/80"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span className="font-medium text-xs sm:text-sm">Mieles de Chile</span>
-              <span className="text-[10px] text-accent-text font-mono">Atlas Botánico</span>
-            </button>
-          </div>
+          {!lockPabellon && (
+            <div className="grid grid-cols-2 p-1 bg-surface-sunken rounded-2xl border border-border/60">
+              <button
+                type="button"
+                onClick={() => setPabellon('casa')}
+                className={cn(
+                  "py-3 px-3 rounded-xl text-xs font-medium transition-all text-center flex flex-col items-center justify-center gap-0.5",
+                  pabellon === 'casa'
+                    ? "bg-card text-foreground shadow-sm border border-border/80"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="font-medium text-xs sm:text-sm">Creaciones en Mesa</span>
+                <span className="text-[10px] text-primary font-mono">Pureo · Chiloé</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPabellon('geografias')}
+                className={cn(
+                  "py-3 px-3 rounded-xl text-xs font-medium transition-all text-center flex flex-col items-center justify-center gap-0.5",
+                  pabellon === 'geografias'
+                    ? "bg-card text-foreground shadow-sm border border-border/80"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="font-medium text-xs sm:text-sm">Mieles de Chile</span>
+                <span className="text-[10px] text-accent-text font-mono">Atlas Botánico</span>
+              </button>
+            </div>
+          )}
 
           {pabellon === 'casa' ? (
             <div className="space-y-3">
@@ -518,7 +648,7 @@ export function CataView({
                           matchedProduct?.id ?? null,
                           null,
                           v.name,
-                          v.fortificante === 'panal_virgen' || (v.fortificante as string) === 'ninguno'
+                          v.fortificante === 'ninguno'
                             ? 'miel'
                             : 'miel_fortificada',
                           'ulmo',
@@ -594,68 +724,109 @@ export function CataView({
       )}
 
       {step === 'pares' && (
-        <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-400">
+        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-400">
           <div className="text-center space-y-2">
             <span className="block text-xs font-mono uppercase tracking-[0.2em] text-primary">
-              Paso 2 de 3
+              Paso 2 de 3 · Perfil Sensorial
             </span>
             <Badge variant="outline" className="mb-1">
               {selectedProductName}
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
-              Perfil de Textura y Aroma
+              Geometría de la Red Sensorial
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Desliza según tu percepción directa en el paladar.
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Calibra los 8 vértices en escala 1.0 a 10.0 según tu percepción directa en el paladar. La red poligonal se calibra en vivo.
             </p>
           </div>
 
-          <div className="space-y-6 bg-card border border-border p-6 rounded-2xl">
-            {currentSemanticPairs.map((p) => {
-              const val = paresState[p.par] || 0;
-              return (
-                <div key={p.par} className="space-y-3">
-                  <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider">
-                    <span className={val < 0 ? 'text-primary font-bold' : 'text-muted-foreground'}>
-                      {p.izq}
-                    </span>
-                    <span className="font-mono text-[10px] text-muted-foreground/60">
-                      {val === 0
-                        ? 'Equilibrado'
-                        : val > 0
-                          ? `+${val} ${p.der}`
-                          : `${val} ${p.izq}`}
-                    </span>
-                    <span className={val > 0 ? 'text-primary font-bold' : 'text-muted-foreground'}>
-                      {p.der}
-                    </span>
+          {/* Telaraña / Radar Visual Interactivo */}
+          <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
+            <div className="w-full flex justify-between items-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground pb-2 border-b border-border/60 mb-2">
+              <span>Constelación Activa ({activeAxes.length} Vértices)</span>
+              <span className="text-primary font-bold">1.0 — 10.0</span>
+            </div>
+            <RadarConstellation axes={activeAxes} scores={ejesCalibracionState} size={230} />
+          </div>
+
+          {/* Deslizadores de los 8 Ejes Canónicos */}
+          <div className="space-y-3 bg-card border border-border p-4 sm:p-5 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-border/60">
+              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                Vértices de Percepción
+              </span>
+              <span className="text-[11px] text-primary font-mono font-medium">
+                Ajusta deslizando o con + / -
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 pt-1">
+              {activeAxes.map((axis: string, idx: number) => {
+                const val = ejesCalibracionState[axis] ?? 7.5;
+                const updateVal = (newVal: number) => {
+                  const clamped = Math.max(1.0, Math.min(10.0, Number(newVal.toFixed(1))));
+                  setEjesCalibracionState((prev) => ({ ...prev, [axis]: clamped }));
+                };
+
+                return (
+                  <div
+                    key={axis}
+                    className="p-3 bg-surface-sunken/60 border border-border/60 rounded-xl space-y-2 hover:border-primary/40 transition-colors"
+                  >
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-md bg-card border border-border/80 flex items-center justify-center font-mono text-[10px] text-muted-foreground font-semibold">
+                          {idx + 1}
+                        </span>
+                        <span className="font-medium text-foreground tracking-tight">{axis}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-mono">
+                        <span className="text-sm font-bold text-primary tabular-nums">
+                          {val.toFixed(1)}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">/ 10</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 pt-0.5">
+                      <button
+                        type="button"
+                        aria-label={`Reducir ${axis}`}
+                        onClick={() => updateVal(val - 0.5)}
+                        className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:bg-surface-raised active:scale-95 text-sm font-bold transition-transform"
+                      >
+                        -
+                      </button>
+                      <div className="flex-1">
+                        <input
+                          type="range"
+                          min="1.0"
+                          max="10.0"
+                          step="0.5"
+                          value={val}
+                          aria-label={`Intensidad de ${axis}`}
+                          onChange={(e) => updateVal(parseFloat(e.target.value))}
+                          className="w-full accent-primary h-2 bg-card rounded-lg appearance-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Aumentar ${axis}`}
+                        onClick={() => updateVal(val + 0.5)}
+                        className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:bg-surface-raised active:scale-95 text-sm font-bold transition-transform"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <div className="flex justify-between text-[9px] font-mono text-muted-foreground/60 px-0.5">
+                      <span>Sutil (1.0)</span>
+                      <span>Intenso (10.0)</span>
+                    </div>
                   </div>
-                  <div className="py-2">
-                    <input
-                      type="range"
-                      min="-3"
-                      max="3"
-                      step="1"
-                      value={val}
-                      aria-label={`Intensidad entre ${p.izq} y ${p.der}`}
-                      onChange={(e) =>
-                        setParesState({ ...paresState, [p.par]: parseInt(e.target.value, 10) })
-                      }
-                      className="w-full accent-primary h-2 bg-surface-sunken rounded-lg appearance-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-muted-foreground/50 px-1 font-mono">
-                    <span>-3</span>
-                    <span>-2</span>
-                    <span>-1</span>
-                    <span className="text-foreground/70 font-semibold">0</span>
-                    <span>+1</span>
-                    <span>+2</span>
-                    <span>+3</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -668,7 +839,7 @@ export function CataView({
               className="flex-1"
               onClick={() => setStep('chips')}
             >
-              Siguiente: Notas de Sabor
+              Siguiente: Notas & Reseña
             </Button>
           </div>
         </div>
@@ -719,7 +890,7 @@ export function CataView({
 
           <div className="space-y-3 pt-6 border-t border-border/70">
             <p className="text-center text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              Agrado general (escala 1 a 7 estrellas)
+              Evaluación Global (Escala de Excelencia Territorial 1 a 7 Estrellas)
             </p>
             <div
               className="flex justify-center items-center gap-1.5"
@@ -752,7 +923,7 @@ export function CataView({
               })}
             </div>
             <p className="text-center text-xs font-semibold text-foreground tabular-nums">
-              {agrado} / 7
+              {agrado} / 7 · <span className="text-primary font-normal">{DESCRIPTORES_RATING[agrado] || ''}</span>
             </p>
           </div>
 
@@ -872,39 +1043,39 @@ export function CataView({
             <div className="space-y-5 relative z-10">
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-                  Ejes de Textura y Aroma
+                  Geometría Sensorial Calibrada
                 </span>
                 <span className="text-xs text-primary font-mono font-medium">
-                  Calibración Bosque Nativo
+                  Constelación de {activeAxes.length} Vértices
                 </span>
               </div>
 
-              {profileScores.map((score) => (
-                <div key={score.name} className="space-y-2">
-                  <div className="flex justify-between text-xs uppercase tracking-wider font-medium">
-                    <span
-                      className={
-                        score.val < 0 ? 'text-primary font-semibold' : 'text-muted-foreground'
-                      }
-                    >
-                      {score.inverse}
-                    </span>
-                    <span
-                      className={
-                        score.val > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'
-                      }
-                    >
-                      {score.name}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full bg-surface-sunken rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${score.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+              {/* Telaraña / Radar Visual Resumen */}
+              <div className="py-2 flex justify-center">
+                <RadarConstellation axes={activeAxes} scores={ejesCalibracionState} size={210} />
+              </div>
+
+              {/* Grid de los 8 Ejes Calibrados */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                {activeAxes.map((axis: string) => {
+                  const score = ejesCalibracionState[axis] ?? 7.5;
+                  const pct = Math.max(10, Math.min(100, (score / 10) * 100));
+                  return (
+                    <div key={axis} className="bg-surface-sunken/80 p-2.5 rounded-xl border border-border/60">
+                      <div className="flex justify-between items-center text-xs mb-1">
+                        <span className="text-foreground font-medium truncate pr-1">{axis}</span>
+                        <span className="font-mono text-primary font-bold">{score.toFixed(1)}/10</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-card rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-700 ease-out"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="pt-4 border-t border-border/60 relative z-10">

@@ -206,6 +206,7 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
         floracion_slug: input.floracion_slug ?? null,
         pares: input.pares,
         chips: input.chips,
+        ejes_calibracion: input.ejes_calibracion ?? null,
         codigo_punto: input.codigo_punto,
         punto_nombre: punto.nombre,
       },

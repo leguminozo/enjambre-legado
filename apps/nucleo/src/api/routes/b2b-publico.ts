@@ -57,12 +57,22 @@ b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
     .maybeSingle();
 
   if (!punto || !punto.id) {
-    if (codigo === "FERIA" || codigo === "STAND" || codigo === "DEGUSTACION") {
+    if (
+      codigo === "FERIA" ||
+      codigo === "STAND" ||
+      codigo === "DEGUSTACION" ||
+      codigo === "CREACIONES" ||
+      codigo === "CHILE" ||
+      codigo === "MIELES_CHILE"
+    ) {
+      const isChile = codigo === "CHILE" || codigo === "MIELES_CHILE";
       const fallbackPunto = {
-        id: "feria-canonica",
-        nombre: "Estación de Degustación · Santiago",
+        id: isChile ? "chile-canonico" : "feria-canonica",
+        nombre: isChile
+          ? "Atlas Botánico de Chile · Mieles Monoflorales"
+          : "Estación de Degustación en Vivo · Stand Feria",
         tipo: "feria_evento",
-        ciudad: "Santiago",
+        ciudad: "Chile",
         codigo_acceso: codigo,
       };
       return c.json({

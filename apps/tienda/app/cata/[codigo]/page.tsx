@@ -20,10 +20,14 @@ export default async function CataPage({
   searchParams,
 }: {
   params: Promise<{ codigo: string }>;
-  searchParams: Promise<{ producto?: string; variante?: string }>;
+  searchParams: Promise<{ producto?: string; variante?: string; pabellon?: string; modo?: string }>;
 }) {
   const { codigo } = await params;
-  const { producto: initialProductSlugOrId, variante: initialVarianteId } = await searchParams;
+  const {
+    producto: initialProductSlugOrId,
+    variante: initialVarianteId,
+    pabellon: queryPabellon,
+  } = await searchParams;
   const nucleoUrl = requireNucleoApiUrl();
   
   // Fetch punto de venta info
@@ -58,17 +62,54 @@ export default async function CataPage({
     }
 
     const normCode = codigo.toUpperCase();
-    if (normCode === 'FERIA' || normCode === 'STAND' || normCode === 'DEGUSTACION') {
+    if (
+      normCode === 'FERIA' ||
+      normCode === 'STAND' ||
+      normCode === 'CREACIONES' ||
+      normCode === 'DEGUSTACION' ||
+      normCode === 'CHILE' ||
+      normCode === 'MIELES_CHILE'
+    ) {
+      const isChile = normCode === 'CHILE' || normCode === 'MIELES_CHILE';
       punto = {
-        id: 'feria-canonica',
-        nombre: 'Estación de Degustación · Santiago',
+        id: isChile ? 'chile-canonico' : 'feria-canonica',
+        nombre: isChile
+          ? 'Atlas Botánico de Chile · Mieles Monoflorales'
+          : 'Estación de Degustación en Vivo · Stand Feria',
         tipo: 'feria_evento',
-        ciudad: 'Santiago',
+        ciudad: 'Chile',
         codigo_acceso: normCode,
       };
     } else {
       notFound();
     }
+  }
+
+  // Determinar modo de pabellón según el código o parámetro query
+  const normCode = codigo.toUpperCase();
+  let initialPabellon: 'casa' | 'geografias' = 'casa';
+  let lockPabellon: 'casa' | 'geografias' | null = null;
+
+  if (
+    normCode === 'CHILE' ||
+    normCode === 'MIELES_CHILE' ||
+    queryPabellon === 'geografias' ||
+    queryPabellon === 'chile'
+  ) {
+    initialPabellon = 'geografias';
+    lockPabellon = 'geografias';
+  } else if (
+    normCode === 'FERIA' ||
+    normCode === 'CREACIONES' ||
+    normCode === 'STAND' ||
+    queryPabellon === 'casa' ||
+    queryPabellon === 'creaciones'
+  ) {
+    initialPabellon = 'casa';
+    lockPabellon = 'casa';
+  } else if (normCode === 'DEGUSTACION' || queryPabellon === 'ambos') {
+    initialPabellon = 'casa';
+    lockPabellon = null; // flexible: permite conmutar entre ambos pabellones
   }
 
   // Fetch chips and active variants in parallel via Nucleo BFF ISR
@@ -103,6 +144,8 @@ export default async function CataPage({
           variantes={variantesJson.data ?? []}
           initialProductSlugOrId={initialProductSlugOrId}
           initialVarianteId={initialVarianteId}
+          initialPabellon={initialPabellon}
+          lockPabellon={lockPabellon}
         />
       </main>
       <ShopFooter />

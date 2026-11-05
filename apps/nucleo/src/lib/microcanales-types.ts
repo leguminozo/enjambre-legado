@@ -472,6 +472,7 @@ export const sesionPercepcionSchema = z.object({
   whatsapp: optStr(40),
   codigo_cliente: optStr(20),
   consentimiento: z.boolean().refine((v) => v, 'Consentimiento requerido'),
+  ejes_calibracion: z.record(z.string(), z.number()).optional(),
   pares: z.array(z.object({ par: z.string().min(1), valor: z.number().int().min(-3).max(3) })).min(1),
   chips: z.array(z.object({ bloque: z.enum(['sabor', 'aroma', 'textura', 'color']), chip: z.string().min(1) })).min(1),
   abierta: z.string().max(280).optional().or(z.literal('')),

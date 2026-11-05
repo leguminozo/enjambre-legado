@@ -372,72 +372,244 @@ export function HubPhygitalView() {
             : 'QRs vinculados a recolecciones y lotes específicos para cata sensorial.'}
         </p>
 
-        {/* QR Maestro de Trípode / Mesa de Degustación en Feria */}
+        {/* QRs Maestros para Estaciones de Degustación en Vivo */}
         {tipoVistaQr === 'oficiales' && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-primary/10 border border-primary/30 shadow-sm flex flex-col md:flex-row items-center justify-between gap-5">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-              <div className="flex items-center justify-center p-3 bg-white rounded-xl shadow-inner border border-border/40 w-32 h-32 shrink-0">
-                <QRCodeSVG
-                  id="qr-maestro-feria-svg"
-                  value={`${tiendaBase}/cata/FERIA`}
-                  size={108}
-                  level="H"
-                  includeMargin={false}
-                  bgColor="transparent"
-                  fgColor="#1C1917"
-                />
-              </div>
-              <div className="space-y-1.5 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/40 text-[0.62rem] font-mono uppercase tracking-wider text-primary font-semibold">
-                  <QrCode size={11} />
-                  <span>QR Maestro · Trípode / Mesa de Feria (Multi-Degustación)</span>
-                </div>
-                <h3 className="text-base font-semibold text-foreground">
-                  Estación de Degustación en Vivo (`{tiendaBase.replace(/^https?:\/\//, '')}/cata/FERIA`)
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
+                  QRs Maestros de Degustación en Vivo
                 </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>Este es el QR para el trípode o acrílico de tu mesa en feria.</strong> Al escanearlo, la persona elige en pantalla cuál de las variantes acaba de probar (<em>Crema de Miel Batida, con Avellanas, con Polen, con Cacao Nibs o Miel Virgen con Panal</em>), evalúa su perfil sensorial y deja su reseña vinculada directamente al producto elegido.
+                <p className="text-[0.68rem] text-muted-foreground">
+                  Elige el QR según el contexto físico de tu stand o evento. Cada uno calibra en tiempo real la constelación sensorial (8 vértices) en la tienda oficial.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row md:flex-col gap-2 w-full md:w-52 shrink-0">
-              <button
-                type="button"
-                onClick={() => descargarSvg('qr-maestro-feria-svg', 'QR_TRIPODE_FERIA_DEGUSTACION')}
-                className="btn btn-gold text-xs py-2 px-3 flex items-center justify-center gap-1.5 w-full"
-                title="Vectorial SVG transparente para Adobe Illustrator"
-              >
-                <Download size={13} />
-                <span>Descargar SVG (Trípode)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => descargarPng('qr-maestro-feria-svg', 'QR_TRIPODE_FERIA_DEGUSTACION')}
-                className="btn btn-outline text-xs py-2 px-3 flex items-center justify-center gap-1.5 w-full bg-background/80"
-                title="PNG transparente a 300 DPI para Adobe Photoshop / Canva"
-              >
-                <Download size={13} />
-                <span>Descargar PNG 300 DPI</span>
-              </button>
-              <div className="flex items-center justify-between gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => handleCopiar(`${tiendaBase}/cata/FERIA`, 'qr-maestro-feria')}
-                  className="text-[0.65rem] font-mono text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  {copiedId === 'qr-maestro-feria' ? <Check size={11} className="text-success" /> : <Copy size={11} />}
-                  <span>{copiedId === 'qr-maestro-feria' ? 'URL copiada' : 'Copiar URL'}</span>
-                </button>
-                <a
-                  href={`${tiendaBase}/cata/FERIA`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[0.65rem] font-mono text-primary hover:underline flex items-center gap-1"
-                >
-                  <span>Probar vista</span>
-                  <ExternalLink size={11} />
-                </a>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+              {/* QR 1: Trípode de Feria (Creaciones en Mesa) */}
+              <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 border border-primary/40 text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold">
+                      <QrCode size={10} />
+                      <span>Trípode de Feria</span>
+                    </span>
+                    <span className="text-[0.6rem] font-mono text-muted-foreground">Exclusivo Mesa</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Creaciones en Mesa</h4>
+                    <p className="text-[0.68rem] text-muted-foreground leading-relaxed mt-1">
+                      Llega directo a las <strong>4 creaciones reales en degustación</strong> (Crema Batida Pura, con Avellana Chilena, con Polen Floral y con Cacao Nibs), sin pestañas de atlas botánico.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center p-3 bg-white rounded-xl shadow-inner border border-border/40 w-28 h-28 mx-auto">
+                    <QRCodeSVG
+                      id="qr-maestro-feria-svg"
+                      value={`${tiendaBase}/cata/FERIA`}
+                      size={96}
+                      level="H"
+                      includeMargin={false}
+                      bgColor="transparent"
+                      fgColor="#1C1917"
+                    />
+                  </div>
+                  <div className="text-[0.65rem] font-mono text-muted-foreground truncate bg-surface-sunken/60 p-1.5 rounded">
+                    {tiendaBase.replace(/^https?:\/\//, '')}/cata/FERIA
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => descargarSvg('qr-maestro-feria-svg', 'QR_TRIPODE_FERIA_CREACIONES')}
+                      className="btn btn-gold text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                      title="SVG transparente para Illustrator"
+                    >
+                      <Download size={11} />
+                      <span>Descargar SVG</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => descargarPng('qr-maestro-feria-svg', 'QR_TRIPODE_FERIA_CREACIONES')}
+                      className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1 bg-background/80"
+                      title="PNG 300 DPI transparente"
+                    >
+                      <Download size={11} />
+                      <span>PNG 300 DPI</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between text-[0.65rem] pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopiar(`${tiendaBase}/cata/FERIA`, 'qr-feria')}
+                      className="text-muted-foreground hover:text-foreground font-mono flex items-center gap-1"
+                    >
+                      {copiedId === 'qr-feria' ? <Check size={11} className="text-success" /> : <Copy size={11} />}
+                      <span>{copiedId === 'qr-feria' ? 'Copiado' : 'Copiar URL'}</span>
+                    </button>
+                    <a
+                      href={`${tiendaBase}/cata/FERIA`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-mono flex items-center gap-1"
+                    >
+                      <span>Probar</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* QR 2: Copa Técnica (Mieles de Chile · Atlas Botánico) */}
+              <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-[0.6rem] font-mono uppercase tracking-wider text-accent-text font-semibold">
+                      <QrCode size={10} />
+                      <span>Copa Técnica</span>
+                    </span>
+                    <span className="text-[0.6rem] font-mono text-muted-foreground">Atlas Botánico</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Mieles de Chile</h4>
+                    <p className="text-[0.68rem] text-muted-foreground leading-relaxed mt-1">
+                      Enfocado en congresos, catas guiadas y copas técnicas. Entra directo a las <strong>mieles monoflorales del país</strong> (Ulmo, Quillay, Tiaca, Melí, Tepú, Chañar...).
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center p-3 bg-white rounded-xl shadow-inner border border-border/40 w-28 h-28 mx-auto">
+                    <QRCodeSVG
+                      id="qr-maestro-chile-svg"
+                      value={`${tiendaBase}/cata/CHILE`}
+                      size={96}
+                      level="H"
+                      includeMargin={false}
+                      bgColor="transparent"
+                      fgColor="#1C1917"
+                    />
+                  </div>
+                  <div className="text-[0.65rem] font-mono text-muted-foreground truncate bg-surface-sunken/60 p-1.5 rounded">
+                    {tiendaBase.replace(/^https?:\/\//, '')}/cata/CHILE
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => descargarSvg('qr-maestro-chile-svg', 'QR_COPA_TECNICA_MIELES_CHILE')}
+                      className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                      title="SVG transparente para Illustrator"
+                    >
+                      <Download size={11} />
+                      <span>Descargar SVG</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => descargarPng('qr-maestro-chile-svg', 'QR_COPA_TECNICA_MIELES_CHILE')}
+                      className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1 bg-background/80"
+                      title="PNG 300 DPI transparente"
+                    >
+                      <Download size={11} />
+                      <span>PNG 300 DPI</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between text-[0.65rem] pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopiar(`${tiendaBase}/cata/CHILE`, 'qr-chile')}
+                      className="text-muted-foreground hover:text-foreground font-mono flex items-center gap-1"
+                    >
+                      {copiedId === 'qr-chile' ? <Check size={11} className="text-success" /> : <Copy size={11} />}
+                      <span>{copiedId === 'qr-chile' ? 'Copiado' : 'Copiar URL'}</span>
+                    </button>
+                    <a
+                      href={`${tiendaBase}/cata/CHILE`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-mono flex items-center gap-1"
+                    >
+                      <span>Probar</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* QR 3: Estación Integral (Doble Pabellón) */}
+              <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-sunken border border-border text-[0.6rem] font-mono uppercase tracking-wider text-foreground/80 font-semibold">
+                      <QrCode size={10} />
+                      <span>Doble Pabellón</span>
+                    </span>
+                    <span className="text-[0.6rem] font-mono text-muted-foreground">Casa + Atlas</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Estación Integral</h4>
+                    <p className="text-[0.68rem] text-muted-foreground leading-relaxed mt-1">
+                      Presenta el <strong>conmutador de doble pabellón</strong> en pantalla para que el visitante elija si desea evaluar una creación de Pureo o una miel del atlas de Chile.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center p-3 bg-white rounded-xl shadow-inner border border-border/40 w-28 h-28 mx-auto">
+                    <QRCodeSVG
+                      id="qr-maestro-integral-svg"
+                      value={`${tiendaBase}/cata/DEGUSTACION`}
+                      size={96}
+                      level="H"
+                      includeMargin={false}
+                      bgColor="transparent"
+                      fgColor="#1C1917"
+                    />
+                  </div>
+                  <div className="text-[0.65rem] font-mono text-muted-foreground truncate bg-surface-sunken/60 p-1.5 rounded">
+                    {tiendaBase.replace(/^https?:\/\//, '')}/cata/DEGUSTACION
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => descargarSvg('qr-maestro-integral-svg', 'QR_ESTACION_INTEGRAL_DEGUSTACION')}
+                      className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                      title="SVG transparente para Illustrator"
+                    >
+                      <Download size={11} />
+                      <span>Descargar SVG</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => descargarPng('qr-maestro-integral-svg', 'QR_ESTACION_INTEGRAL_DEGUSTACION')}
+                      className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1 bg-background/80"
+                      title="PNG 300 DPI transparente"
+                    >
+                      <Download size={11} />
+                      <span>PNG 300 DPI</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between text-[0.65rem] pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopiar(`${tiendaBase}/cata/DEGUSTACION`, 'qr-integral')}
+                      className="text-muted-foreground hover:text-foreground font-mono flex items-center gap-1"
+                    >
+                      {copiedId === 'qr-integral' ? <Check size={11} className="text-success" /> : <Copy size={11} />}
+                      <span>{copiedId === 'qr-integral' ? 'Copiado' : 'Copiar URL'}</span>
+                    </button>
+                    <a
+                      href={`${tiendaBase}/cata/DEGUSTACION`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-mono flex items-center gap-1"
+                    >
+                      <span>Probar</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
