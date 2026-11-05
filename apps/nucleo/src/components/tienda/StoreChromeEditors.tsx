@@ -2587,7 +2587,7 @@ export function LandingLayoutEditor({
         <div className="space-y-1.5 pt-2 border-t border-border/50">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-foreground">
-              Subtítulo ("Hace veintidós años...")
+              Subtítulo ("Dos décadas de paciencia...")
             </span>
             <span className="text-xs font-mono text-accent tabular-nums">
               {Math.round((local.hero_subtitle_scale ?? 1.0) * 100)}%
@@ -2612,7 +2612,7 @@ export function LandingLayoutEditor({
         <div className="space-y-1.5 pt-2 border-t border-border/50">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-foreground">
-              Fórmula Botánica ("Luz solar → Néctar...")
+              Fórmula Botánica ("Luz solar → Bosque & Abeja...")
             </span>
             <span className="text-xs font-mono text-accent tabular-nums">
               {Math.round((local.hero_formula_scale ?? 1.0) * 100)}%
@@ -2649,13 +2649,13 @@ export function LandingLayoutEditor({
             className="text-muted-foreground transition-all duration-75 max-w-md mx-auto leading-relaxed"
             style={{ fontSize: `${0.82 * (local.hero_subtitle_scale ?? 1.0)}rem` }}
           >
-            {local.hero_subtitle || 'Hace veintidós años llegamos a un terreno marcado por un incendio: baja densidad boscosa, erosión y silencio.'}
+            {local.hero_subtitle || 'Dos décadas de paciencia y rigor en lo profundo del bosque nativo de Chiloé, bajo un estándar de origen inalterable.'}
           </p>
           <p
             className="font-mono text-accent-text uppercase tracking-widest transition-all duration-75"
             style={{ fontSize: `${0.65 * (local.hero_formula_scale ?? 1.0)}rem` }}
           >
-            {local.hero_formula || 'LUZ SOLAR → NÉCTAR → MIEL VIRGEN'}
+            {local.hero_formula || 'LUZ SOLAR → BOSQUE & ABEJA → NÉCTAR → NUESTRA MIEL'}
           </p>
         </div>
       </div>
@@ -2702,13 +2702,13 @@ export function LandingLayoutEditor({
         <div className="space-y-3">
           <TextField
             label="Eyebrow (ES)"
-            placeholder="Miel Virgen del Sur del Mundo"
+            placeholder="Miel Cruda desde el sur del Planeta"
             value={local.hero_eyebrow}
             onChange={(v) => patch('hero_eyebrow', v)}
           />
           <TextField
             label="Eyebrow (EN)"
-            placeholder="Virgin Honey from the South of the World"
+            placeholder="Raw Honey from the Edge of the World"
             value={local.hero_eyebrow_en ?? ''}
             onChange={(v) => patch('hero_eyebrow_en', v)}
           />
@@ -2738,25 +2738,25 @@ export function LandingLayoutEditor({
           />
           <TextField
             label="Subtítulo (ES)"
-            placeholder="Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje"
+            placeholder="Dos décadas de paciencia y rigor en lo profundo del bosque nativo de Chiloé, bajo un estándar de origen inalterable."
             value={local.hero_subtitle}
             onChange={(v) => patch('hero_subtitle', v)}
           />
           <TextField
             label="Subtítulo (EN)"
-            placeholder="From the humid forest of Chiloé, extracts of a wild geography"
+            placeholder="Two decades of patience and rigor deep in Chiloé’s native forest, under an uncompromised standard of origin."
             value={local.hero_subtitle_en ?? ''}
             onChange={(v) => patch('hero_subtitle_en', v)}
           />
           <TextField
             label="Fórmula (ES)"
-            placeholder="Luz solar → Néctar → Miel virgen · Sin atajos industriales"
+            placeholder="Luz solar → Bosque & Abeja → Néctar → Nuestra Miel"
             value={local.hero_formula}
             onChange={(v) => patch('hero_formula', v)}
           />
           <TextField
             label="Fórmula (EN)"
-            placeholder="Sunlight → Nectar → Virgin honey · No industrial shortcuts"
+            placeholder="Sunlight → Forest & Bee → Nectar → Our Honey"
             value={local.hero_formula_en ?? ''}
             onChange={(v) => patch('hero_formula_en', v)}
           />

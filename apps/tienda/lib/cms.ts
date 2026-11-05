@@ -120,12 +120,9 @@ async function fetchBatchFromSupabase(
   draft: boolean,
 ): Promise<Record<string, SiteSectionItem[]>> {
   if (sectionKeys.length === 0) return {};
-  try {
-    const supabase = createAnonServerClient();
-    // draft_content es JSONB pesado y solo se usa en modo borrador (preview);
-    // la vía pública pide columnas explícitas para no arrastrarlo en cada hit.
-    // Literales (no ternario): el parser de tipos de supabase-js no infiere uniones.
-    const queryPromise = draft
+  const supabase = createAnonServerClient();
+  const selectQuery = () =>
+    draft
       ? supabase
           .from('site_content')
           .select('id, section_key, content, draft_content, item_order, locale')
@@ -139,55 +136,64 @@ async function fetchBatchFromSupabase(
           .eq('is_active', true)
           .order('item_order', { ascending: true });
 
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeoutMs = process.env.NEXT_PHASE === 'phase-production-build' ? 10000 : 5000;
-    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
-      timer = setTimeout(
-        () => resolve({ data: null, error: { message: 'Timeout fetching CMS batch from Supabase' } }),
-        timeoutMs,
-      );
-    });
+  const timeoutMs = 20000;
+  let lastError: Error | null = null;
 
-    const { data, error } = await Promise.race([
-      Promise.resolve(queryPromise).finally(() => {
-        if (timer) clearTimeout(timer);
-      }),
-      timeoutPromise,
-    ]);
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+        timer = setTimeout(
+          () => resolve({ data: null, error: { message: 'Timeout fetching CMS batch from Supabase' } }),
+          timeoutMs,
+        );
+      });
 
-    if (error) {
-      console.warn('Error fetching CMS batch:', error.message);
-      return Object.fromEntries(sectionKeys.map((k) => [k, []]));
-    }
+      const { data, error } = await Promise.race([
+        Promise.resolve(selectQuery()).finally(() => {
+          if (timer) clearTimeout(timer);
+        }),
+        timeoutPromise,
+      ]);
 
-    const grouped: Record<string, SiteSectionItem[]> = Object.fromEntries(
-      sectionKeys.map((k) => [k, []]),
-    );
-    const bySection = new Map<string, Array<SiteSectionItem & { locale?: string }>>();
-    for (const row of data ?? []) {
-      const key = row.section_key as string;
-      if (!grouped[key]) continue;
-      const list = bySection.get(key) ?? [];
-      list.push(row as SiteSectionItem & { locale?: string });
-      bySection.set(key, list);
-    }
-    for (const [key, rows] of bySection) {
-      const preferred = preferLocale(rows, requestedLocale);
-      let items = preferred;
-      if (draft) {
-        items = preferred.map((row) => {
-          const draftContent = (row as unknown as { draft_content: Record<string, unknown> | null })
-            .draft_content;
-          return { ...row, content: draftContent != null ? draftContent : row.content };
-        });
+      if (error) {
+        throw new Error(error.message);
       }
-      grouped[key] = items;
+
+      const grouped: Record<string, SiteSectionItem[]> = Object.fromEntries(
+        sectionKeys.map((k) => [k, []]),
+      );
+      const bySection = new Map<string, Array<SiteSectionItem & { locale?: string }>>();
+      for (const row of data ?? []) {
+        const key = row.section_key as string;
+        if (!grouped[key]) continue;
+        const list = bySection.get(key) ?? [];
+        list.push(row as SiteSectionItem & { locale?: string });
+        bySection.set(key, list);
+      }
+      for (const [key, rows] of bySection) {
+        const preferred = preferLocale(rows, requestedLocale);
+        let items = preferred;
+        if (draft) {
+          items = preferred.map((row) => {
+            const draftContent = (row as unknown as { draft_content: Record<string, unknown> | null })
+              .draft_content;
+            return { ...row, content: draftContent != null ? draftContent : row.content };
+          });
+        }
+        grouped[key] = items;
+      }
+      return grouped;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 600));
+      }
     }
-    return grouped;
-  } catch (err) {
-    console.error('Unexpected error fetching CMS batch:', err);
-    return Object.fromEntries(sectionKeys.map((k) => [k, []]));
   }
+
+  console.warn('Error fetching CMS batch after retry:', lastError?.message);
+  throw lastError ?? new Error('Failed to fetch CMS batch');
 }
 
 const getCachedSiteContentBatch = unstable_cache(
@@ -220,9 +226,22 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
   // Desarrollo/test: sin caché de datos para que el CMS se refleje al
   // recargar (en producción rige ISR 300s + revalidación bajo demanda).
   if (process.env.NODE_ENV !== 'production') {
-    return fetchBatchFromSupabase(sectionKeys, requested, false);
+    try {
+      return await fetchBatchFromSupabase(sectionKeys, requested, false);
+    } catch {
+      return Object.fromEntries(sectionKeys.map((k) => [k, []]));
+    }
   }
-  return getCachedSiteContentBatch(sortedKeys, requested);
+  try {
+    return await getCachedSiteContentBatch(sortedKeys, requested);
+  } catch (err) {
+    console.warn('Failing soft for getCachedSiteContentBatch:', (err as Error)?.message);
+    try {
+      return await fetchBatchFromSupabase(sectionKeys, requested, false);
+    } catch {
+      return Object.fromEntries(sectionKeys.map((k) => [k, []]));
+    }
+  }
 });
 
 export const getSiteContent = cache(async function getSiteContent(

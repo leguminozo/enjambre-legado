@@ -214,38 +214,40 @@ export function TiendaLandingView({
   const defaultPostales = [
     {
       id: 'post-1',
-      tag: currentLocale === 'en' ? 'Canopy Bloom' : 'Dosel en Flor',
-      titulo: currentLocale === 'en' ? 'Ulmo Blossom' : 'Flor de Ulmo',
-      url: '/assets/editorial/hero-bosque-tronco.jpg',
+      tag: currentLocale === 'en' ? 'Apiary' : 'Apiario Austral',
+      titulo: currentLocale === 'en' ? 'Pureo Apiary' : 'Apiario Pureo',
+      url: '/apiario-pureo.jpg',
     },
     {
       id: 'post-2',
-      tag: currentLocale === 'en' ? 'Apiary' : 'Apiario Austral',
-      titulo: currentLocale === 'en' ? 'Living Hives' : 'Colmenas en Pureo',
-      url: '/assets/editorial/hero-bosque-apertura.jpg',
+      tag: currentLocale === 'en' ? 'Botanical Infusions' : 'Infusiones Botánicas',
+      titulo: currentLocale === 'en' ? 'Mint Infusions' : 'Infusiones de Menta',
+      url: 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/galeria/79357766-5440-4cd3-b002-c5bf434d6c6c.webp',
     },
     {
       id: 'post-3',
-      tag: currentLocale === 'en' ? 'Landscape' : 'Maritorio',
-      titulo: currentLocale === 'en' ? 'Compu Fjord' : 'Fiordo de Compu',
-      url: '/assets/editorial/experiencias.jpg',
+      tag: currentLocale === 'en' ? 'Maritime Landscape' : 'Maritorio Austral',
+      titulo: currentLocale === 'en' ? 'Coastal Sea Clouds' : 'Nubes Marinas',
+      url: 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/galeria/e3c5297b-c3f0-4369-88bf-729cc2456956.webp',
     },
     {
       id: 'post-4',
-      tag: currentLocale === 'en' ? 'Heritage' : 'Origen',
-      titulo: currentLocale === 'en' ? 'Living Raw Honey' : 'Miel Cruda de Guarda',
-      url: '/assets/editorial/honey-jar.png',
+      tag: currentLocale === 'en' ? 'Atmosphere' : 'Atmósfera',
+      titulo: currentLocale === 'en' ? 'Sunset at Pureo' : 'Atardecer en Pureo',
+      url: 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/galeria/f4bf8356-ee3c-4ff2-80ca-6093a2381d2f.webp',
     },
   ];
 
   const postales = useMemo(() => {
-    if (galeriaItems && galeriaItems.length >= 4) {
-      return galeriaItems.slice(0, 4).map((g, i) => ({
+    if (galeriaItems && galeriaItems.length > 0) {
+      const real = galeriaItems.slice(0, 4).map((g, i) => ({
         id: g.id || `g-${i}`,
         tag: currentLocale === 'en' ? 'Visual Archive' : 'Archivo Visual',
         titulo: g.titulo || (currentLocale === 'en' ? 'Postcard from Pureo' : 'Postal de Pureo'),
         url: g.url,
       }));
+      if (real.length >= 4) return real;
+      return [...real, ...defaultPostales.slice(real.length)];
     }
     return defaultPostales;
   }, [galeriaItems, currentLocale]);
@@ -380,7 +382,7 @@ export function TiendaLandingView({
           const heroEyebrow =
             resolveLocalized(landing.hero_eyebrow, landing.hero_eyebrow_en, currentLocale) ||
             tHero('subtitle') ||
-            'Miel Virgen del Sur del Mundo';
+            'Miel Cruda desde el sur del Planeta';
           const heroTitle1 =
             resolveLocalized(landing.hero_title_line1, landing.hero_title_line1_en, currentLocale) ||
             tHero('titlePart1') ||
@@ -392,11 +394,11 @@ export function TiendaLandingView({
           const heroSubtitle =
             resolveLocalized(landing.hero_subtitle, landing.hero_subtitle_en, currentLocale) ||
             tHero('description') ||
-            'Hace veintidós años llegamos a un terreno marcado por un incendio: baja densidad boscosa, erosión y silencio.';
+            'Dos décadas de paciencia y rigor en lo profundo del bosque nativo de Chiloé, bajo un estándar de origen inalterable.';
           const heroFormula =
             resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
             tHero('formula') ||
-            'Luz solar → Néctar → Miel virgen';
+            'Luz solar → Bosque & Abeja → Néctar → Nuestra Miel';
 
           return (
           <section
