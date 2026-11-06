@@ -47,7 +47,9 @@ export type ShopProduct = {
     momento_consumo?: string;
     advertencia_sanitaria?: string | null;
     atributos?: Array<{ label: string; value: string }> | null;
+    ejes?: string[];
     ejes_calibracion?: Record<string, number> | null;
+    pares_semanticos?: Array<{ par: string; izq: string; der: string }>;
     qr_modo?: 'experiencia' | 'trazabilidad' | 'comercial';
     qr_titulo?: string;
     qr_mensaje?: string;

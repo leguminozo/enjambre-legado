@@ -463,21 +463,40 @@ export const registroClienteSchema = z.object({
 export type RegistroClienteValues = z.infer<typeof registroClienteSchema>
 
 export const sesionPercepcionSchema = z.object({
-  codigo_punto: z.string().min(4).max(20),
-  producto_id: z.string().uuid().optional().nullable(),
-  variante_id: z.string().uuid().optional().nullable(),
+  codigo_punto: z.string().min(1, 'Código de punto requerido').max(50),
+  producto_id: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? null : v),
+    z.string().max(100).nullable().optional(),
+  ),
+  variante_id: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? null : v),
+    z.string().max(100).nullable().optional(),
+  ),
   floracion_slug: optStr(60),
   tipo_sensorial: z.string().optional().default('miel'),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.preprocess(
+    (v) => (typeof v === 'string' ? v.trim() : v),
+    z.string().email('Email inválido').optional().or(z.literal('')),
+  ),
   whatsapp: optStr(40),
   codigo_cliente: optStr(20),
-  consentimiento: z.boolean().refine((v) => v, 'Consentimiento requerido'),
+  consentimiento: z.boolean().default(true),
   ejes_calibracion: z.record(z.string(), z.number()).optional(),
-  pares: z.array(z.object({ par: z.string().min(1), valor: z.number().int().min(-3).max(3) })).min(1),
-  chips: z.array(z.object({ bloque: z.enum(['sabor', 'aroma', 'textura', 'color']), chip: z.string().min(1) })).min(1),
-  abierta: z.string().max(280).optional().or(z.literal('')),
-  agrado: z.number().int().min(1).max(10),
-  intencion_recompra: z.boolean(),
+  pares: z.array(
+    z.object({
+      par: z.string().min(1),
+      valor: z.coerce.number().min(-3).max(3),
+    }),
+  ).default([]),
+  chips: z.array(
+    z.object({
+      bloque: z.string().min(1),
+      chip: z.string().min(1),
+    }),
+  ).default([]),
+  abierta: z.string().max(500).optional().or(z.literal('')),
+  agrado: z.coerce.number().min(1).max(10).default(10),
+  intencion_recompra: z.boolean().default(true),
   tipo_evaluador: z.enum(['consumidor', 'semi_entrenado']).default('consumidor'),
 })
 export type SesionPercepcionValues = z.infer<typeof sesionPercepcionSchema>

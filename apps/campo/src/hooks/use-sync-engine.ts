@@ -44,6 +44,7 @@ export function useSyncEngine() {
         .select(`
           id, slug, nombre, precio, stock, formato, visible, channels, fotos,
           descripcion_corta, descripcion_regenerativa, ingredientes, origen_apicola, peso_neto_g, tags,
+          tipo_sensorial,
           perfil_sensorial,
           lotes:lote_id (
             nombre_lote, variedad_floral, relato_publico, analisis_humedad, metodo_extraccion
@@ -72,6 +73,7 @@ export function useSyncEngine() {
         origen_apicola: string | null;
         peso_neto_g: number | null;
         tags: string[] | null;
+        tipo_sensorial?: string | null;
         perfil_sensorial?: unknown | null;
         lotes: {
           nombre_lote?: string | null;
@@ -109,6 +111,7 @@ export function useSyncEngine() {
             origen_apicola: p.origen_apicola,
             peso_neto_g: p.peso_neto_g,
             tags: p.tags,
+            tipo_sensorial: p.tipo_sensorial ?? null,
             lote: loteObj
               ? {
                   nombre_lote: loteObj.nombre_lote,

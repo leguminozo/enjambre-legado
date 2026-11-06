@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@enjambre/auth": "workspace:*",
+    "@enjambre/resenas": "workspace:*",
     "@enjambre/sale-qr": "workspace:*",
     "@enjambre/sumup": "workspace:*",
     "@enjambre/ui": "workspace:*",

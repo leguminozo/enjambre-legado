@@ -49,6 +49,7 @@ export interface CataVarianteOption {
   ingrediente_fortificante?: string | null;
   peso_neto_g?: number | null;
   activo?: boolean;
+  perfil_sensorial_override?: unknown | null;
 }
 
 function getIconForName(iconName?: string) {
@@ -305,23 +306,66 @@ export function CataView({
   };
 
   // Form state
-  const resolveAxesForCurrentSelection = (cat: CategoriaSensorial, prodName: string): readonly string[] => {
-    if (activeConfig.ejesSensorialesCanonicos && activeConfig.ejesSensorialesCanonicos.length > 0) {
+  const resolveAxesForCurrentSelection = (
+    cat: CategoriaSensorial,
+    prodName: string,
+    prodId?: string | null,
+    varId?: string | null,
+  ): readonly string[] => {
+    // 1. Si la variante seleccionada tiene override de ejes definido en Núcleo
+    const targetVarId = varId !== undefined ? varId : selectedVarianteId;
+    if (targetVarId) {
+      const v = variantes.find((item) => item.id === targetVarId);
+      const vOverride = v?.perfil_sensorial_override as { ejes?: string[] } | null | undefined;
+      if (vOverride?.ejes && Array.isArray(vOverride.ejes) && vOverride.ejes.length >= 3) {
+        return vOverride.ejes;
+      }
+    }
+
+    // 2. Si el producto tiene ejes de red personalizados configurados en Núcleo
+    const targetProdId = prodId !== undefined ? prodId : selectedProductId;
+    if (targetProdId) {
+      const p = products.find((item) => item.id === targetProdId || item.slug === targetProdId);
+      const pEjes = p?.perfil_sensorial?.ejes;
+      if (pEjes && Array.isArray(pEjes) && pEjes.length >= 3) {
+        return pEjes;
+      }
+    }
+
+    // 3. Si el punto de degustación tiene ejes canónicos configurados
+    if (activeConfig.ejesSensorialesCanonicos && activeConfig.ejesSensorialesCanonicos.length >= 3) {
       return activeConfig.ejesSensorialesCanonicos;
     }
+
+    // 4. Fallback botánico / taxonómico canónico
     return resolverEjesSensoriales(cat, prodName);
   };
 
   const activeAxes = useMemo(() => {
-    if (activeConfig.ejesSensorialesCanonicos && activeConfig.ejesSensorialesCanonicos.length > 0) {
-      return activeConfig.ejesSensorialesCanonicos;
-    }
-    return resolverEjesSensoriales(tipoSensorial, selectedProductName);
-  }, [activeConfig.ejesSensorialesCanonicos, tipoSensorial, selectedProductName]);
+    return resolveAxesForCurrentSelection(
+      tipoSensorial,
+      selectedProductName,
+      selectedProductId,
+      selectedVarianteId,
+    );
+  }, [
+    activeConfig.ejesSensorialesCanonicos,
+    tipoSensorial,
+    selectedProductName,
+    selectedProductId,
+    selectedVarianteId,
+    products,
+    variantes,
+  ]);
 
   // LA RED COMIENZA CON TODO EN NOTA 1.0 (Calibración limpia y deliberada)
   const [ejesCalibracionState, setEjesCalibracionState] = useState<Record<string, number>>(() => {
-    const axes = resolveAxesForCurrentSelection(tipoSensorial, selectedProductName);
+    const axes = resolveAxesForCurrentSelection(
+      tipoSensorial,
+      selectedProductName,
+      foundInitialVariant?.producto_id ?? foundInitial?.id ?? null,
+      foundInitialVariant?.id ?? null,
+    );
     const initialEjes: Record<string, number> = {};
     axes.forEach((axis: string) => {
       initialEjes[axis] = activeConfig.valorInicialEje ?? 1.0;
@@ -350,7 +394,7 @@ export function CataView({
     setSelectedFloracionSlug(floracionSlug || null);
     setEsGeografica(geografica);
 
-    const axes = resolveAxesForCurrentSelection(category, name);
+    const axes = resolveAxesForCurrentSelection(category, name, prodId, varId);
     const initialEjes: Record<string, number> = {};
     axes.forEach((axis: string) => {
       initialEjes[axis] = activeConfig.valorInicialEje ?? 1.0;
@@ -393,8 +437,17 @@ export function CataView({
   };
 
   const submitCata = async () => {
-    if (!email.trim()) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
       toast('Por favor ingresa tu correo para guardar tu pasaporte sensorial', {
+        type: 'error',
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      toast('Por favor ingresa un correo electrónico válido (ej. tu@correo.com)', {
         type: 'error',
       });
       return;
@@ -404,12 +457,14 @@ export function CataView({
     try {
       const ejes100: Record<string, number> = {};
       activeAxes.forEach((axis: string) => {
-        const v10 = ejesCalibracionState[axis] ?? 7.5;
+        const raw = Number(ejesCalibracionState[axis] ?? 7.5);
+        const v10 = Number.isFinite(raw) ? raw : 7.5;
         ejes100[axis] = Math.round(v10 * 10);
       });
 
       const paresArray = activeAxes.slice(0, 4).map((axis: string) => {
-        const val10 = ejesCalibracionState[axis] ?? 7.5;
+        const raw = Number(ejesCalibracionState[axis] ?? 7.5);
+        const val10 = Number.isFinite(raw) ? raw : 7.5;
         const valBipolar = Math.round(((val10 - 1) / 9) * 6 - 3);
         return {
           par: axis,
@@ -419,7 +474,7 @@ export function CataView({
 
       let chipsArray = Array.from(selectedChips).map((chipName) => {
         const cat = chipsCatalog.find((c) => c.chip === chipName);
-        return { bloque: cat?.bloque ?? 'sabor', chip: chipName };
+        return { bloque: String(cat?.bloque || 'sabor'), chip: chipName };
       });
 
       if (chipsArray.length === 0) {
@@ -444,24 +499,25 @@ export function CataView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           codigo_punto: codigo,
-          producto_id: finalProductId,
+          producto_id: finalProductId || undefined,
           variante_id: selectedVarianteId || undefined,
           floracion_slug: selectedFloracionSlug || undefined,
           tipo_sensorial: tipoSensorial,
-          email: email.trim(),
+          email: cleanEmail,
           consentimiento: true,
           ejes_calibracion: ejes100,
           pares: paresArray,
           chips: chipsArray,
           abierta: comentarioAbierto.trim() || undefined,
-          agrado,
+          agrado: Number(agrado) || 10,
           intencion_recompra: true,
           tipo_evaluador: 'consumidor',
         }),
       });
 
       if (!res.ok) {
-        throw new Error('Error al registrar la cata');
+        const errJson = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(errJson?.message ?? 'No fue posible registrar la cata en este momento');
       }
 
       const data = await res.json();

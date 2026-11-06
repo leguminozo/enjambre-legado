@@ -43,6 +43,9 @@ importers:
       '@enjambre/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@enjambre/resenas':
+        specifier: workspace:*
+        version: link:../../packages/resenas
       '@enjambre/sale-qr':
         specifier: workspace:*
         version: link:../../packages/sale-qr

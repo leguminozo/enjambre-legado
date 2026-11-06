@@ -18,6 +18,9 @@ export interface PerfilSensorialLocal {
   notas_aromaticas?: string[];
   maridajes?: Array<{ titulo: string; detalle: string }>;
   momento_consumo?: string;
+  ejes?: string[];
+  ejes_calibracion?: Record<string, number> | null;
+  pares_semanticos?: Array<{ par: string; izq: string; der: string }>;
 }
 
 export interface ProductoLocal {

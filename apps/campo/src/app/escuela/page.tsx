@@ -21,6 +21,7 @@ import {
   Award,
 } from 'lucide-react';
 import { formatCLP } from '@enjambre/ui';
+import { PARES_SEMANTICOS_POR_CATEGORIA, type CategoriaSensorial } from '@enjambre/resenas';
 import { PosHeader } from '@/components/pos/pos-header';
 
 interface ObjecionGuia {
@@ -494,26 +495,61 @@ export default function EscuelaDeVentaPage(_props: EscuelaDeVentaPageProps = {})
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                       <Compass size={14} /> Perfil en Paladar
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="p-3 rounded-xl border border-border bg-background">
-                        <span className="text-[10px] text-muted-foreground block uppercase">Intensidad</span>
-                        <span className="text-sm font-semibold text-foreground">
-                          {selectedProduct.perfil_sensorial?.descriptores_intensidad?.der || 'Equilibrada & Profunda'}
-                        </span>
-                      </div>
-                      <div className="p-3 rounded-xl border border-border bg-background">
-                        <span className="text-[10px] text-muted-foreground block uppercase">Textura</span>
-                        <span className="text-sm font-semibold text-foreground">
-                          {selectedProduct.perfil_sensorial?.descriptores_textura?.der || 'Cremosa & Untable'}
-                        </span>
-                      </div>
-                      <div className="p-3 rounded-xl border border-border bg-background">
-                        <span className="text-[10px] text-muted-foreground block uppercase">Dulzor</span>
-                        <span className="text-sm font-semibold text-foreground">
-                          {selectedProduct.perfil_sensorial?.descriptores_dulzor?.der || 'Silvestre & Suave'}
-                        </span>
-                      </div>
-                    </div>
+                    {(() => {
+                      const ps = selectedProduct.perfil_sensorial;
+                      const normTipo = (selectedProduct.tipo_sensorial || '').toLowerCase();
+                      const nombre = (selectedProduct.nombre ?? '').toLowerCase();
+
+                      const isAvellana = nombre.includes('avellana');
+                      const isCacao = nombre.includes('cacao');
+                      const isPolen = nombre.includes('polen');
+
+                      let cat: CategoriaSensorial = 'miel';
+                      if (
+                        normTipo === 'fortificaciones' ||
+                        normTipo.includes('fortificaci') ||
+                        (!normTipo.includes('miel') && (isAvellana || isCacao || isPolen))
+                      ) {
+                        cat = 'fortificaciones';
+                      } else if (normTipo.includes('hidromiel')) {
+                        cat = 'hidromiel';
+                      } else if (normTipo.includes('extracto') || normTipo.includes('propoleo')) {
+                        cat = 'extracto';
+                      } else if (normTipo.includes('cosmet') || normTipo.includes('balsamo') || normTipo.includes('cera')) {
+                        cat = 'cosmetica';
+                      } else if (normTipo.includes('infusion')) {
+                        cat = 'infusion';
+                      } else if (normTipo.includes('fortificada') || isAvellana || isCacao || isPolen) {
+                        cat = 'miel_fortificada';
+                      }
+
+                      const pares =
+                        Array.isArray(ps?.pares_semanticos) && ps.pares_semanticos.length >= 3
+                          ? ps.pares_semanticos
+                          : ps?.descriptores_intensidad || ps?.descriptores_dulzor || ps?.descriptores_textura
+                            ? [
+                                { par: 'Intensidad', izq: ps?.descriptores_intensidad?.izq ?? 'Suave', der: ps?.descriptores_intensidad?.der ?? 'Profunda' },
+                                { par: 'Balance', izq: ps?.descriptores_dulzor?.izq ?? 'Dulce', der: ps?.descriptores_dulzor?.der ?? 'Silvestre' },
+                                { par: 'Textura', izq: ps?.descriptores_textura?.izq ?? 'Sedosa', der: ps?.descriptores_textura?.der ?? 'Untable' },
+                              ]
+                            : PARES_SEMANTICOS_POR_CATEGORIA[cat] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
+
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {pares.map((p, idx) => (
+                            <div key={idx} className="p-3 rounded-xl border border-border bg-background">
+                              <span className="text-[10px] text-muted-foreground block uppercase">{p.par}</span>
+                              <span className="text-sm font-semibold text-foreground">
+                                {p.der}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground block mt-0.5">
+                                Calibrado vs {p.izq}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Notas aromáticas y maridaje */}

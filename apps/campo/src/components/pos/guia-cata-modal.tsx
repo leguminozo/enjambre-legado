@@ -21,6 +21,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { formatCLP } from '@enjambre/ui';
+import { PARES_SEMANTICOS_POR_CATEGORIA, type CategoriaSensorial } from '@enjambre/resenas';
 
 export interface GuiaCataModalProps {
   producto: ProductoLocal | null;
@@ -41,10 +42,58 @@ interface PerfilSensorialData {
 }
 
 function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
-  // Si el administrador configuró un perfil sensorial canónico en Núcleo, priorizarlo
   const ps = p.perfil_sensorial;
-  if (ps) {
-    const dimensiones = [
+  const normTipo = (p.tipo_sensorial || '').toLowerCase().trim();
+  const nombre = (p.nombre ?? '').toLowerCase();
+  const variedadLote = p.lote?.variedad_floral;
+  const origenApicola = p.origen_apicola;
+
+  // Detección botánica y taxonómica refinada
+  const isCacao = nombre.includes('cacao') || nombre.includes('chocolate');
+  const isAvellana = nombre.includes('avellana');
+  const isPolen = nombre.includes('polen');
+  const isPanal = nombre.includes('panal');
+  const isTiaca = nombre.includes('tiaca') || (variedadLote ?? '').toLowerCase().includes('tiaca');
+  const isUlmo = nombre.includes('ulmo') || (variedadLote ?? '').toLowerCase().includes('ulmo');
+  const isVirgen = nombre.includes('virgen') || isPanal;
+
+  let cat: CategoriaSensorial = 'miel';
+  if (
+    normTipo === 'fortificaciones' ||
+    normTipo.includes('fortificaci') ||
+    (!normTipo.includes('miel') && (isAvellana || isCacao || isPolen || nombre.includes('nibs')))
+  ) {
+    cat = 'fortificaciones';
+  } else if (
+    normTipo === 'miel_fortificada' ||
+    (normTipo.includes('fortificada') && !normTipo.includes('fortificaciones')) ||
+    (nombre.includes('miel') && (isAvellana || isCacao || isPolen))
+  ) {
+    cat = 'miel_fortificada';
+  } else if (normTipo.includes('hidromiel') || nombre.includes('hidromiel')) {
+    cat = 'hidromiel';
+  } else if (normTipo.includes('extracto') || normTipo.includes('tintura') || nombre.includes('propoleo') || nombre.includes('propóleo')) {
+    cat = 'extracto';
+  } else if (normTipo.includes('cosmet') || normTipo.includes('balsamo') || normTipo.includes('bálsamo') || normTipo.includes('cera') || nombre.includes('balsamo') || nombre.includes('bálsamo')) {
+    cat = 'cosmetica';
+  } else if (normTipo.includes('infusion') || normTipo.includes('infusión') || nombre.includes('infusion') || nombre.includes('infusión')) {
+    cat = 'infusion';
+  }
+
+  // 1. Dimensiones sensoriales en paladar
+  let dimensiones: Array<{ label: string; izq: string; der: string; pct: number }> = [];
+  if (Array.isArray(ps?.pares_semanticos) && ps.pares_semanticos.length >= 3) {
+    dimensiones = ps.pares_semanticos.map((par, i) => {
+      const pct = i === 0 ? ps.intensidad ?? 80 : i === 1 ? ps.dulzor_acidez ?? 65 : ps.textura ?? 85;
+      return {
+        label: par.par,
+        izq: par.izq,
+        der: par.der,
+        pct,
+      };
+    });
+  } else if (ps?.descriptores_intensidad || ps?.descriptores_dulzor || ps?.descriptores_textura) {
+    dimensiones = [
       {
         label: 'Intensidad en Paladar',
         izq: ps.descriptores_intensidad?.izq ?? 'Suave & Floral',
@@ -52,296 +101,297 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
         pct: ps.intensidad ?? 75,
       },
       {
-        label: 'Balance Dulzor / Acidez',
+        label: 'Balance de Origen',
         izq: ps.descriptores_dulzor?.izq ?? 'Dulzor Cálido',
         der: ps.descriptores_dulzor?.der ?? 'Acidez Silvestre',
         pct: ps.dulzor_acidez ?? 60,
       },
       {
-        label: 'Textura & Cristalización',
+        label: 'Textura & Cuerpo',
         izq: ps.descriptores_textura?.izq ?? 'Líquida / Sedosa',
         der: ps.descriptores_textura?.der ?? 'Cremosa / Untable',
         pct: ps.textura ?? 85,
       },
     ];
-
-    const notasAromaticas =
-      ps.notas_aromaticas && ps.notas_aromaticas.length > 0
-        ? ps.notas_aromaticas
-        : [];
-
-    const maridajes =
-      ps.maridajes && ps.maridajes.length > 0
-        ? ps.maridajes
-        : [];
-
-    const pitch =
-      p.descripcion_corta ||
-      p.descripcion_regenerativa ||
-      'Miel recolectada en los fiordos de Chiloé por abejas vírgenes sin trashumancia forzada. Cruda, centrifugada en frío y biológicamente activa.';
-
-    const variedad =
-      p.lote?.variedad_floral ||
-      p.origen_apicola ||
-      'Bosque Templado Lluvioso de Chiloé';
-
-    const humedad = p.lote?.analisis_humedad
-      ? `${p.lote.analisis_humedad}%`
-      : '< 18% (Maduración Natural)';
-    const extraccion = p.lote?.metodo_extraccion ?? 'Centrifugado en frío sin pasteurizar';
-
-    const objeciones = [
-      {
-        pregunta: '¿Por qué la miel se cristaliza o espesa?',
-        respuesta:
-          'La cristalización natural es la garantía biológica de pureza: confirma que la miel está viva, cruda y nunca pasteurizada a altas temperaturas. Si el cliente prefiere textura fluida, basta templar el frasco a baño María a menos de 40°C para no degradar las enzimas activas.',
-      },
-      {
-        pregunta: '¿Por qué su valor es superior al de las mieles comerciales?',
-        respuesta:
-          'No es miel homogeneizada de mezcla industrial. Proviene de apiarios fijos en los fiordos y bosque virgen de Chiloé, madurada en colmena por abejas vírgenes sin trashumancia forzada, con análisis palinológico certificado y trazabilidad socioambiental directa.',
-      },
-      {
-        pregunta: '¿Cómo debe conservarse en el hogar?',
-        respuesta:
-          'Conservar en un lugar fresco, seco y al resguardo de la luz solar directa, idealmente entre 15°C y 25°C. No requiere refrigeración; el frío acelera la cristalización compacta.',
-      },
-    ];
-
-    return {
-      pitch,
-      variedad,
-      dimensiones,
-      notasAromaticas,
-      maridajes,
-      objeciones,
-      humedad,
-      extraccion,
-      momento_consumo: ps.momento_consumo,
-    };
+  } else {
+    const defaultPairs = PARES_SEMANTICOS_POR_CATEGORIA[cat] ?? PARES_SEMANTICOS_POR_CATEGORIA.miel;
+    dimensiones = defaultPairs.map((par, i) => {
+      const pct = i === 0 ? ps?.intensidad ?? 80 : i === 1 ? ps?.dulzor_acidez ?? 65 : ps?.textura ?? 85;
+      return {
+        label: par.par,
+        izq: par.izq,
+        der: par.der,
+        pct,
+      };
+    });
   }
 
-  const nombre = (p.nombre ?? '').toLowerCase();
-  const variedadLote = p.lote?.variedad_floral;
-  const origenApicola = p.origen_apicola;
-
-  // 1. Detección de variedad botánica o tipo de producto
-  const isCacao = nombre.includes('cacao') || nombre.includes('chocolate');
-  const isAvellana = nombre.includes('avellana');
-  const isPolen = nombre.includes('polen');
-  const isPanal = nombre.includes('panal');
-  const isTiaca = nombre.includes('tiaca') || (variedadLote ?? '').toLowerCase().includes('tiaca');
-  const isUlmo =
-    nombre.includes('ulmo') ||
-    (variedadLote ?? '').toLowerCase().includes('ulmo');
-  const isVirgen = nombre.includes('virgen') || isPanal;
-
-  // Variedad label
-  let variedad =
+  // 2. Variedad o denominación de origen
+  const variedad =
     variedadLote ||
     origenApicola ||
-    (isCacao
-      ? 'Crema de Miel con Nibs de Cacao Crudo (Santander, Colombia)'
-      : isAvellana
-      ? 'Crema de Miel con Avellana Chilena Tostada y Molida'
-      : isPolen
-      ? 'Crema de Miel con Polen Floral'
-      : isVirgen
-      ? 'Miel Virgen con Trocito de Panal'
-      : isTiaca
-      ? 'Tiaca de Bosque Templado Lluvioso'
-      : isUlmo
-      ? 'Ulmo Monofloral de Chiloé (Eucryphia cordifolia)'
-      : 'Bosque Templado Lluvioso de Chiloé');
+    (cat === 'fortificaciones'
+      ? isAvellana
+        ? 'Avellana Chilena Nativa (Gevuina avellana) · Tostada y Molida'
+        : isCacao
+          ? 'Nibs de Cacao Crudo (Santander, Colombia)'
+          : isPolen
+            ? 'Polen Floral Puro de Bosque Nativo'
+            : 'Materia Prima Noble de Origen'
+      : cat === 'hidromiel'
+        ? 'Hidromiel Artesanal de Bosque Nativo & Agua Austral'
+        : cat === 'extracto'
+          ? 'Propóleo Puro de Bosque Templado Lluvioso'
+          : cat === 'cosmetica'
+            ? 'Cera Virgen de Opérculo & Botánica Austral'
+            : cat === 'infusion'
+              ? 'Botánica Silvestre de Sotobosque Chilote'
+              : isCacao
+                ? 'Crema de Miel con Nibs de Cacao Crudo (Santander, Colombia)'
+                : isAvellana
+                  ? 'Crema de Miel con Avellana Chilena Tostada y Molida'
+                  : isPolen
+                    ? 'Crema de Miel con Polen Floral'
+                    : isVirgen
+                      ? 'Miel Virgen con Trocito de Panal'
+                      : isTiaca
+                        ? 'Tiaca de Bosque Templado Lluvioso'
+                        : isUlmo
+                          ? 'Ulmo Monofloral de Chiloé (Eucryphia cordifolia)'
+                          : 'Bosque Templado Lluvioso de Chiloé');
 
-  // Pitch de 2 frases
-  let pitch =
+  // 3. Pitch de venta inmediato
+  const pitch =
     p.descripcion_corta ||
     p.descripcion_regenerativa ||
-    (isCacao
-      ? 'Miel cruda de bosque nativo batida mecánicamente en frío con nibs de cacao crudo originarios de Santander, Colombia. Textura cremosa con toque crujiente natural, sin azúcares refinadas ni lácteos añadidos.'
-      : isAvellana
-      ? 'Emulsión artesanal en frío de miel virgen de Chiloé y avellana nativa chilena (Gevuina avellana) tostada y molida. Praliné untable 100% puro sin aceites vegetales ni aditivos.'
-      : isPolen
-      ? 'Miel virgen cruda infusionada en frío con polen floral seleccionado para preservar fermentos e inmunidad natural.'
-      : isVirgen
-      ? 'Miel virgen de bosque nativo con trozo de panal natural intacto. Cera de opérculo virgen comestible rica en própolis natural y miel cruda madurada en colmena.'
-      : isTiaca
-      ? 'Recolección de principios de verano de flor de tiaca. Color ámbar claro, notas cítricas balsámicas y una acidez silvestre sutil que limpia el paladar.'
-      : isUlmo
-      ? 'Miel monofloral emblemática de los fiordos de Chiloé. Aroma a flor blanca y vainilla silvestre con una textura cremosa natural insuperable.'
-      : 'Miel de bosque nativo madurada en colmena en los fiordos de Chiloé por abejas vírgenes sin trashumancia forzada. Cruda, centrifugada en frío y biológicamente activa.');
+    (cat === 'fortificaciones'
+      ? isAvellana
+        ? 'Avellana nativa chilena (Gevuina avellana) recolectada en bosque templado, tostada suavemente y molida en frío. 100% fruto puro sin aceites añadidos, azúcar ni preservantes.'
+        : isCacao
+          ? 'Nibs de cacao fino de aroma seleccionados y tostados a baja temperatura. Crocancia noble y pureza bioactiva sin aditivos ni lácteos.'
+          : isPolen
+            ? 'Polen floral crudo deshidratado en frío. Gránulos vivos con alta concentración de enzimas, aminoácidos y fermentos naturales del bosque.'
+            : 'Materia prima pura recolectada y procesada en frío para conservar íntegros sus nutrientes y perfil organoléptico.'
+      : cat === 'hidromiel'
+        ? 'Fermentación salvaje de miel cruda de bosque nativo y agua de lluvia austral. Sin alcohol destilado añadido, sulfitos artificiales ni azúcares comerciales.'
+        : cat === 'cosmetica'
+          ? 'Formulación pura a base de cera virgen de opérculo y macerados botánicos de Chiloé. Nutrición dérmica profunda libre de derivados de petróleo o fragancias sintéticas.'
+          : cat === 'extracto'
+            ? 'Extracto hidroalcohólico concentrado de propóleo crudo de bosque templado. Máxima densidad de flavonoides bioactivos para defensa natural.'
+            : cat === 'infusion'
+              ? 'Hojas y flores silvestres recolectadas a mano en sotobosques de Chiloé y deshidratadas en sombra para preservar intactos sus aceites esenciales.'
+              : isCacao
+                ? 'Miel cruda de bosque nativo batida mecánicamente en frío con nibs de cacao crudo de Santander. Textura cremosa con toque crujiente natural, sin azúcares refinadas ni lácteos añadidos.'
+                : isAvellana
+                  ? 'Emulsión artesanal en frío de miel virgen de Chiloé y avellana nativa chilena tostada y molida. Praliné untable 100% puro sin aceites vegetales ni aditivos.'
+                  : isPolen
+                    ? 'Miel virgen cruda infusionada en frío con polen floral seleccionado para preservar fermentos e inmunidad natural.'
+                    : isVirgen
+                      ? 'Miel virgen de bosque nativo con trozo de panal natural intacto. Cera de opérculo virgen comestible rica en própolis natural y miel cruda madurada en colmena.'
+                      : isTiaca
+                        ? 'Recolección de principios de verano de flor de tiaca. Color ámbar claro, notas cítricas balsámicas y una acidez silvestre sutil que limpia el paladar.'
+                        : isUlmo
+                          ? 'Miel monofloral emblemática de los fiordos de Chiloé. Aroma a flor blanca y vainilla silvestre con una textura cremosa natural insuperable.'
+                          : 'Miel de bosque nativo madurada en colmena en los fiordos de Chiloé por abejas vírgenes sin trashumancia forzada. Cruda, centrifugada en frío y biológicamente activa.');
 
-  // Dimensiones organolépticas calibradas
-  let dimensiones = [
-    { label: 'Intensidad en Paladar', izq: 'Suave & Floral', der: 'Robusto & Boscoso', pct: 75 },
-    { label: 'Balance Dulzor / Acidez', izq: 'Dulzor Cálido', der: 'Acidez Silvestre', pct: 60 },
-    { label: 'Textura & Cristalización', izq: 'Líquida / Sedosa', der: 'Cremosa / Untable', pct: 85 },
-  ];
+  // 4. Notas aromáticas
+  const notasAromaticas =
+    ps?.notas_aromaticas && ps.notas_aromaticas.length > 0
+      ? ps.notas_aromaticas
+      : cat === 'fortificaciones'
+        ? isAvellana
+          ? ['Avellana Nativa Tostada', 'Grasa Noble', 'Madera Suave', 'Corteza Seca', 'Molienda Artesanal']
+          : isCacao
+            ? ['Cacao Fino de Aroma', 'Tostado Profundo', 'Notas Terrosas', 'Amargor Noble']
+            : ['Polen Floral', 'Néctar Seco', 'Notas de Enzima', 'Bosque Silvestre']
+        : cat === 'hidromiel'
+          ? ['Fermento Melífero', 'Manzana Silvestre', 'Flores Blancas', 'Acidez Cítrica']
+          : cat === 'cosmetica'
+            ? ['Cera de Opérculo', 'Miel Virgen', 'Resina Balsámica', 'Seda Botánica']
+            : cat === 'extracto'
+              ? ['Propóleo Concentrado', 'Resina Balsámica', 'Pungencia Noble', 'Corteza Nativa']
+              : cat === 'infusion'
+                ? ['Hojas de Bosque', 'Hierbas Medicinales', 'Flores Silvestres', 'Retrogusto Cálido']
+                : [
+                    'Flor de Ulmo',
+                    'Corteza de Tiaca',
+                    'Caramelo Crudo',
+                    'Avellana Tostada',
+                    'Resina Balsámica',
+                  ];
 
-  let notasAromaticas = [
-    'Flor de Ulmo',
-    'Corteza de Tiaca',
-    'Caramelo Crudo',
-    'Avellana Tostada',
-    'Resina Balsámica',
-  ];
+  // 5. Maridajes
+  const maridajes =
+    ps?.maridajes && ps.maridajes.length > 0
+      ? ps.maridajes
+      : cat === 'fortificaciones'
+        ? [
+            { titulo: 'Yogur Natural & Granola de Origen', detalle: 'Aporte de grasas saludables, textura crocante y energía limpia sin azúcares.' },
+            { titulo: 'Frutas Asadas & Bowls de Avena', detalle: 'Sustituto puro de alta gama para cremas industriales y mantecas procesadas.' },
+            { titulo: 'Café de Especialidad / Filtrado', detalle: 'Equilibrio perfecto entre la calidez del grano y la molienda del fruto seco.' },
+            { titulo: 'Consumo Directo (Pre/Post Ejercicio)', detalle: 'Aporte noble de lípidos saludables y minerales de asimilación directa.' },
+          ]
+        : cat === 'hidromiel'
+          ? [
+              { titulo: 'Tablas de Quesos Maduros y Azules', detalle: 'La acidez viva y efervescencia ligera cortan la grasa del queso con elegancia.' },
+              { titulo: 'Charcutería y Jamón Curado', detalle: 'Equilibrio tánico con carnes nobles y patés artesanales de la Patagonia.' },
+              { titulo: 'Aperitivo Fresco en Copa', detalle: 'Disfrutar entre 8°C y 12°C como brindis de inicio de mesa.' },
+            ]
+          : cat === 'cosmetica'
+            ? [
+                { titulo: 'Aplicación Nocturna Reparadora', detalle: 'Permite que la cera y lípidos botánicos restauren la barrera lipídica durante el descanso.' },
+                { titulo: 'Protección ante Viento & Clima Austral', detalle: 'Escudo natural contra la resequedad provocada por frío o viento salino.' },
+              ]
+            : [
+                { titulo: 'Quesos Maduros y Azules', detalle: 'Contraste salino intenso que resalta los azúcares vivos y notas de bosque.' },
+                { titulo: 'Charcutería y Jabalí Ahumado', detalle: 'Armoniza con carnes curadas de la Patagonia y patés artesanales.' },
+                { titulo: 'Infusiones Nativas (Maqui / Menta)', detalle: 'Endulzante crudo que aporta cuerpo sin enmascarar los taninos silvestres.' },
+                { titulo: 'Café de Especialidad y Masa Madre', detalle: 'Textura untable de alta densidad floral ideal para pan de masa madre y desayunos de alta gama.' },
+              ];
 
-  let maridajes = [
-    {
-      titulo: 'Quesos Maduros y Azules',
-      detalle: 'Contraste salino intenso que resalta los azúcares vivos y notas de bosque.',
-    },
-    {
-      titulo: 'Charcutería y Jabalí Ahumado',
-      detalle: 'Armoniza con carnes curadas de la Patagonia y patés artesanales.',
-    },
-    {
-      titulo: 'Infusiones Nativas (Maqui / Menta)',
-      detalle: 'Endulzante crudo que aporta cuerpo sin enmascarar los taninos silvestres.',
-    },
-    {
-      titulo: 'Café de Especialidad y Masa Madre',
-      detalle: 'Textura untable de alta densidad floral ideal para pan de masa madre y desayunos de alta gama.',
-    },
-  ];
+  // 6. Objeciones de venta contextuales por familia
+  const objecionesEspecificas =
+    cat === 'fortificaciones'
+      ? [
+          {
+            pregunta: '¿Tiene azúcar añadida, aceites vegetales o preservantes?',
+            respuesta:
+              'Cero aditivos, cero azúcares refinadas, cero aceites vegetales añadidos. Es 100% materia prima noble pura seleccionada, tostada y molida en frío para mantener su integridad nutricional.',
+          },
+          {
+            pregunta: '¿Cómo se consume o incorpora en la alimentación diaria?',
+            respuesta:
+              'Es extremadamente versátil: recomendamos 1 o 2 cucharadas diarias en bowls de yogur, papillas de avena, frutas de estación, batidos o directamente como fuente de grasas saludables y micronutrientes.',
+          },
+          {
+            pregunta: '¿Cómo debe conservarse una vez abierto el frasco?',
+            respuesta:
+              'Conservar bien cerrado en lugar fresco, seco y al resguardo de la luz solar directa. Al ser un producto puro sin aditivos ni agua libre, sus aceites nobles se mantienen estables a temperatura ambiente.',
+          },
+        ]
+      : cat === 'hidromiel'
+        ? [
+            {
+              pregunta: '¿Qué es la hidromiel y cómo se diferencia de otras bebidas?',
+              respuesta:
+                'Es la bebida fermentada más antigua del mundo: miel cruda de bosque nativo y agua pura de lluvia austral fermentadas lentamente con levaduras salvajes. Sin alcohol destilado añadido ni aditivos industriales.',
+            },
+            {
+              pregunta: '¿Qué graduación alcohólica tiene y cómo se sirve?',
+              respuesta:
+                'Tiene entre 10% y 13% de alcohol producto de su fermentación natural. Se sirve fresca (entre 8°C y 12°C), ideal en copa como aperitivo o acompañando tablas de quesos y carnes curadas.',
+            },
+            {
+              pregunta: '¿Es muy dulce como la miel líquida?',
+              respuesta:
+                'No: durante la fermentación, las levaduras transforman los azúcares en alcohol y notas florales complejas con acidez viva, logrando un balance estructurado, seco y elegante en boca.',
+            },
+          ]
+        : cat === 'cosmetica'
+          ? [
+              {
+                pregunta: '¿Es apto para pieles sensibles o labios agrietados?',
+                respuesta:
+                  'Sí, formulado exclusivamente con cera pura de opérculo y extractos botánicos nobles de Chiloé. Libre de derivados del petróleo, parafinas, aromas sintéticos o parabenos.',
+              },
+              {
+                pregunta: '¿Deja sensación grasosa o pegajosa?',
+                respuesta:
+                  'La cera virgen crea una micropelícula transpirable que nutre y retiene la hidratación natural de la piel sin obstruir poros ni dejar brillo artificial.',
+              },
+            ]
+          : cat === 'extracto'
+            ? [
+                {
+                  pregunta: '¿Cómo se dosifica y en qué momento es recomendable tomarlo?',
+                  respuesta:
+                    'Unas gotas directas o diluidas en agua templada o infusión. Ideal en las mañanas o ante cambios de estación para reforzar las defensas naturales con flavonoides bioactivos.',
+                },
+                {
+                  pregunta: '¿Por qué tiene un sabor tan intenso o pungente?',
+                  respuesta:
+                    'La pungencia resinosa es la firma de pureza y alta concentración de polifenoles del propóleo crudo de bosque templado, recolectado sin dilución artificial.',
+                },
+              ]
+            : cat === 'infusion'
+              ? [
+                  {
+                    pregunta: '¿Cómo se recolectan y secan las hierbas?',
+                    respuesta:
+                      'Recolección manual en sotobosques nativos y deshidratado en sombra a baja temperatura para preservar intactos los aceites esenciales y propiedades botánicas.',
+                  },
+                  {
+                    pregunta: '¿Cómo se prepara para una infusión óptima?',
+                    respuesta:
+                      'Agua recién hervida a 90°C (dejando reposar un minuto tras el hervor), infundir tapado durante 5 a 7 minutos para no volatilizar los aromas terapéuticos.',
+                  },
+                ]
+            : [
+                {
+                  pregunta: '¿Por qué la miel se cristaliza o espesa?',
+                  respuesta:
+                    'La cristalización natural es la garantía biológica de pureza: confirma que la miel está viva, cruda y nunca pasteurizada a altas temperaturas. Si el cliente prefiere textura fluida, basta templar el frasco a baño María a menos de 40°C para no degradar las enzimas activas.',
+                },
+                {
+                  pregunta: '¿Por qué su valor es superior al de las mieles comerciales?',
+                  respuesta:
+                    'No es miel homogeneizada de mezcla industrial. Proviene de apiarios fijos en los fiordos y bosque virgen de Chiloé, madurada en colmena y recolectada respetando el ritmo de las abejas vírgenes sin trashumancia forzada, con análisis palinológico certificado y trazabilidad socioambiental directa.',
+                },
+                {
+                  pregunta: '¿Cómo debe conservarse en el hogar?',
+                  respuesta:
+                    'Conservar en un lugar fresco, seco y al resguardo de la luz solar directa, idealmente entre 15°C y 25°C. No requiere refrigeración; el frío acelera la cristalización compacta.',
+                },
+              ];
 
-  let objecionesEspecificas = [
-    {
-      pregunta: '¿Por qué la miel se cristaliza o espesa?',
-      respuesta:
-        'La cristalización natural es la garantía biológica de pureza: confirma que la miel está viva, cruda y nunca pasteurizada a altas temperaturas. Si el cliente prefiere textura fluida, basta templar el frasco a baño María a menos de 40°C para no degradar las enzimas activas.',
-    },
-    {
-      pregunta: '¿Por qué su valor es superior al de las mieles comerciales?',
-      respuesta:
-        'No es miel homogeneizada de mezcla industrial. Proviene de apiarios fijos en los fiordos y bosque virgen de Chiloé, madurada en colmena y recolectada respetando el ritmo de las abejas vírgenes sin trashumancia forzada, con análisis palinológico certificado y trazabilidad socioambiental directa.',
-    },
-    {
-      pregunta: '¿Cómo debe conservarse en el hogar?',
-      respuesta:
-        'Conservar en un lugar fresco, seco y al resguardo de la luz solar directa, idealmente entre 15°C y 25°C. No requiere refrigeración; el frío acelera la cristalización compacta.',
-    },
-  ];
+  // 7. Parámetros técnicos
+  const humedad =
+    cat === 'fortificaciones'
+      ? p.lote?.analisis_humedad ? `${p.lote.analisis_humedad}%` : 'Molienda en frío sin aditivos'
+      : cat === 'hidromiel'
+        ? 'Fermentación salvaje en frío'
+        : cat === 'cosmetica'
+          ? 'Poder emoliente dérmico'
+          : cat === 'extracto'
+            ? 'Extracto hidroalcohólico concentrado'
+            : cat === 'infusion'
+              ? 'Deshidratado en sombra'
+              : p.lote?.analisis_humedad
+                ? `${p.lote.analisis_humedad}%`
+                : '< 18% (Maduración Natural)';
 
-  if (isCacao) {
-    dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Dulzor Suave', der: 'Cacao Crudo Puro', pct: 85 },
-      { label: 'Balance Dulzor / Amargor', izq: 'Miel Predominante', der: 'Cacao Crudo Santander', pct: 60 },
-      { label: 'Textura & Masticabilidad', izq: 'Cremosa Sedosa', der: 'Crunch de Nibs Crudos', pct: 75 },
-    ];
-    notasAromaticas = ['Nibs de Cacao Crudo', 'Santander (Colombia)', 'Caramelo Rústico', 'Cacao Puro', 'Miel Cruda'];
-    maridajes = [
-      { titulo: 'Café Filtrado / Espresso', detalle: 'Realza las notas del cacao crudo de Santander.' },
-      { titulo: 'Frutas Rojas & Frambuesas', detalle: 'Equilibra el cacao crudo con acidez frutal fresca.' },
-      { titulo: 'Tostadas de Centeno o Avena', detalle: 'Reemplazo de lujo y sin lácteos para cremas untables industriales.' },
-      { titulo: 'Quesos Crema & Ricotta', detalle: 'Postre inmediato combinando suavidad láctea y textura crujiente.' },
-    ];
-    objecionesEspecificas = [
-      {
-        pregunta: '¿Tiene azúcar refinada añadida o aceite de palma?',
-        respuesta:
-          'Cero azúcar procesada, cero aceite de palma ni saborizantes artificiales. Solo dos ingredientes nobles: miel virgen cruda de Chiloé batida en frío con nibs de cacao crudo puro de Santander (Colombia).',
-      },
-      ...objecionesEspecificas.slice(1),
-    ];
-  } else if (isAvellana) {
-    dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Floral Delicado', der: 'Avellana Tostada y Molida', pct: 80 },
-      { label: 'Balance Dulzor / Tostado', izq: 'Miel Dulce', der: 'Praliné Amaderado', pct: 65 },
-      { label: 'Textura & Untabilidad', izq: 'Fluida', der: 'Pasta Densa Mantecosa', pct: 95 },
-    ];
-    notasAromaticas = ['Avellana Silvestre (Gevuina)', 'Tostada y Molida', 'Madera Cálida', 'Caramelo', 'Mantequilla'];
-    maridajes = [
-      { titulo: 'Yogur Griego & Granola', detalle: 'Aporta crocancia aromática y grasas saludables naturales.' },
-      { titulo: 'Panqueques & Waffles de Avena', detalle: 'Sustituto puro de manjar o cremas industriales de avellana.' },
-      { titulo: 'Plátano & Manzanas Asadas', detalle: 'Armonía perfecta entre la dulzura de la fruta y el tostado seco.' },
-      { titulo: 'Cuchara Directa (Pre-entreno)', detalle: 'Aporte de carbohidratos vivos y lípidos de alta asimilación.' },
-    ];
-    objecionesEspecificas = [
-      {
-        pregunta: '¿Es similar a las cremas de avellana de supermercado?',
-        respuesta:
-          'Es lo opuesto: las comerciales son 50% azúcar refinada y aceites hidrogenados con mínimo porcentaje de avellana. Aquí hay 100% avellana chilena nativa tostada y molida en frío con pura miel virgen, sin ningún químico ni diluyente.',
-      },
-      ...objecionesEspecificas.slice(1),
-    ];
-  } else if (isPolen) {
-    dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Suave & Floral', der: 'Polen Floral Vivo', pct: 70 },
-      { label: 'Balance Dulzor / Acidez', izq: 'Miel Dulce', der: 'Acidez Floral Silvestre', pct: 50 },
-      { label: 'Textura & Solubilidad', izq: 'Sedosa Homogénea', der: 'Granulado Fino Soluble', pct: 65 },
-    ];
-    notasAromaticas = ['Polen Floral', 'Flores Silvestres', 'Miel Cruda', 'Cera de Abeja', 'Néctar Fresco'];
-    maridajes = [
-      { titulo: 'Fruta Fresca & Bowls', detalle: 'Superalimento floral para iniciar la jornada.' },
-      { titulo: 'Yogur Natural', detalle: 'Disolución suave que enriquece probióticos vivos.' },
-      { titulo: 'Cuchara Directa en Ayunas', detalle: 'Máxima asimilación de micronutrientes y enzimas.' },
-    ];
-  } else if (isVirgen) {
-    dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Floral Ligero', der: 'Bouquet Denso & Cera Virgen', pct: 85 },
-      { label: 'Balance Dulzor / Pureza', izq: 'Dulzor Cálido Balsámico', der: 'Cera de Opérculo', pct: 75 },
-      { label: 'Textura & Experiencia', izq: 'Miel Líquida', der: 'Trocito de Panal Masticable', pct: 90 },
-    ];
-    notasAromaticas = ['Trocito de Panal', 'Cera de Opérculo Virgen', 'Flor de Ulmo', 'Vainilla Silvestre', 'Propóleo Natural'];
-    maridajes = [
-      { titulo: 'Tablas de Quesos Maduros y Azules', detalle: 'El contraste de textura entre el queso y la cera virgen masticable es una experiencia de alta gastronomía.' },
-      { titulo: 'Pan Brioche o Hogaza Tibia', detalle: 'La miel se funde mientras el panal aporta una textura crujiente y aroma a colmena viva.' },
-      { titulo: 'Degustación Directa de Panal', detalle: 'Masticar la cera natural para liberar el néctar encapsulado tal como sale de la colmena.' },
-    ];
-    objecionesEspecificas = [
-      {
-        pregunta: '¿El trocito de panal se puede comer?',
-        respuesta:
-          'Completamente. Es cera de opérculo 100% virgen construida por las abejas, rica en bioflavonoides y propóleos naturales. Se mastica liberando la miel pura y se puede tragar o disfrutar como un chicle natural de bosque nativo.',
-      },
-      ...objecionesEspecificas.slice(1),
-    ];
-  } else if (isTiaca) {
-    dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Floral Delicado', der: 'Robusto Amaderado', pct: 55 },
-      { label: 'Balance Dulzor / Acidez', izq: 'Dulzor Pleno', der: 'Acidez Cítrica Silvestre', pct: 40 },
-      { label: 'Textura & Cristalización', izq: 'Líquida Sedosa', der: 'Cremosa Densa', pct: 45 },
-    ];
-    notasAromaticas = ['Flor de Tiaca', 'Notas Cítricas Frescas', 'Té Blanco', 'Balsámico Suave', 'Miel Clara'];
-    maridajes = [
-      { titulo: 'Salmón Ahumado & Pescados Grasos', detalle: 'Su acidez cítrica limpia la grasa y realza el humo nativo.' },
-      { titulo: 'Quesos Frescos de Cabra', detalle: 'Maridaje sutil que respeta la delicadeza láctea.' },
-      { titulo: 'Vinagretas Gourmet', detalle: 'Emulsiona perfecto con aceite de oliva extra virgen y mostazas.' },
-      { titulo: 'Tés Verdes & Infusiones Florales', detalle: 'No opaca el perfil herbal sutil de las hojas de té.' },
-    ];
-  } else if (isUlmo) {
-    dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Floral Ligero', der: 'Bouquet Denso & Vainilla', pct: 85 },
-      { label: 'Balance Dulzor / Acidez', izq: 'Dulzor Cálido Balsámico', der: 'Acidez', pct: 70 },
-      { label: 'Textura & Cristalización', izq: 'Líquida', der: 'Cremosa Mantecosa Untable', pct: 90 },
-    ];
-    notasAromaticas = ['Flor de Ulmo', 'Vainilla Silvestre', 'Jazmín de Bosque', 'Caramelo Crudo', 'Madera Húmeda'];
-    maridajes = [
-      { titulo: 'Quesos Azules & Roquefort', detalle: 'El maridaje rey: dulzor floral que doma la fuerza del hongo Penicillium.' },
-      { titulo: 'Charcutería y Jabalí Ahumado', detalle: 'Glaseado en caliente o acompañamiento directo para carnes de caza.' },
-      { titulo: 'Hojas de Maqui & Melisa', detalle: 'Infusión reconfortante nocturna con propiedades bioactivas.' },
-      { titulo: 'Pan de Centeno o Brioche Tibio', detalle: 'Se funde como mantequilla floral aromática.' },
-    ];
-  }
+  const extraccion =
+    cat === 'fortificaciones'
+      ? p.lote?.metodo_extraccion ?? 'Tostado noble y molienda artesanal'
+      : cat === 'hidromiel'
+        ? p.lote?.metodo_extraccion ?? 'Fermentación lenta y maduración en barrica'
+        : cat === 'cosmetica'
+          ? p.lote?.metodo_extraccion ?? 'Fundido suave y decantado de cera virgen'
+          : cat === 'extracto'
+            ? p.lote?.metodo_extraccion ?? 'Maceración lenta de propóleo crudo'
+            : cat === 'infusion'
+              ? p.lote?.metodo_extraccion ?? 'Recolección manual de hojas y flores'
+              : p.lote?.metodo_extraccion ?? 'Centrifugado en frío sin pasteurizar';
 
-  const humedad = p.lote?.analisis_humedad
-    ? `${p.lote.analisis_humedad}%`
-    : '< 18% (Maduración Natural)';
-  const extraccion = p.lote?.metodo_extraccion ?? 'Centrifugado en frío sin pasteurizar';
-
-  const momentoConsumo = isCacao
-    ? 'Sobremesa, merienda energética o maridaje con café de especialidad'
-    : isTiaca
-    ? 'Mañanas luminosas, tablas de quesos frescos y desayunos reconstituyentes'
-    : isAvellana
-    ? 'Desayunos lentos de invierno y meriendas reconfortantes'
-    : isPolen
-    ? 'Inicio de jornada, bowls matinales y revitalización diaria'
-    : isVirgen
-    ? 'Tablas de quesos de alta gama, corte directo de panal y ocasiones especiales'
-    : 'Desayunos de alta gama, tablas de quesos patagónicos y rituales de bienestar';
+  const momentoConsumo =
+    ps?.momento_consumo ||
+    (cat === 'fortificaciones'
+      ? 'Desayunos lentos de invierno, meriendas reconstituyentes y bowls matinales'
+      : cat === 'hidromiel'
+        ? 'Aperitivo antes de cenar, sobremesas y brindis de celebración'
+        : cat === 'cosmetica'
+          ? 'Ritual nocturno de hidratación o protección previa a salir al frío'
+          : isCacao
+            ? 'Sobremesa, merienda energética o maridaje con café de especialidad'
+            : isTiaca
+              ? 'Mañanas luminosas, tablas de quesos frescos y desayunos reconstituyentes'
+              : isAvellana
+                ? 'Desayunos lentos de invierno y meriendas reconfortantes'
+                : isPolen
+                  ? 'Inicio de jornada, bowls matinales y revitalización diaria'
+                  : isVirgen
+                    ? 'Tablas de quesos de alta gama, corte directo de panal y ocasiones especiales'
+                    : 'Desayunos de alta gama, tablas de quesos patagónicos y rituales de bienestar');
 
   return {
     pitch,

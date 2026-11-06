@@ -307,10 +307,49 @@ export function PerfilSensorialSection({
         ? validRatings.reduce((a, b) => a + b, 0) / validRatings.length
         : null;
 
+    // Extraer calibraciones comunitarias directas por eje (nombre exacto, alias o posición ordinal)
+    const perAxisScores: number[][] = activeAxes.map(() => []);
+
+    for (const item of items) {
+      const attr = (item.atributos_sensoriales ?? {}) as Record<string, unknown>;
+      const ejesCal = (attr.ejes_calibracion ?? {}) as Record<string, unknown>;
+
+      activeAxes.forEach((axisName, idx) => {
+        // 1. Coincidencia por nombre exacto
+        let val = ejesCal[axisName];
+
+        // 2. Coincidencia case-insensitive / trimmed
+        if (val === undefined) {
+          const normTarget = axisName.trim().toLowerCase();
+          const foundKey = Object.keys(ejesCal).find(
+            (k) => k.trim().toLowerCase() === normTarget,
+          );
+          if (foundKey) val = ejesCal[foundKey];
+        }
+
+        // 3. Coincidencia por posición ordinal
+        if (val === undefined) {
+          val = ejesCal[String(idx)] ?? ejesCal[idx];
+        }
+
+        if (typeof val === 'number' && Number.isFinite(val)) {
+          const normalized = val > 10 ? val / 10 : val;
+          perAxisScores[idx].push(normalized);
+        }
+      });
+    }
+
     const defaultData = activeAxes.map((axis) => Number(((VALORES_DEFAULT_EJES[axis] ?? 75) / 10).toFixed(1)));
     const baseFallback: number[] = curatorData ?? labData ?? defaultData;
     const modulation = avgRating ? ((avgRating - 5.5) * 0.25) : 0;
+
     const data = activeAxes.map((_, i) => {
+      const scores = perAxisScores[i];
+      if (scores && scores.length > 0) {
+        const sum = scores.reduce((a, b) => a + b, 0);
+        const avg = sum / scores.length;
+        return Number(Math.min(10, Math.max(1.0, avg)).toFixed(1));
+      }
       const base = baseFallback[i] ?? 7.0;
       return Number(Math.min(10, Math.max(1.5, base + modulation)).toFixed(1));
     });
