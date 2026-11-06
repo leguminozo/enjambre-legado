@@ -136,8 +136,11 @@ export default async function CataPage({
 
   return (
     <StoreShell>
-      <ShopHeader />
-      <main className="min-h-[var(--svh-full)] pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-20 bg-background">
+      {/* En móvil se oculta el header completo (menú, logo, perfil y bolsa) para dar foco total al ritual de cata inmersivo; en desktop permanece disponible */}
+      <div className="hidden md:block">
+        <ShopHeader />
+      </div>
+      <main className="min-h-[var(--svh-full)] pt-[max(1.5rem,calc(env(safe-area-inset-top)+1rem))] md:pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-20 bg-background">
         <CataView
           punto={punto}
           codigo={codigo}

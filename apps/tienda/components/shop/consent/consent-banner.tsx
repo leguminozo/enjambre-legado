@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Cookie } from 'lucide-react';
 import { useConsent } from './consent-provider';
@@ -13,6 +14,17 @@ import { useConsent } from './consent-provider';
 export function ConsentBanner() {
   const { status, acceptAll, acceptEssential } = useConsent();
   const t = useTranslations('cookies');
+  const pathname = usePathname();
+
+  // En rutas de degustación en vivo y escaneo QR (/cata, /qr, /trazabilidad), suprimir el banner
+  // para que no bloquee ni interrumpa la experiencia sensorial en el punto de cata.
+  if (
+    pathname?.startsWith('/cata') ||
+    pathname?.startsWith('/qr') ||
+    pathname?.startsWith('/trazabilidad')
+  ) {
+    return null;
+  }
 
   if (status !== 'unknown') return null;
 
