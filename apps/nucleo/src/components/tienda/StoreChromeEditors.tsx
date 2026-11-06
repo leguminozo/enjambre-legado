@@ -3823,7 +3823,7 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         onChange={(v) => patch('show_traceability', v)}
       />
       <ToggleField
-        label="Perfil Sensorial de Cata (organoléptico)"
+        label="Perfil Sensorial de Cata"
         desc="Muestra u oculta la cata sensorial en productos de miel. Los productos no comestibles se ocultan automáticamente."
         value={local.show_sensory_profile ?? true}
         onChange={(v) => patch('show_sensory_profile', v)}
@@ -3902,7 +3902,7 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         <TextField
           label="Texto Enlace Evidencia Científica (ES)"
           value={local.food_disclaimer_link_text ?? ''}
-          placeholder="evidencia botánica y organoléptica"
+          placeholder="evidencia botánica y sensorial"
           onChange={(v) => patch('food_disclaimer_link_text', v)}
         />
         <TextField

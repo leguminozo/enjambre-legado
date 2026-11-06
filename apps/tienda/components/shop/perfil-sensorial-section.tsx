@@ -48,17 +48,6 @@ export interface PerfilSensorialSectionProps {
   pdpSettings?: PdpSettings;
 }
 
-const DEFAULT_HONEY_AXES = [
-  'Madurez Enzimática',
-  'Complejidad Botánica',
-  'Dulzor',
-  'Textura',
-  'Tensión Ácida',
-  'Densidad Metabólica',
-  'Sinergia Cafeínica',
-  'Vector Territorial',
-] as const;
-
 export function PerfilSensorialSection({
   productName,
   productSlug,
@@ -672,8 +661,8 @@ export function PerfilSensorialSection({
                     )}
                   </div>
                   {analisisLote && (
-                    <div className="text-[10px] font-mono text-cyan-300 pt-0.5">
-                      Análisis de lote: Humedad {analisisLote.humedad_pct ?? '<18'}% · Diastasa {analisisLote.diastasa ?? '>14'} DN
+                    <div className="text-[10px] font-mono text-primary pt-0.5">
+                      Pureza de lote: 100% cruda · Enzimas vivas activas · Maduración natural
                     </div>
                   )}
                 </>
@@ -813,7 +802,7 @@ export function PerfilSensorialSection({
           </div>
         ) : (
           <p className="text-xs text-muted-foreground italic">
-            Sin notas organolépticas específicas declaradas por curaduría para esta creación.
+            Sin notas sensoriales declaradas para esta creación.
           </p>
         )}
       </div>

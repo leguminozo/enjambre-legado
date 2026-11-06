@@ -1574,7 +1574,7 @@ export const PRESET_CLUB_LEGADO: SlideData[] = [
         destinationType: 'club',
         url: 'https://tienda.obrerayzangano.cl/club-legado-del-bosque',
         title: 'ACREDITACIÓN EN LÍNEA',
-        subtitle: 'Escanea para unirte al club, programar tu reposición y recibir tus primeros sellos.',
+        subtitle: 'Escanea para unirte al club, programar tu reposición y recibir tus primeros puntos de bienvenida.',
       },
     ],
     footerLeft: 'obrerayzangano.cl/club-legado-del-bosque',
@@ -1674,7 +1674,7 @@ export const PRESET_STAND_FERIA: SlideData[] = [
     kickerRight: 'MEMBRESÍA DIGITAL',
     badge: 'APPLE & GOOGLE WALLET · PASE DE GUARDIÁN',
     title: 'Guarda tu Pase del Bosque en la pantalla de tu teléfono.',
-    subtitle: 'Conecta con la colmena de Pureo y acumula sellos de origen en cada visita o feria:',
+    subtitle: 'Conecta con la colmena de Pureo y acumula beneficios de origen en cada visita o feria:',
     theme: 'obsidiana',
     accentColor: 'oro',
     fontFamily: 'cormorant',
@@ -1685,8 +1685,8 @@ export const PRESET_STAND_FERIA: SlideData[] = [
         type: 'items',
         items: [
           {
-            title: 'TIMBRES DE DEGUSTACIÓN',
-            desc: 'Cada evaluación en mesones o tiendas aliadas suma sellos de fidelidad a tu credencial.',
+            title: 'REGISTROS DE DEGUSTACIÓN',
+            desc: 'Cada evaluación en mesones o tiendas aliadas suma puntos y catas verificadas a tu credencial.',
           },
           {
             title: 'ACCESO RESERVADO A LOTES',

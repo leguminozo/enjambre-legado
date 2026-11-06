@@ -67,9 +67,9 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata('/', {
-    title: 'Pureo, Chiloé · Miel de Patrimonio Forestal y Origen Territorial',
+    title: 'Chiloé · Miel de Bosque Nativo y Origen Territorial',
     description:
-      'Miel cruda de floración viva, batido en frío y panal silvestre del Predio Pureo. 22 años cuidando el bosque nativo en Chiloé — La Obrera y el Zángano.',
+      'Miel cruda de floración viva, batido en frío y panal silvestre del bosque nativo de Chiloé. 22 años de presencia en el archipiélago — La Obrera y el Zángano.',
   });
 }
 

@@ -168,7 +168,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
         icon: "QrCode",
         title: "03. Trazabilidad Analítica QR por Lote",
         description:
-          "Cada frasco de 25 g y 150 g integra acceso digital al apiario de origen en Pureo (Queilén, Chiloé), porcentaje de polen nativo, fecha de recolección y notas de cata para tu equipo.",
+          "Cada frasco de 25 g y 150 g integra acceso digital al origen territorial en el bosque nativo de Chiloé, porcentaje de polen nativo, fecha de recolección y notas de cata para tu equipo.",
       },
     ],
     stats: [
@@ -352,7 +352,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     ],
     process: [
       { step: '01', title: 'Set de Entrada', desc: 'Inicia con una selección equilibrada de rotación probada, acompañada de tu kit digital de presentación.' },
-      { step: '02', title: 'Onboarding de Clientes', desc: 'A través de un código QR, tus consumidores se unen a nuestro programa de fidelidad, ganando su primer sello solo por visitar tu local.' },
+      { step: '02', title: 'Onboarding de Clientes', desc: 'A través de un código QR, tus consumidores se unen a nuestra comunidad, obteniendo puntos de bienvenida y registrando catas sensoriales en tu mesón.' },
       { step: '03', title: 'Crecimiento de Tier', desc: 'Tus recompras rápidas desbloquean rebates, fondos de co-marketing y el status Guardián de exclusividad territorial.' },
     ],
     suggestedProductsCopy: 'Para retail gourmet recomendamos el espectro completo: mini frascos de 25g para compra de impulso/regalos, y los formatos de 150g y 500g para los entusiastas de la gastronomía.',

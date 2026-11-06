@@ -518,7 +518,7 @@ export function CheckoutResultClient() {
                             <span className="text-[10px] font-mono text-accent font-semibold">Sello Sumado</span>
                           </div>
                           <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
-                            Suma sellos por formato en tu Pase Digital para canjes físicos en feria.
+                            Acumula 1 sello por formato en tu Pase Digital. Al llegar a 10, canjeas tu unidad de cortesía en la tienda o en feria.
                           </p>
                         </div>
                         <Link
@@ -538,7 +538,7 @@ export function CheckoutResultClient() {
                         className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Compass className="w-3.5 h-3.5 text-accent" />
-                        <span>Trazabilidad del apiario en Pureo</span>
+                        <span>Trazabilidad de origen en el bosque nativo</span>
                         <ArrowRight className="w-3 h-3" />
                       </Link>
                       <Link

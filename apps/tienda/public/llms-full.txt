@@ -88,7 +88,7 @@ El ecosistema de clientes de Enjambre Legado no utiliza gamificación superficia
    - Nivel en la comunidad (ej. "Protector del Bosque") y ejemplares nativos censados en el territorio.
 
 2. **Pasaporte de Colmena (`/perfil/pasaporte` o `/demo/perfil/pasaporte`)**:
-   - Vínculo directo entre el suscriptor y una colmena viva en el apiario de Chiloé (ej. *Colmena Centinela #04* en Predio Pureo).
+   - Vínculo directo entre el suscriptor y una colmena viva en el bosque nativo de Chiloé (ej. *Colmena Centinela #04*).
    - Indicadores de salud de la colonia (óptima/en observación), actividad de pecoreo hacia la flora nativa, peso de producción y coordenadas geográficas protegidas.
 
 3. **Pedidos y Trazabilidad (`/perfil/pedidos` o `/demo/perfil/pedidos`)**:

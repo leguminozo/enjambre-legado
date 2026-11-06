@@ -142,11 +142,37 @@ percepcionRoutes.post(
       }
     }
 
-    // Identidad opcional: email, whatsapp o tarjeta (codigo_cliente)
+    // Identidad opcional: email, whatsapp, tarjeta (codigo_cliente) o user_id autenticado
     let clienteId: string | null = null;
+    let matchedUserId: string | null = input.user_id || null;
+    let profileName: string | null = null;
+
     const email = input.email?.trim().toLowerCase() || null;
     const whatsapp = normalizarWhatsapp(input.whatsapp);
     const codigoTarjeta = input.codigo_cliente?.trim().toUpperCase() || null;
+
+    // 1. Resolver cuenta de usuario en profiles si existe (para conectar la Billetera canónica)
+    if (matchedUserId) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .eq("id", matchedUserId)
+        .maybeSingle();
+      if (prof?.full_name) {
+        profileName = prof.full_name;
+      }
+    } else if (email) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .ilike("email", email)
+        .maybeSingle();
+      if (prof?.id) {
+        matchedUserId = prof.id;
+        profileName = prof.full_name;
+      }
+    }
+
     if (email || whatsapp || codigoTarjeta) {
       let cliente = null;
       if (codigoTarjeta) {
@@ -270,10 +296,12 @@ percepcionRoutes.post(
       await supabase.from("perc_abiertas").insert({ sesion_id: sesion.id, texto: input.abierta });
     }
 
-    // Puntos por pulso semántico (identidad global)
-    let puntos = 0;
+    // Puntos por pulso semántico (identidad física y billetera digital)
+    let puntos = await leerValor(supabase, "feedback_semantico_puntos", 25);
+    if (!puntos || puntos <= 0) puntos = 25;
+
+    // A. Acreditación física en el punto aliado (fid_membresias / sellos)
     if (clienteId) {
-      puntos = await leerValor(supabase, "feedback_semantico_puntos", 25);
       const { data: mem } = await supabase
         .from("fid_membresias")
         .select("id, saldo_puntos")
@@ -298,7 +326,48 @@ percepcionRoutes.post(
       }
     }
 
-    // Publicación en tienda: reseña profunda pendiente (moderación existente).
+    // B. Acreditación canónica en la Billetera Digital del usuario (puntos_fidelizacion / loyalty_balances)
+    if (matchedUserId) {
+      try {
+        const { error: rpcErr } = await supabase.rpc("registrar_evento_lealtad_canonica", {
+          p_idempotency_key: `cata:${sesion.id}`,
+          p_user_id: matchedUserId,
+          p_actor_id: matchedUserId,
+          p_canal: "b2b_mesa",
+          p_tipo_evento: "feedback_semantico",
+          p_delta_puntos: puntos,
+          p_delta_ciclos: 1,
+          p_referencia_tipo: "perc_sesiones",
+          p_referencia_id: sesion.id,
+          p_metadata: {
+            codigo_punto: normCodigoPunto,
+            punto_nombre: punto.nombre,
+            producto_id: resolvedProductoId,
+            variante_id: resolvedVarianteId,
+            agrado: agradoNum,
+          },
+        });
+
+        if (rpcErr) {
+          console.warn("[percepcion] Fallback rpc registrar_evento_lealtad_canonica:", rpcErr.message);
+          const { data: emp } = await supabase.from("empresas").select("id").order("created_at").limit(1).maybeSingle();
+          if (emp?.id) {
+            await supabase.rpc("agregar_puntos_usuario", {
+              p_user_id: matchedUserId,
+              p_empresa_id: emp.id,
+              p_puntos: puntos,
+              p_venta_id: undefined,
+              p_motivo: `Cata sensorial en ${punto.nombre}`,
+              p_metadata: { sesion_id: sesion.id, codigo_punto: normCodigoPunto },
+            });
+          }
+        }
+      } catch (errLoyalty) {
+        console.warn("[percepcion] Error inesperado acreditando puntos a usuario:", errLoyalty);
+      }
+    }
+
+    // Publicación en tienda: reseña profunda vinculada o anónima (moderación existente).
     // Las reseñas anónimas exigen anon_hash + comentario ≤ 280 (CHECK de la tabla).
     if (resolvedProductoId) {
       let tipoTexto = 'Degustación en Punto Aliado';
@@ -314,12 +383,13 @@ percepcionRoutes.post(
       const resenaPayload = {
         producto_id: resolvedProductoId,
         variante_id: resolvedVarianteId,
+        user_id: matchedUserId,
         tipo_sensorial: input.tipo_sensorial ?? 'miel',
-        modo: "anonima" as const,
+        modo: (matchedUserId ? "guardian" : "anonima") as "guardian" | "anonima",
         estado: "pendiente" as const,
         rating: agradoNum,
         comentario_corto: (input.abierta || `Degustación sensorial en ${punto.nombre || 'punto aliado'}`).slice(0, 280),
-        display_name: cleanDisplayName,
+        display_name: profileName || cleanDisplayName,
         anon_hash: createHash("sha256").update(`percepcion:${sesion.id}`).digest("hex"),
         percepcion_sesion_id: sesion.id,
         notas_personales: input.abierta ?? null,
@@ -331,6 +401,7 @@ percepcionRoutes.post(
           rating_1_10: agradoNum,
           codigo_punto: normCodigoPunto,
           punto_nombre: punto.nombre,
+          cliente_email: email,
         },
       };
 
@@ -349,6 +420,8 @@ percepcionRoutes.post(
         sesion_id: sesion.id,
         puntos_ganados: puntos,
         cliente_id: clienteId,
+        user_id: matchedUserId,
+        cuenta_vinculada: Boolean(matchedUserId),
       },
     }, 201);
   }

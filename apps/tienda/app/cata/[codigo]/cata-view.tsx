@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { WalletButtons } from '@/components/shop/wallet-buttons';
 import { Button, Input, toast, friendlyError, Badge, HexagonLoader, cn } from '@enjambre/ui';
+import { useAuthStore } from '@enjambre/auth';
 import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import type { ShopProduct } from '@/lib/shop/products';
 
@@ -31,6 +32,7 @@ import {
   EJES_SENSORIALES_POR_CATEGORIA,
   VALORES_DEFAULT_EJES,
   resolverEjesSensoriales,
+  obtenerGuiaEjeSensorial,
   DEGUSTACION_CONFIG_DEFAULT,
   type DegustacionConfig,
   type VariedadMesaConfig,
@@ -373,11 +375,21 @@ export function CataView({
     return initialEjes;
   });
 
+  const authUser = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   const [selectedChips, setSelectedChips] = useState<Set<string>>(new Set());
   const [agrado, setAgrado] = useState(10);
   const [comentarioAbierto, setComentarioAbierto] = useState('');
   const [email, setEmail] = useState('');
   const [puntosGanados, setPuntosGanados] = useState<number>(25);
+
+  // Auto-completar email si el usuario ya tiene sesión iniciada en la tienda
+  useEffect(() => {
+    if (authUser?.email && !email) {
+      setEmail(authUser.email);
+    }
+  }, [authUser?.email, email]);
 
   const selectProductOrVariant = (
     prodId: string | null,
@@ -499,6 +511,7 @@ export function CataView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           codigo_punto: codigo,
+          user_id: authUser?.id || undefined,
           producto_id: finalProductId || undefined,
           variante_id: selectedVarianteId || undefined,
           floracion_slug: selectedFloracionSlug || undefined,
@@ -735,20 +748,20 @@ export function CataView({
           {/* Telaraña / Radar Visual Interactivo */}
           <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
             <div className="w-full flex justify-between items-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground pb-2 border-b border-border/60 mb-2">
-              <span>Constelación Activa ({activeAxes.length} Vértices)</span>
+              <span>Tu Mapa de Degustación ({activeAxes.length} Notas)</span>
               <span className="text-primary font-bold">1.0 — 10.0</span>
             </div>
             <RadarConstellation axes={activeAxes} scores={ejesCalibracionState} size={230} />
           </div>
 
-          {/* Deslizadores de los 8 Ejes Canónicos */}
+          {/* Deslizadores de las Notas Sensoriales */}
           <div className="space-y-3 bg-card border border-border p-4 sm:p-5 rounded-2xl shadow-sm">
             <div className="flex items-center justify-between pb-2 border-b border-border/60">
               <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                Vértices de Percepción
+                Notas y Sensaciones en Boca
               </span>
               <span className="text-[11px] text-primary font-mono font-medium">
-                Ajusta deslizando o con + / -
+                Ajusta con el deslizador o con + / -
               </span>
             </div>
 
@@ -759,6 +772,7 @@ export function CataView({
                   const clamped = Math.max(1.0, Math.min(10.0, Number(newVal.toFixed(1))));
                   setEjesCalibracionState((prev) => ({ ...prev, [axis]: clamped }));
                 };
+                const guia = obtenerGuiaEjeSensorial(axis);
 
                 return (
                   <div
@@ -779,6 +793,10 @@ export function CataView({
                         <span className="text-[10px] text-muted-foreground">/ 10</span>
                       </div>
                     </div>
+
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      {guia.preguntaGuia}
+                    </p>
 
                     <div className="flex items-center gap-2.5 pt-0.5">
                       <button
@@ -811,9 +829,9 @@ export function CataView({
                       </button>
                     </div>
 
-                    <div className="flex justify-between text-[9px] font-mono text-muted-foreground/60 px-0.5">
-                      <span>Sutil (1.0)</span>
-                      <span>Intenso (10.0)</span>
+                    <div className="flex justify-between text-[10px] font-mono text-muted-foreground px-0.5">
+                      <span className="truncate pr-2">{guia.extremoIzq}</span>
+                      <span className="truncate pl-2 text-right">{guia.extremoDer}</span>
                     </div>
                   </div>
                 );
@@ -971,21 +989,66 @@ export function CataView({
               Guarda tu Pasaporte
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Ingresa tu correo para acreditar tus sellos en{' '}
-              <strong className="text-foreground font-medium">{punto.nombre}</strong> y sumar puntos
-              globales en la red.
+              {isAuthenticated && authUser?.email
+                ? `Estás conectado a tu cuenta. Tus +${puntosGanados} puntos se acreditarán directamente a tu Billetera digital.`
+                : `Acredita tus +${puntosGanados} Puntos del Bosque y tu evaluación en ${punto.nombre} vinculándolos a tu cuenta.`}
             </p>
           </div>
 
           <div className="space-y-4 bg-card border border-border p-6 rounded-2xl">
-            <Input
-              label="Correo electrónico"
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            {isAuthenticated && authUser?.email ? (
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/20 text-[10px] font-mono font-semibold text-primary uppercase tracking-wider">
+                    <CheckCircle2 className="w-3 h-3" /> Sesión Activa · Perfil Verificado
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEmail('')}
+                    className="text-[11px] text-muted-foreground hover:text-foreground font-mono underline"
+                  >
+                    Usar otro correo
+                  </button>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{email || authUser.email}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                    Tus <strong className="text-foreground font-semibold">+{puntosGanados} Puntos del Bosque</strong> y tu cata se registrarán de inmediato en tu perfil de cliente.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Input
+                  label="Correo electrónico"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <div className="p-3.5 rounded-xl bg-surface-sunken/80 border border-border/60 text-xs text-muted-foreground space-y-1.5">
+                  <p className="font-semibold text-foreground text-[11px] uppercase tracking-wider">
+                    ¿Para qué registramos tu correo?
+                  </p>
+                  <ul className="space-y-1 text-[11px] leading-relaxed">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-bold">•</span>
+                      <span>Acreditar <strong>+{puntosGanados} Puntos del Bosque</strong> (saldo a favor para tus compras en tienda).</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-bold">•</span>
+                      <span>Inscribir tu evaluación en el Pasaporte Sensorial de <strong>{punto.nombre}</strong>.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-primary font-bold">•</span>
+                      <span>Si ya tienes cuenta o te registras después, tus puntos y tu pasaporte te esperarán en tu Billetera.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
             <label className="flex items-start gap-3 pt-2 cursor-pointer select-none">
               <input type="checkbox" className="mt-1 accent-primary rounded" defaultChecked />
               <span className="text-xs text-muted-foreground leading-relaxed">
@@ -1022,7 +1085,7 @@ export function CataView({
           <div className="text-center space-y-3 pt-4">
             <div className="flex flex-wrap justify-center gap-2 mb-1">
               <Badge variant="success" className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" /> 1 Sello en {punto.nombre}
+                <CheckCircle2 className="w-3.5 h-3.5" /> {(activeConfig.textos.exitoBadgeSello || 'Cata Verificada en {punto}').replace('{punto}', punto.nombre)}
               </Badge>
               <Badge variant="gold">+{puntosGanados} Puntos del Bosque</Badge>
             </div>
@@ -1043,10 +1106,10 @@ export function CataView({
             <div className="space-y-5 relative z-10">
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-                  Geometría Sensorial Calibrada
+                  Tu Perfil Sensorial Calibrado
                 </span>
                 <span className="text-xs text-primary font-mono font-medium">
-                  Constelación de {activeAxes.length} Vértices
+                  Mapa de {activeAxes.length} Notas en Boca
                 </span>
               </div>
 
@@ -1157,10 +1220,36 @@ export function CataView({
             </div>
           )}
 
+          {/* Acreditación de Puntos & Acceso Directo a Billetera */}
+          <div className="p-5 rounded-2xl bg-card border border-primary/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0">
+                <Wallet className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-mono uppercase tracking-wider text-primary font-semibold">
+                  +{puntosGanados} Puntos del Bosque Acreditados
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  {isAuthenticated
+                    ? `Puntos sumados a tu Billetera digital (${email || authUser?.email}).`
+                    : `Asignados a ${email}. Inicia sesión con este correo para ver tu saldo y canjear.`}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={isAuthenticated ? '/perfil/billetera' : `/login?returnTo=/perfil/billetera`}
+              className="btn btn-outline text-xs py-2 px-3.5 flex items-center gap-1.5 shrink-0 border-primary/40 text-primary hover:bg-primary/10 transition-colors w-full sm:w-auto justify-center"
+            >
+              <Wallet size={13} />
+              <span>{isAuthenticated ? 'Ver mi Billetera & Saldo' : 'Acceder a mi Billetera'}</span>
+            </Link>
+          </div>
+
           {/* Salida Diferida Respetuosa (Sin datáfonos ni transacciones en mesa) */}
           <div className="bg-surface-raised border border-border p-6 rounded-2xl text-center space-y-4">
             <h3 className="font-display text-xl font-medium text-foreground tracking-tight">
-              {esGeografica ? 'Despensa Austral de Pureo' : activeConfig.textos.salidaDiferidaTitulo}
+              {esGeografica ? 'Despensa Austral de Chiloé' : activeConfig.textos.salidaDiferidaTitulo}
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
               {activeConfig.textos.salidaDiferidaDesc}

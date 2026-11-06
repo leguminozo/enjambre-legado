@@ -171,7 +171,7 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
           ? 'Nibs de cacao fino de aroma seleccionados y tostados a baja temperatura. Crocancia noble y pureza bioactiva sin aditivos ni lácteos.'
           : isPolen
             ? 'Polen floral crudo deshidratado en frío. Gránulos vivos con alta concentración de enzimas, aminoácidos y fermentos naturales del bosque.'
-            : 'Materia prima pura recolectada y procesada en frío para conservar íntegros sus nutrientes y perfil organoléptico.'
+            : 'Materia prima pura recolectada y procesada en frío para conservar íntegros sus nutrientes y perfil sensorial.'
       : cat === 'hidromiel'
         ? 'Fermentación salvaje de miel cruda de bosque nativo y agua de lluvia austral. Sin alcohol destilado añadido, sulfitos artificiales ni azúcares comerciales.'
         : cat === 'cosmetica'
@@ -900,7 +900,7 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
             <div className="p-3 rounded-lg bg-surface-sunken border border-border/40 flex items-start gap-2.5">
               <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-[11px] text-muted-foreground leading-tight">
-                <strong>Herramienta consultiva voluntaria:</strong> Este argumentario y notas organolépticas constituyen material técnico de apoyo comercial de libre uso y adaptación por parte del prestador independiente, sin constituir orden directa ni obligación jerárquica (Corte Suprema Rol N° 20.995-2026).
+                <strong>Herramienta consultiva voluntaria:</strong> Este argumentario y notas sensoriales constituyen material técnico de apoyo comercial de libre uso y adaptación por parte del prestador independiente, sin constituir orden directa ni obligación jerárquica (Corte Suprema Rol N° 20.995-2026).
               </p>
             </div>
           </div>

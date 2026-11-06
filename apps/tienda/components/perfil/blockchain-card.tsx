@@ -215,7 +215,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           <div className="p-4 rounded-xl bg-background/60 border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Bosque Nativo Siempreverde · Pureo, Quemchi
+                Bosque Nativo Siempreverde · Archipiélago de Chiloé
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Zona libre de pesticidas industriales y cultivos transgénicos en la Isla Grande de Chiloé.

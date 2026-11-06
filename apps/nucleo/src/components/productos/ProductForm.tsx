@@ -802,7 +802,7 @@ export function ProductForm({
 
   const handleRemoveAxis = (index: number) => {
     if (activeSensoryAxes.length <= 3) {
-      toast.error('La red poligonal requiere al menos 3 vértices / ejes');
+      toast.error('La red sensorial requiere al menos 3 notas o puntos');
       return;
     }
     const removedName = activeSensoryAxes[index];
@@ -1672,11 +1672,11 @@ export function ProductForm({
                     <div className="flex items-center gap-2">
                       <Compass size={16} className="text-primary shrink-0" />
                       <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-                        Geometría de la Red Sensorial ({activeSensoryAxes.length} Vértices / Aristas)
+                        Mapa de la Red Sensorial ({activeSensoryAxes.length} Notas en Boca)
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Esta red poligonal define la constelación visual de cata en el PDP y Campo POS. Puedes editar directamente el nombre de cada punto de la red, sumar nuevas aristas, calibrar su puntaje o restablecer los valores canónicos de la familia taxonómica.
+                      Esta red define el mapa visual de cata en el PDP y Campo POS. Puedes editar directamente el nombre de cada nota o punto, agregar nuevos, calibrar su intensidad o restablecer los valores canónicos de la familia.
                     </p>
                     <div className="flex items-center gap-2 pt-1">
                       <button
@@ -2138,7 +2138,7 @@ export function ProductForm({
                         {
                           id: 'experiencia',
                           titulo: 'Ritual & Reseña (Recomendado)',
-                          desc: 'Abre bienvenida del envase, notas organolépticas, botón de 1 tap para evaluar cata y recompra.',
+                          desc: 'Abre bienvenida del envase, notas sensoriales, botón de 1 toque para evaluar cata y recompra.',
                         },
                         {
                           id: 'trazabilidad',

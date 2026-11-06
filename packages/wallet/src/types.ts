@@ -18,12 +18,19 @@ export type StampProgressRow = {
 
 export type StampProgressView = {
   programId: string;
+  productoId?: string;
+  productoNombre?: string | null;
+  imagenUrl?: string | null;
   label: string;
   accumulated: number;
   required: number;
   remaining: number;
   eligibleForFree: boolean;
   progressPct: number;
+  availableFreeUnits?: number;
+  totalAccumulated?: number;
+  totalRedeemed?: number;
+  cyclesCompleted?: number;
 };
 
 export type WalletGuardianSnapshot = {

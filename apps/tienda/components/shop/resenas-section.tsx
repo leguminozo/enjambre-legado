@@ -728,7 +728,7 @@ export function ResenasSection({
         <div className="rounded-2xl border border-dashed border-border/80 bg-surface-sunken/30 p-8 text-center space-y-4">
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
             {tab === 'guardian'
-              ? 'Aún no hay huellas de cata sensorial del Legado registradas para este filtro. Sé el primero en dejar tu firma organoléptica.'
+              ? 'Aún no hay huellas de cata del Legado registradas para este filtro. Sé el primero en compartir tu experiencia sensorial.'
               : tab === 'anonima'
                 ? 'No hay testimonios de visitantes en este momento.'
                 : 'Esta expresión botánica aún no tiene testimonios registrados. Sé el primero en compartir tu experiencia sensorial.'}

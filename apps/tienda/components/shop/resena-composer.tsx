@@ -162,7 +162,7 @@ export function ResenaComposer({
   const [comentario, setComentario] = useState('');
   const [displayName, setDisplayName] = useState('');
 
-  // Parámetros organolépticos adaptativos
+  // Parámetros sensoriales adaptativos
   const [cristalizacion, setCristalizacion] = useState<string>(CRISTALIZACION_OPCIONES[0]);
   const [familia, setFamilia] = useState<string>(FAMILIAS_AROMATICAS[0]);
   const [intensidad, setIntensidad] = useState(7);
@@ -491,7 +491,7 @@ export function ResenaComposer({
           ? `Cata de ${selectedVariante.nombre_variante}`
           : `Cata Sensorial · ${productName}`
       }
-      subtitle="Registra tu apreciación organoléptica para enriquecer la constelación comunitaria."
+      subtitle="Comparte lo que sentiste al degustar esta creación y suma tu experiencia a la comunidad."
       ariaLabel={`Crear reseña sensorial de ${productName}`}
       size="2xl"
       bodyClassName="p-4 sm:p-7 space-y-6"
@@ -713,7 +713,7 @@ export function ResenaComposer({
                     Cata Completa del Enjambre Legado
                   </h4>
                   <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                    El protocolo de cata profunda te permite calibrar los contrastes en boca, identificar notas botánicas y proponer maridajes. Además, otorga el sello dorado de <strong>Legado</strong> a tu reseña y suma ciclos a tu pasaporte.
+                    El protocolo de cata profunda te permite calibrar los contrastes en boca, identificar notas botánicas y proponer maridajes. Además, otorga la insignia dorada de <strong>Legado</strong> a tu reseña y suma +25 puntos a tu pasaporte de cata.
                   </p>
                 </div>
                 <div className="pt-3 flex flex-col sm:flex-row justify-center gap-3">
@@ -1208,7 +1208,7 @@ export function ResenaComposer({
                           <span>Notas Aromáticas & Botánicas Reconocidas</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                          Marca los matices que percibiste en tu cata organoléptica.
+                          Marca los aromas y notas que lograste percibir al probar.
                         </p>
                       </div>
                       {selectedNotas.size > 0 && (

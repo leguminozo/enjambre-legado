@@ -491,7 +491,7 @@ export function TaxonomiasPanel() {
               <>
                 <div>
                   <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
-                    Descripción organoléptica / Subtítulo
+                    Descripción sensorial / Subtítulo
                   </label>
                   <input
                     type="text"
@@ -546,7 +546,7 @@ export function TaxonomiasPanel() {
                         Puntos de la Red Sensorial ({editor.ejes?.length ?? 8} Ejes del Radar)
                       </label>
                       <span className="text-[0.7rem] text-muted-foreground">
-                        Cada punto genera las aristas de la red poligonal en la tienda web y cata técnica.
+                        Cada punto define las notas sensoriales de la red en la tienda web y cata.
                       </span>
                     </div>
                     {(editor.ejes?.length ?? 0) < 10 && (

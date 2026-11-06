@@ -431,7 +431,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                     {product.fecha_envasado ? (
                       <span>Envasado: {formatCalendarDate(product.fecha_envasado, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     ) : (
-                      <span>Envasado: En frío en origen (Predio Pureo)</span>
+                      <span>Envasado: En frío en origen territorial (Chiloé)</span>
                     )}
                   </div>
                 </div>

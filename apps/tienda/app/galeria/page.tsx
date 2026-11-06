@@ -60,8 +60,8 @@ export default async function GaleriaPage({
 
   const defaultImages = [
     { id: '1', content: { 
-      titulo: locale === 'en' ? 'Pureo Apiary' : 'Apiario Pureo', 
-      descripcion: locale === 'en' ? 'Our hives nestled in the native rainforest' : 'Nuestras colmenas en el bosque nativo',
+      titulo: locale === 'en' ? 'Chiloé Apiary' : 'Apiario en Bosque Nativo', 
+      descripcion: locale === 'en' ? 'Our hives nestled in the native rainforest' : 'Nuestras colmenas en el bosque nativo de Chiloé',
       url: '/apiario-pureo.jpg',
       orden: 1
     }},

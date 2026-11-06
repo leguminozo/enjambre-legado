@@ -11,14 +11,25 @@ describe('computeStampRemaining', () => {
       remaining: 2,
       eligibleForFree: false,
       cyclePosition: 8,
+      availableFreeUnits: 0,
     });
   });
 
-  it('marca elegible al completar ciclo', () => {
+  it('marca elegible al completar ciclo exacto', () => {
     expect(computeStampRemaining(10, 10)).toEqual({
       remaining: 0,
       eligibleForFree: true,
       cyclePosition: 0,
+      availableFreeUnits: 1,
+    });
+  });
+
+  it('soporta compras mayores a 10 manteniendo elegibilidad y nuevo ciclo', () => {
+    expect(computeStampRemaining(12, 10)).toEqual({
+      remaining: 8,
+      eligibleForFree: true,
+      cyclePosition: 2,
+      availableFreeUnits: 1,
     });
   });
 });

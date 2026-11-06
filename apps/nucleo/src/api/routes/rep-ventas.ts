@@ -421,6 +421,9 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       metodo_pago: input.metodo_pago,
       channel,
       cliente_id: clienteIdSafe,
+      claim_status: clienteIdSafe ? 'claimed' : 'pending',
+      claimed_by: clienteIdSafe,
+      claimed_at: clienteIdSafe ? new Date().toISOString() : null,
       tercero_id: input.tercero_id ?? null,
       is_new_client: input.is_new_client,
       estado: "completada",
@@ -551,6 +554,21 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       }
     } catch (err) {
       console.warn("[rep-ventas] fid:", err);
+    }
+  }
+
+  // Sellos del Legado para cliente identificado en feria POS
+  if (clienteIdSafe) {
+    try {
+      const { applyGuardianStamps } = await import('@/api/lib/wallet/stamp-fulfill');
+      await applyGuardianStamps(supabase, {
+        userId: clienteIdSafe,
+        ventaId,
+        channel: channel || 'feria',
+        lines: items,
+      });
+    } catch (stampErr) {
+      console.warn('[rep-ventas] POS stamp auto-apply error:', stampErr);
     }
   }
 

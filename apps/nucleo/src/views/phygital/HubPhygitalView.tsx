@@ -1942,14 +1942,14 @@ export function HubPhygitalView() {
                   </div>
                   <div>
                     <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                      Badge Sello ({'{punto}'})
+                      Badge Verificación ({'{punto}'})
                     </label>
                     <input
                       type="text"
                       value={degustacionDraft.textos.exitoBadgeSello}
                       onChange={(e) => updateTextosDraft('exitoBadgeSello', e.target.value)}
                       className="input-field text-xs w-full"
-                      placeholder="1 Sello en {punto}"
+                      placeholder="Cata Verificada en {punto}"
                     />
                   </div>
                   <div>

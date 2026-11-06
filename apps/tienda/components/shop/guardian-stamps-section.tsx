@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import type { WalletGuardianSnapshot } from '@enjambre/wallet';
-import { fetchWalletSnapshot } from '@/lib/shop/wallet-api';
+import { fetchWalletSnapshot, redeemStampProgram } from '@/lib/shop/wallet-api';
 import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
 import { IosInstallGuide } from './ios-install-guide';
@@ -17,8 +17,40 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
   const [snapshot, setSnapshot] = useState(initialSnapshot ?? null);
   const [loading, setLoading] = useState(!initialSnapshot);
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const [redeemingProgramId, setRedeemingProgramId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+
+  const totalSellos = useMemo(() => {
+    return (snapshot?.programs ?? []).reduce((acc, p) => acc + (p.accumulated || 0), 0);
+  }, [snapshot]);
+
+  const totalDisponiblesGratis = useMemo(() => {
+    return (snapshot?.programs ?? []).filter((p) => p.eligibleForFree).length;
+  }, [snapshot]);
+
+  const handleRedeem = async (programId: string) => {
+    triggerHaptic(20);
+    setRedeemingProgramId(programId);
+    try {
+      const res = await redeemStampProgram(programId);
+      if (res.ok) {
+        toast(res.message || '¡Unidad gratis canjeada con éxito! Tu ciclo se ha reiniciado.', { type: 'success' });
+        if (res.snapshot) {
+          setSnapshot(res.snapshot);
+        } else {
+          await handleRetry();
+        }
+      } else {
+        toast(res.message || 'No se pudo canjear la unidad de cortesía', { type: 'error' });
+      }
+    } catch {
+      toast('Error al comunicarse con la billetera', { type: 'error' });
+    } finally {
+      setRedeemingProgramId(null);
+    }
+  };
 
   // 1. Detección de Modo Standalone (PWA instalada en pantalla de inicio de iOS / Android)
   useEffect(() => {
@@ -174,10 +206,74 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
 
   return (
     <section className="space-y-8">
-      {/* 1. Guía de Instalación Rápida en Safari iOS (Solo si no está instalada como PWA) */}
+      {/* 1. Resumen Global de Sellos (Overview) */}
+      <div className="rounded-3xl border border-border/80 bg-gradient-to-br from-card via-surface-sunken to-card p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Shield size={16} className="text-accent" />
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-accent-text font-bold">
+                Programa de Sellos del Bosque
+              </span>
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl text-foreground font-light">
+              Tus Sellos por Producto
+            </h2>
+          </div>
+          {totalDisponiblesGratis > 0 && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-mono uppercase tracking-wider font-bold shadow-md animate-pulse">
+              <Gift size={15} />
+              <span>{totalDisponiblesGratis} {totalDisponiblesGratis === 1 ? 'unidad gratis disponible' : 'unidades gratis disponibles'}</span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
+          Incentivo segmentado por compras reales: cada 10 compras de un producto o formato te otorgan 1 unidad de cortesía de ese mismo producto. Al canjearla, tu tarjeta se renueva y tu ciclo se reinicia a cero.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-1">
+          <div className="rounded-2xl border border-border/70 bg-surface-raised/50 p-4 space-y-1">
+            <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
+              Total Sellos Activos
+            </span>
+            <div className="font-display text-3xl sm:text-4xl text-accent font-bold">
+              {totalSellos}{' '}
+              <span className="text-xs font-mono font-normal text-muted-foreground">sellos</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground block">En todas tus rutas de recolección</span>
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-surface-raised/50 p-4 space-y-1">
+            <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
+              Rutas de Producto
+            </span>
+            <div className="font-display text-3xl sm:text-4xl text-foreground font-light">
+              {snapshot?.programs?.length ?? 0}{' '}
+              <span className="text-xs font-mono font-normal text-muted-foreground">productos</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground block">Con tarjeta de 10 sellos</span>
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-surface-raised/50 p-4 space-y-1">
+            <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
+              Unidades por Reclamar
+            </span>
+            <div className={`font-display text-3xl sm:text-4xl font-bold ${totalDisponiblesGratis > 0 ? 'text-accent-text' : 'text-foreground'}`}>
+              {totalDisponiblesGratis}{' '}
+              <span className="text-xs font-mono font-normal text-muted-foreground">gratis</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground block">
+              {totalDisponiblesGratis > 0 ? 'Listas para canjear de inmediato' : 'Próximas al llegar a 10'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Guía de Instalación Rápida en Safari iOS (Solo si no está instalada como PWA) */}
       <IosInstallGuide className="max-w-md mx-auto" />
 
-      {/* 2. Contenedor del Pase Digital (Estilo Apple Wallet Pass Inmersivo) */}
+      {/* 3. Contenedor del Pase Digital (Estilo Apple Wallet Pass Inmersivo) */}
       <div className="max-w-md mx-auto">
         <div
           className={`rounded-[2.5rem] bg-gradient-to-b from-card via-surface-sunken to-background border shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden transition-all ${
@@ -394,15 +490,24 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
         </div>
       </div>
 
-      {/* Desglose informativo de todas las rutas */}
-      <div className="max-w-2xl mx-auto space-y-4 pt-4">
+      {/* Desglose interactivo por segmentos de producto */}
+      <div className="space-y-4 pt-4">
         <div>
-          <h2 className="font-display text-2xl text-foreground">Todas tus Rutas de Sellos</h2>
+          <h2 className="font-display text-2xl sm:text-3xl text-foreground font-light">Explorar por Segmento</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Cada producto suma independientemente a su credencial de sellos.
+            Selecciona un producto para ver el avance de sus 10 sellos y canjear tus unidades de cortesía.
           </p>
         </div>
-        <GuardianStampProgress programs={snapshot?.programs ?? []} />
+        <GuardianStampProgress
+          programs={snapshot?.programs ?? []}
+          activeFilter={selectedSegmentId}
+          onFilterChange={(id) => {
+            setSelectedSegmentId(id);
+            if (id) setActiveProgramId(id);
+          }}
+          onRedeemProgram={handleRedeem}
+          redeemingProgramId={redeemingProgramId}
+        />
       </div>
     </section>
   );

@@ -77,7 +77,7 @@ export function GaleriaGrid({ images, settings }: GaleriaGridProps) {
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center bg-secondary/50 p-4 text-center text-muted-foreground">
                 <span className="font-display text-sm font-medium">{img.titulo || `Imagen ${idx + 1}`}</span>
-                <span className="text-[11px] text-muted-foreground/70 mt-0.5">Predio Pureo · Chiloé</span>
+                <span className="text-[11px] text-muted-foreground/70 mt-0.5">Bosque Nativo · Chiloé</span>
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-90 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">

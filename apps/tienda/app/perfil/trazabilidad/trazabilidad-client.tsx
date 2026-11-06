@@ -254,7 +254,7 @@ export function TrazabilidadClient({
               ) : (
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-text font-bold">
-                    Mirador del Apiario Pureo
+                    Mirador Territorial del Bosque Nativo
                   </span>
                   <span className="text-[10px] font-mono text-muted-foreground">· Ventana Pública de Muestra</span>
                 </div>

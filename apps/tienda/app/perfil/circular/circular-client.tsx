@@ -320,7 +320,7 @@ export function CircularClient({
             <RotateCcw size={28} className="mx-auto text-muted-foreground/40 mb-2" />
             <p className="text-sm font-medium text-foreground">Aún no registras retornos de frascos</p>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Al terminar tu miel de Pureo, entrega tu envase limpio en cualquiera de nuestras ferias o al recibir tu pedido para activar tu historial de impacto.
+              Al terminar tu miel de Chiloé, entrega tu envase limpio en cualquiera de nuestras ferias o al recibir tu pedido para activar tu historial de impacto.
             </p>
           </div>
         )}

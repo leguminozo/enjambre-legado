@@ -218,7 +218,7 @@ export default function PortalPage() {
                         <span>Enlace Directo de Mesa</span>
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Dirección para calificar la cata y acreditar sellos de bienvenida a los clientes de tu local.
+                        Dirección para calificar la cata y registrar las notas de degustación de los clientes de tu local.
                       </p>
                       <p className="text-[11px] font-mono text-primary truncate pt-1">
                         tienda.obrerayzangano.cl/cata/{d?.punto?.codigo_acceso ?? ''}
@@ -264,7 +264,7 @@ export default function PortalPage() {
                         <strong className="text-foreground">2. Almacenamiento idóneo:</strong> Conservar los frascos cerrados entre 15°C y 25°C en un lugar seco. Mantener alejado del molino de café y especias para preservar intactas las notas florales del bosque.
                       </p>
                       <p>
-                        <strong className="text-foreground">3. Fidelización del comensal:</strong> Cada comensal que escanea el QR de tu mesa o vitrina recibe automáticamente 1 sello de bienvenida y +25 puntos en el Club Legado de tu local.
+                        <strong className="text-foreground">3. Fidelización del comensal:</strong> Cada comensal que escanea el QR de tu mesa registra su cata sensorial y recibe automáticamente su bienvenida y +25 puntos del bosque en su perfil.
                       </p>
                     </div>
                   )}

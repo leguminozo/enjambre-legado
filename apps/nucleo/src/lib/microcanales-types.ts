@@ -464,6 +464,7 @@ export type RegistroClienteValues = z.infer<typeof registroClienteSchema>
 
 export const sesionPercepcionSchema = z.object({
   codigo_punto: z.string().min(1, 'Código de punto requerido').max(50),
+  user_id: optUuidNullable,
   producto_id: z.preprocess(
     (v) => (v === '' || v === undefined || v === null ? null : v),
     z.string().max(100).nullable().optional(),

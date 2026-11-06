@@ -128,7 +128,7 @@ export default async function DegustacionesPage({
           subtitle={subtitle}
           imageUrl={heroImage}
           imageOpacity={content.hero_image_opacity ?? 35}
-          imageAlt="Apiario y bosque nativo en Pureo, Chiloé"
+          imageAlt="Apiario y bosque nativo en Chiloé"
           align={content.text_align}
           ctaLabel="Solicitar fecha privada"
           ctaHref="#solicitud"

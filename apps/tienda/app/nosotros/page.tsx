@@ -76,12 +76,12 @@ export default async function NosotrosPage({
     {
       id: 'def-1',
       titulo: locale === 'en' ? 'Ulmo Blossom' : 'Flor de Ulmo',
-      descripcion: locale === 'en' ? 'Native blossom in Pureo' : 'Floración nativa en el dosel de Pureo',
+      descripcion: locale === 'en' ? 'Native blossom in Chiloé canopy' : 'Floración nativa en el dosel del bosque',
       url: '/assets/editorial/hero-bosque-tronco.jpg',
     },
     {
       id: 'def-2',
-      titulo: locale === 'en' ? 'Pureo Apiary' : 'Apiario en Pureo',
+      titulo: locale === 'en' ? 'Chiloé Apiary' : 'Apiario en Bosque Nativo',
       descripcion: locale === 'en' ? 'Hives in rainforest sanctuary' : 'Colmenas en el bosque templado lluvioso',
       url: '/assets/editorial/hero-bosque-apertura.jpg',
     },

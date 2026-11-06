@@ -124,6 +124,18 @@ describe('POST /api/percepcion/sesiones', () => {
           }),
         };
       }
+      if (table === 'profiles') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: null }),
+            }),
+            ilike: () => ({
+              maybeSingle: async () => ({ data: null }),
+            }),
+          }),
+        };
+      }
       if (table === 'resenas_producto') {
         return {
           insert: async () => ({ error: null }),

@@ -151,3 +151,56 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
     timeout.clear();
   }
 }
+
+export async function redeemStampProgram(programId: string): Promise<{
+  ok: boolean;
+  message?: string;
+  snapshot?: WalletGuardianSnapshot;
+}> {
+  const authToken = await getAuthToken();
+  if (!authToken) return { ok: false, message: 'Inicia sesión para canjear sellos' };
+
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) return { ok: false, message: 'Servicio de billetera no disponible' };
+
+  const timeout = createTimeoutController(8000);
+  try {
+    const res = await fetch(`${nucleoUrl}/api/wallet/stamps/redeem`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ programId }),
+      signal: timeout.signal,
+    });
+
+    const json = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      code?: string;
+      snapshot?: WalletGuardianSnapshot;
+    };
+
+    if (!res.ok || json.ok === false) {
+      return {
+        ok: false,
+        message: friendlyError(json.message, 'No fue posible canjear los sellos'),
+      };
+    }
+
+    return {
+      ok: true,
+      message: json.message || '¡Unidad de cortesía canjeada con éxito!',
+      snapshot: json.snapshot,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      message: friendlyError(err, 'Error al comunicarse con la billetera'),
+    };
+  } finally {
+    timeout.clear();
+  }
+}

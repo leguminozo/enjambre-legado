@@ -429,7 +429,7 @@ export default async function ClubCosechaPage() {
                   </span>
                 )}
                 <span className="text-[10px] text-muted-foreground">
-                  {ecosystemMetrics.sectores > 0 ? `${ecosystemMetrics.sectores} sectores censados` : 'Predio Pureo · Chiloé'}
+                  {ecosystemMetrics.sectores > 0 ? `${ecosystemMetrics.sectores} sectores censados` : 'Bosque Nativo · Chiloé'}
                 </span>
               </div>
               {custodiaTitle && (
@@ -480,47 +480,62 @@ export default async function ClubCosechaPage() {
           );
         })()}
 
-        {/* ── Transparencia del Club: Reglas de Puntos, Ciclos y Panel Sensorial ── */}
+        {/* ── Transparencia del Club: Pilares del Programa ── */}
         <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-6">
           <div>
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
               Transparencia del Club
             </span>
             <h2 className="font-display text-2xl font-light text-foreground">
-              Reglas del Programa: Puntos, Ciclos y Panel Sensorial
+              Pilares del Programa: Sellos, Puntos, Red Sensorial y Trayectoria
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Separamos con claridad el saldo económico de canje respecto a tu permanencia y colaboración en el enjambre.
+              Distingue con total claridad tu tarjeta de sellos por producto, tus puntos de beneficio, tu constelación sensorial de cata y tus grados de guardián.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-6 pt-2">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+            {/* 1. Sellos del Legado */}
             <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
-              <h3 className="font-display text-base font-medium text-foreground">Puntos (Saldo Canjeable)</h3>
+              <h3 className="font-display text-base font-medium text-foreground">Sellos del Legado</h3>
               <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-                <li>• <strong>1 punto</strong> por cada $100 en compras web.</li>
-                <li>• <strong>100 puntos = $1.000</strong> de descuento en el checkout (10% de retorno).</li>
-                <li>• <strong>100 puntos de bienvenida</strong> al completar tu registro.</li>
-                <li>• Canjeable exclusivamente en la tienda web (ferias y cafeterías operan libros independientes).</li>
+                <li>• <strong>1 compra = 1 sello</strong> de ese producto en tu tarjeta virtual.</li>
+                <li>• <strong>Requiere registro:</strong> se activan en tu cuenta. Si compraste en feria sin cuenta, ingresas tu correo en el ticket de reclamo y se cargan retroactivamente.</li>
+                <li>• <strong>Ciclo de 10 Sellos:</strong> al completar 10 sellos de cualquier producto, canjeas <strong>1 unidad gratis de ese mismo producto</strong> y tu ciclo se reinicia para acumular de nuevo.</li>
+                <li>• Canjeable en tu Billetera digital en la web o presencial en feria con tu QR.</li>
               </ul>
             </div>
 
+            {/* 2. Puntos del Bosque */}
             <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
-              <h3 className="font-display text-base font-medium text-foreground">Ciclos (Nivel de Guardián)</h3>
+              <h3 className="font-display text-base font-medium text-foreground">Puntos del Bosque</h3>
               <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-                <li>• <strong>5 ciclos</strong> por cada reseña sensorial validada de lote.</li>
-                <li>• <strong>1 ciclo</strong> por cada $1.000 en compras acumuladas.</li>
-                <li>• Los ciclos <strong>no se descuentan</strong> al canjear puntos de saldo.</li>
-                <li>• Fijan tu prioridad en reservas de la próxima recolección y en ediciones limitadas.</li>
+                <li>• <strong>1 punto</strong> por cada $100 en compras en la tienda.</li>
+                <li>• <strong>Canje exclusivo en Billetera:</strong> el Catálogo de Canje al que accedes desde tu Billetera es el único lugar para canjear tus puntos.</li>
+                <li>• <strong>Catálogo de Recompensas:</strong> canjea por mieles nativas de autor, ediciones de guarda y catas guiadas (1.000 pts ≈ $10.000 en valor de canje).</li>
+                <li>• <strong>+25 puntos</strong> por cada cata sensorial en la red y 100 puntos de bienvenida al registrarte.</li>
               </ul>
             </div>
 
+            {/* 3. Red Sensorial de Cata */}
             <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
-              <h3 className="font-display text-base font-medium text-foreground">Panel Sensorial & Control</h3>
+              <h3 className="font-display text-base font-medium text-foreground">Red Sensorial de Cata</h3>
               <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
-                <li>• Tus evaluaciones de lote integran el panel sensorial ciudadano (ST-CATA).</li>
-                <li>• Los perfiles sensoriales se publican al alcanzar N ≥ 30 sesiones validadas.</li>
-                <li>• Para resguardo estadístico, un <strong>5% a 10% de usuarios</strong> opera como grupo de control sin incentivos económicos directos en catas.</li>
+                <li>• <strong>8 Ejes Organolépticos:</strong> calibras textura, madurez enzimática, acidez y notas botánicas en escala 1.0 a 10.0.</li>
+                <li>• <strong>Constelación visual:</strong> tu evaluación alimenta la red poligonal del producto exhibida en la tienda y en tu pasaporte.</li>
+                <li>• <strong>Insignia dorada:</strong> otorga distinción oficial de Guardián a tu reseña pública y suma <strong>+25 Puntos del Bosque</strong>.</li>
+                <li>• Apreciación real y transparente de la botánica del bosque nativo.</li>
+              </ul>
+            </div>
+
+            {/* 4. Niveles de Guardián */}
+            <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
+              <h3 className="font-display text-base font-medium text-foreground">Niveles de Guardián</h3>
+              <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                <li>• <strong>4 Grados de Trayectoria:</strong> Guardián Obrera, Zángano, Reina y Colmena.</li>
+                <li>• <strong>Progreso continuo:</strong> avanzan según tu permanencia y compras acumuladas (no se descuentan al canjear puntos o sellos).</li>
+                <li>• <strong>Reservas prioritarias:</strong> cupos preferentes en floraciones anuales limitadas (Ulmo, Tiaca, Quillay).</li>
+                <li>• Invitaciones a encuentros privados de cata y recorridos en apiarios de Chiloé.</li>
               </ul>
             </div>
           </div>

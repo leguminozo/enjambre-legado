@@ -19,10 +19,10 @@ export async function GET() {
           '@type': 'ProductModel',
           name: 'Lote Recolección 2026-A1 · Ulmo Cordillera de Piuchén',
           description:
-            'Miel de floración pura de Ulmo recolectada en apiario Pureo durante febrero de 2026. Lote numerado de alta pureza melisopalinológica.',
+            'Miel de floración pura de Ulmo recolectada en el bosque nativo de Chiloé durante febrero de 2026. Lote numerado de alta pureza botánica.',
           harvestDate: '2026-02-18',
           packagingDate: '2026-03-02',
-          originLocation: 'Predio Pureo, Cordillera de Piuchén, Chiloé',
+          originLocation: 'Cordillera de Piuchén, Chiloé',
           laboratoryParameters: {
             humedad: '16.8 %',
             hmf: '4.2 mg/kg',
@@ -46,7 +46,7 @@ export async function GET() {
             'Extracción estival de Tiaca con notas frescas de arrayán y bosque nativo costero.',
           harvestDate: '2026-01-24',
           packagingDate: '2026-02-05',
-          originLocation: 'Apiario Pureo, Chiloé',
+          originLocation: 'Bosque Nativo, Chiloé',
           laboratoryParameters: {
             humedad: '17.1 %',
             hmf: '3.8 mg/kg',

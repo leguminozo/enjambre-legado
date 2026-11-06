@@ -49,8 +49,8 @@ function resolveCompanionWelcome(product: ShopProduct): {
   };
 
   const defaultMessages: Record<string, string> = {
-    miel: `Sostienes en tus manos un ${formatName.toLowerCase()} de recolección viva del bosque nativo de Chiloé. Te invitamos a abrirlo, apreciar su bouquet aromático y registrar tu percepción en la constelación sensorial.`,
-    miel_fortificada: `Sostienes en tus manos una unión de miel nativa con botánicos seleccionados (${formatName.toLowerCase()}). Explora su textura, intensidad y comparte tu evaluación organoléptica.`,
+    miel: `Sostienes en tus manos un ${formatName.toLowerCase()} de recolección viva del bosque nativo de Chiloé. Te invitamos a abrirlo, apreciar su aroma y registrar tus sensaciones en el mapa de cata comunitaria.`,
+    miel_fortificada: `Sostienes en tus manos una unión de miel nativa con ingredientes nobles (${formatName.toLowerCase()}). Explora su textura, aroma y comparte tu experiencia en paladar.`,
     hidromiel: `Sostienes en tus manos una fermentación viva con historia territorial. Aprecia sus notas aromáticas, balance y califica tu experiencia de cata.`,
     extracto: `Sostienes en tus manos una formulación botánica de alta pureza. Conoce su trazabilidad y registra tus impresiones.`,
     cosmetica: `Sostienes en tus manos una emulsión elaborada bajo estándares nobles de origen. Descubre su textura sobre la piel y comparte tu evaluación.`,
@@ -61,7 +61,7 @@ function resolveCompanionWelcome(product: ShopProduct): {
   const message =
     custom?.qr_mensaje?.trim() ||
     defaultMessages[tipo] ||
-    'Sostienes en tus manos una creación oficial de origen. Explora su perfil biofísico y comparte tu evaluación de cata.';
+    'Sostienes en tus manos una creación oficial de origen. Descubre sus notas y comparte tu evaluación de cata.';
   const ctaText = custom?.qr_cta_resena?.trim() || 'Evaluar y Dejar mi Nota de Cata ★';
 
   return {

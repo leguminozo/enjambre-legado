@@ -40,9 +40,9 @@ export interface LoyaltyChannelOption {
 }
 
 export const LOYALTY_CHANNELS: LoyaltyChannelOption[] = [
-  { id: 'tienda', label: 'Tienda Online (Web D2C)', badge: 'Tienda Web', description: 'Canjeable en el checkout y carro web' },
+  { id: 'tienda', label: 'Tienda Online (Web D2C)', badge: 'Tienda Web', description: 'Canjeable en el Catálogo de la Billetera Web' },
   { id: 'campo_pos', label: 'Feria Apícola / POS Campo', badge: 'Feria POS', description: 'Retiro directo y canje presencial en feria' },
-  { id: 'perfil_digital', label: 'Billetera & Portal Territorial', badge: 'Digital', description: 'Acceso desde el perfil de custodio' },
+  { id: 'perfil_digital', label: 'Billetera & Portal Territorial', badge: 'Digital', description: 'Acceso desde el perfil y billetera del guardián' },
 ];
 
 export interface LoyaltyRewardRow {
@@ -209,7 +209,7 @@ export function LoyaltyRewardsPanel() {
     }
 
     if (formData.points_cost <= 0) {
-      toast.error('El costo en sellos debe ser mayor a 0');
+      toast.error('El costo en puntos debe ser mayor a 0');
       return;
     }
 
@@ -282,9 +282,9 @@ export function LoyaltyRewardsPanel() {
       {/* Top Header inside tab */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Catálogo de Canje (Sellos)</h3>
+          <h3 className="text-lg font-semibold text-foreground">Catálogo de Canje (Puntos del Bosque)</h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Premios canjeables en la billetera y perfil de los Guardianes del Bosque con sus sellos acumulados.
+            Premios y experiencias canjeables en la billetera y perfil de los Guardianes del Bosque con sus puntos acumulados.
           </p>
         </div>
         <Button
@@ -324,7 +324,7 @@ export function LoyaltyRewardsPanel() {
             <Gift className="w-10 h-10 text-muted-foreground mx-auto stroke-1" />
             <div className="font-semibold text-foreground">Sin recompensas en catálogo</div>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Configura el primer beneficio o producto exclusivo para que los guardianes puedan canjear con sus sellos.
+              Configura el primer beneficio o producto exclusivo para que los guardianes puedan canjear con sus puntos.
             </p>
             <Button type="button" onClick={handleCreateNew} className="mt-2 inline-flex items-center gap-2">
               <Plus size={16} />
@@ -339,7 +339,7 @@ export function LoyaltyRewardsPanel() {
                   <th className="py-3.5 px-4 font-semibold">Recompensa</th>
                   <th className="py-3.5 px-4 font-semibold">Tipo</th>
                   <th className="py-3.5 px-4 font-semibold">Canales</th>
-                  <th className="py-3.5 px-4 font-semibold">Costo en Sellos</th>
+                  <th className="py-3.5 px-4 font-semibold">Costo en Puntos</th>
                   <th className="py-3.5 px-4 font-semibold text-center">Estado</th>
                   <th className="py-3.5 px-4 font-semibold text-right">Acciones</th>
                 </tr>
@@ -386,7 +386,7 @@ export function LoyaltyRewardsPanel() {
                       </td>
                       <td className="py-3.5 px-4">
                         <Badge variant="secondary" className="font-bold tracking-wide">
-                          {r.points_cost} sellos
+                          {r.points_cost} pts
                         </Badge>
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -481,7 +481,7 @@ export function LoyaltyRewardsPanel() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="points_cost">Costo en sellos *</Label>
+                <Label htmlFor="points_cost">Costo en puntos *</Label>
                 <Input
                   id="points_cost"
                   type="number"
@@ -499,7 +499,7 @@ export function LoyaltyRewardsPanel() {
                 id="reward_desc"
                 value={formData.description}
                 onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-                placeholder="Explica qué recibe el guardián al canjear sus sellos..."
+                placeholder="Explica qué recibe el guardián al canjear sus puntos..."
                 rows={3}
               />
             </div>

@@ -17,9 +17,9 @@ export async function GET() {
         position: 1,
         item: {
           '@type': 'Place',
-          name: 'Apiario Predio Pureo',
+          name: 'Apiarios de Bosque Nativo · Cordillera de Piuchén',
           description:
-            'Apiario principal de conservación en la vertiente oriental de la Cordillera de Piuchén, Chiloé.',
+            'Apiarios de conservación en la vertiente oriental de la Cordillera de Piuchén, Chiloé.',
           geo: {
             '@type': 'GeoCoordinates',
             latitude: -42.88,

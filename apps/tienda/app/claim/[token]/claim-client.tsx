@@ -93,8 +93,8 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           <p className="text-muted-foreground text-base sm:text-xl font-light mb-8 text-pretty">
             Has sumado <span className="text-accent-text font-bold">{points} ciclos de Guardián</span>
             {puntosCanjeables > 0 && (
-              <> y <span className="text-accent-text font-bold">{puntosCanjeables} puntos</span> canjeables</>
-            )} a tu cuenta.
+              <>, <span className="text-accent-text font-bold">{puntosCanjeables} puntos</span> canjeables</>
+            )} y los <span className="text-accent-text font-bold">sellos correspondientes</span> en tu tarjeta de producto.
           </p>
           <div className="flex items-center justify-center gap-2 text-accent-text text-sm tracking-widest uppercase font-bold">
             Redirigiendo a tu bóveda <HexagonLoader size="sm" />

@@ -81,14 +81,14 @@ export const DEGUSTACION_CONFIG_DEFAULT: DegustacionConfig = {
 
   // Los 8 vértices canónicos de la constelación sensorial
   ejesSensorialesCanonicos: [
-    'Madurez Enzimática',
-    'Complejidad Botánica',
+    'Intensidad de Sabor',
+    'Aroma a Bosque',
     'Dulzor Natural',
-    'Textura & Cristal',
-    'Tensión Ácida',
-    'Densidad Mineral',
-    'Persistencia Floral',
-    'Vector Territorial',
+    'Textura & Cremosidad',
+    'Toque Cítrico & Frescor',
+    'Cuerpo & Densidad',
+    'Duración en Boca',
+    'Carácter Silvestre',
   ],
 
   textos: {
@@ -97,17 +97,17 @@ export const DEGUSTACION_CONFIG_DEFAULT: DegustacionConfig = {
     subtituloSeleccion:
       'Toca la creación que tienes en tu paladar para calibrar sus notas sensoriales y dejar tu reseña.',
     pabellonCasaLabel: 'Creaciones en Mesa',
-    pabellonCasaSubtitle: 'Pureo · Chiloé',
+    pabellonCasaSubtitle: 'Bosque Nativo · Chiloé',
     pabellonCasaDesc:
       'Selecciona la variante que acabas de probar. Tu evaluación se suma directamente a la ficha oficial de esa creación.',
     pabellonGeografiasLabel: 'Mieles de Chile',
     pabellonGeografiasSubtitle: 'Atlas Botánico',
     pabellonGeografiasDesc:
       'Mieles monoflorales en copa técnica. Su evaluación alimenta directamente la Biblioteca de Floraciones pública de Chile.',
-    paso2Badge: 'Paso 2 de 3 · Perfil Sensorial',
-    paso2Titulo: 'Geometría de la Red Sensorial',
+    paso2Badge: 'Paso 2 de 3 · Tu Experiencia en Paladar',
+    paso2Titulo: 'Mapa de Sabores & Sensaciones',
     paso2Subtitulo:
-      'Calibra los 8 vértices en escala 1.0 a 10.0 según tu percepción directa en el paladar. La red poligonal se calibra en vivo.',
+      'Ajusta cada nota del 1.0 al 10.0 según lo que sientes en tu boca. Tu red sensorial se dibuja en tiempo real.',
     paso3Badge: 'Paso 3 de 3',
     paso3Titulo: 'Notas de Sabor y Reseña',
     paso3Subtitulo: 'Selecciona los matices que logras percibir en esta muestra.',
@@ -116,10 +116,10 @@ export const DEGUSTACION_CONFIG_DEFAULT: DegustacionConfig = {
     comentarioPlaceholder:
       'Describe los matices que sentiste al probar esta miel. Tu comentario aportará a la caracterización sensorial comunitaria...',
     exitoTitulo: 'Tu Pasaporte Sensorial',
-    exitoBadgeSello: '1 Sello en {punto}',
+    exitoBadgeSello: 'Cata Verificada en {punto}',
     exitoBadgePuntos: '+{puntos} Puntos del Bosque',
     salidaDiferidaTitulo: 'Lleva esta experiencia a tu casa',
-    salidaGeografiasTitulo: 'Despensa Austral de Pureo',
+    salidaGeografiasTitulo: 'Despensa Austral de Chiloé',
     salidaDiferidaDesc:
       'La cata se disfruta sin prisa ni transacciones en mesa. Puedes revisar nuestras creaciones de temporada con despacho en frío a domicilio en 48 a 72 horas desde Chiloé.',
     salidaDiferidaBoton: 'Explorar Catálogo Oficial (Salida Diferida)',

@@ -206,7 +206,7 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
     {
       question: '¿Cuál es la política de disponibilidad y fechas en Santiago?',
       answer:
-        'Para resguardar el estándar de origen y el tiempo de dedicación en el apiario de Pureo, la disponibilidad se abre por cupos limitados por temporada en Santiago y no por demanda abierta. Se recomienda consultar disponibilidad con anticipación para reservar dentro de las semanas con presencia en la capital.',
+        'Para resguardar el estándar de origen y el tiempo de dedicación en el territorio austral, la disponibilidad se abre por cupos limitados por temporada en Santiago y no por demanda abierta. Se recomienda consultar disponibilidad con anticipación para reservar dentro de las semanas con presencia en la capital.',
     },
     {
       question: '¿Se produce saturación del paladar al catar múltiples mieles?',

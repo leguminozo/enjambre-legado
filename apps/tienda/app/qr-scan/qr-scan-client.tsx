@@ -258,17 +258,17 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                       <span>Sello de Autenticidad</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Origen trazable hasta el apiario específico en Chiloé (Pureo / Piuchén) y fecha exacta de recolección.
+                      Origen territorial verificado en el bosque nativo de Chiloé y fecha exacta de recolección.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border/40 space-y-2">
                     <div className="flex items-center gap-2 font-medium text-foreground">
                       <Wallet className="w-4 h-4 text-accent" />
-                      <span>Acredita a tu Billetera</span>
+                      <span>Pase de Trazabilidad</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Suma sellos en tu Pase Digital de Guardián y expande tus metros cuadrados de bosque nativo protegido.
+                      Registra este lote en tu pasaporte de trazabilidad y verifica tus metros cuadrados de bosque nativo protegido.
                     </p>
                   </div>
 
@@ -311,7 +311,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                       Frasco Verificado · Ecosistema Chiloé
                     </p>
                     <p className="text-sm text-foreground">
-                      Vincula este lote con tu Billetera de Guardián para sumar sellos de formato y m² de bosque protegido.
+                      Vincula este lote con tu Billetera de Guardián para certificar el vínculo botánico y tus m² de bosque protegido.
                     </p>
                   </div>
                   <Link

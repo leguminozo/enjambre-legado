@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ codigo: s
   const p = await params;
   return {
     title: `Cata Sensorial · La Obrera y el Zángano`,
-    description: 'Registra tu percepción sensorial, reseña el producto y gana sellos de fidelidad.',
+    description: 'Registra tu percepción sensorial, calibra notas organolépticas y acumula Puntos del Bosque en tu Billetera.',
   };
 }
 

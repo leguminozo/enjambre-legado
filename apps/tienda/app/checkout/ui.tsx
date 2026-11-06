@@ -10,7 +10,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, ShoppingBag, User, EyeOff, Star, Tag, MapPin, RotateCcw, Award, ChevronDown } from 'lucide-react';
+import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, ShoppingBag, User, EyeOff, Star, Tag, MapPin, RotateCcw, Award, ChevronDown, ArrowUpRight } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -1105,58 +1105,30 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                       </button>
                     </div>
 
-                    {/* Canje de Puntos Legado directo en la identidad del usuario */}
+                    {/* Recordatorio de Puntos del Bosque (Canje exclusivo en Billetera) */}
                     {buyerMode === 'legado' && loyaltyData && loyaltyData.puntos > 0 && (
                       <div className="pt-3 border-t border-border/60">
-                        <div className="rounded-xl border border-accent/30 bg-surface-sunken p-4 space-y-3">
-                          <div className="flex items-center justify-between">
+                        <div className="rounded-xl border border-accent/30 bg-surface-sunken p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <Star className="h-4 w-4 text-accent fill-accent/20" />
+                              <Award className="h-4 w-4 text-accent" />
                               <span className="text-xs font-semibold text-foreground">
-                                {loyaltyData.puntos.toLocaleString('es-CL')} Puntos Legado disponibles
+                                {loyaltyData.puntos.toLocaleString('es-CL')} Puntos del Bosque disponibles
                               </span>
                             </div>
-                            <span className="text-xs font-mono text-accent-text font-semibold">
-                              Hasta ${loyaltyData.descuento_disponible.toLocaleString('es-CL')} CLP
-                            </span>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                              Tus puntos se canjean exclusivamente en el Catálogo de tu Billetera por mieles de autor y catas guiadas.
+                            </p>
                           </div>
-
-                          <label className="flex items-center gap-3 cursor-pointer text-xs">
-                            <input
-                              type="checkbox"
-                              checked={usarPuntos}
-                              onChange={(e) => {
-                                setUsarPuntos(e.target.checked);
-                                if (e.target.checked) {
-                                  setPuntosACanjear(canMaxPoints);
-                                } else {
-                                  setPuntosACanjear(0);
-                                }
-                              }}
-                              className="h-4 w-4 shrink-0 rounded border-border bg-surface text-accent focus:ring-accent"
-                            />
-                            <span className="text-foreground font-medium">
-                              Canjear puntos para descontar en este pedido
-                            </span>
-                          </label>
-
-                          {usarPuntos && (
-                            <div className="space-y-2 pt-2 border-t border-border/40 animate-in fade-in duration-200">
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Puntos a canjear: <strong className="text-foreground font-mono">{puntosACanjear.toLocaleString('es-CL')}</strong></span>
-                                <span className="text-accent font-semibold font-mono">-${descuentoPorPuntos.toLocaleString('es-CL')} CLP</span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max={canMaxPoints}
-                                step={redemptionConfig?.pointsPerBlock ?? 100}
-                                value={puntosACanjear}
-                                onChange={(e) => setPuntosACanjear(Number(e.target.value))}
-                                className="w-full h-1.5 bg-surface rounded-lg appearance-none cursor-pointer accent-accent"
-                              />
-                            </div>
-                          )}
+                          <Link
+                            href="/perfil/billetera?modal=canje"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-mono uppercase tracking-wider text-accent inline-flex items-center gap-1 hover:underline shrink-0"
+                          >
+                            <span>Ver Catálogo</span>
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </Link>
                         </div>
                       </div>
                     )}

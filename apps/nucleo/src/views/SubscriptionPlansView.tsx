@@ -570,7 +570,7 @@ export function SubscriptionPlansView() {
         variant="compact"
         eyebrow="Mercado · Retención & Fidelización"
         title="Suscripciones & Lealtad del Club"
-        subtitle="Administra los modelos de reposición continua, recolecciones estacionales y el catálogo de canje de sellos para los Guardianes del Bosque."
+        subtitle="Administra los modelos de reposición continua, recolecciones estacionales y el catálogo de canje de puntos para los Guardianes del Bosque."
         icon={<Repeat size={20} />}
         actions={
           mainTab === 'planes' ? (
@@ -608,7 +608,7 @@ export function SubscriptionPlansView() {
           )}
         >
           <Gift size={15} />
-          <span>Catálogo de Canje (Sellos)</span>
+          <span>Catálogo de Canje (Puntos)</span>
         </button>
       </div>
 

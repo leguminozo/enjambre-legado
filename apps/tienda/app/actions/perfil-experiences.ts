@@ -170,6 +170,35 @@ export async function redeemLoyaltyReward(rewardId: string): Promise<void> {
   revalidatePath('/perfil/canje')
 }
 
+export async function redeemStampProgramAction(programId: string): Promise<{ success: boolean; message: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Debes iniciar sesión para canjear sellos')
+  }
+
+  const { data, error } = await supabase.rpc('canjear_unidad_sello_guardian', {
+    p_program_id: programId,
+    p_user_id: user.id,
+  })
+
+  if (error) {
+    console.error('[redeemStampProgramAction] RPC error:', error)
+    throw new Error('No se pudo completar el canje de sellos')
+  }
+
+  const res = data as { success?: boolean; message?: string; error?: string } | null
+  if (!res?.success) {
+    throw new Error(res?.message || 'No fue posible canjear los sellos')
+  }
+
+  revalidatePath('/perfil/billetera')
+  return { success: true, message: res.message || '¡Unidad de cortesía canjeada con éxito!' }
+}
+
 export async function getSubscriptionDashboard(): Promise<{
   subscription: UserSubscription | null
   plans: SubscriptionPlan[]

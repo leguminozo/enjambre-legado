@@ -13,6 +13,7 @@ import {
   toStampProgressView,
   verifyWalletQrToken,
   type StampProgressRow,
+  type StampProgressView,
   type WalletGuardianSnapshot,
 } from '@enjambre/wallet';
 import { authMiddleware } from '@/api/lib/middleware';
@@ -29,7 +30,7 @@ async function resolveUserFromToken(token: string | null) {
 async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapshot | null> {
   const admin = createAdminClient({ persistSession: false });
 
-  const [profileRes, tierRes, puntosRes, progressRes] = await Promise.all([
+  const [profileRes, tierRes, puntosRes, activeProgramsRes, progressRes] = await Promise.all([
     admin.from('profiles').select('full_name, email').eq('id', userId).maybeSingle(),
     admin
       .from('user_tier_view')
@@ -44,6 +45,13 @@ async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapsho
       .limit(1)
       .maybeSingle(),
     admin
+      .from('guardian_stamp_programs')
+      .select(
+        'id, producto_id, nombre, unidades_requeridas, unidad_gratis, wallet_label, imagen_url, productos(nombre)',
+      )
+      .eq('activo', true)
+      .order('created_at', { ascending: true }),
+    admin
       .from('guardian_stamp_progress')
       .select(
         'program_id, unidades_acumuladas, unidades_canjeadas, guardian_stamp_programs(id, producto_id, nombre, unidades_requeridas, unidad_gratis, wallet_label, imagen_url, productos(nombre))',
@@ -54,28 +62,64 @@ async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapsho
   const profile = profileRes.data;
   if (!profile) return null;
 
-  const programs = (progressRes.data ?? []).map((row) => {
+  const progressMap = new Map<string, { acumuladas: number; canjeadas: number }>();
+  for (const row of progressRes.data ?? []) {
+    progressMap.set(row.program_id, {
+      acumuladas: Number(row.unidades_acumuladas ?? 0),
+      canjeadas: Number(row.unidades_canjeadas ?? 0),
+    });
+  }
+
+  const activePrograms = activeProgramsRes.data ?? [];
+  const processedProgramIds = new Set<string>();
+  const programs: StampProgressView[] = [];
+
+  for (const prog of activePrograms) {
+    processedProgramIds.add(prog.id);
+    const userProgress = progressMap.get(prog.id) ?? { acumuladas: 0, canjeadas: 0 };
+    const stampRow: StampProgressRow = {
+      program_id: prog.id,
+      unidades_acumuladas: userProgress.acumuladas,
+      unidades_canjeadas: userProgress.canjeadas,
+      program: {
+        id: prog.id,
+        producto_id: prog.producto_id,
+        nombre: prog.nombre,
+        unidades_requeridas: prog.unidades_requeridas,
+        unidad_gratis: prog.unidad_gratis,
+        wallet_label: prog.wallet_label ?? null,
+        imagen_url: prog.imagen_url ?? null,
+        producto_nombre: (prog.productos as { nombre?: string } | null)?.nombre ?? null,
+      },
+    };
+    const view = toStampProgressView(stampRow);
+    if (view) programs.push(view);
+  }
+
+  // Programas previos donde el usuario tenga progreso y que no estén en activePrograms
+  for (const row of progressRes.data ?? []) {
+    if (processedProgramIds.has(row.program_id)) continue;
     const rawProg = row.guardian_stamp_programs as unknown;
     const prog = (Array.isArray(rawProg) ? rawProg[0] : rawProg) as Record<string, unknown> | null | undefined;
+    if (!prog) continue;
     const stampRow: StampProgressRow = {
-      program_id: row.program_id as string,
-      unidades_acumuladas: row.unidades_acumuladas as number,
-      unidades_canjeadas: row.unidades_canjeadas as number,
-      program: prog
-        ? {
-            id: prog.id as string,
-            producto_id: prog.producto_id as string,
-            nombre: prog.nombre as string,
-            unidades_requeridas: prog.unidades_requeridas as number,
-            unidad_gratis: prog.unidad_gratis as number,
-            wallet_label: (prog.wallet_label as string | null) ?? null,
-            imagen_url: (prog.imagen_url as string | null) ?? null,
-            producto_nombre: (prog.productos as { nombre?: string } | null)?.nombre ?? null,
-          }
-        : undefined,
+      program_id: row.program_id,
+      unidades_acumuladas: Number(row.unidades_acumuladas ?? 0),
+      unidades_canjeadas: Number(row.unidades_canjeadas ?? 0),
+      program: {
+        id: prog.id as string,
+        producto_id: prog.producto_id as string,
+        nombre: prog.nombre as string,
+        unidades_requeridas: Number(prog.unidades_requeridas ?? 10),
+        unidad_gratis: Number(prog.unidad_gratis ?? 1),
+        wallet_label: (prog.wallet_label as string | null) ?? null,
+        imagen_url: (prog.imagen_url as string | null) ?? null,
+        producto_nombre: (prog.productos as { nombre?: string } | null)?.nombre ?? null,
+      },
     };
-    return toStampProgressView(stampRow);
-  }).filter((v): v is NonNullable<typeof v> => v !== null);
+    const view = toStampProgressView(stampRow);
+    if (view) programs.push(view);
+  }
 
   return {
     userId,
@@ -141,6 +185,43 @@ walletRoutes.get('/stamps', async (c) => {
   if (!snapshot) return c.json({ code: 'not_found' }, 404);
 
   return c.json({ snapshot });
+});
+
+const RedeemStampSchema = z.object({
+  programId: z.string().uuid(),
+});
+
+walletRoutes.post('/stamps/redeem', zValidator('json', RedeemStampSchema), async (c) => {
+  const token = c.req.header('Authorization')?.replace('Bearer ', '') ?? null;
+  const user = await resolveUserFromToken(token);
+  if (!user) return c.json({ code: 'unauthorized', message: 'Debes iniciar sesión' }, 401);
+
+  const { programId } = c.req.valid('json');
+  const admin = createAdminClient({ persistSession: false });
+
+  const { data, error } = await admin.rpc('canjear_unidad_sello_guardian', {
+    p_program_id: programId,
+    p_user_id: user.id,
+  });
+
+  if (error) {
+    return c.json({ ok: false, code: 'redeem_failed', message: error.message }, 400);
+  }
+
+  const res = data as { success?: boolean; error?: string; message?: string } | null;
+  if (!res?.success) {
+    return c.json(
+      {
+        ok: false,
+        code: res?.error || 'redeem_rejected',
+        message: res?.message || 'No se pudo canjear la unidad de cortesía',
+      },
+      400,
+    );
+  }
+
+  const snapshot = await loadWalletSnapshot(user.id);
+  return c.json({ ok: true, data: res, snapshot });
 });
 
 walletRoutes.get('/apple/download', async (c) => {

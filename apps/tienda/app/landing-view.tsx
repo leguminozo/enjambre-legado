@@ -215,7 +215,7 @@ export function TiendaLandingView({
     {
       id: 'post-1',
       tag: currentLocale === 'en' ? 'Apiary' : 'Apiario Austral',
-      titulo: currentLocale === 'en' ? 'Pureo Apiary' : 'Apiario Pureo',
+      titulo: currentLocale === 'en' ? 'Chiloé Apiary' : 'Apiario en Bosque Nativo',
       url: '/apiario-pureo.jpg',
     },
     {

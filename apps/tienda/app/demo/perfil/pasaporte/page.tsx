@@ -21,7 +21,7 @@ export default function DemoPasaportePage() {
     production_total: 28.5,
     peso_kg: 28.5,
     apiarios: {
-      name: 'Apiario Pureo',
+      name: 'Bosque Nativo de Chiloé',
       details: 'Sector Cordillera de Piuchén, Chiloé',
       lat: -42.88,
       lng: -73.75,

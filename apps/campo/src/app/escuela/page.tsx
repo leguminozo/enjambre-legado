@@ -776,7 +776,7 @@ export default function EscuelaDeVentaPage(_props: EscuelaDeVentaPageProps = {})
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground max-w-[180px]">
-                  Escanea para conocer el análisis de laboratorio y activar tus sellos del Club Legado.
+                  Escanea para conocer el análisis de laboratorio y certificar el origen botánico del lote.
                 </p>
               </div>
             </div>
