@@ -1,11 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Repeat, Minus, Plus } from 'lucide-react';
-import { toast } from '@enjambre/ui';
-import { createClient } from '@/utils/supabase/client';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
 import { AddToCartButton, BuyNowButton } from '@/app/producto/[slug]/ui';
@@ -25,10 +22,7 @@ export function ProductPurchaseActions({
   hidePrimaryAdd = false,
 }: ProductPurchaseActionsProps) {
   const t = useTranslations('product');
-  const router = useRouter();
-  const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
   const maxAvailable = product.stock != null && product.stock > 0 ? Math.min(product.stock, 24) : 24;
@@ -37,29 +31,8 @@ export function ProductPurchaseActions({
   const decrement = () => setQuantity((q) => Math.max(1, q - 1));
   const increment = () => setQuantity((q) => Math.min(maxAvailable, q + 1));
 
-  const handleReplenishClick = async () => {
-    setCheckingAuth(true);
-    try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast('Inicia sesión o regístrate en el Club Legado para activar reposiciones periódicas y telemetría de colmena.', {
-          type: 'info',
-        });
-        const nextUrl = pathname || `/producto/${product.slug}`;
-        router.push(`/login?next=${encodeURIComponent(nextUrl)}`);
-        return;
-      }
-
-      setSheetOpen(true);
-    } catch {
-      setSheetOpen(true);
-    } finally {
-      setCheckingAuth(false);
-    }
+  const handleReplenishClick = () => {
+    setSheetOpen(true);
   };
 
   return (
@@ -126,12 +99,11 @@ export function ProductPurchaseActions({
             <button
               type="button"
               data-testid="schedule-replenishment"
-              disabled={checkingAuth}
-              onClick={() => void handleReplenishClick()}
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-border/80 bg-surface-sunken/40 px-6 py-2.5 text-xs font-medium text-foreground/85 transition hover:border-accent/50 hover:text-accent disabled:opacity-60 cursor-pointer"
+              onClick={handleReplenishClick}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-border/80 bg-surface-sunken/40 px-6 py-2.5 text-xs font-medium text-foreground/85 transition hover:border-accent/50 hover:text-accent cursor-pointer"
             >
               <Repeat className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-              {checkingAuth ? 'Comprobando...' : t('scheduleReplenishment')}
+              {t('scheduleReplenishment')}
             </button>
           </div>
         ) : null}
@@ -141,6 +113,7 @@ export function ProductPurchaseActions({
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         product={product}
+        initialQuantity={quantity}
       />
     </>
   );

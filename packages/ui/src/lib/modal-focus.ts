@@ -70,7 +70,7 @@ export function useModalFocusTrap({
       const root = containerRef.current;
       if (!root) return;
       const focusable = getFocusableElements(root);
-      (focusable[0] ?? root).focus();
+      (focusable[0] ?? root).focus({ preventScroll: true });
     });
 
     return () => {
@@ -78,7 +78,7 @@ export function useModalFocusTrap({
         document.body.style.overflow = prevOverflow;
       }
       window.removeEventListener('keydown', onKey);
-      previousFocusRef.current?.focus?.();
+      previousFocusRef.current?.focus?.({ preventScroll: true });
     };
   }, [open, trapFocus, lockBodyScroll, containerRef]);
 }
