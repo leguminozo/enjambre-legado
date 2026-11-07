@@ -64,44 +64,19 @@ export function ProductPurchaseActions({
 
   return (
     <>
-      <div className="mt-6 flex flex-col gap-3.5 sm:mt-8">
-        {/* Indicador refinado de disponibilidad y exclusividad de lote */}
-        <div className="flex items-center gap-2">
-          {product.stock != null && product.stock === 1 ? (
-            <div className="inline-flex items-center gap-2 text-xs font-medium text-accent">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-              </span>
-              <span>Última unidad disponible de esta recolección</span>
-            </div>
-          ) : product.stock != null && product.stock > 1 && product.stock <= 5 ? (
-            <div className="inline-flex items-center gap-2 text-xs font-medium text-foreground/90">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              <span>Reserva limitada · Solo {product.stock} unidades disponibles</span>
-            </div>
-          ) : product.stock != null && product.stock > 5 ? (
-            <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary/80" />
-              <span>Disponible en bodega de origen</span>
-            </div>
-          ) : !inStock ? (
-            <div className="inline-flex items-center gap-2 text-xs text-destructive">
-              <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-              <span>Recolección estacional agotada</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-2 text-xs text-muted-foreground/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent/60" />
-              <span>Edición limitada de bosque nativo</span>
-            </div>
-          )}
-        </div>
+      <div className="mt-6 flex flex-col gap-4 sm:mt-8">
+        {/* Estado sereno de disponibilidad (sin urgencia ansiosa) */}
+        {!inStock && (
+          <div className="flex items-center justify-center gap-2 text-xs text-destructive">
+            <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+            <span>Recolección estacional agotada</span>
+          </div>
+        )}
 
-        {/* Fila de compra: selector [- 1 +] y botones principales */}
-        <div className="flex flex-wrap items-center gap-3">
-          {!hidePrimaryAdd && inStock ? (
-            <div className="flex items-center rounded-full border border-border/80 bg-card/60 p-1">
+        {/* Fila 1: Contador de unidades centrado y primario */}
+        {!hidePrimaryAdd && inStock ? (
+          <div className="flex justify-center">
+            <div className="flex items-center rounded-full border border-border/80 bg-card/60 p-1 shadow-xs">
               <button
                 type="button"
                 aria-label="Disminuir cantidad"
@@ -111,7 +86,7 @@ export function ProductPurchaseActions({
               >
                 <Minus className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
-              <span className="w-8 text-center font-mono text-sm font-semibold tabular-nums text-foreground">
+              <span className="w-10 text-center font-mono text-base font-semibold tabular-nums text-foreground">
                 {quantity}
               </span>
               <button
@@ -124,18 +99,30 @@ export function ProductPurchaseActions({
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {!hidePrimaryAdd ? (
-            <>
-              <BuyNowButton product={product} quantity={quantity} disabled={!inStock} />
-              <AddToCartButton product={product} quantity={quantity} disabled={!inStock} />
-            </>
-          ) : null}
-        </div>
+        {/* Fila 2: Ambos botones [Comprar ahora] y [Agregar al carrito] equilibrados */}
+        {!hidePrimaryAdd ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <BuyNowButton
+              product={product}
+              quantity={quantity}
+              disabled={!inStock}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45 min-h-[48px] cursor-pointer"
+            />
+            <AddToCartButton
+              product={product}
+              quantity={quantity}
+              disabled={!inStock}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-45 min-h-[48px] cursor-pointer"
+            />
+          </div>
+        ) : null}
 
+        {/* Fila 3: Programar reposición centrado */}
         {canReplenish ? (
-          <div className="pt-1">
+          <div className="flex justify-center pt-1">
             <button
               type="button"
               data-testid="schedule-replenishment"

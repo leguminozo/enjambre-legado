@@ -571,16 +571,18 @@ export function ResenasSection({
           </p>
         )}
 
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={() => setComposerOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-6 py-2.5 text-xs uppercase tracking-wider font-semibold text-primary hover:bg-primary/20 transition-all shadow-sm"
-          >
-            <PenLine size={15} />
-            <span>{ctaButtonText}</span>
-          </button>
-        </div>
+        {items.length > 0 && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setComposerOpen(true)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-xs uppercase tracking-wider font-semibold hover:bg-primary/90 transition-all shadow-sm"
+            >
+              <PenLine size={15} />
+              <span>{ctaButtonText}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Consenso Sensorial Comunitario (Síntesis Organoléptica) ──── */}
@@ -736,10 +738,10 @@ export function ResenasSection({
           <button
             type="button"
             onClick={() => setComposerOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
+            className="inline-flex min-h-11 items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-sm"
           >
             <PenLine size={14} />
-            <span>Compartir Primera Reseña</span>
+            <span>{ctaButtonText}</span>
           </button>
         </div>
       ) : (

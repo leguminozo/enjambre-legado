@@ -139,35 +139,22 @@ function OriginAndTrustBlocks({
         </div>
       ) : null}
 
-      {/* Certificado de Autenticidad y Garantías Legales */}
-      <div className="rounded-2xl border border-border/80 bg-gradient-to-b from-card/60 to-card/30 p-5 sm:p-6 text-xs">
-        <div className="flex items-center justify-between border-b border-border/50 pb-3">
-          <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
-            <ShieldCheck className="h-4 w-4 text-accent" aria-hidden="true" />
-            Garantía de Origen & Autenticidad
-          </span>
-        </div>
-
-        <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
-          <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-surface-sunken/30 p-3">
-            <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <p className="text-xs font-medium text-foreground">{warrantyText}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Compromiso legal de calidad oficial</p>
-            </div>
+      {/* Garantías Legales y Autenticidad */}
+      <div className="rounded-2xl border border-border/80 bg-gradient-to-b from-card/60 to-card/30 p-4 sm:p-5 text-xs">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex items-center justify-center gap-2.5 rounded-xl border border-border/40 bg-surface-sunken/30 p-3 text-center">
+            <ShieldCheck className="h-4 w-4 text-accent shrink-0" aria-hidden="true" />
+            <p className="text-xs font-medium text-foreground">{warrantyText}</p>
           </div>
 
-          <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-surface-sunken/30 p-3">
-            <RotateCcw className="h-4 w-4 text-accent/80 shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <p className="text-xs font-medium text-foreground">{retractoText}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Derecho a retracto con precinto seguro</p>
-            </div>
+          <div className="flex items-center justify-center gap-2.5 rounded-xl border border-border/40 bg-surface-sunken/30 p-3 text-center">
+            <RotateCcw className="h-4 w-4 text-accent/80 shrink-0" aria-hidden="true" />
+            <p className="text-xs font-medium text-foreground">{retractoText}</p>
           </div>
         </div>
 
         {isHoneyProduct && infantWarningText.trim() ? (
-          <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center gap-2 text-[11px] text-muted-foreground/80">
+          <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center justify-center text-center gap-2 text-[11px] text-muted-foreground/80">
             <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" aria-hidden="true" />
             <span>{infantWarningText}</span>
           </div>
@@ -204,7 +191,6 @@ export function PdpBody({
 }: Props) {
   const locale = useLocale();
   const { pdp } = useStoreChrome();
-  const continueLabel = resolveLocalized(pdp.continue_label, pdp.continue_label_en, locale);
   const warrantyText = resolveLocalized(pdp.legal_warranty_text, pdp.legal_warranty_text_en, locale) || 'Garantía Legal de 6 meses (Ley 19.496 / 21.398)';
   const retractoText = resolveLocalized(pdp.legal_retracto_text, pdp.legal_retracto_text_en, locale) || 'Derecho a retracto de 10 días (con precinto intacto)';
   const infantWarningText = resolveLocalized(pdp.infant_warning_text, pdp.infant_warning_text_en, locale) || 'Por norma sanitaria (DTO 977/96 MINSAL), no administrar a menores de 1 año de edad.';
@@ -537,16 +523,13 @@ export function PdpBody({
                 };
 
                 return (
-                  <div className="mt-5 rounded-xl border border-border/70 bg-card/40 p-3.5 space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div className="mt-5 rounded-xl border border-border/70 bg-card/40 p-3.5 space-y-2.5 text-center">
+                    <div className="flex items-center justify-center">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
-                        {isPureFormatSwitch ? 'Formatos Disponibles' : 'Variedades & Opciones'}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground font-mono">
-                        {product.variantes.length + 1} opciones
+                        {isPureFormatSwitch ? 'Formatos' : 'Variantes'}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
                       <span className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground border border-primary shadow-sm max-w-full">
                         {product.photos[0] ? (
                           <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md border border-primary-foreground/30 bg-black/20">
@@ -670,15 +653,6 @@ export function PdpBody({
                   product={product}
                 />
               </div>
-
-              {continueLabel.trim() ? (
-                <Link
-                  href="/catalogo"
-                  className="mt-8 inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline md:mt-10"
-                >
-                  ← {continueLabel}
-                </Link>
-              ) : null}
             </div>
           </div>
 

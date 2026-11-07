@@ -22,6 +22,7 @@ type TiendaModalProps = {
   className?: string;
   bodyClassName?: string;
   headerExtra?: ReactNode;
+  headerCentered?: boolean;
   testId?: string;
 };
 
@@ -40,6 +41,7 @@ export function TiendaModal({
   className,
   bodyClassName,
   headerExtra,
+  headerCentered = false,
   testId,
 }: TiendaModalProps) {
   const autoTitleId = useId();
@@ -74,8 +76,8 @@ export function TiendaModal({
         tabIndex={-1}
       >
         {hasHeader && (
-          <div className="tienda-modal-header">
-            <div className="min-w-0 flex-1">
+          <div className={`tienda-modal-header ${headerCentered ? 'relative flex-col items-center text-center' : ''}`}>
+            <div className={`min-w-0 flex-1 ${headerCentered ? 'w-full text-center px-8' : ''}`}>
               {kicker && <p className="tienda-modal-kicker">{kicker}</p>}
               {title != null && title !== '' && (
                 <h3 id={labelledBy} className="font-display text-lg text-foreground">
@@ -89,7 +91,7 @@ export function TiendaModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="tienda-modal-close"
+                className={`tienda-modal-close ${headerCentered ? 'absolute right-4 top-4' : ''}`}
                 aria-label="Cerrar"
               >
                 <X size={20} />
