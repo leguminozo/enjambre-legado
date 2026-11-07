@@ -15,7 +15,6 @@ import {
   Tag,
   Sliders,
   Sparkles,
-  Compass,
   Check,
 } from 'lucide-react';
 import {
@@ -29,8 +28,6 @@ import {
 } from '@enjambre/resenas';
 import { type ResenaPublic, fetchResenas } from '@/lib/shop/resenas-api';
 import { ResenaComposer, type VarianteOption } from './resena-composer';
-
-type FilterTab = 'all' | 'guardian' | 'anonima';
 
 export interface ResenasSectionProps {
   productoId: string;
@@ -412,8 +409,6 @@ export function ResenasSection({
   perfilSensorial,
   variantes = [],
 }: ResenasSectionProps) {
-  const [tab, setTab] = useState<FilterTab>('all');
-  const [selectedVarianteFilter, setSelectedVarianteFilter] = useState<string | null>(null);
   const [items, setItems] = useState<ResenaPublic[]>([]);
   const [aggregate, setAggregate] = useState(initialAggregate ?? null);
   const [loading, setLoading] = useState(true);
@@ -425,11 +420,7 @@ export function ResenasSection({
 
   // Escuchar evento personalizado disparado desde la Constelación o Acompañante QR
   useEffect(() => {
-    const handler = (e: Event) => {
-      const custom = e as CustomEvent<{ varianteId?: string | null }>;
-      if (custom.detail?.varianteId !== undefined) {
-        setSelectedVarianteFilter(custom.detail.varianteId);
-      }
+    const handler = () => {
       setComposerOpen(true);
     };
     window.addEventListener('enjambre:open-resena-composer', handler);
@@ -441,13 +432,7 @@ export function ResenasSection({
       if (append) setLoadingMore(true);
       else setLoading(true);
 
-      const data = await fetchResenas(
-        productoId,
-        tab,
-        pageNum,
-        limit,
-        selectedVarianteFilter || undefined,
-      );
+      const data = await fetchResenas(productoId, 'all', pageNum, limit);
       setItems((prev) => (append ? [...prev, ...data.items] : data.items));
       setAggregate(data.aggregate);
       setTotal(data.total);
@@ -455,12 +440,12 @@ export function ResenasSection({
       setLoading(false);
       setLoadingMore(false);
     },
-    [productoId, tab, selectedVarianteFilter],
+    [productoId],
   );
 
   useEffect(() => {
     void load(1, false);
-  }, [load, tab, selectedVarianteFilter]);
+  }, [load]);
 
   // Síntesis Sensorial Comunitaria a partir de las reseñas cargadas
   const communityInsights = useMemo(() => {
@@ -661,66 +646,6 @@ export function ResenasSection({
         </div>
       )}
 
-      {/* ── Pestañas de Filtrado: Todos vs Legado vs Visitantes + Filtro de Variante ── */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-b border-border/40 pb-3">
-        <div className="flex gap-2">
-          {(
-            [
-              { id: 'all', label: 'Todos' },
-              { id: 'guardian', label: 'Huella Legado' },
-              { id: 'anonima', label: 'Visitantes' },
-            ] as const
-          ).map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs uppercase tracking-wider font-medium transition ${
-                tab === t.id
-                  ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                  : 'bg-surface-sunken text-muted-foreground hover:text-foreground border border-border/50'
-              }`}
-            >
-              {t.id === 'guardian' && <ShieldCheck size={13} />}
-              {t.id === 'anonima' && <Compass size={13} />}
-              <span>{t.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Filtro por Variante si existen opciones */}
-        {variantes.length > 0 && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] text-muted-foreground">Edición:</span>
-            <button
-              type="button"
-              onClick={() => setSelectedVarianteFilter(null)}
-              className={`text-xs px-2.5 py-1 rounded-full transition ${
-                selectedVarianteFilter === null
-                  ? 'bg-primary/20 text-primary font-semibold border border-primary/40'
-                  : 'bg-surface-sunken text-muted-foreground hover:text-foreground border border-border/40'
-              }`}
-            >
-              Todas
-            </button>
-            {variantes.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => setSelectedVarianteFilter(v.id)}
-                className={`text-xs px-2.5 py-1 rounded-full transition ${
-                  selectedVarianteFilter === v.id
-                    ? 'bg-primary/20 text-primary font-semibold border border-primary/40'
-                    : 'bg-surface-sunken text-muted-foreground hover:text-foreground border border-border/40'
-                }`}
-              >
-                {v.nombre_variante}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* ── Listado de Reseñas / Estado Vacío ─────────────────────────── */}
       {loading ? (
         <p className="text-sm text-muted-foreground italic py-6 text-center">
@@ -729,11 +654,7 @@ export function ResenasSection({
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/80 bg-surface-sunken/30 p-8 text-center space-y-4">
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            {tab === 'guardian'
-              ? 'Aún no hay huellas de cata del Legado registradas para este filtro. Sé el primero en compartir tu experiencia sensorial.'
-              : tab === 'anonima'
-                ? 'No hay testimonios de visitantes en este momento.'
-                : 'Esta expresión botánica aún no tiene testimonios registrados. Sé el primero en compartir tu experiencia sensorial.'}
+            Esta expresión botánica aún no tiene testimonios registrados. Sé el primero en compartir tu experiencia sensorial.
           </p>
           <button
             type="button"
@@ -775,7 +696,6 @@ export function ResenasSection({
         tipoSensorialLabel={tipoSensorialLabel}
         perfilSensorial={perfilSensorial}
         variantes={variantes}
-        initialVarianteId={selectedVarianteFilter || undefined}
       />
     </section>
   );
