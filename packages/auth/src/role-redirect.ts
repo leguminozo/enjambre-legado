@@ -172,6 +172,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
   '/catalogo': ['admin'],
+  '/pedidos': ['admin', 'operador', 'colaborador'],
   '/operaciones': ['admin', 'operador', 'colaborador'],
   '/comunidad': ['admin'],
   '/perfil': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador', 'disenador'],

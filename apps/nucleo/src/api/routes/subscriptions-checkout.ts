@@ -47,7 +47,7 @@ const InitBodySchema = z.object({
   frequency: z.enum(['monthly', 'quarterly', 'annual']).optional(),
   quantity: z.number().int().min(1).max(24).optional(),
   returnUrl: z.string().url().optional(),
-  deliveryAddress: z.string().min(5).max(500).optional(),
+  deliveryAddress: z.string().min(1).max(2000).optional(),
 }).refine((d) => Boolean(d.planId) || (Boolean(d.productId) && Boolean(d.frequency)), {
   message: 'Se requiere planId o productId+frequency',
 });
@@ -68,7 +68,23 @@ async function resolveUserFromToken(token: string | null) {
 
 export const subscriptionsCheckoutRoutes = new Hono();
 
-subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), async (c) => {
+subscriptionsCheckoutRoutes.post(
+  '/init',
+  zValidator('json', InitBodySchema, (result, c) => {
+    if (!result.success) {
+      const err = result.error as { issues?: unknown };
+      console.warn('[subscriptions-checkout init] Validación fallida:', err.issues ?? result.error);
+      return c.json(
+        {
+          code: 'validation_error',
+          message: 'Datos de reposición incompletos o formato no válido.',
+          details: err.issues ?? undefined,
+        },
+        400,
+      );
+    }
+  }),
+  async (c) => {
   const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
   if (rateLimitResult) return rateLimitResult;
 
@@ -139,10 +155,15 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
         planId = newPlan.id as string;
       }
 
-      // Asegurar precio actualizado si el producto cambió de precio.
+      // Asegurar precio y cantidad actualizados si el producto o selección cambiaron.
       await admin
         .from('subscription_plans')
-        .update({ price_clp: total, name: product.nombre ?? 'Producto' })
+        .update({
+          price_clp: total,
+          name: product.nombre ?? 'Producto',
+          quantity: qty,
+          included_items: [{ product_id: productId, quantity: qty }],
+        })
         .eq('id', planId);
     }
 
@@ -205,25 +226,34 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
     if (isRecurringCapable && nucleoPublicUrl) {
       // Inscripción Pago Automático: el primer cargo ocurre al autorizar en la
       // página de Flow; los siguientes los cobra Flow solo cada mes.
-      const recurring = await (provider as PaymentProviderWithRecurring).createRecurring({
-        buyOrder,
-        sessionId,
-        firstAmount: total,
-        recurringAmount: monthlyEquivalent,
-        email: user.email ?? '',
-        returnUrl,
-        confirmationUrl: `${nucleoPublicUrl}/api/checkout/webhook/flow`,
-        planName: plan.name,
-        optional: { planId: plan.id },
-      });
-      result = {
-        url: recurring.url,
-        token: recurring.token,
-        buyOrder,
-        sessionId,
-        provider: provider.name,
-      };
-      recurringToken = recurring.token;
+      try {
+        const recurring = await (provider as PaymentProviderWithRecurring).createRecurring({
+          buyOrder,
+          sessionId,
+          firstAmount: total,
+          recurringAmount: monthlyEquivalent,
+          email: user.email ?? '',
+          returnUrl,
+          confirmationUrl: `${nucleoPublicUrl}/api/checkout/webhook/flow`,
+          planName: plan.name,
+          optional: { planId: plan.id },
+        });
+        result = {
+          url: recurring.url,
+          token: recurring.token,
+          buyOrder,
+          sessionId,
+          provider: provider.name,
+        };
+        recurringToken = recurring.token;
+      } catch (recurringError) {
+        console.warn(
+          '[subscriptions-checkout init] Flow createRecurring falló o módulo no disponible, aplicando fallback a pago estándar:',
+          recurringError instanceof Error ? recurringError.message : recurringError,
+        );
+        // Fallback one-shot (mismo flujo para Flow estándar o Transbank)
+        result = await provider.init(buyOrder, sessionId, total, returnUrl, user.email);
+      }
     } else {
       // Fallback one-shot (Transbank o Flow sin módulo recurrente habilitado)
       result = await provider.init(buyOrder, sessionId, total, returnUrl, user.email);

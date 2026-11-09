@@ -39,11 +39,45 @@ export function toFlowFormBody(params: Record<string, string>): string {
   return new URLSearchParams(params).toString();
 }
 
+const NOT_NUCLEO_ORIGINS = new Set([
+  'https://obrerayzangano.cl',
+  'https://www.obrerayzangano.cl',
+  'https://tienda-eta-lime.vercel.app',
+  'https://campo-olive.vercel.app',
+  'https://obrerayzangano.store',
+  'https://www.obrerayzangano.store',
+]);
+
 export function getNucleoPublicUrl(): string {
-  const url =
-    process.env.NEXT_PUBLIC_NUCLEO_API_URL?.trim() ||
-    process.env.NEXT_PUBLIC_URL_NUCLEO?.trim() ||
-    process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (!url) return 'http://localhost:3000';
-  return url.replace(/\/$/, '');
+  const candidates = [
+    process.env.NEXT_PUBLIC_NUCLEO_API_URL,
+    process.env.NEXT_PUBLIC_URL_NUCLEO,
+    process.env.NEXT_PUBLIC_SITE_URL,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate?.trim()) continue;
+    try {
+      const parsed = new URL(candidate.trim());
+      if (!NOT_NUCLEO_ORIGINS.has(parsed.origin)) {
+        // En Vercel / Cloudflare, el apex registroapicolachiloe.me redirige 308 a www.
+        // Las pasarelas de pago (Flow) no siguen 308 en webhooks y reportan error.
+        // Se normaliza automáticamente a https://www.registroapicolachiloe.me.
+        if (parsed.hostname === 'registroapicolachiloe.me') {
+          return 'https://www.registroapicolachiloe.me';
+        }
+        return candidate.trim().replace(/\/$/, '');
+      }
+    } catch {
+      // ignore invalid URL
+    }
+  }
+
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.CI);
+
+  if (isProd) return 'https://nucleo-theta.vercel.app';
+  return 'http://localhost:3000';
 }

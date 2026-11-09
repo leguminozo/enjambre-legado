@@ -101,7 +101,99 @@ describe('fulfillCheckout fiscal hook', () => {
     mockCompleteSession.mockResolvedValue(undefined);
   });
 
-  it('creates facturas_emitidas tipo 39 and triggers boleta emission', async () => {
+  it('para pagos Flow B2C el comprobante electrónico vale como boleta (Res. Ex. SII 176/2020) y no duplica DTE 39', async () => {
+    const admin = buildAdminMock();
+
+    admin.handlers.clientes = () => makeChain({ data: { id: 'cliente-1' }, error: null });
+    admin.handlers.empresas = () => ({
+      select: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'emp-1' }, error: null }),
+    });
+
+    const ventaInsert = makeChain({ data: { id: 'venta-99' }, error: null });
+    admin.handlers.ventas = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      insert: vi.fn().mockReturnThis(),
+      single: ventaInsert.single,
+    });
+
+    const facturaInsertFn = vi.fn();
+    admin.handlers.facturas_emitidas = () => {
+      const chain = makeChain({ data: { id: 'fe-flow-1' }, error: null });
+      chain.insert = vi.fn((payload: unknown) => {
+        facturaInsertFn(payload);
+        return chain;
+      });
+      return chain;
+    };
+
+    admin.handlers.logistica_envios = () => ({
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    });
+
+    admin.handlers.cliente_direcciones = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'addr-1' }, error: null }),
+    });
+
+    admin.handlers.wallet_pass_registrations = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockResolvedValue({ data: [], error: null }),
+    });
+
+    const result = await fulfillCheckout(admin as any, {
+      buyOrder: 'ORD-FLOW-1',
+      authorizationCode: '187796493',
+      paymentProvider: 'flow',
+      session: {
+        buyOrder: 'ORD-FLOW-1',
+        sessionId: 'sess-flow-1',
+        total: 47080,
+        cart: [{ productId: 'prod-1', slug: 'miel', name: 'Miel de Ulmo', unitPrice: 47080, quantity: 1 }],
+        provider: 'flow',
+        shipping: {
+          nombre: 'Mara Angelini',
+          email: 'mara.angelini@gmail.com',
+          telefono: '+56911111111',
+          direccion: 'Calle 1',
+          comuna: 'Providencia',
+          ciudad: 'Santiago',
+          region: 'Metropolitana',
+        },
+        buyerMode: 'legado',
+        clienteId: 'user-1',
+        courierCode: 'chilexpress',
+        shippingCost: 0,
+        subtotal: 47080,
+        loyaltyPointsRedeemed: 0,
+        loyaltyDiscountClp: 0,
+        createdAt: Date.now(),
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.dte).toEqual({
+      skipped: true,
+      estadoSii: 'aceptado',
+    });
+    // NO debe llamar a emitir boleta DTE 39 al SII para no duplicar IVA
+    expect(mockMaybeEmitBoleta).not.toHaveBeenCalled();
+    expect(facturaInsertFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        numero: 'FLOW-ORD-FLOW-1',
+        estado: 'pagada',
+        estado_sii: 'aceptado',
+        tipo_dte: 39,
+      }),
+    );
+  });
+
+  it('triggers boleta emission para proveedores sin comprobante fiscal electrónico integrado', async () => {
     const admin = buildAdminMock();
 
     admin.handlers.clientes = () => makeChain({ data: { id: 'cliente-1' }, error: null });
@@ -142,13 +234,13 @@ describe('fulfillCheckout fiscal hook', () => {
     const result = await fulfillCheckout(admin as any, {
       buyOrder: 'ORD-TEST-1',
       authorizationCode: 'AUTH1',
-      paymentProvider: 'flow',
+      paymentProvider: 'manual',
       session: {
         buyOrder: 'ORD-TEST-1',
         sessionId: 'sess-1',
         total: 11900,
         cart: [{ productId: 'prod-1', slug: 'miel', name: 'Miel', unitPrice: 10000, quantity: 1 }],
-        provider: 'flow',
+        provider: 'transbank',
         shipping: {
           nombre: 'Comprador Test',
           email: 'buyer@test.cl',

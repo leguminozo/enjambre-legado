@@ -226,7 +226,7 @@ export function ReplenishmentSheet({
       productId: product.id,
       frequency: backendFrequency,
       quantity,
-      deliveryAddress: deliveryNotes,
+      deliveryAddress: deliveryNotes.slice(0, 1000),
     });
 
     if (!result.ok) {

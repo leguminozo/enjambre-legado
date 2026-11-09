@@ -45,6 +45,7 @@ export const RAIL_PRIMARY_KEYS = [
   'colmenas',
   'contabilidad',
   'inventario',
+  'pedidos',
   'productos',
   'envios',
   'crm',
@@ -61,6 +62,7 @@ export const PREFETCH_PRIORITY_KEYS = [
   'recoleccion',
   'inventario',
   'lotes',
+  'pedidos',
   'alambique',
   'infusiones',
   'productos',
@@ -297,6 +299,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: 'TIENDA WEB',
     collapsible: true,
     items: [
+      {
+        key: 'pedidos',
+        label: 'Pedidos',
+        icon: 'package',
+        href: '/pedidos',
+        greeting: 'Central de pedidos',
+        mission: 'Preparación en taller, comanda de embalaje, etiquetas de despacho y trazabilidad',
+      },
       {
         key: 'productos',
         label: 'Productos',

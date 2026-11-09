@@ -80,6 +80,9 @@ vi.mock('@supabase/supabase-js', () => ({
 }));
 
 const commitCalls = vi.hoisted(() => ({ flow: 0, transbank: 0 }));
+const paymentMockState = vi.hoisted(() => ({
+  createRecurringError: null as string | null,
+}));
 
 vi.mock('@/api/lib/payments', () => ({
   getPaymentProvider: () => ({
@@ -103,7 +106,12 @@ vi.mock('@/api/lib/payments', () => ({
       };
     },
     refund: async () => ({ ok: true }),
-    createRecurring: async () => ({ url: 'https://flow.cl/inscripcion/x', token: 'tok-inscripcion' }),
+    createRecurring: async () => {
+      if (paymentMockState.createRecurringError) {
+        throw new Error(paymentMockState.createRecurringError);
+      }
+      return { url: 'https://flow.cl/inscripcion/x', token: 'tok-inscripcion' };
+    },
     getRecurringStatus: async () => ({ status: 2, commerceOrder: 'SUB-abc', flowOrder: 77, amount: 19990 }),
     cancelRecurring: async () => ({ ok: true }),
   }),

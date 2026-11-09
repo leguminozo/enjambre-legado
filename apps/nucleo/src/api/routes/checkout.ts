@@ -888,6 +888,10 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
   }
 });
 
+checkoutRoutes.get("/webhook/flow", (c) => {
+  return c.json({ ok: true, service: "flow-webhook" }, 200);
+});
+
 checkoutRoutes.post("/webhook/flow", async (c) => {
   const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.webhook);
   if (rateLimitResult) return rateLimitResult;

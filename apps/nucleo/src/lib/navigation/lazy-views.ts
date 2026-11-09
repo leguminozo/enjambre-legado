@@ -142,6 +142,12 @@ export const LazyEnviosView = named(
   'Envíos',
   () => createElement(DespachoEnviosSkeleton),
 );
+export const LazyPedidosView = named(
+  () => import('@/views/pedidos/PedidosView'),
+  'PedidosView',
+  'Pedidos',
+  () => createElement(DespachoEnviosSkeleton),
+);
 export const LazyProveedoresView = named(
   () => import('@/views/despacho/ProveedoresView'),
   'ProveedoresView',

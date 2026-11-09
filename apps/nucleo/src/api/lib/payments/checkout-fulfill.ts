@@ -378,9 +378,10 @@ export async function fulfillCheckout(
   let facturaEmitidaId: string | null = null;
   const fechaEmision = new Date().toISOString().split('T')[0]!;
 
+  const isFlowVoucher = paymentProvider === 'flow' && !isFactura;
   const tipoDoc = isFactura ? 'Factura' : 'Boleta';
   const tipoDte = isFactura ? 33 : 39;
-  const docPrefix = isFactura ? 'FWEB' : 'BWEB';
+  const docPrefix = isFactura ? 'FWEB' : (isFlowVoucher ? 'FLOW' : 'BWEB');
 
   if (defaultEmpresa) {
     const { data: facturaRow, error: facturaError } = await admin
@@ -398,9 +399,13 @@ export async function fulfillCheckout(
         monto_iva_usado: 0,
         tipo_documento: tipoDoc,
         tipo_dte: tipoDte,
-        descripcion: isFactura ? `Factura Venta Web B2B - ${buyOrder}` : `Venta Web - ${buyOrder}`,
-        estado: 'pendiente',
-        estado_sii: 'pendiente',
+        descripcion: isFactura
+          ? `Factura Venta Web B2B - ${buyOrder}`
+          : (isFlowVoucher
+              ? `Comprobante Electrónico Flow (Res. Ex. SII 176/2020) - ${buyOrder}`
+              : `Venta Web - ${buyOrder}`),
+        estado: 'pagada',
+        estado_sii: isFlowVoucher ? 'aceptado' : 'pendiente',
         idempotency_key: `venta:${ventaId}`,
       })
       .select('id')
@@ -420,39 +425,62 @@ export async function fulfillCheckout(
   let dteResult: FulfillCheckoutResult['dte'];
 
   if (defaultEmpresa?.id && facturaEmitidaId) {
-    const emission = isFactura
-      ? await maybeEmitFacturaPostCheckout(admin, {
-          empresaId: defaultEmpresa.id,
-          facturaEmitidaId,
-          ventaId,
-          buyOrder,
-          terceroRut: session.billing?.rut ?? '',
-          terceroNombre: session.billing?.razonSocial ?? shipping?.nombre ?? 'Empresa B2B',
-          terceroGiro: session.billing?.giro,
-          terceroDireccion: session.billing?.direccion,
-          cart: enrichedCart,
-          fechaEmision,
-        })
-      : await maybeEmitBoletaPostCheckout(admin, {
-          empresaId: defaultEmpresa.id,
-          facturaEmitidaId,
-          ventaId,
-          buyOrder,
-          receptorNombre: shipping?.nombre ?? 'Consumidor Final',
-          cart: enrichedCart,
-          fechaEmision,
-        });
+    if (isFactura) {
+      const emission = await maybeEmitFacturaPostCheckout(admin, {
+        empresaId: defaultEmpresa.id,
+        facturaEmitidaId,
+        ventaId,
+        buyOrder,
+        terceroRut: session.billing?.rut ?? '',
+        terceroNombre: session.billing?.razonSocial ?? shipping?.nombre ?? 'Empresa B2B',
+        terceroGiro: session.billing?.giro,
+        terceroDireccion: session.billing?.direccion,
+        cart: enrichedCart,
+        fechaEmision,
+      });
 
-    if (emission.skipped) {
-      dteResult = { skipped: true };
-    } else if (emission.ok) {
+      if (emission.skipped) {
+        dteResult = { skipped: true };
+      } else if (emission.ok) {
+        dteResult = {
+          folio: emission.folio,
+          trackId: emission.trackId,
+          estadoSii: emission.estadoSii,
+        };
+      } else {
+        dteResult = { error: emission.message };
+      }
+    } else if (isFlowVoucher) {
+      // Res. Ex. SII Nº 176/2020 y Circular Nº 19/2021: El comprobante electrónico de pago
+      // emitido por Flow opera con validez legal de boleta de ventas y servicios electrónica.
+      // Flow lo informa directamente al SII (RCV). Se omite el DTE 39 interno para evitar
+      // duplicidad de débito fiscal en el F29.
       dteResult = {
-        folio: emission.folio,
-        trackId: emission.trackId,
-        estadoSii: emission.estadoSii,
+        skipped: true,
+        estadoSii: 'aceptado',
       };
     } else {
-      dteResult = { error: emission.message };
+      const emission = await maybeEmitBoletaPostCheckout(admin, {
+        empresaId: defaultEmpresa.id,
+        facturaEmitidaId,
+        ventaId,
+        buyOrder,
+        receptorNombre: shipping?.nombre ?? 'Consumidor Final',
+        cart: enrichedCart,
+        fechaEmision,
+      });
+
+      if (emission.skipped) {
+        dteResult = { skipped: true };
+      } else if (emission.ok) {
+        dteResult = {
+          folio: emission.folio,
+          trackId: emission.trackId,
+          estadoSii: emission.estadoSii,
+        };
+      } else {
+        dteResult = { error: emission.message };
+      }
     }
   }
 
