@@ -21,6 +21,8 @@ export async function restoreStock(admin: SupabaseClient, entries: DecrementedEn
   for (const entry of entries) {
     const qty = Math.max(0, Number(entry.quantity || 0));
     if (!qty) continue;
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entry.productId);
+    if (!isUUID) continue;
     // decrement_stock_force es el único RPC que suma stock de forma atómica
     // (qty negativa = rollback); un read-modify-write pierde updates concurrentes.
     const { error } = await admin.rpc('decrement_stock_force', {
@@ -156,18 +158,20 @@ export async function decrementCartStock<T extends StockLine>(
     if (allowForce) {
       // Conciliación de pedido ya pagado en pasarela: decrement_stock_force
       // descuenta stock atómicamente incluso a negativo si el taller debe envasar.
-      const { data: forcedRows, error: forcedErr } = await admin.rpc('decrement_stock_force', {
-        p_id: line.productId,
-        p_qty: qty,
-      });
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(line.productId);
+      let forceData: Array<{ lote_id?: string | null }> | null = null;
+      if (isUUID) {
+        const { data: forcedRows, error: forcedErr } = await admin.rpc('decrement_stock_force', {
+          p_id: line.productId,
+          p_qty: qty,
+        });
 
-      if (forcedErr) {
-        console.warn('[cart-stock] decrement_stock_force advertencia:', forcedErr.message);
+        if (forcedErr) {
+          console.warn('[cart-stock] decrement_stock_force advertencia:', forcedErr.message);
+        } else {
+          forceData = forcedRows as Array<{ lote_id?: string | null }> | null;
+        }
       }
-
-      const forceData = forcedRows as Array<{
-        lote_id?: string | null;
-      }> | null;
 
       enrichedLines.push({
         ...line,

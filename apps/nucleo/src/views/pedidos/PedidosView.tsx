@@ -30,7 +30,6 @@ import {
   formatCLP,
   formatDate,
   toast,
-  friendlyError,
   cn,
   Button,
   Card,
@@ -224,7 +223,8 @@ export function PedidosView() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-central'] });
     },
     onError: (err) => {
-      toast(friendlyError(err), { type: 'error' });
+      const msg = err instanceof Error ? err.message : 'No se pudo conciliar el pedido';
+      toast(msg, { type: 'error' });
     },
   });
 
@@ -269,7 +269,8 @@ export function PedidosView() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-central'] });
     },
     onError: (err) => {
-      toast(friendlyError(err), { type: 'error' });
+      const msg = err instanceof Error ? err.message : 'No se pudo actualizar el despacho';
+      toast(msg, { type: 'error' });
     },
   });
 
@@ -291,7 +292,8 @@ export function PedidosView() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-central'] });
     },
     onError: (err) => {
-      toast(friendlyError(err), { type: 'error' });
+      const msg = err instanceof Error ? err.message : 'No se pudo actualizar el retorno de frascos';
+      toast(msg, { type: 'error' });
     },
   });
 

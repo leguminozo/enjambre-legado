@@ -370,6 +370,7 @@ pedidosRoutes.post('/:buyOrder/conciliar', zValidator('json', ConciliarPedidoSch
 
     if (!settleResult.ok && !settleResult.alreadyProcessed) {
       const errorMsg =
+        settleResult.errorMessage ||
         settleResult.stockErrors?.join('; ') ||
         (settleResult.processing
           ? 'El pedido se está procesando en este momento. Espere unos segundos y reintente.'

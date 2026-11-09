@@ -31,6 +31,7 @@ export interface FulfillCheckoutResult {
   ventaId?: string;
   alreadyProcessed?: boolean;
   stockErrors?: string[];
+  errorMessage?: string;
   dte?: {
     folio?: number;
     trackId?: string;
@@ -97,47 +98,85 @@ export async function fulfillCheckout(
 
   const stockResult = await decrementCartStock(
     admin,
-    cart.map((line) => ({
-      ...line,
-      productId: line.productId,
-      quantity: line.quantity,
-      name: line.name,
-    })),
+    cart.map((line) => {
+      const l = line as Record<string, unknown>;
+      return {
+        ...line,
+        productId: String(line.productId ?? l.producto_id ?? l.id ?? ''),
+        quantity: Math.max(0, Number(line.quantity ?? l.cantidad ?? 0)),
+        name: String(line.name ?? l.nombre ?? 'Producto'),
+      };
+    }),
     input.allowForceStock,
   );
 
   if (!stockResult.ok) {
     console.error('[checkout-fulfill] stock gate failed:', stockResult.errors);
-    return { ok: false, stockErrors: stockResult.errors };
+    return {
+      ok: false,
+      stockErrors: stockResult.errors,
+      errorMessage: `Stock insuficiente: ${stockResult.errors.join('; ')}`,
+    };
   }
 
   const enrichedCart = stockResult.enrichedLines;
 
-  const { data: venta, error: ventaError } = await admin
-    .from('ventas')
-    .insert({
-      origen: 'web',
-      estado: 'paid',
-      total: serverTotal,
-      productos: enrichedCart,
-      channel: 'web',
-      metodo_pago: paymentProvider,
-      buy_order: buyOrder,
-      auth_code: authorizationCode,
-      buyer_email: shipping?.email ?? null,
-      direccion_envio: shipping ?? null,
-      user_id: authUserId,
-      cliente_id: ventaClienteId,
-      buyer_mode: buyerMode,
-      is_guest: isGuest,
-      organizacion_id: session.organizacionId ?? null,
+  // Base payload con columnas 100% canónicas del esquema de producción
+  const baseVentaPayload: Record<string, unknown> = {
+    id: crypto.randomUUID(),
+    origen: 'web',
+    estado: 'paid',
+    total: serverTotal,
+    productos: enrichedCart,
+    channel: 'web',
+    metodo_pago: paymentProvider,
+    buy_order: buyOrder,
+    auth_code: authorizationCode,
+    buyer_email: shipping?.email ?? null,
+    direccion_envio: {
+      ...(shipping ?? {}),
       retorno_frascos_declarados: session.retornoFrascosDeclarados ?? 0,
-      retorno_frascos_estado: (session.retornoFrascosDeclarados && session.retornoFrascosDeclarados > 0)
+    },
+    user_id: authUserId,
+    cliente_id: authUserId, // Foreign key canónica a profiles(id)
+    buyer_mode: buyerMode,
+    is_guest: isGuest,
+    organizacion_id: session.organizacionId ?? null,
+  };
+
+  // 1. Intentar primero con columnas de retorno circular
+  const insertPayloadWithRetorno: Record<string, unknown> = {
+    ...baseVentaPayload,
+    retorno_frascos_declarados: session.retornoFrascosDeclarados ?? 0,
+    retorno_frascos_estado:
+      session.retornoFrascosDeclarados && session.retornoFrascosDeclarados > 0
         ? 'pendiente_retiro'
         : 'ninguno',
-    })
+  };
+
+  let { data: venta, error: ventaError } = await admin
+    .from('ventas')
+    .insert(insertPayloadWithRetorno as any)
     .select('id')
     .single();
+
+  // 2. Si falla por columnas que no existen en la tabla remota (PGRST204 o schema cache), reintentar sin ellas
+  if (
+    ventaError &&
+    (ventaError.code === 'PGRST204' ||
+      ventaError.message?.includes('retorno_frascos') ||
+      ventaError.message?.includes('schema cache') ||
+      ventaError.message?.includes('column'))
+  ) {
+    console.warn('[checkout-fulfill] Fallback insert sin columnas retorno_frascos:', ventaError.message);
+    const retry = await admin
+      .from('ventas')
+      .insert(baseVentaPayload as any)
+      .select('id')
+      .single();
+    venta = retry.data;
+    ventaError = retry.error;
+  }
 
   if (ventaError || !venta) {
     // Idempotencia segura ante carreras de webhook y redirect simultáneo
@@ -172,9 +211,18 @@ export async function fulfillCheckout(
     // evita que un reintento descuente dos veces.
     await restoreStock(
       admin,
-      cart.map((line) => ({ productId: line.productId, quantity: line.quantity })),
+      cart.map((line) => {
+        const l = line as Record<string, unknown>;
+        return {
+          productId: String(line.productId ?? l.producto_id ?? l.id ?? ''),
+          quantity: Math.max(0, Number(line.quantity ?? l.cantidad ?? 0)),
+        };
+      }),
     );
-    return { ok: false };
+    return {
+      ok: false,
+      errorMessage: `Error al registrar la venta: ${ventaError?.message || 'Fallo desconocido en base de datos'}`,
+    };
   }
 
   const ventaId = venta.id as string;
