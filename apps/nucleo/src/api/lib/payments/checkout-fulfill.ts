@@ -624,5 +624,35 @@ export async function fulfillCheckout(
     }
   }
 
+  // Notificación in-app en la campana de Núcleo para los administradores
+  try {
+    const { data: adminProfiles } = await admin
+      .from('profiles')
+      .select('id')
+      .in('role', ['admin', 'gerente']);
+
+    if (adminProfiles && adminProfiles.length > 0) {
+      const itemsSummary = enrichedCart.map((l) => `${l.quantity}x ${l.name}`).join(', ');
+      const adminNotifs = adminProfiles.map((adm) => ({
+        channel: 'in_app',
+        recipient_user_id: adm.id,
+        created_by: adm.id,
+        subject: `Nuevo pedido de Tienda — ${buyOrder}`,
+        body: `${shipping?.nombre ? `Cliente: ${shipping.nombre}. ` : ''}Total: $${serverTotal.toLocaleString('es-CL')}. Artículos: ${itemsSummary}`,
+        status: 'sent',
+        provider_response: {
+          source: 'pedidos',
+          category: 'pedidos',
+          severity: 'success',
+          entity: 'pedido',
+          href: '/pedidos',
+        },
+      }));
+      await admin.from('notification_events').insert(adminNotifs);
+    }
+  } catch (adminNotifErr) {
+    console.warn('[checkout-fulfill] admin in-app notification warning (no bloquea fulfill):', adminNotifErr);
+  }
+
   return { ok: true, ventaId, dte: dteResult };
 }

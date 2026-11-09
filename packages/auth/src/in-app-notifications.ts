@@ -48,6 +48,7 @@ export type InAppHrefContext = {
 
 const ADMIN_ONLY_HREFS = new Set([
   '/operaciones',
+  '/pedidos',
   '/contable',
   '/sii',
   '/editor-tienda',
@@ -140,7 +141,7 @@ export function resolveInAppHref(
 
   if (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'colaborador') {
     if (text.includes('pedido') || text.includes('despach') || category === 'pedidos') {
-      return '/operaciones';
+      return '/pedidos';
     }
     if (text.includes('colmena') || text.includes('floraci')) return '/colmenas';
     return '/inicio';

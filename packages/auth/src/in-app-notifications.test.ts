@@ -13,7 +13,7 @@ describe("in-app-notifications", () => {
 
   it("resolves nucleo despacho href", () => {
     expect(resolveInAppHref("Despacho en camino", "nucleo", { role: "admin" })).toBe(
-      "/operaciones",
+      "/pedidos",
     );
   });
 
