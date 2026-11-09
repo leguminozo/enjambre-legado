@@ -61,6 +61,61 @@ function parseOrderProducts(productos: unknown): Array<{
   });
 }
 
+/** Extrae y normaliza la atribución de tráfico (Instagram, Google, orgánico, embajador, pauta) */
+export function parseAtribucion(
+  shippingObj: Record<string, unknown>,
+  codigoCreador?: string | null,
+) {
+  const utm = (typeof shippingObj.utm === 'object' && shippingObj.utm !== null)
+    ? (shippingObj.utm as Record<string, unknown>)
+    : {};
+
+  const source = typeof utm.source === 'string' ? utm.source.toLowerCase().trim() : undefined;
+  const medium = typeof utm.medium === 'string' ? utm.medium.toLowerCase().trim() : undefined;
+  const campaign = typeof utm.campaign === 'string' ? utm.campaign.trim() : undefined;
+  const term = typeof utm.term === 'string' ? utm.term.trim() : undefined;
+  const content = typeof utm.content === 'string' ? utm.content.trim() : undefined;
+  const fbclid = typeof utm.fbclid === 'string' && utm.fbclid.trim() ? utm.fbclid.trim() : undefined;
+  const gclid = typeof utm.gclid === 'string' && utm.gclid.trim() ? utm.gclid.trim() : undefined;
+
+  let canal = 'Orgánico / Directo';
+  let canalKey: 'instagram' | 'facebook' | 'google' | 'whatsapp' | 'email' | 'creador' | 'organico' = 'organico';
+
+  if (codigoCreador) {
+    canal = `Embajador (@${codigoCreador})`;
+    canalKey = 'creador';
+  } else if (source?.includes('instagram') || medium?.includes('instagram') || (fbclid && !source?.includes('facebook'))) {
+    canal = 'Instagram';
+    canalKey = 'instagram';
+  } else if (source?.includes('facebook') || medium?.includes('facebook') || fbclid) {
+    canal = 'Facebook / Meta';
+    canalKey = 'facebook';
+  } else if (source?.includes('google') || medium?.includes('cpc') || gclid) {
+    canal = gclid ? 'Google Ads' : 'Google Orgánico';
+    canalKey = 'google';
+  } else if (source?.includes('whatsapp') || medium?.includes('whatsapp')) {
+    canal = 'WhatsApp';
+    canalKey = 'whatsapp';
+  } else if (source?.includes('email') || source?.includes('newsletter')) {
+    canal = 'Boletín / Correo';
+    canalKey = 'email';
+  } else if (source) {
+    canal = source.charAt(0).toUpperCase() + source.slice(1);
+  }
+
+  return {
+    canal,
+    canalKey,
+    source: source ?? null,
+    medium: medium ?? null,
+    campaign: campaign ?? null,
+    term: term ?? null,
+    content: content ?? null,
+    codigoCreador: codigoCreador ?? null,
+    esPauta: Boolean(fbclid || gclid || medium?.includes('cpc') || medium?.includes('ads')),
+  };
+}
+
 // GET / - List all orders with enriched shipping, vouchers, and pending gateway sessions
 pedidosRoutes.get('/', async (c) => {
   const admin = createAdminClient();
@@ -131,7 +186,7 @@ pedidosRoutes.get('/', async (c) => {
   // 4. Buscar checkout_sessions pendientes (ej. Flow 404 inicial o reintentos)
   const { data: rawSessions } = await admin
     .from('checkout_sessions')
-    .select('id, buy_order, session_id, provider, total, shipping, cart, status, created_at')
+    .select('id, buy_order, session_id, provider, total, shipping, cart, status, created_at, codigo_creador')
     .in('status', ['pending', 'expired'])
     .order('created_at', { ascending: false })
     .limit(30);
@@ -144,6 +199,7 @@ pedidosRoutes.get('/', async (c) => {
       const shippingObj = (typeof s.shipping === 'object' && s.shipping !== null)
         ? (s.shipping as Record<string, unknown>)
         : {};
+      const codigoCreador = (s.codigo_creador as string | undefined) ?? (shippingObj.codigoCreador as string | undefined) ?? null;
       return {
         id: s.id,
         buyOrder: s.buy_order,
@@ -162,6 +218,7 @@ pedidosRoutes.get('/', async (c) => {
           region: String(shippingObj.region ?? ''),
         },
         items: parseOrderProducts(s.cart),
+        atribucion: parseAtribucion(shippingObj, codigoCreador),
       };
     });
 
@@ -175,6 +232,7 @@ pedidosRoutes.get('/', async (c) => {
       : {};
 
     const shippingStatus = (envio?.status as string | undefined) ?? 'pendiente';
+    const codigoCreador = (direccionEnvio.codigoCreador as string | undefined) ?? null;
 
     return {
       id: v.id,
@@ -194,6 +252,7 @@ pedidosRoutes.get('/', async (c) => {
         region: String(direccionEnvio.region ?? ''),
       },
       items,
+      atribucion: parseAtribucion(direccionEnvio, codigoCreador),
       retornoFrascos: {
         declarados: Number(v.retorno_frascos_declarados ?? 0),
         estado: String(v.retorno_frascos_estado ?? 'ninguno'),
@@ -305,12 +364,20 @@ pedidosRoutes.post('/:buyOrder/conciliar', zValidator('json', ConciliarPedidoSch
       authorizationCode: authCode,
       paymentProvider: session.provider,
       session,
+      forceClaim: true,
+      allowForceStock: true, // Conciliación manual: el pago ya fue recaudado por Flow
     });
 
     if (!settleResult.ok && !settleResult.alreadyProcessed) {
+      const errorMsg =
+        settleResult.stockErrors?.join('; ') ||
+        (settleResult.processing
+          ? 'El pedido se está procesando en este momento. Espere unos segundos y reintente.'
+          : 'No se pudo liquidar el pedido. Verifique el estado en la pasarela.');
+
       return c.json({
         ok: false,
-        error: 'No se pudo liquidar el pedido. Verifique el stock o el estado de la pasarela.',
+        error: errorMsg,
         details: settleResult.stockErrors,
       }, 422);
     }

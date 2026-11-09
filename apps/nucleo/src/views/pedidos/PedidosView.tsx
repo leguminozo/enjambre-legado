@@ -23,6 +23,7 @@ import {
   Calendar,
   Send,
   SlidersHorizontal,
+  Compass,
   X,
 } from 'lucide-react';
 import {
@@ -53,6 +54,18 @@ interface PedidoItem {
   slug?: string;
 }
 
+export interface AtribucionData {
+  canal: string;
+  canalKey: 'instagram' | 'facebook' | 'google' | 'whatsapp' | 'email' | 'creador' | 'organico';
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+  term: string | null;
+  content: string | null;
+  codigoCreador: string | null;
+  esPauta: boolean;
+}
+
 interface PedidoData {
   id: string;
   buyOrder: string;
@@ -75,6 +88,7 @@ interface PedidoData {
     declarados: number;
     estado: string;
   };
+  atribucion?: AtribucionData;
   logistica: {
     envioId: string | null;
     status: 'pendiente' | 'empaquetado' | 'en_transito' | 'entregado' | 'fallido' | string;
@@ -112,6 +126,7 @@ interface PorConciliarSession {
     region: string;
   };
   items: PedidoItem[];
+  atribucion?: AtribucionData;
 }
 
 interface PedidosApiResponse {
@@ -190,8 +205,15 @@ export function PedidosView() {
         }),
       });
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Fallo en la conciliación');
+        const errJson = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          details?: string[];
+        };
+        const detailMsg =
+          errJson.details && errJson.details.length > 0
+            ? `${errJson.error ?? 'Error'}: ${errJson.details.join('; ')}`
+            : errJson.error || 'Fallo en la conciliación';
+        throw new Error(detailMsg);
       }
       return res.json();
     },
@@ -335,6 +357,57 @@ export function PedidosView() {
           </span>
         );
     }
+  };
+
+  // Formato origen y atribución (solo si proviene de un canal rastreado)
+  const renderAtribucionBadge = (atribucion?: AtribucionData) => {
+    // Si no hay atribución o es una visita directa/orgánica común, no ensuciar la tarjeta.
+    if (!atribucion || atribucion.canalKey === 'organico') return null;
+
+    const isInstagram = atribucion.canalKey === 'instagram';
+    const isMeta = atribucion.canalKey === 'facebook';
+    const isGoogle = atribucion.canalKey === 'google';
+    const isWhatsApp = atribucion.canalKey === 'whatsapp';
+    const isCreador = atribucion.canalKey === 'creador';
+    const isEmail = atribucion.canalKey === 'email';
+
+    const badgeColor = isInstagram
+      ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+      : isMeta
+      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+      : isGoogle
+      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+      : isWhatsApp
+      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+      : isCreador
+      ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+      : isEmail
+      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+      : 'bg-surface-raised text-muted-foreground border-border';
+
+    const tooltip = [
+      atribucion.canal,
+      atribucion.medium ? `Formato: ${atribucion.medium}` : null,
+      atribucion.campaign ? `Campaña: ${atribucion.campaign}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border select-none',
+          badgeColor
+        )}
+        title={tooltip}
+      >
+        <Compass className="w-2.5 h-2.5 shrink-0" />
+        <span>{atribucion.canal}</span>
+        {atribucion.medium && (
+          <span className="text-[9px] opacity-75 font-mono">({atribucion.medium})</span>
+        )}
+      </span>
+    );
   };
 
   return (
@@ -651,13 +724,14 @@ export function PedidosView() {
                     className="p-5 rounded-xl border border-rose-500/20 bg-card hover:border-rose-500/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
                   >
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-xs font-semibold text-primary">
                           {session.buyOrder}
                         </span>
                         <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
                           {session.provider.toUpperCase()} · Pago por asentar
                         </span>
+                        {renderAtribucionBadge(session.atribucion)}
                         <span className="text-xs text-muted-foreground">
                           {formatDate(session.createdAt)}
                         </span>
@@ -741,6 +815,7 @@ export function PedidosView() {
                           {pedido.buyOrder}
                         </span>
                         {renderStatusBadge(pedido.logistica.status)}
+                        {renderAtribucionBadge(pedido.atribucion)}
                         <span className="text-[11px] text-muted-foreground">
                           {formatDate(pedido.createdAt)}
                         </span>
@@ -1196,9 +1271,14 @@ export function PedidosView() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
-                Al conciliar, el sistema registrará la venta, descontará el stock en inventario,
-                generará la comanda de taller y dejará el comprobante electrónico validado según Res. Ex. SII 176/2020.
+              <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 space-y-1.5">
+                <div className="font-semibold flex items-center gap-1.5 text-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>Sin duplicidad tributaria (Res. Ex. SII Nº 176/2020)</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-emerald-200/90">
+                  <strong>NO se emitirá una nueva boleta ante el SII.</strong> El comprobante electrónico emitido por Flow (Nº 187796493) actúa por ley como la boleta de ventas válida. Al conciliar, el sistema registrará la venta en ingresos, descontará el stock y creará la comanda de taller para empaque y despacho.
+                </p>
               </div>
             </div>
 

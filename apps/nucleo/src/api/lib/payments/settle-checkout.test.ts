@@ -57,19 +57,21 @@ function buildAdmin(state: State) {
                 },
               };
             }
+            const selectTerminal = () => ({
+              maybeSingle: async () => {
+                state.claims += 1;
+                if (state.claimError) return { data: null, error: { message: state.claimError } };
+                if (!state.claim) return { data: null, error: null };
+                state.claim = false;
+                return { data: { id: 'sess-1' }, error: null };
+              },
+            });
             return {
               eq: () => ({
                 or: () => ({
-                  select: () => ({
-                    maybeSingle: async () => {
-                      state.claims += 1;
-                      if (state.claimError) return { data: null, error: { message: state.claimError } };
-                      if (!state.claim) return { data: null, error: null };
-                      state.claim = false;
-                      return { data: { id: 'sess-1' }, error: null };
-                    },
-                  }),
+                  select: selectTerminal,
                 }),
+                select: selectTerminal,
               }),
             };
           },
@@ -236,5 +238,31 @@ describe('settleCheckout', () => {
 
     expect(result).toMatchObject({ ok: false, stockErrors: ['sin stock'] });
     expect(state.releases).toBe(1);
+  });
+
+  it('forceClaim y allowForceStock se propagan para conciliación manual de pagos confirmados', async () => {
+    const state: State = { ventaId: null, ventaReads: 0, claim: true, claimError: null, claims: 0, releases: 0 };
+    const admin = buildAdmin(state);
+    const session = makeSession();
+    mocks.fulfill.mockResolvedValue({ ok: true, ventaId: 'v-manual-reconciled' });
+
+    const result = await settleCheckout(admin as never, {
+      buyOrder: 'ORD-1',
+      authorizationCode: 'AUTH_FLOW',
+      session,
+      forceClaim: true,
+      allowForceStock: true,
+    });
+
+    expect(result).toMatchObject({ ok: true, ventaId: 'v-manual-reconciled' });
+    expect(mocks.fulfill).toHaveBeenCalledWith(
+      admin,
+      expect.objectContaining({
+        buyOrder: 'ORD-1',
+        session,
+        authorizationCode: 'AUTH_FLOW',
+        allowForceStock: true,
+      }),
+    );
   });
 });

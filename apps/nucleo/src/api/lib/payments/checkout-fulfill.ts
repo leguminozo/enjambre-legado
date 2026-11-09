@@ -23,6 +23,7 @@ export interface FulfillCheckoutInput {
   session: CheckoutSession;
   authorizationCode: string;
   paymentProvider: string;
+  allowForceStock?: boolean;
 }
 
 export interface FulfillCheckoutResult {
@@ -102,6 +103,7 @@ export async function fulfillCheckout(
       quantity: line.quantity,
       name: line.name,
     })),
+    input.allowForceStock,
   );
 
   if (!stockResult.ok) {

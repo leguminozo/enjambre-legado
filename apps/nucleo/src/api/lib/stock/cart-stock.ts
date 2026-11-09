@@ -133,10 +133,13 @@ export async function validateCartStock(
 export async function decrementCartStock<T extends StockLine>(
   admin: SupabaseClient,
   lines: T[],
+  allowForce = false,
 ): Promise<StockDecrementResult<T>> {
-  const validationErrors = await validateCartStock(admin, lines);
-  if (validationErrors.length > 0) {
-    return { ok: false, errors: validationErrors, enrichedLines: [] };
+  if (!allowForce) {
+    const validationErrors = await validateCartStock(admin, lines);
+    if (validationErrors.length > 0) {
+      return { ok: false, errors: validationErrors, enrichedLines: [] };
+    }
   }
 
   const decremented: DecrementedEntry[] = [];
@@ -147,6 +150,30 @@ export async function decrementCartStock<T extends StockLine>(
     const qty = Math.max(0, Number(line.quantity || 0));
     if (!qty) {
       enrichedLines.push({ ...line });
+      continue;
+    }
+
+    if (allowForce) {
+      // Conciliación de pedido ya pagado en pasarela: decrement_stock_force
+      // descuenta stock atómicamente incluso a negativo si el taller debe envasar.
+      const { data: forcedRows, error: forcedErr } = await admin.rpc('decrement_stock_force', {
+        p_id: line.productId,
+        p_qty: qty,
+      });
+
+      if (forcedErr) {
+        console.warn('[cart-stock] decrement_stock_force advertencia:', forcedErr.message);
+      }
+
+      const forceData = forcedRows as Array<{
+        lote_id?: string | null;
+      }> | null;
+
+      enrichedLines.push({
+        ...line,
+        traceability_hash: null,
+        lote_id: forceData?.[0]?.lote_id ?? null,
+      });
       continue;
     }
 

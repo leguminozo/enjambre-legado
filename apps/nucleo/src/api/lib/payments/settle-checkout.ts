@@ -11,6 +11,8 @@ export interface SettleCheckoutInput {
   authorizationCode: string;
   paymentProvider?: string;
   session?: CheckoutSession;
+  forceClaim?: boolean;
+  allowForceStock?: boolean;
 }
 
 export interface SettleCheckoutResult extends FulfillCheckoutResult {
@@ -50,13 +52,18 @@ async function healAlreadyProcessed(admin: SupabaseClient, buyOrder: string): Pr
   }
 }
 
-async function claimFulfillment(admin: SupabaseClient, buyOrder: string): Promise<boolean> {
+async function claimFulfillment(admin: SupabaseClient, buyOrder: string, force = false): Promise<boolean> {
   const staleBefore = new Date(Date.now() - CLAIM_STALE_MS).toISOString();
-  const { data, error } = await admin
+  let query = admin
     .from('checkout_sessions')
     .update({ fulfillment_started_at: new Date().toISOString() })
-    .eq('buy_order', buyOrder)
-    .or(`fulfillment_started_at.is.null,fulfillment_started_at.lt.${staleBefore}`)
+    .eq('buy_order', buyOrder);
+
+  if (!force) {
+    query = query.or(`fulfillment_started_at.is.null,fulfillment_started_at.lt.${staleBefore}`);
+  }
+
+  const { data, error } = await query
     .select('id')
     .maybeSingle();
 
@@ -116,7 +123,7 @@ export async function settleCheckout(
 
   let claimed: boolean;
   try {
-    claimed = await claimFulfillment(admin, buyOrder);
+    claimed = await claimFulfillment(admin, buyOrder, input.forceClaim);
   } catch (err) {
     console.error('[settle-checkout] claim failed:', err);
     const lateVentaId = await findVentaId(admin, buyOrder);
@@ -140,6 +147,7 @@ export async function settleCheckout(
       session,
       authorizationCode,
       paymentProvider: input.paymentProvider ?? session.provider,
+      allowForceStock: input.allowForceStock,
     });
     if (result.ok && result.alreadyProcessed) {
       await healAlreadyProcessed(admin, buyOrder);
