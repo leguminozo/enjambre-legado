@@ -828,6 +828,7 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       session,
       authorizationCode: result.authorizationCode,
       paymentProvider: provider.name,
+      allowForceStock: true, // Pago autorizado en pasarela: asentar la venta siempre
     });
 
     if (settled.notFound) {
@@ -958,6 +959,7 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
       session,
       authorizationCode: result.authorizationCode,
       paymentProvider: 'flow',
+      allowForceStock: true, // Pago autorizado en pasarela: asentar la venta siempre
     });
 
     if (settled.notFound) {
