@@ -15,7 +15,6 @@ import {
   getTerritorialHomeTools,
   getTerritorialPrimaryHref,
   isAgriRol,
-  isComercialRol,
   isPredioRol,
   isTecnicoRol,
   resolveTerritorialMenuFamily,
@@ -174,7 +173,6 @@ export function InicioTerritorialView() {
   const isAgri = isAgriRol(effectiveRol);
   const isPredio = isPredioRol(effectiveRol);
   const isTecnico = isTecnicoRol(effectiveRol);
-  const isComercial = isComercialRol(effectiveRol);
 
   const orientativeTip = editorial.quote?.quote || '';
   const territoryLocation = resumen?.actor
@@ -242,9 +240,7 @@ export function InicioTerritorialView() {
                       ? 'Aún no has configurado tu perfil de propietario'
                       : isTecnico
                         ? 'Aún no has validado tu ficha técnica'
-                        : isComercial
-                          ? 'Aún no has configurado tu perfil de acopio'
-                          : 'Aún no estás en el Registro Territorial'}
+                        : 'Aún no estás en el Registro Territorial'}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {adoptFailed
@@ -257,9 +253,7 @@ export function InicioTerritorialView() {
                       ? 'Inscríbete para registrar tus predios y acoger apiarios.'
                       : isTecnico
                         ? 'Inscríbete para acceder al censo comunal y al monitoreo sanitario.'
-                        : isComercial
-                          ? 'Inscríbete para conectar con apicultores y planificar acopio.'
-                          : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
+                        : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

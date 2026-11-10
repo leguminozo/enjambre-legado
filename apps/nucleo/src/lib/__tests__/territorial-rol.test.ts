@@ -10,7 +10,6 @@ import {
   getTerritorialTerritoryTabs,
   getTerritorialVisibleKeys,
   isAgriRol,
-  isComercialRol,
   isPredioRol,
   isTecnicoRol,
   isTerritorialRol,
@@ -108,10 +107,6 @@ describe('territorial-rol · tres ejes', () => {
     expect(getTerritorialVisibleKeys('tecnico_inspector')).toContain('declaracion-sag');
     expect(getTerritorialVisibleKeys('tecnico_inspector')).not.toContain('colmenas');
 
-    const comercial = getTerritorialVisibleKeys('comercial_acopio');
-    expect(comercial).toContain('mapa-red');
-    expect(comercial).toContain('alertas-red');
-
     expect(getTerritorialBottomNavKeys('agri_fitosanitario')).toEqual([
       'inicio',
       'alertas-red',
@@ -173,7 +168,7 @@ describe('territorial-rol · tres ejes', () => {
     expect(getTerritorialPrimaryHref('institucion_publica')).toBe('/registro-territorial');
   });
 
-  it('detectores de sub-rol (agri/predio/tecnico/comercial) son precisos', () => {
+  it('detectores de sub-rol (agri/predio/tecnico) son precisos', () => {
     expect(isAgriRol('agri_fitosanitario')).toBe(true);
     expect(isAgriRol('agri_aplicador')).toBe(true);
     expect(isAgriRol('api_residente')).toBe(false);
@@ -181,8 +176,6 @@ describe('territorial-rol · tres ejes', () => {
     expect(isPredioRol('api_mixto')).toBe(false);
     expect(isTecnicoRol('tecnico_inspector')).toBe(true);
     expect(isTecnicoRol('api_residente')).toBe(false);
-    expect(isComercialRol('comercial_acopio')).toBe(true);
-    expect(isComercialRol('api_trashumante')).toBe(false);
   });
 
   it('home tools por sub-rol 2b: cada actor ve sus herramientas propias', () => {
@@ -195,33 +188,27 @@ describe('territorial-rol · tres ejes', () => {
 
     const tecnico = getTerritorialHomeTools('tecnico_inspector');
     expect(tecnico[0]).toMatchObject({ href: '/registro-territorial', primary: true });
-
-    const comercial = getTerritorialHomeTools('comercial_acopio');
-    expect(comercial[0]).toMatchObject({ href: '/territorio', primary: true });
   });
 
   it('home copy y destino primario por sub-rol 2b', () => {
     expect(getTerritorialHomeCopy('agri_fitosanitario').eyebrow).toContain('agricultura');
     expect(getTerritorialHomeCopy('prop_facilitador').eyebrow).toContain('predios');
     expect(getTerritorialHomeCopy('tecnico_inspector').eyebrow).toContain('sanidad');
-    expect(getTerritorialHomeCopy('comercial_acopio').eyebrow).toContain('acopio');
 
     expect(getTerritorialPrimaryHref('agri_fitosanitario')).toBe('/territorio/alertas');
     expect(getTerritorialPrimaryHref('agri_aplicador')).toBe('/territorio/alertas');
     expect(getTerritorialPrimaryHref('prop_facilitador')).toBe('/registro-territorial');
     expect(getTerritorialPrimaryHref('tecnico_inspector')).toBe('/registro-territorial');
-    expect(getTerritorialPrimaryHref('comercial_acopio')).toBe('/territorio');
   });
 
   it('familias de menú 2b resuelven sin herencia apícola', () => {
     expect(resolveTerritorialMenuFamily('agri_fitosanitario')).toBe('agri');
     expect(resolveTerritorialMenuFamily('agri_aplicador')).toBe('agri');
     expect(resolveTerritorialMenuFamily('prop_facilitador')).toBe('predio');
-    expect(resolveTerritorialMenuFamily('comercial_acopio')).toBe('comercial');
     expect(resolveTerritorialMenuFamily('tecnico_inspector')).toBe('tecnico');
   });
 
-  it('visible keys por familia: agri/predio/comercial NO ven colmenas ni cuaderno', () => {
+  it('visible keys por familia: agri/predio NO ven colmenas ni cuaderno', () => {
     const agri = getTerritorialVisibleKeys('agri_fitosanitario');
     expect(agri).toContain('alertas-red');
     expect(agri).not.toContain('colmenas');
@@ -230,10 +217,6 @@ describe('territorial-rol · tres ejes', () => {
     const predio = getTerritorialVisibleKeys('prop_facilitador');
     expect(predio).toContain('registro-comunal');
     expect(predio).not.toContain('colmenas');
-
-    const comercial = getTerritorialVisibleKeys('comercial_acopio');
-    expect(comercial).toContain('mapa-red');
-    expect(comercial).not.toContain('colmenas');
 
     const tecnico = getTerritorialVisibleKeys('tecnico_inspector');
     expect(tecnico).toEqual([
@@ -260,11 +243,6 @@ describe('territorial-rol · tres ejes', () => {
       'inicio',
       'registro-comunal',
       'territorio',
-    ]);
-    expect(getTerritorialBottomNavKeys('comercial_acopio')).toEqual([
-      'inicio',
-      'mapa-red',
-      'alertas-red',
     ]);
   });
 
@@ -308,7 +286,7 @@ describe('territorial-rol · tres ejes', () => {
 
   it('opciones públicas de registro: todos los sub-roles salvo institucion_publica', () => {
     const values = TERRITORIAL_ROL_OPTIONS.map((o) => o.value);
-    expect(values).toContain('comercial_acopio');
+    expect(values).not.toContain('comercial_acopio');
     expect(values).toContain('api_residente');
     expect(values).toContain('api_trashumante');
     expect(values).toContain('api_mixto');

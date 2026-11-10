@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Map, Plus, MapPin, Tent, Lock, Warehouse, CheckCircle2, LogOut } from 'lucide-react';
+import { Map, Plus, MapPin, Tent, Lock, LogOut, CheckCircle2, Warehouse } from 'lucide-react';
 import { Button, Badge, Skeleton, SkeletonCard, toast } from '@enjambre/ui';
 import { CENSO_WRITE_LOCK_MESSAGE } from '@/lib/territorial-rol';
 import { PredioForm } from './PredioForm';
@@ -44,14 +44,6 @@ interface ApiarioExterno {
   distancia_km_menor?: number | null;
 }
 
-interface AcopioDeclaracion {
-  id: string;
-  temporada: string;
-  volumen_kg: number;
-  zona?: string | null;
-  estado: string;
-}
-
 export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: TerritorioUsuarioPanelProps) {
   const apiFetch = useApiFetch();
   const [actor, setActor] = useState<ActorRegistro | null>(null);
@@ -61,12 +53,6 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
 
   const [showPredioForm, setShowPredioForm] = useState(false);
   const [showApiarioForm, setShowApiarioForm] = useState(false);
-  const [showAcopioForm, setShowAcopioForm] = useState(false);
-  const [acopios, setAcopios] = useState<AcopioDeclaracion[]>([]);
-  const [acopioTemporada, setAcopioTemporada] = useState('');
-  const [acopioVolumen, setAcopioVolumen] = useState('');
-  const [acopioZona, setAcopioZona] = useState('');
-  const [savingAcopio, setSavingAcopio] = useState(false);
 
   // Gap 1B: llegada desde /colmenas con "Declarar salida trashumante".
   const [pendingApiarioId, setPendingApiarioId] = useState<string | null>(() => {
@@ -131,57 +117,6 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
     }
   };
 
-  const guardarAcopio = async () => {
-    if (!acopioTemporada.trim() || !acopioVolumen || Number(acopioVolumen) < 0) {
-      toast.error('Indica temporada y volumen estimado (kg)');
-      return;
-    }
-    setSavingAcopio(true);
-    try {
-      const res = await apiFetch('/api/registro-territorial/acopio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          temporada: acopioTemporada.trim(),
-          volumen_kg: Number(acopioVolumen),
-          zona: acopioZona.trim() || null,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error || 'Error al declarar acopio');
-      }
-      toast.success('Intención de acopio declarada');
-      setShowAcopioForm(false);
-      setAcopioTemporada('');
-      setAcopioVolumen('');
-      setAcopioZona('');
-      loadData();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Error al declarar acopio');
-    } finally {
-      setSavingAcopio(false);
-    }
-  };
-
-  const cambiarEstadoAcopio = async (id: string, estado: 'confirmada' | 'cancelada') => {
-    try {
-      const res = await apiFetch(`/api/registro-territorial/acopio/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error || 'Error al actualizar acopio');
-      }
-      toast.success(estado === 'confirmada' ? 'Intención confirmada' : 'Intención cancelada');
-      loadData();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Error al actualizar acopio');
-    }
-  };
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -205,13 +140,6 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           if (resApiarios.ok) {
             const a = await resApiarios.json();
             setApiarios(a.data || []);
-          }
-
-          // 4. Fetch Acopio
-          const resAcopio = await apiFetch('/api/registro-territorial/acopio');
-          if (resAcopio.ok) {
-            const ac = await resAcopio.json();
-            setAcopios(ac.data || []);
           }
         }
       }
@@ -404,58 +332,6 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
         )}
       </div>
 
-      {/* Mis Intenciones de Acopio (comercial_acopio y demás actores) */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 text-accent">
-            <Warehouse size={18} />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-              Intenciones de acopio
-            </h3>
-          </div>
-          <Button
-            onClick={() => (inscripcionCompleta ? setShowAcopioForm(true) : bloquearPorCenso())}
-            size="sm"
-            variant="outline"
-            className="w-full sm:w-auto shrink-0 h-9 rounded-xl text-xs font-medium border-border/80"
-          >
-            <Plus size={15} className="mr-1.5" /> Declarar intención
-          </Button>
-        </div>
-
-        {acopios.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border/50 rounded-xl">
-            Aún no has declarado intención de acopio para esta temporada.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {acopios.map((ac) => (
-              <div key={ac.id} className="p-4 bg-secondary/30 border border-border/50 rounded-xl space-y-2">
-                <div className="flex justify-between items-start">
-                  <p className="font-semibold text-foreground text-sm">{ac.temporada}</p>
-                  <Badge variant={ac.estado === 'confirmada' ? 'success' : ac.estado === 'cancelada' ? 'destructive' : 'warning'}>
-                    {ac.estado}
-                  </Badge>
-                </div>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>⚖️ {ac.volumen_kg} kg estimados</p>
-                  {ac.zona && <p>📍 {ac.zona}</p>}
-                </div>
-                {ac.estado === 'propuesta' && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => void cambiarEstadoAcopio(ac.id, 'confirmada')}
-                  >
-                    <CheckCircle2 size={13} className="mr-1" /> Confirmar
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {showPredioForm && (
         <PredioForm
           actores={[]} // Not needed when fixedActorId is provided
@@ -482,35 +358,6 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
             loadData();
           }}
         />
-      )}
-
-      {showAcopioForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto overscroll-contain" onClick={() => setShowAcopioForm(false)}>
-          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[calc(100%-2rem)] overflow-y-auto my-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Declarar intención de acopio</h3>
-              <button className="text-muted-foreground hover:text-foreground p-1" aria-label="Cerrar" onClick={() => setShowAcopioForm(false)}>✕</button>
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Temporada</label>
-              <input className="input-field w-full" placeholder="Ej: 2026-2027" value={acopioTemporada} onChange={(e) => setAcopioTemporada(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Volumen estimado (kg)</label>
-              <input className="input-field w-full" type="number" min="0" placeholder="Ej: 1200" value={acopioVolumen} onChange={(e) => setAcopioVolumen(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Zona (opcional)</label>
-              <input className="input-field w-full" placeholder="Ej: Queilén, Chiloé" value={acopioZona} onChange={(e) => setAcopioZona(e.target.value)} />
-            </div>
-            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 w-full">
-              <Button size="sm" variant="ghost" className="w-full sm:w-auto" onClick={() => setShowAcopioForm(false)}>Cancelar</Button>
-              <Button size="sm" className="w-full sm:w-auto" disabled={savingAcopio} onClick={() => void guardarAcopio()}>
-                {savingAcopio ? 'Guardando…' : 'Declarar'}
-              </Button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

@@ -1,6 +1,5 @@
 import {
   isAgriRol,
-  isComercialRol,
   isPredioRol,
   isTecnicoRol,
   resolveTerritorialMenuFamily,
@@ -49,8 +48,6 @@ export function resolveTerritorialWriteGate(
     // Técnicos/inspectores: su monitoreo sanitario se traduce en emitir
     // alertas de brotes detectados en terreno (auditoría 2026-08-23).
     if (pathname.endsWith('/alertas') && isTecnicoRol(rol)) return { allow: true };
-    // Comercializadores: declarar intención de acopio por temporada.
-    if (pathname.endsWith('/acopio') && isComercialRol(rol)) return { allow: true };
     // Recalcular credencial propia: cualquiera con censo completo.
     if (pathname.endsWith('/recalcular-credencial')) return { allow: true };
     // Registrar presentación SAG: el PDF se vuelve trazable.

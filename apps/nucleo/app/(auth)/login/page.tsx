@@ -826,7 +826,7 @@ function LoginContent() {
                         onChange={(e) => setRol(e.target.value)}
                         className={`${fieldClass} appearance-none`}
                       >
-                        {/* Canon: TERRITORIAL_ROL_OPTIONS (sin comercial_acopio).
+                        {/* Canon: TERRITORIAL_ROL_OPTIONS.
                             institucion_publica se mantiene como entrada con validación posterior. */}
                         {TERRITORIAL_ROL_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>

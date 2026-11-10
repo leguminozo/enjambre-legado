@@ -23,7 +23,6 @@ import { CredencialTerritorialModal } from '@/components/apicultor/CredencialTer
 import {
   getTerritorialCredential,
   isAgriRol,
-  isComercialRol,
   isPredioRol,
   isTecnicoRol,
   territorialRolLabel,
@@ -171,7 +170,6 @@ export function TerritorioHomeView() {
   const isAgri = isAgriRol(effectiveRol);
   const isPredio = isPredioRol(effectiveRol);
   const isTecnico = isTecnicoRol(effectiveRol);
-  const isComercial = isComercialRol(effectiveRol);
   const canEmit = isAgri || isAdmin;
 
   const actores = actoresData?.data ?? [];
@@ -333,11 +331,9 @@ export function TerritorioHomeView() {
                         ? 'Registra tu predio'
                         : isTecnico
                           ? 'Valida tu ficha técnica'
-                          : isComercial
-                            ? 'Configura tu perfil de acopio'
-                            : family === 'institucion'
-                              ? 'Valida tu ficha municipal'
-                              : 'Inscríbete en el Registro Territorial'}
+                          : family === 'institucion'
+                            ? 'Valida tu ficha municipal'
+                            : 'Inscríbete en el Registro Territorial'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                     {isAgri
@@ -346,11 +342,9 @@ export function TerritorioHomeView() {
                         ? 'Tu cuenta está activa. Inscribe tu predio para poder recibir colmenas y coordinar con apicultores locales.'
                         : isTecnico
                           ? 'Tu cuenta está activa. Valida tus datos para acceder al censo comunal y al monitoreo sanitario.'
-                          : isComercial
-                            ? 'Tu cuenta está activa. Completa tus datos de acopio para conectar con la red de apicultores.'
-                            : family === 'institucion'
-                              ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
-                              : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa tu inscripción inicial.'}
+                          : family === 'institucion'
+                            ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
+                            : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa tu inscripción inicial.'}
                   </p>
                 </div>
               </div>

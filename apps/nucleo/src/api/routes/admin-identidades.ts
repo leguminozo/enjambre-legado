@@ -22,7 +22,6 @@ const RolTerritorialSchema = z.enum([
   "prop_facilitador",
   "agri_fitosanitario",
   "agri_aplicador",
-  "comercial_acopio",
   "tecnico_inspector",
   "institucion_publica",
 ]);

@@ -108,7 +108,6 @@ const RolSchema = z.enum([
   "prop_facilitador",
   "agri_fitosanitario",
   "agri_aplicador",
-  "comercial_acopio",
   "tecnico_inspector",
   "institucion_publica",
 ]);
@@ -2342,7 +2341,7 @@ registroTerritorialRoutes.patch(
 );
 
 // ---------------------------------------------------------------------------
-// ACOPIO (comercial_acopio) — declaración de intención por temporada
+// ACOPIO (DEPRECADO) — sub-rol comercial_acopio erradicado del ecosistema territorial
 // ---------------------------------------------------------------------------
 
 const AcopioSchema = z.object({

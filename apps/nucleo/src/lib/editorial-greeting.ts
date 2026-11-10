@@ -494,16 +494,6 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
       context: 'Rol · Institución Pública',
     },
   ],
-  comercial_acopio: [
-    {
-      quote: 'Origen y pureza: visibilizar la miel trazable de Chiloé honra el trabajo de cada apicultor.',
-      context: 'Rol · Acopio y Comercialización',
-    },
-    {
-      quote: 'Autenticidad botánica: certificar la miel monofloral de bosque valdiviano proyecta Chiloé al mundo.',
-      context: 'Rol · Acopio y Comercialización',
-    },
-  ],
   apicultor: [
     {
       quote: 'El cuaderno de campo y la bitácora registran la memoria viva de tu patio apícola.',

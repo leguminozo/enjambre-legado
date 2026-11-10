@@ -51,12 +51,9 @@ describe('territorial-write-gate · oleada 2a + carve-outs 2b', () => {
     expect(resolveTerritorialWriteGate('POST', `${BASE}/apiarios-externos`, rol).allow).toBe(false);
   });
 
-  it('carve-outs tecnico_inspector (alertas sanitarias) y comercial_acopio (acopio)', () => {
+  it('carve-out tecnico_inspector (alertas sanitarias)', () => {
     expect(resolveTerritorialWriteGate('POST', `${BASE}/alertas`, 'tecnico_inspector').allow).toBe(true);
     expect(resolveTerritorialWriteGate('POST', `${BASE}/predios`, 'tecnico_inspector').allow).toBe(false);
-    expect(resolveTerritorialWriteGate('POST', `${BASE}/acopio`, 'comercial_acopio').allow).toBe(true);
-    expect(resolveTerritorialWriteGate('POST', `${BASE}/alertas`, 'comercial_acopio').allow).toBe(false);
-    expect(resolveTerritorialWriteGate('POST', `${BASE}/predios`, 'comercial_acopio').allow).toBe(false);
   });
 
   it('confirmar alerta: acuse abierto a todo actor inscrito (ownership en la ruta)', () => {

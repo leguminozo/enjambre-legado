@@ -25,7 +25,6 @@ export const TERRITORIAL_ROLES = [
   'prop_facilitador',
   'agri_fitosanitario',
   'agri_aplicador',
-  'comercial_acopio',
   'tecnico_inspector',
   'institucion_publica',
 ] as const;
@@ -42,7 +41,6 @@ export type TerritorialMenuFamily =
   | 'tecnico'
   | 'agri'
   | 'predio'
-  | 'comercial'
   | 'minimo';
 
 export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
@@ -54,7 +52,6 @@ export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
   prop_facilitador: 'Propietario/a facilitador de terreno',
   institucion_publica: 'Funcionario/a municipal / SAG / INDAP',
   tecnico_inspector: 'Técnico / Inspector / Investigador',
-  comercial_acopio: 'Comercializador / Sala de extracción',
 };
 
 export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; label: string }> =
@@ -94,11 +91,6 @@ export function isTecnicoRol(rol: string | null | undefined): boolean {
   return rol === 'tecnico_inspector';
 }
 
-/** Comercializadores y salas de extracción: acopio de la red. */
-export function isComercialRol(rol: string | null | undefined): boolean {
-  return rol === 'comercial_acopio';
-}
-
 /**
  * Resuelve la familia de menú (oleada 2a).
  * - api_* → red apícola (registro propio, planes, fenología)
@@ -114,7 +106,6 @@ export function resolveTerritorialMenuFamily(
   if (isTecnicoRol(rol)) return 'tecnico';
   if (isAgriRol(rol)) return 'agri';
   if (isPredioRol(rol)) return 'predio';
-  if (isComercialRol(rol)) return 'comercial';
   return 'minimo';
 }
 
@@ -139,16 +130,6 @@ export const TERRITORIAL_PREDIO_VISIBLE_KEYS = [
   'registro-comunal',
   'mapa-red',
   'alertas-red',
-  'fenologia',
-] as const;
-
-export const TERRITORIAL_COMERCIAL_VISIBLE_KEYS = [
-  'inicio',
-  'registro-comunal',
-  'declaracion-sag',
-  'mapa-red',
-  'alertas-red',
-  'territorio',
   'fenologia',
 ] as const;
 
@@ -244,7 +225,6 @@ export const TERRITORIAL_FAMILY_VISIBLE_KEYS: Record<
   ],
   agri: TERRITORIAL_AGRI_VISIBLE_KEYS,
   predio: TERRITORIAL_PREDIO_VISIBLE_KEYS,
-  comercial: TERRITORIAL_COMERCIAL_VISIBLE_KEYS,
   /** Sin sub-rol (fallback): home + entrada al registro. */
   minimo: ['inicio', 'territorio', 'colmenas', 'cuaderno-campo'],
 };
@@ -268,7 +248,6 @@ export function getTerritorialBottomNavKeys(
   if (family === 'tecnico') return ['inicio', 'declaracion-sag', 'registro-comunal', 'alertas-red'];
   if (family === 'agri') return ['inicio', 'alertas-red', 'territorio'];
   if (family === 'predio') return ['inicio', 'registro-comunal', 'territorio'];
-  if (family === 'comercial') return ['inicio', 'mapa-red', 'alertas-red'];
   // minimo (sin sub-rol): navegación mínima.
   return ['inicio', 'territorio'];
 }
@@ -481,43 +460,6 @@ export function getTerritorialHomeTools(
     ];
   }
 
-  // Comercializadores / salas de extracción: acopio de la red.
-  if (isComercialRol(rol)) {
-    return [
-      {
-        href: '/territorio',
-        title: 'Tu perfil de acopio',
-        desc: 'Inscripción y datos de tu sala de extracción.',
-        primary: true,
-      },
-      {
-        href: '/registro-territorial',
-        title: 'Censo y oferta apícola',
-        desc: 'Directorio de apicultores y oferta de miel de la comuna.',
-      },
-      {
-        href: '/declaracion-sag',
-        title: 'Verificación sanitaria SAG',
-        desc: 'Verificación de RUP y estado sanitario de apicultores.',
-      },
-      {
-        href: '/territorio/mapa',
-        title: 'Mapa de la red',
-        desc: 'Apicultores y centros de acopio cercanos.',
-      },
-      {
-        href: '/territorio/alertas',
-        title: 'Alertas fitosanitarias',
-        desc: 'Avisos que afectan la miel que acopias.',
-      },
-      {
-        href: '/fenologia',
-        title: 'Oráculo fenológico',
-        desc: 'Ventanas de floración para planificar acopio.',
-      },
-    ];
-  }
-
   if (family === 'institucion') {
     return [
       {
@@ -642,12 +584,6 @@ export function getTerritorialHomeCopy(rol: string | null | undefined): {
     return {
       eyebrow: 'Red territorial · sanidad',
       subtitleFallback: 'Monitorea el censo comunal y la sanidad apícola del territorio.',
-    };
-  }
-  if (isComercialRol(rol)) {
-    return {
-      eyebrow: 'Red territorial · acopio',
-      subtitleFallback: 'Conecta con apicultores y planifica el acopio de miel.',
     };
   }
   if (rol === 'api_residente') {
