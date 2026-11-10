@@ -7,6 +7,7 @@ import {
   DayTimeline,
   EventEditorSheet,
   useCalendarioSync,
+  eventTypeConfig,
   type CalendarioEvent,
   type CalendarioEventType,
   type CreateCalendarioEventInput,
@@ -74,13 +75,22 @@ export default function CalendarioPage() {
     return new Date();
   }, [searchParams]);
 
+  const initialSelectedDate = React.useMemo(() => {
+    const d = searchParams.get('date');
+    if (d) {
+      const parsed = parseISO(d);
+      if (isValid(parsed)) return parsed;
+    }
+    return null;
+  }, [searchParams]);
+
   const typeFilter = React.useMemo(
     () => parseType(searchParams.get('type')),
     [searchParams],
   );
 
   const [currentDate, setCurrentDate] = React.useState(initialDate);
-  const [selectedDate, setSelectedDate] = React.useState<Date | null>(initialDate);
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(initialSelectedDate);
   const [viewMode, setViewMode] = React.useState<'agenda' | 'ciclo'>('agenda');
 
   React.useEffect(() => {
@@ -292,41 +302,125 @@ export default function CalendarioPage() {
       {viewMode === 'ciclo' ? (
         <CalendarioCiclico />
       ) : (
-        <div className="min-w-0">
-          {isLoading && events.length === 0 ? (
-            <CalendarioSkeleton />
-          ) : (
-            <Calendario
-              events={events}
-              currentDate={currentDate}
-              selectedDate={selectedDate}
-              userRole={userRole}
-              onMonthChange={setCurrentDate}
-              onSelectedDateChange={(d) => {
-                setSelectedDate(d);
-                pushQuery({ date: d });
-              }}
-              isLoading={isLoading}
-              onEventClick={openEdit}
-              onCreateEvent={openCreate}
-              onOpenTool={(href) => router.push(href)}
-              activeTypeFilter={typeFilter}
-              dayPanel={
-                selectedDate ? (
-                  <DayTimeline
-                    date={selectedDate}
-                    events={events}
-                    onEventClick={openEdit}
-                    onCreateAt={openCreate}
-                    onClose={() => {
-                      setSelectedDate(null);
-                      pushQuery({ date: null });
-                    }}
-                  />
-                ) : null
-              }
-            />
-          )}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px] items-start">
+          <div className="min-w-0">
+            {isLoading && events.length === 0 ? (
+              <CalendarioSkeleton />
+            ) : (
+              <Calendario
+                events={events}
+                currentDate={currentDate}
+                selectedDate={selectedDate}
+                userRole={userRole}
+                onMonthChange={setCurrentDate}
+                onSelectedDateChange={(d) => {
+                  setSelectedDate(d);
+                  pushQuery({ date: d });
+                }}
+                isLoading={isLoading}
+                onEventClick={openEdit}
+                onCreateEvent={openCreate}
+                onOpenTool={(href) => router.push(href)}
+                activeTypeFilter={typeFilter}
+                onTypeFilterChange={(type) => pushQuery({ type })}
+                hideLegend={true}
+                dayPanel={
+                  selectedDate ? (
+                    <DayTimeline
+                      date={selectedDate}
+                      events={events}
+                      onEventClick={openEdit}
+                      onCreateAt={openCreate}
+                      onClose={() => {
+                        setSelectedDate(null);
+                        pushQuery({ date: null });
+                      }}
+                    />
+                  ) : null
+                }
+              />
+            )}
+          </div>
+
+          {/* ── Panel lateral de Simbología ── */}
+          <aside className="rounded-2xl border border-border/80 bg-card/60 p-4 shadow-sm backdrop-blur-xs flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+              <h3 className="font-display text-sm font-bold tracking-wide uppercase text-foreground">
+                Simbología
+              </h3>
+              {typeFilter && (
+                <button
+                  type="button"
+                  onClick={() => pushQuery({ type: null })}
+                  className="text-[10px] uppercase font-semibold text-accent hover:underline"
+                >
+                  Limpiar filtro
+                </button>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Haz clic en cualquier categoría para filtrar los eventos del calendario.
+            </p>
+            <div className="flex flex-col gap-1.5 mt-1">
+              {(
+                (isTerritorial
+                  ? [
+                      'apicultura',
+                      'inspeccion',
+                      'cosecha',
+                      'tratamiento',
+                      'transhumancia',
+                      'reunion',
+                      'personal',
+                      'otro',
+                    ]
+                  : [
+                      'apicultura',
+                      'inspeccion',
+                      'cosecha',
+                      'tratamiento',
+                      'transhumancia',
+                      'reunion',
+                      'personal',
+                      'feria',
+                      'marketing',
+                      'logistica',
+                      'otro',
+                    ]) as CalendarioEventType[]
+              ).map((catKey) => {
+                const conf = eventTypeConfig[catKey] ?? {
+                  dotClass: 'bg-muted-foreground',
+                  label: catKey,
+                };
+                const isActive = typeFilter === catKey;
+                return (
+                  <button
+                    key={catKey}
+                    type="button"
+                    onClick={() => pushQuery({ type: isActive ? null : catKey })}
+                    className={cn(
+                      'flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs transition-all border',
+                      isActive
+                        ? 'border-accent/50 bg-accent/15 text-accent font-semibold shadow-xs'
+                        : typeFilter
+                          ? 'border-transparent text-muted-foreground/60 hover:text-foreground hover:bg-muted/40'
+                          : 'border-transparent text-foreground/80 hover:text-foreground hover:bg-muted/40',
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', conf.dotClass)} />
+                      <span className="truncate">{conf.label}</span>
+                    </div>
+                    {isActive && (
+                      <span className="text-[9px] uppercase font-bold tracking-wider text-accent ml-2">
+                        Filtro
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
         </div>
       )}
 

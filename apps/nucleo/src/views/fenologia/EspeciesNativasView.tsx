@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flower2, Plus, Search, Sliders, Check, Sparkles } from 'lucide-react';
+import { Flower2, Plus, Search, Sliders, Check } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { TaxaSearchModal } from '@/components/fenologia/TaxaSearchModal';
@@ -196,7 +196,7 @@ export function EspeciesNativasView() {
             onClick={() => setIsTaxaModalOpen(true)}
             className="btn btn-outline text-xs inline-flex items-center gap-1.5 mx-auto"
           >
-            <Sparkles size={14} className="text-primary" />
+            <Flower2 size={14} className="text-primary" />
             <span>Incorporar una nueva especie botánica</span>
           </button>
         </div>

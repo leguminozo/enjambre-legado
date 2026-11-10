@@ -324,14 +324,16 @@ fenologiaRoutes.get("/observaciones", async (c) => {
 
 fenologiaRoutes.get("/pronostico", async (c) => {
   const supabase = c.get("supabase");
+  const user = c.get("user");
   const estacionId = c.req.query("estacion");
   const apiarioId = c.req.query("apiario_id");
   const todas = c.req.query("todas") === "1";
 
-  let lat: number | null;
-  let lng: number | null;
+  let lat: number | null = null;
+  let lng: number | null = null;
   let estacionMeta: { id: string; nombre: string } | null = null;
   let apiarioNombre: string | null = null;
+
   if (apiarioId) {
     const { data: apiario, error: errApiario } = await fromLoose(supabase, "apiarios")
       .select("id, name, lat, lng")
@@ -346,14 +348,69 @@ fenologiaRoutes.get("/pronostico", async (c) => {
     if (lat == null || lng == null || (lat === 0 && lng === 0)) {
       return c.json({ code: "apiario_sin_coords", message: "El apiario no tiene coordenadas" }, 400);
     }
-  } else {
-    let estacionQuery = supabase
+    estacionMeta = { id: apiarioId, nombre: apiarioNombre ?? "Mi apiario" };
+  } else if (estacionId) {
+    const { data: estacion, error: errEstacion } = await supabase
+      .from("estaciones_fenologicas")
+      .select("*")
+      .eq("id", estacionId)
+      .eq("activo", true)
+      .maybeSingle();
+    if (errEstacion) return c.json({ code: "query_failed", message: errEstacion.message }, 500);
+    if (estacion) {
+      lat = Number(estacion.lat);
+      lng = Number(estacion.lng);
+      estacionMeta = { id: estacion.id, nombre: estacion.nombre };
+    }
+  }
+
+  // Si no se especificó apiario ni estación:
+  // 1) Priorizar apiario con coordenadas registrado por el usuario
+  if (lat == null || lng == null) {
+    const { data: userApiarios } = await fromLoose(supabase, "apiarios")
+      .select("id, name, lat, lng")
+      .not("lat", "is", null)
+      .not("lng", "is", null)
+      .limit(1);
+    const primApiario = (userApiarios as unknown as Array<{ id: string; name?: string | null; lat: number; lng: number }>)?.[0];
+    if (primApiario && primApiario.lat && primApiario.lng && !(primApiario.lat === 0 && primApiario.lng === 0)) {
+      lat = Number(primApiario.lat);
+      lng = Number(primApiario.lng);
+      estacionMeta = { id: primApiario.id, nombre: primApiario.name ?? "Mi Apiario" };
+    }
+  }
+
+  // 2) Si aún no hay coordenadas, buscar la comuna del actor territorial en actores_registro
+  if (lat == null || lng == null) {
+    const { data: actor } = await fromLoose(supabase, "actores_registro")
+      .select("comuna")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const actorRow = actor as unknown as { comuna?: string } | null;
+    if (actorRow?.comuna) {
+      const { data: estacionComuna } = await supabase
+        .from("estaciones_fenologicas")
+        .select("*")
+        .ilike("nombre", `%${actorRow.comuna}%`)
+        .eq("activo", true)
+        .limit(1);
+      const est = (estacionComuna ?? [])[0];
+      if (est) {
+        lat = Number(est.lat);
+        lng = Number(est.lng);
+        estacionMeta = { id: est.id, nombre: est.nombre };
+      }
+    }
+  }
+
+  // 3) Fallback a la primera estación activa disponible en la base de datos
+  if (lat == null || lng == null) {
+    const { data: estaciones, error: errEstacion } = await supabase
       .from("estaciones_fenologicas")
       .select("*")
       .eq("activo", true)
-      .order("created_at");
-    if (estacionId) estacionQuery = estacionQuery.eq("id", estacionId);
-    const { data: estaciones, error: errEstacion } = await estacionQuery;
+      .order("created_at")
+      .limit(1);
     if (errEstacion) return c.json({ code: "query_failed", message: errEstacion.message }, 500);
     const estacion = (estaciones ?? [])[0];
     if (!estacion) {

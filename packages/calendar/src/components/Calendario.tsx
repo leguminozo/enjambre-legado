@@ -48,11 +48,15 @@ export interface CalendarioProps {
   isLoading?: boolean;
   /** Filtro de tipo activo (desde URL u otras tools) */
   activeTypeFilter?: CalendarioEventType | null;
+  /** Callback para cambiar el filtro de tipo al hacer clic en la simbología */
+  onTypeFilterChange?: (type: CalendarioEventType | null) => void;
+  /** Ocultar la simbología integrada si se renderiza en una columna externa */
+  hideLegend?: boolean;
   /** Contenido extra bajo el mes (p.ej. DayTimeline) */
   dayPanel?: React.ReactNode;
 }
 
-const eventTypeConfig: Record<
+export const eventTypeConfig: Record<
   CalendarioEventType,
   { colorClass: string; dotClass: string; label: string }
 > = {
@@ -148,11 +152,11 @@ export function Calendario({
   onCreateEvent,
   isLoading,
   activeTypeFilter,
+  onTypeFilterChange,
+  hideLegend = false,
   dayPanel,
 }: CalendarioProps) {
-  const [internalSelected, setInternalSelected] = React.useState<Date | null>(
-    new Date(),
-  );
+  const [internalSelected, setInternalSelected] = React.useState<Date | null>(null);
   const selectedDate =
     selectedDateProp !== undefined ? selectedDateProp : internalSelected;
 
@@ -536,42 +540,52 @@ export function Calendario({
       )}
 
       {/* ── Legend (compact adaptado por rol) ── */}
-      <footer className="flex shrink-0 flex-wrap items-center justify-center gap-3 border-t border-border bg-muted/20 px-3 py-2 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {(
-          (userRole === 'territorial' || userRole === 'apicultor'
-            ? [
-                'apicultura',
-                'inspeccion',
-                'cosecha',
-                'tratamiento',
-                'transhumancia',
-                'reunion',
-                'personal',
-                'otro',
-              ]
-            : [
-                'personal',
-                'reunion',
-                'feria',
-                'apicultura',
-                'marketing',
-                'logistica',
-                'cosecha',
-                'inspeccion',
-                'tratamiento',
-                'transhumancia',
-                'otro',
-              ]) as CalendarioEventType[]
-        ).map((key) => {
-          const conf = eventTypeConfig[key] ?? { dotClass: 'bg-muted-foreground', label: key };
-          return (
-            <div key={key} className="flex items-center gap-1.5">
-              <div className={`h-2 w-2 rounded-full ${conf.dotClass}`} />
-              <span>{conf.label}</span>
-            </div>
-          );
-        })}
-      </footer>
+      {!hideLegend && (
+        <footer className="flex shrink-0 flex-wrap items-center justify-center gap-3 border-t border-border bg-muted/20 px-3 py-2 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {(
+            (userRole === 'territorial' || userRole === 'apicultor'
+              ? [
+                  'apicultura',
+                  'inspeccion',
+                  'cosecha',
+                  'tratamiento',
+                  'transhumancia',
+                  'reunion',
+                  'personal',
+                  'otro',
+                ]
+              : [
+                  'personal',
+                  'reunion',
+                  'feria',
+                  'apicultura',
+                  'marketing',
+                  'logistica',
+                  'cosecha',
+                  'inspeccion',
+                  'tratamiento',
+                  'transhumancia',
+                  'otro',
+                ]) as CalendarioEventType[]
+          ).map((key) => {
+            const conf = eventTypeConfig[key] ?? { dotClass: 'bg-muted-foreground', label: key };
+            const isFilterActive = activeTypeFilter === key;
+            return (
+              <button
+                type="button"
+                key={key}
+                onClick={() => onTypeFilterChange?.(isFilterActive ? null : key)}
+                className={`flex items-center gap-1.5 transition-opacity hover:opacity-100 ${
+                  activeTypeFilter && !isFilterActive ? 'opacity-40' : 'opacity-90'
+                }`}
+              >
+                <div className={`h-2 w-2 rounded-full ${conf.dotClass}`} />
+                <span>{conf.label}</span>
+              </button>
+            );
+          })}
+        </footer>
+      )}
     </div>
   );
 }

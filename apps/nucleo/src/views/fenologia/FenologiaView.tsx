@@ -13,7 +13,8 @@ import {
   Trash2,
   X,
   Loader2,
-  Sparkles,
+  TrendingUp,
+  ChevronRight,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ImmersiveModal, ConfirmDialog } from '@enjambre/ui';
@@ -23,6 +24,8 @@ import { supabase } from '@/lib/supabase';
 import { TaxaSearchModal } from '@/components/fenologia/TaxaSearchModal';
 import { CalibracionModal } from '@/components/fenologia/CalibracionModal';
 import { UbicacionPickerModal } from '@/components/fenologia/UbicacionPickerModal';
+import { EspecieCard } from '@/components/fenologia/EspecieCard';
+import { FenologiaGuiaModal } from '@/components/fenologia/FenologiaGuiaModal';
 
 interface Especie {
   id: string;
@@ -44,6 +47,7 @@ interface Especie {
   relevancia_apicola?: string;
   monitoreo_activo?: boolean;
   foto_url?: string | null;
+  perfil_melifero?: string | null;
 }
 
 interface PronosticoEspecie {
@@ -110,6 +114,7 @@ export function FenologiaView() {
   const [calibracionEspecie, setCalibracionEspecie] = useState<Especie | null>(null);
   const [isRegistroCampoOpen, setIsRegistroCampoOpen] = useState(false);
   const [isUbicacionModalOpen, setIsUbicacionModalOpen] = useState(false);
+  const [isGuiaModalOpen, setIsGuiaModalOpen] = useState(false);
   const [obsToDeleteId, setObsToDeleteId] = useState<string | null>(null);
 
   // Formulario de observación de campo
@@ -124,6 +129,7 @@ export function FenologiaView() {
   const [obsNotas, setObsNotas] = useState('');
   const [obsApiario, setObsApiario] = useState('');
   const [misApiarios, setMisApiarios] = useState<{ id: string; name: string | null; lat?: number | null; lng?: number | null }[]>([]);
+  const [selectedApiarioId, setSelectedApiarioId] = useState<string>('');
   const [obsMensaje, setObsMensaje] = useState<string | null>(null);
   const [isSavingObs, setIsSavingObs] = useState(false);
 
@@ -139,9 +145,12 @@ export function FenologiaView() {
   }, []);
 
   const cargar = useCallback(async () => {
+    const pronosticoUrl = selectedApiarioId
+      ? `/api/fenologia/pronostico?apiario_id=${encodeURIComponent(selectedApiarioId)}`
+      : '/api/fenologia/pronostico';
     const [especiesRes, pronosticoRes, obsRes] = await Promise.all([
       apiFetch('/api/fenologia/especies/todas'),
-      apiFetch('/api/fenologia/pronostico'),
+      apiFetch(pronosticoUrl),
       apiFetch('/api/fenologia/observaciones'),
     ]);
 
@@ -159,7 +168,7 @@ export function FenologiaView() {
       setObservaciones(j.data ?? []);
     }
     setLoading(false);
-  }, [apiFetch]);
+  }, [apiFetch, selectedApiarioId]);
 
   useEffect(() => {
     void cargar();
@@ -322,14 +331,12 @@ export function FenologiaView() {
     return pronostico.filter((p) => p.enFloracion);
   }, [pronostico]);
 
-  const seasonalBadgeText = useMemo(() => {
-    if (especiesEnFloracion.length > 0) {
-      const nombres = especiesEnFloracion.slice(0, 2).map((e) => e.nombreComun).join(', ');
-      const resto = especiesEnFloracion.length > 2 ? ` (+${especiesEnFloracion.length - 2})` : '';
-      return `Floración Activa · ${nombres}${resto}`;
-    }
-    return currentSeason.seasonName;
-  }, [especiesEnFloracion, currentSeason]);
+  const proximaFloracion = useMemo(() => {
+    const candidatas = pronostico
+      .filter((p) => !p.enFloracion && p.progreso !== null && p.progreso < 100)
+      .sort((a, b) => (b.progreso ?? 0) - (a.progreso ?? 0));
+    return candidatas[0] ?? null;
+  }, [pronostico]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -337,18 +344,24 @@ export function FenologiaView() {
       <ViewShell
         variant="compact"
         eyebrow="Bosque · Botánica"
-        title="Catálogo Botánico Melífero"
+        title={
+          <div className="flex items-center gap-2.5">
+            <span>Catálogo Botánico Melífero</span>
+            <button
+              type="button"
+              onClick={() => setIsGuiaModalOpen(true)}
+              className="inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/10 border border-primary/25 text-primary hover:bg-primary/20 hover:scale-105 transition-all text-xs font-bold leading-none cursor-pointer"
+              title="¿Cómo funciona el Oráculo Fenológico y los Grados-Día (GDD)?"
+              aria-label="Abrir guía explicativa del Oráculo Fenológico"
+            >
+              ?
+            </button>
+          </div>
+        }
         subtitle="Colección botánica melífera de Chile: umbrales térmicos (GDD), floración activa y bitácora territorial."
         icon={<Flower2 size={20} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className="hidden sm:inline-flex h-9 px-3.5 items-center text-xs font-mono uppercase tracking-widest text-primary rounded-xl bg-primary/10 border border-primary/20 font-medium"
-              title={`Floración activa según modelo GDD: ${especiesEnFloracion.map((e) => e.nombreComun).join(', ') || 'Sin floración activa'}. Temporada estacional: ${currentSeason.seasonName}.`}
-            >
-              {seasonalBadgeText}
-            </span>
-
             <button
               type="button"
               onClick={() => setIsRegistroCampoOpen(true)}
@@ -377,18 +390,149 @@ export function FenologiaView() {
       />
 
       {/* ── Resumen de Contexto Territorial (Métricas Clave) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard
-          label="En floración ahora"
-          value={stats.enFloracion}
-          accent={stats.enFloracion > 0}
-        />
-        <StatCard label="En Monitoreo Activo" value={stats.monitoreadas} />
-        <StatCard label="Catálogo Completo" value={stats.total} />
-        <StatCard
-          label={metaEstacion ? `GDD acumulado (${metaEstacion.nombre})` : 'GDD acumulado (Chiloé)'}
-          value={`${stats.gddActual}°d`}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Card 1: Floración Activa */}
+        <div
+          onClick={() => setFilterType((prev) => (prev === 'en_floracion' ? 'todas' : 'en_floracion'))}
+          className={`card p-3.5 border rounded-xl transition-all cursor-pointer relative overflow-hidden ${
+            filterType === 'en_floracion'
+              ? 'bg-success/5 border-success/40 ring-1 ring-success/30'
+              : 'bg-surface-raised border-border hover:border-border/80'
+          }`}
+          title="Toca para filtrar especies en floración activa"
+        >
+          <div className="flex items-center justify-between text-xs uppercase tracking-wider font-medium">
+            <span className={stats.enFloracion > 0 ? 'text-success' : 'text-muted-foreground'}>
+              Floración Activa
+            </span>
+            {stats.enFloracion > 0 && (
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+              </span>
+            )}
+          </div>
+          <div className="font-display mt-1 text-2xl font-semibold text-foreground flex items-baseline gap-1.5">
+            <span className={stats.enFloracion > 0 ? 'text-success' : 'text-foreground'}>
+              {stats.enFloracion}
+            </span>
+            <span className="text-xs font-sans text-muted-foreground font-normal">
+              {stats.enFloracion === 1 ? 'especie' : 'especies'}
+            </span>
+          </div>
+          {especiesEnFloracion.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {especiesEnFloracion.slice(0, 3).map((e) => (
+                <span
+                  key={e.id}
+                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-success/10 text-success border border-success/20 truncate max-w-[130px]"
+                >
+                  {e.nombreComun}
+                </span>
+              ))}
+              {especiesEnFloracion.length > 3 && (
+                <span className="text-[10px] text-muted-foreground self-center">
+                  +{especiesEnFloracion.length - 3}
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="mt-2 text-[11px] text-muted-foreground truncate">
+              En receso vegetativo invernal
+            </p>
+          )}
+        </div>
+
+        {/* Card 2: Próxima Floración */}
+        <div className="card p-3.5 border border-border bg-surface-raised rounded-xl">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium truncate flex items-center justify-between">
+            <span>Próxima Floración</span>
+            <TrendingUp size={13} className="text-primary/70 shrink-0" />
+          </div>
+          <div className="font-display mt-1 text-xl font-semibold text-foreground truncate">
+            {proximaFloracion ? proximaFloracion.nombreComun : 'Ciclo Completo'}
+          </div>
+          {proximaFloracion && proximaFloracion.progreso !== null ? (
+            <div className="mt-1.5 space-y-1">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                <span>{Math.round(proximaFloracion.progreso)}% acumulado</span>
+                <span>
+                  -{Math.max(0, Math.round((proximaFloracion.gddUmbral ?? 0) - proximaFloracion.gddActual))}°d
+                </span>
+              </div>
+              <div className="w-full bg-surface-sunken h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-primary h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round(proximaFloracion.progreso))}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-[11px] text-muted-foreground truncate">
+              Especies en floración o sin umbral
+            </p>
+          )}
+        </div>
+
+        {/* Card 3: Evidencia en Terreno (Bitácora Territorial) */}
+        <div
+          onClick={() => setIsRegistroCampoOpen(true)}
+          className="card p-3.5 border border-border bg-surface-raised rounded-xl cursor-pointer hover:border-border/80 transition-all group"
+          title="Abrir bitácora y registros territoriales de floración"
+        >
+          <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium truncate flex items-center justify-between">
+            <span>Bitácora Territorial</span>
+            <ChevronRight size={13} className="text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+          </div>
+          <div className="font-display mt-1 text-2xl font-semibold text-foreground flex items-baseline gap-1.5">
+            <span>{stats.observaciones}</span>
+            <span className="text-xs font-sans text-muted-foreground font-normal">
+              {stats.observaciones === 1 ? 'registro' : 'registros'}
+            </span>
+          </div>
+          {observaciones.length > 0 ? (
+            <p className="mt-2 text-[11px] text-muted-foreground truncate">
+              Última: {observaciones[0].fecha} · {observaciones[0].especies_fenologicas?.nombre_comun ?? 'Especie'}
+            </p>
+          ) : (
+            <p className="mt-2 text-[11px] text-accent truncate">
+              + Registrar observación en terreno
+            </p>
+          )}
+        </div>
+
+        {/* Card 4: Dinámica Térmica (GDD) */}
+        <div className="card p-3.5 border border-border bg-surface-raised rounded-xl">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium truncate flex items-center justify-between">
+            <span>Dinámica Térmica</span>
+            <span className="text-[10px] font-mono font-normal text-muted-foreground">Tbase 5°C</span>
+          </div>
+          <div className="font-display mt-1 text-2xl font-semibold text-foreground flex items-baseline gap-1.5">
+            <span>{stats.gddActual}°d</span>
+            <span className="text-xs font-sans text-muted-foreground font-normal">acumulados</span>
+          </div>
+          <div className="mt-1.5">
+            {misApiarios.length > 1 ? (
+              <select
+                value={selectedApiarioId}
+                onChange={(e) => setSelectedApiarioId(e.target.value)}
+                className="w-full text-[11px] bg-surface-sunken border border-border rounded px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary truncate"
+                title="Cambiar apiario de referencia para cálculo GDD"
+              >
+                <option value="">{metaEstacion ? metaEstacion.nombre : 'Sector Territorial'}</option>
+                {misApiarios.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name ?? 'Apiario'}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-[11px] text-muted-foreground truncate" title={metaEstacion?.nombre ?? 'Sector Territorial'}>
+                {metaEstacion ? metaEstacion.nombre : 'Pureo, Chiloé'}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ── Barra de Filtros y Búsqueda ── */}
@@ -479,199 +623,27 @@ export function FenologiaView() {
             onClick={() => setIsTaxaModalOpen(true)}
             className="btn btn-outline text-xs inline-flex items-center gap-1.5 mx-auto"
           >
-            <Sparkles size={14} className="text-primary" />
+            <Flower2 size={14} className="text-primary" />
             <span>Incorporar una nueva especie botánica</span>
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredEspecies.map((esp) => {
             const pron = pronosticoById.get(esp.id);
-            const mesIni =
-              esp.ventana_ini ?? esp.mes_inicio_floracion
-                ? MESES[(esp.ventana_ini ?? esp.mes_inicio_floracion!) - 1]
-                : '—';
-            const mesFin =
-              esp.ventana_fin ?? esp.mes_fin_floracion
-                ? MESES[(esp.ventana_fin ?? esp.mes_fin_floracion!) - 1]
-                : '—';
-            const tbaseVal = esp.tbase_c ?? esp.t_base ?? pron?.tbase ?? 5.0;
-            const esNativa = esp.origen === 'nativa' || esp.origen === 'endemica' || !esp.origen;
-
             return (
-              <div
+              <EspecieCard
                 key={esp.id}
-                className="card p-5 border border-border bg-surface-raised space-y-3.5 rounded-xl hover:border-border/80 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  {/* Encabezado de la tarjeta */}
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-3">
-                      {esp.foto_url || pron?.fotoUrl ? (
-                        <img
-                          src={esp.foto_url || pron?.fotoUrl || ''}
-                          alt={esp.nombre_comun}
-                          className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-xl bg-surface-sunken border border-border/60 flex items-center justify-center text-lg shrink-0">
-                          {pron?.enFloracion ? '🌸' : '🌿'}
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="text-base font-semibold text-foreground leading-tight">
-                          {esp.nombre_comun}
-                        </h3>
-                        <p className="text-xs italic text-muted-foreground font-mono">
-                          {esp.nombre_cientifico}
-                        </p>
-                        {esp.familia && (
-                          <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider">
-                            {esp.familia}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      {pron?.enFloracion ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/15 text-success border border-success/30 font-semibold whitespace-nowrap">
-                          ✨ Floración activa
-                        </span>
-                      ) : pron?.enVentana ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/15 text-warning border border-warning/30 font-medium whitespace-nowrap">
-                          En ventana mensual
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => void toggleMonitoreo(esp, e)}
-                          title={
-                            esp.monitoreo_activo
-                              ? 'Activa en el oráculo referencial'
-                              : 'Inactiva en el oráculo'
-                          }
-                          className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full border transition-colors ${
-                            esp.monitoreo_activo
-                              ? 'bg-success/10 text-success border-success/30'
-                              : 'bg-muted/40 text-muted-foreground border-border'
-                          }`}
-                        >
-                          {esp.monitoreo_activo ? 'En Oráculo' : 'Archivada'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Badges de atributos botánicos */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${
-                        esNativa
-                          ? 'bg-primary/10 text-primary border-primary/20'
-                          : 'bg-warning/10 text-warning border-warning/20'
-                      }`}
-                    >
-                      {esp.origen ?? 'Nativa'}
-                    </span>
-                    {(esp.habito || pron?.habito) && (
-                      <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider bg-surface-sunken text-muted-foreground border border-border/50">
-                        {esp.habito || pron?.habito}
-                      </span>
-                    )}
-                    {(esp.relevancia_apicola || pron?.relevanciaApicola) && (
-                      <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider bg-accent/15 text-accent border border-accent/30 font-medium">
-                        {esp.relevancia_apicola || pron?.relevanciaApicola}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Bloque Fenológico y Referencia de Floración */}
-                  <div className="text-xs space-y-2 border-t border-border/50 pt-2.5 mt-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Ventana de floración</span>
-                      <span className="font-medium text-foreground">
-                        {mesIni} – {mesFin}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Temperatura base</span>
-                      <span className="font-datos text-foreground">{tbaseVal}°C</span>
-                    </div>
-
-                    {/* Referencia de Floración y Acumulación Térmica */}
-                    {pron ? (
-                      <div className="pt-1.5 space-y-1.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Progreso GDD</span>
-                          <span className="font-datos font-semibold text-foreground">
-                            {pron.gddActual} /{' '}
-                            {pron.gddUmbral != null ? `${pron.gddUmbral}°d` : '—'}
-                            {pron.progreso != null && (
-                              <span className="text-[10px] text-muted-foreground ml-1 font-normal">
-                                ({pron.progreso}%)
-                              </span>
-                            )}
-                          </span>
-                        </div>
-
-                        {pron.gddUmbral != null && (
-                          <div className="h-1.5 w-full bg-surface-sunken rounded-full overflow-hidden border border-border/40">
-                            <div
-                              className="h-full rounded-full transition-all duration-700"
-                              style={{
-                                width: `${Math.min(100, pron.progreso ?? 0)}%`,
-                                background: pron.enFloracion
-                                  ? 'hsl(var(--success))'
-                                  : pron.enVentana
-                                  ? 'hsl(var(--warning))'
-                                  : 'hsl(var(--accent))',
-                              }}
-                            />
-                          </div>
-                        )}
-
-                        <p className="text-[11px] text-muted-foreground leading-tight pt-0.5">
-                          {pron.enFloracion
-                            ? 'Néctar y polen disponibles — floración en curso.'
-                            : pron.diasEstimados != null
-                            ? `Floración estimada en ~${pron.diasEstimados} días (Tbase ${pron.tbase}°C).`
-                            : pron.gddUmbral != null
-                            ? `Aún lejos del umbral térmico (${pron.gddUmbral}°d).`
-                            : 'Umbral térmico pendiente de calibración territorial.'}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* Footer de Tarjeta con Umbral GDD y Calibración */}
-                <div className="border-t border-border/50 pt-2.5 flex items-center justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                      Umbral GDD
-                    </span>
-                    <span className="font-datos text-sm font-semibold text-foreground">
-                      {esp.gdd_umbral != null ? `${esp.gdd_umbral}°d` : 'Sin calibrar'}
-                      {esp.gdd_stddev != null && (
-                        <span className="text-xs text-muted-foreground font-normal ml-1">
-                          ±{esp.gdd_stddev}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setCalibracionEspecie(esp)}
-                    className="btn btn-outline text-xs min-h-8 px-2.5 inline-flex items-center gap-1.5"
-                    title="Calibrar umbral GDD territorial"
-                  >
-                    <Sliders size={13} className="text-primary" />
-                    <span>Calibrar</span>
-                  </button>
-                </div>
-              </div>
+                especie={esp}
+                pronostico={pron}
+                onObservar={(espId) => {
+                  reiniciarFormularioObs();
+                  setObsEspecie(espId);
+                  setIsRegistroCampoOpen(true);
+                }}
+                onCalibrar={(espParaCalibrar) => setCalibracionEspecie(espParaCalibrar)}
+                onToggleMonitoreo={(espParaToggle, e) => void toggleMonitoreo(espParaToggle, e)}
+              />
             );
           })}
         </div>
@@ -999,31 +971,12 @@ export function FenologiaView() {
           }
         }}
       />
-    </div>
-  );
-}
 
-function StatCard({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string;
-  value: string | number;
-  accent?: boolean;
-}) {
-  return (
-    <div className="card p-3.5 border border-border bg-surface-raised rounded-xl">
-      <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium truncate">
-        {label}
-      </div>
-      <div
-        className={`font-display mt-1 text-2xl ${
-          accent ? 'text-success' : 'text-foreground'
-        } font-semibold`}
-      >
-        {value}
-      </div>
+      {/* ── Modal Guía: Oráculo Fenológico y Grados-Día (GDD) ── */}
+      <FenologiaGuiaModal
+        isOpen={isGuiaModalOpen}
+        onClose={() => setIsGuiaModalOpen(false)}
+      />
     </div>
   );
 }

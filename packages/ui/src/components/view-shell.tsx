@@ -3,7 +3,7 @@
 import { cn } from '../lib/utils';
 
 export interface ViewShellProps {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   eyebrow?: string;
   greeting?: string;
