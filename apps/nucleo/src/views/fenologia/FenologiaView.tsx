@@ -318,6 +318,19 @@ export function FenologiaView() {
   const currentMonth = new Date().getMonth();
   const currentSeason = CHILOE_SEASONS[currentMonth] ?? CHILOE_SEASONS[0];
 
+  const especiesEnFloracion = useMemo(() => {
+    return pronostico.filter((p) => p.enFloracion);
+  }, [pronostico]);
+
+  const seasonalBadgeText = useMemo(() => {
+    if (especiesEnFloracion.length > 0) {
+      const nombres = especiesEnFloracion.slice(0, 2).map((e) => e.nombreComun).join(', ');
+      const resto = especiesEnFloracion.length > 2 ? ` (+${especiesEnFloracion.length - 2})` : '';
+      return `Floración Activa · ${nombres}${resto}`;
+    }
+    return currentSeason.seasonName;
+  }, [especiesEnFloracion, currentSeason]);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* ── Encabezado Principal Unificado ── */}
@@ -329,8 +342,11 @@ export function FenologiaView() {
         icon={<Flower2 size={20} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="hidden sm:inline-flex h-9 px-3.5 items-center text-xs font-mono uppercase tracking-widest text-primary rounded-xl bg-primary/10 border border-primary/20 font-medium">
-              {currentSeason.seasonName}
+            <span
+              className="hidden sm:inline-flex h-9 px-3.5 items-center text-xs font-mono uppercase tracking-widest text-primary rounded-xl bg-primary/10 border border-primary/20 font-medium"
+              title={`Floración activa según modelo GDD: ${especiesEnFloracion.map((e) => e.nombreComun).join(', ') || 'Sin floración activa'}. Temporada estacional: ${currentSeason.seasonName}.`}
+            >
+              {seasonalBadgeText}
             </span>
 
             <button

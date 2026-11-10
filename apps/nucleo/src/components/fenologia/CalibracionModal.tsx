@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { Sliders, Check, X, AlertCircle, Info, Calendar } from 'lucide-react';
 import { overlayBackdropClassName } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -31,6 +32,7 @@ interface CalibracionModalProps {
 }
 
 export function CalibracionModal({ especie, isOpen, onClose, onSaved }: CalibracionModalProps) {
+  const [mounted, setMounted] = useState(false);
   const apiFetch = useApiFetch();
   const [umbral, setUmbral] = useState('');
   const [tbase, setTbase] = useState('5.0');
@@ -39,6 +41,20 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
   const [loadingObs, setLoadingObs] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Escape key listener
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!especie) return;
@@ -59,28 +75,21 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
       .finally(() => setLoadingObs(false));
   }, [especie, apiFetch]);
 
-  if (!isOpen || !especie) return null;
+  if (!isOpen || !especie || !mounted) return null;
 
   const handleGuardar = () => {
     setErrorMsg(null);
-    const valorUmbral = umbral ? Number(umbral) : null;
-    const valorTbase = Number(tbase) || 5.0;
-    const valorStd = stddev ? Number(stddev) : null;
-
-    if (valorUmbral != null && (isNaN(valorUmbral) || valorUmbral < 0)) {
-      setErrorMsg('El umbral GDD debe ser un número positivo.');
-      return;
-    }
-
     startSaving(async () => {
       try {
+        const payload = {
+          gdd_umbral: umbral.trim() ? Number(umbral) : null,
+          tbase_c: tbase.trim() ? Number(tbase) : 5.0,
+          gdd_stddev: stddev.trim() ? Number(stddev) : null,
+        };
+
         const res = await apiFetch(`/api/fenologia/especies/${especie.id}`, {
           method: 'PATCH',
-          body: JSON.stringify({
-            gdd_umbral: valorUmbral,
-            tbase_c: valorTbase,
-            gdd_stddev: valorStd,
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (res.ok) {
@@ -96,21 +105,37 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
     });
   };
 
-  return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayBackdropClassName}`}>
-      <div className="w-full max-w-lg bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      {/* Backdrop */}
+      <button
+        type="button"
+        className={`fixed inset-0 ${overlayBackdropClassName}`}
+        aria-label="Cerrar modal"
+        onClick={onClose}
+      />
+
+      {/* Modal Card centrado */}
+      <div className="relative z-10 w-full max-w-lg bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 animate-in zoom-in-95 fade-in-0 duration-200 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/50 pb-3">
-          <div className="flex items-center gap-2">
-            <Sliders size={18} className="text-primary" />
-            <h3 className="font-display text-lg text-foreground">
-              Calibración Térmica (GDD)
-            </h3>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Sliders size={18} />
+            </div>
+            <div>
+              <h3 className="font-display text-lg text-foreground">
+                Calibración Térmica (GDD)
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Ajuste del umbral de grados día acumulados
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground text-sm p-1 rounded-lg hover:bg-surface-raised transition-colors"
+            className="text-muted-foreground hover:text-foreground text-sm p-1.5 rounded-lg hover:bg-surface-raised transition-colors"
           >
             <X size={18} />
           </button>
@@ -126,7 +151,7 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
             <img
               src={especie.foto_url}
               alt={especie.nombre_comun}
-              className="w-11 h-11 rounded-lg object-cover border border-border shrink-0"
+              className="w-12 h-12 rounded-xl object-cover border border-border shrink-0"
             />
           )}
         </div>
@@ -141,7 +166,7 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
               placeholder="Ej: 564.8"
               value={umbral}
               onChange={(e) => setUmbral(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground font-datos text-sm"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-datos text-sm"
               autoFocus
             />
           </label>
@@ -153,7 +178,7 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
               step="0.5"
               value={tbase}
               onChange={(e) => setTbase(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground font-datos text-sm"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-datos text-sm"
             />
           </label>
 
@@ -165,7 +190,7 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
               placeholder="Ej: 42.5"
               value={stddev}
               onChange={(e) => setStddev(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground font-datos text-sm"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-foreground font-datos text-sm"
             />
           </label>
         </div>
@@ -223,7 +248,7 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
           <button
             type="button"
             onClick={onClose}
-            className="btn btn-outline text-xs min-h-9 px-3"
+            className="btn btn-outline text-xs min-h-9 px-3.5"
             disabled={isSaving}
           >
             Cancelar
@@ -239,6 +264,7 @@ export function CalibracionModal({ especie, isOpen, onClose, onSaved }: Calibrac
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

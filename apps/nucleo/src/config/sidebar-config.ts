@@ -937,7 +937,7 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
     colmenas: 'Colmenas',
     'cuaderno-campo': 'Cuaderno de campo',
     'ciclo-bosque': 'Calendario',
-    territorio: 'Mi registro',
+    territorio: 'Mi censo',
     'mapa-red': 'Mapa',
     'alertas-red': 'Alertas',
     trashumancia: 'Trashumancia',

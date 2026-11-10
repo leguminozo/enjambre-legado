@@ -541,6 +541,7 @@ function LoginContent() {
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                     <input
                       id="login-email"
+                      name="email"
                       type="email"
                       autoComplete="email"
                       required
@@ -569,6 +570,7 @@ function LoginContent() {
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                     <input
                       id="login-password"
+                      name="password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
                       required
@@ -1255,9 +1257,33 @@ function LoginContent() {
   );
 }
 
+function LoginFallback() {
+  return (
+    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full max-w-2xl">
+        <div className="rounded-3xl border border-border/70 bg-surface-raised/90 backdrop-blur-xl shadow-2xl p-6 sm:p-8">
+          {/* Skeleton tabs */}
+          <div className="flex items-center p-1 rounded-2xl bg-surface-sunken/80 border border-border/50 mb-6 h-11" />
+          {/* Skeleton inputs — presentes en DOM para que iOS detecte el form */}
+          <form aria-hidden="true" className="space-y-4 opacity-0 pointer-events-none absolute">
+            <input type="email" name="email" autoComplete="email" />
+            <input type="password" name="password" autoComplete="current-password" />
+          </form>
+          {/* Skeleton visible */}
+          <div className="space-y-4">
+            <div className="h-12 rounded-xl bg-surface-sunken/60 animate-pulse" />
+            <div className="h-12 rounded-xl bg-surface-sunken/60 animate-pulse" />
+            <div className="h-12 rounded-xl bg-primary/20 animate-pulse mt-4" />
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoginFallback />}>
       <LoginContent />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import { MapPin, Navigation, Check, X, Loader2 } from 'lucide-react';
 import { overlayBackdropClassName } from '@enjambre/ui';
@@ -31,13 +32,27 @@ export function UbicacionPickerModal({
   initialSector,
   onConfirm,
 }: UbicacionPickerModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [lat, setLat] = useState<number | null>(initialLat);
   const [lng, setLng] = useState<number | null>(initialLng);
   const [sector, setSector] = useState(initialSector);
   const [isGettingGps, setIsGettingGps] = useState(false);
   const [gpsFeedback, setGpsFeedback] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const handleUsarGps = () => {
     if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
@@ -72,9 +87,15 @@ export function UbicacionPickerModal({
     onClose();
   };
 
-  return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayBackdropClassName}`}>
-      <div className="w-full max-w-xl bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <button
+        type="button"
+        className={`fixed inset-0 ${overlayBackdropClassName}`}
+        aria-label="Cerrar modal"
+        onClick={onClose}
+      />
+      <div className="relative z-10 w-full max-w-xl bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 fade-in-0 duration-200 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/50 pb-3">
           <div className="flex items-center gap-2">
@@ -86,7 +107,7 @@ export function UbicacionPickerModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground text-sm p-1 rounded-lg hover:bg-surface-raised transition-colors"
+            className="text-muted-foreground hover:text-foreground text-sm p-1.5 rounded-lg hover:bg-surface-raised transition-colors"
           >
             <X size={18} />
           </button>
@@ -162,7 +183,7 @@ export function UbicacionPickerModal({
           <button
             type="button"
             onClick={onClose}
-            className="btn btn-outline text-xs min-h-9 px-3"
+            className="btn btn-outline text-xs min-h-9 px-3.5"
           >
             Cancelar
           </button>
@@ -176,6 +197,7 @@ export function UbicacionPickerModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

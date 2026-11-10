@@ -439,6 +439,18 @@ export function LoginForm() {
 
   return (
     <div className="w-full">
+      {/* Form fantasma: presente en DOM desde el primer render para que iOS detecte
+          el formulario de login y ofrezca autofill proactivo desde la billetera de contraseñas.
+          Es invisible e inerte — no interfiere con el flujo visual ni con el submit real. */}
+      <form
+        aria-hidden="true"
+        className="opacity-0 pointer-events-none absolute w-0 h-0 overflow-hidden"
+        tabIndex={-1}
+      >
+        <input type="email" name="email" autoComplete="email" tabIndex={-1} />
+        <input type="password" name="password" autoComplete="current-password" tabIndex={-1} />
+      </form>
+
       {/* 1. COLLAPSED MODE (Default Grok Mobile Layout) */}
       {viewMode === 'collapsed' && (
         <div className="flex flex-col items-center gap-3 w-full animate-in fade-in duration-200">
@@ -761,6 +773,7 @@ export function LoginForm() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     autoComplete="email"
                     required
@@ -798,6 +811,7 @@ export function LoginForm() {
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                   <input
                     id="password"
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     required
