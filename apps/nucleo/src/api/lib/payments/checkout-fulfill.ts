@@ -65,14 +65,22 @@ export async function fulfillCheckout(
   const cartUserId = session.clienteId ?? null;
   const authUserId = isGuest ? null : cartUserId;
 
+  // Sanear authUserId contra profiles: si el UUID no existe o tiene formato inválido,
+  // el insert en ventas/logística fallaría por foreign key (23503 / 22P02).
+  let safeAuthUserId: string | null = null;
   let ventaClienteId: string | null = null;
   if (authUserId) {
-    const { data: clienteRow } = await admin
-      .from('clientes')
-      .select('id')
-      .eq('user_id', authUserId)
-      .maybeSingle();
-    ventaClienteId = (clienteRow?.id as string | undefined) ?? null;
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authUserId);
+    if (isUUID) {
+      const [profileRes, clienteRow] = await Promise.all([
+        admin.from('profiles').select('id').eq('id', authUserId).maybeSingle(),
+        admin.from('clientes').select('id').eq('user_id', authUserId).maybeSingle(),
+      ]);
+      if (profileRes.data?.id) {
+        safeAuthUserId = profileRes.data.id as string;
+      }
+      ventaClienteId = (clienteRow.data?.id as string | undefined) ?? null;
+    }
   }
 
   const { data: existingVenta } = await admin
@@ -137,8 +145,8 @@ export async function fulfillCheckout(
       ...(shipping ?? {}),
       retorno_frascos_declarados: session.retornoFrascosDeclarados ?? 0,
     },
-    user_id: authUserId,
-    cliente_id: authUserId, // Foreign key canónica a profiles(id)
+    user_id: safeAuthUserId,
+    cliente_id: safeAuthUserId, // Foreign key canónica a profiles(id)
     buyer_mode: buyerMode,
     is_guest: isGuest,
     organizacion_id: session.organizacionId ?? null,
@@ -288,7 +296,7 @@ export async function fulfillCheckout(
   const { error: envioError } = await admin.from('logistica_envios').insert({
     venta_id: ventaId,
     empresa_id: defaultEmpresa?.id ?? null,
-    user_id: authUserId,
+    user_id: safeAuthUserId,
     tracking_code: trackingCode,
     destino: formatDestino(shipping),
     items: formatEnvioItems(cart, session.retornoFrascosDeclarados),
@@ -304,12 +312,12 @@ export async function fulfillCheckout(
     console.error('[checkout-fulfill] logistica_envios insert error:', envioError.message);
   }
 
-  if (!isGuest && authUserId && defaultEmpresa?.id) {
+  if (!isGuest && safeAuthUserId && defaultEmpresa?.id) {
     try {
       const loyaltyResult = await applyCheckoutLoyalty(admin, {
         buyOrder,
         ventaId,
-        userId: authUserId,
+        userId: safeAuthUserId,
         empresaId: defaultEmpresa.id as string,
         paidTotalClp: serverTotal,
         pointsRedeemed: session.loyaltyPointsRedeemed ?? 0,
@@ -327,7 +335,7 @@ export async function fulfillCheckout(
 
     try {
       const stampResult = await applyGuardianStamps(admin, {
-        userId: authUserId,
+        userId: safeAuthUserId,
         ventaId,
         channel: 'web',
         lines: enrichedCart,
@@ -335,24 +343,24 @@ export async function fulfillCheckout(
       if (!stampResult.ok) {
         console.warn('[checkout-fulfill] stamp apply failed:', stampResult.error);
       } else {
-        await enqueueWalletPassUpdate(admin, authUserId);
+        await enqueueWalletPassUpdate(admin, safeAuthUserId);
       }
     } catch (stampErr) {
       console.warn('[checkout-fulfill] stamp apply unexpected error:', stampErr);
     }
   }
 
-  if (!isGuest && authUserId && shipping) {
+  if (!isGuest && safeAuthUserId && shipping) {
     const { data: existingAddr } = await admin
       .from('cliente_direcciones')
       .select('id')
-      .eq('user_id', authUserId)
+      .eq('user_id', safeAuthUserId)
       .eq('es_predeterminada', true)
       .maybeSingle();
 
     if (!existingAddr) {
       const { error: addrError } = await admin.from('cliente_direcciones').insert({
-        user_id: authUserId,
+        user_id: safeAuthUserId,
         etiqueta: 'Principal',
         nombre: shipping.nombre,
         telefono: shipping.telefono,
@@ -468,8 +476,8 @@ export async function fulfillCheckout(
     }
   }
 
-  if (authUserId) {
-    await markCartAbandonmentConverted(admin, authUserId);
+  if (safeAuthUserId) {
+    await markCartAbandonmentConverted(admin, safeAuthUserId);
   }
 
   let dteResult: FulfillCheckoutResult['dte'];
@@ -603,7 +611,7 @@ export async function fulfillCheckout(
     }
   }
 
-  if ((recipientEmail || authUserId) && enrichedCart.length > 0) {
+  if ((recipientEmail || safeAuthUserId) && enrichedCart.length > 0) {
     try {
       const productIds = enrichedCart
         .map((line) => {
@@ -615,7 +623,7 @@ export async function fulfillCheckout(
         await notifyReviewInvitation(admin, {
           ventaId,
           email: recipientEmail,
-          userId: authUserId,
+          userId: safeAuthUserId,
           productIds,
         });
       }

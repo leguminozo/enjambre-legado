@@ -35,7 +35,15 @@ const DespachoPedidoSchema = z.object({
 });
 
 const RetornoFrascosSchema = z.object({
-  status: z.enum(['ninguno', 'pendiente_retiro', 'recibido_en_taller', 'higienizado', 'cancelado']),
+  status: z.enum([
+    'ninguno',
+    'pendiente_retiro',
+    'recibido_conforme',
+    'rechazado',
+    'recibido_en_taller',
+    'higienizado',
+    'cancelado',
+  ]),
   notes: z.string().max(500).optional(),
 });
 
@@ -510,10 +518,20 @@ pedidosRoutes.patch('/:buyOrder/retorno-frascos', zValidator('json', RetornoFras
   const body = c.req.valid('json');
   const admin = createAdminClient();
 
+  // Mapear hacia la restricción CHECK de Postgres: ('ninguno', 'pendiente_retiro', 'recibido_conforme', 'rechazado')
+  let dbStatus: 'ninguno' | 'pendiente_retiro' | 'recibido_conforme' | 'rechazado' = 'ninguno';
+  if (body.status === 'pendiente_retiro') {
+    dbStatus = 'pendiente_retiro';
+  } else if (body.status === 'recibido_conforme' || body.status === 'recibido_en_taller' || body.status === 'higienizado') {
+    dbStatus = 'recibido_conforme';
+  } else if (body.status === 'rechazado' || body.status === 'cancelado') {
+    dbStatus = 'rechazado';
+  }
+
   const { error } = await admin
     .from('ventas')
     .update({
-      retorno_frascos_estado: body.status,
+      retorno_frascos_estado: dbStatus,
     })
     .eq('buy_order', buyOrder);
 
@@ -524,6 +542,6 @@ pedidosRoutes.patch('/:buyOrder/retorno-frascos', zValidator('json', RetornoFras
   return c.json({
     ok: true,
     message: 'Estado de retorno circular actualizado.',
-    status: body.status,
+    status: dbStatus,
   });
 });

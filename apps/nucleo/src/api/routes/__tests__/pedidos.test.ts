@@ -308,13 +308,13 @@ describe('pedidos API routes', () => {
       method: 'PATCH',
       headers: authHeaders,
       body: JSON.stringify({
-        status: 'recibido_en_taller',
+        status: 'recibido_conforme',
       }),
     });
 
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.status).toBe('recibido_en_taller');
+    expect(body.status).toBe('recibido_conforme');
   });
 });
