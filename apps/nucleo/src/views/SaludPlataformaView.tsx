@@ -17,7 +17,9 @@ import {
   Timer,
   CheckCircle2,
   X,
+  ArrowUpRight,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -136,15 +138,29 @@ function StatusIndicator({ type, label }: StatusIndicatorProps) {
 export interface MetricProps {
   label: string;
   value: string | number;
+  href?: string;
 }
 
-function Metric({ label, value }: MetricProps) {
-  return (
+function Metric({ label, value, href }: MetricProps) {
+  const content = (
     <div className="space-y-1">
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs text-muted-foreground flex items-center gap-1">
+        {label}
+        {href && <ArrowUpRight size={12} className="text-primary opacity-70" />}
+      </span>
       <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block p-2 -m-2 rounded-xl hover:bg-surface-sunken/60 transition-colors">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }
 
 const CRON_JOBS = [
@@ -512,8 +528,8 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
               <Metric label="Usuarios Totales" value={loyalty.total_usuarios} />
               <Metric label="Activos 30d" value={loyalty.clientes_activos_30d} />
               <Metric label="Eventos Lealtad 7d" value={loyalty.eventos_lealtad_7d} />
-              <Metric label="Reembolsos Pendientes" value={loyalty.reembolsos_pendientes} />
-              <Metric label="Solicitudes Privacidad" value={loyalty.arco_pendientes} />
+              <Metric label="Reembolsos Pendientes" value={loyalty.reembolsos_pendientes} href="/reembolsos" />
+              <Metric label="Solicitudes Privacidad" value={loyalty.arco_pendientes} href="/arco" />
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">Sin datos de comunidad.</p>

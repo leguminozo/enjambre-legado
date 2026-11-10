@@ -253,14 +253,6 @@ export function SumUpView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <ViewShell
-        variant="compact"
-        eyebrow="Pagos"
-        title="Pagos"
-        subtitle="Terminal POS, sync y conciliación — configura merchant y API key en la app."
-        icon={<CreditCard size={20} />}
-      />
-
       <ResponsiveTabBar
         variant="pill"
         layoutId="sumup-tabs"

@@ -6,7 +6,6 @@ import { ListaGastos, type Gasto } from '@/views/eirl/gastos/ListaGastos';
 import { NuevoGastoForm } from '@/views/eirl/gastos/NuevoGastoForm';
 import { MetricasCards } from '@/views/eirl/dashboard/MetricasCards';
 import { ResumenActividad } from '@/views/eirl/dashboard/ResumenActividad';
-import { ContableView } from '@/views/ContableView';
 import { LibrosView } from '@/views/contable/LibrosView';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useEmpresaId } from '@/hooks/use-empresa-id';
@@ -20,7 +19,6 @@ const tabs = [
   { id: 'resumen', label: 'Resumen', icon: BarChart3 },
   { id: 'facturas', label: 'Facturas', icon: FileText },
   { id: 'gastos', label: 'Gastos', icon: ShoppingCart },
-  { id: 'contable', label: 'Contable', icon: Calculator },
   { id: 'libros', label: 'Libros', icon: BookOpen },
 ] as const;
 
@@ -164,7 +162,6 @@ export function ContableHubView() {
           />
         )
       )}
-      {activeTab === 'contable' && <ContableView />}
       {activeTab === 'libros' && <LibrosView />}
     </div>
   );

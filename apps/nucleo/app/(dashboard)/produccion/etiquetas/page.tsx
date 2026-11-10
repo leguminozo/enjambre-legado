@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { LazyHubPhygitalView } from '@/lib/navigation/lazy-views';
-
-export default function HubPhygitalPage() {
-  return <LazyHubPhygitalView />;
+/** Compatibilidad: los QRs de producto viven en /etiquetas/qr (Packaging & Etiquetas). */
+export default function ProduccionEtiquetasRedirectPage() {
+  redirect('/etiquetas/qr');
 }

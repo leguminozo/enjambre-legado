@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import { Landmark } from 'lucide-react';
+import { Landmark, FileText, Receipt } from 'lucide-react';
 import { ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import dynamic from 'next/dynamic';
 
 import { FiscalSiiSkeleton } from '@/components/shared/skeletons';
@@ -20,28 +21,25 @@ export function ImpuestosView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <ViewShell
-          variant="compact"
-          eyebrow="SII · Fiscal"
-          title="Impuestos & F29"
-          subtitle="Propuesta y cálculo de IVA crédito/débito, PPM y retención de honorarios (BHE)."
-          icon={<Landmark size={20} />}
-        />
+      <ViewShell
+        variant="compact"
+        eyebrow="SII · Fiscal"
+        title="Impuestos & F29"
+        subtitle="Propuesta y cálculo de IVA crédito/débito, PPM y retención de honorarios (BHE)."
+        icon={<Landmark size={20} />}
+      />
 
-        <div className="flex items-center gap-2">
-          <select
-            value={subType}
-            onChange={(e) => setSubType(e.target.value as 'f29' | 'f22' | 'honorarios')}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
-            aria-label="Seleccionar tipo de impuesto"
-          >
-            <option value="f29">Formulario F29 (Mensual)</option>
-            <option value="honorarios">Boletas de Honorarios (BHE)</option>
-            <option value="f22">Declaración Renta F22 (Anual)</option>
-          </select>
-        </div>
-      </div>
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="impuestos-tabs"
+        tabs={[
+          { id: 'f29', label: 'Formulario F29 (Mensual)', icon: <FileText size={16} /> },
+          { id: 'honorarios', label: 'Boletas de Honorarios (BHE)', icon: <Receipt size={16} /> },
+          { id: 'f22', label: 'Declaración Renta F22 (Anual)', icon: <Landmark size={16} /> },
+        ]}
+        activeId={subType}
+        onChange={(id) => setSubType(id as 'f29' | 'f22' | 'honorarios')}
+      />
 
       <Suspense fallback={<FiscalSiiSkeleton />}>
         {subType === 'f29' && <ImpuestosTab key="f29-impuestos" initialType="f29" />}

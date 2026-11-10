@@ -10,31 +10,13 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
-  Power,
-  Settings,
   ArrowUpRight,
   Target,
 } from 'lucide-react';
-import { toast, Badge, Skeleton, ImmersiveModal } from '@enjambre/ui';
+import { toast, Badge, Skeleton } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
-
-export interface IntegrationRow {
-  key: string;
-  name: string;
-  enabled: boolean;
-  configured: boolean;
-  hasPixelId?: boolean;
-  hasCapiToken?: boolean;
-  pixelId?: string;
-  testEventCode?: string;
-  hasAdsId?: boolean;
-  adsId?: string;
-  hasPurchaseLabel?: boolean;
-  purchaseLabel?: string;
-  mode?: 'live' | 'stub';
-}
 
 export interface GatewayStatus {
   key: string;
@@ -65,7 +47,6 @@ export interface IntegrationsApiResponse {
     secretConfigured: boolean;
   };
   services?: ServiceStatus[];
-  integrations?: IntegrationRow[];
 }
 
 export type IntegracionesViewProps = Record<string, never>;
@@ -73,22 +54,6 @@ export type IntegracionesViewProps = Record<string, never>;
 export function IntegracionesView(_props: IntegracionesViewProps = {}) {
   const apiFetch = useApiFetch();
   const [purging, setPurging] = useState(false);
-  const [togglingKey, setTogglingKey] = useState<string | null>(null);
-
-  // Modales de configuración
-  const [editingModal, setEditingModal] = useState<'meta_ads' | 'google_ads' | null>(null);
-  const [savingConfig, setSavingConfig] = useState(false);
-
-  // Formulario Meta Ads
-  const [metaEnabled, setMetaEnabled] = useState(false);
-  const [metaPixelId, setMetaPixelId] = useState('');
-  const [metaCapiToken, setMetaCapiToken] = useState('');
-  const [metaTestCode, setMetaTestCode] = useState('');
-
-  // Formulario Google Ads
-  const [googleEnabled, setGoogleEnabled] = useState(false);
-  const [googleAdsId, setGoogleAdsId] = useState('');
-  const [googlePurchaseLabel, setGooglePurchaseLabel] = useState('');
 
   const integrationsQuery = useQuery({
     queryKey: ['system', 'integrations'],
@@ -98,82 +63,6 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
       return (await res.json()) as IntegrationsApiResponse;
     },
   });
-
-  const handleOpenConfig = (row: IntegrationRow) => {
-    if (row.key === 'meta_ads') {
-      setMetaEnabled(row.enabled);
-      setMetaPixelId(row.pixelId ?? '');
-      setMetaCapiToken(''); // En blanco para mantener el existente si no se modifica
-      setMetaTestCode(row.testEventCode ?? '');
-      setEditingModal('meta_ads');
-    } else if (row.key === 'google_ads') {
-      setGoogleEnabled(row.enabled);
-      setGoogleAdsId(row.adsId ?? '');
-      setGooglePurchaseLabel(row.purchaseLabel ?? '');
-      setEditingModal('google_ads');
-    }
-  };
-
-  const handleSaveConfig = async () => {
-    if (!editingModal) return;
-    setSavingConfig(true);
-    try {
-      const payload: { enabled: boolean; config: Record<string, unknown> } = {
-        enabled: editingModal === 'meta_ads' ? metaEnabled : googleEnabled,
-        config:
-          editingModal === 'meta_ads'
-            ? {
-                pixel_id: metaPixelId.trim(),
-                ...(metaCapiToken.trim() ? { capi_token: metaCapiToken.trim() } : {}),
-                test_event_code: metaTestCode.trim(),
-              }
-            : {
-                ads_id: googleAdsId.trim(),
-                purchase_label: googlePurchaseLabel.trim(),
-              },
-      };
-
-      const res = await apiFetch(`/api/admin-system/integrations/${editingModal}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Falló al guardar la configuración');
-      }
-
-      toast('Configuración guardada y sincronizada con la tienda', { type: 'success' });
-      setEditingModal(null);
-      await integrationsQuery.refetch();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'Error guardando configuración', { type: 'error' });
-    } finally {
-      setSavingConfig(false);
-    }
-  };
-
-  const handleToggleIntegration = async (row: IntegrationRow) => {
-    setTogglingKey(row.key);
-    try {
-      const res = await apiFetch(`/api/admin-system/integrations/${row.key}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: !row.enabled }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Falló al actualizar la integración');
-      }
-      toast(row.enabled ? 'Integración desactivada' : 'Integración activada', { type: 'success' });
-      await integrationsQuery.refetch();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'Error actualizando integración', { type: 'error' });
-    } finally {
-      setTogglingKey(null);
-    }
-  };
 
   const handlePurgeCache = async () => {
     setPurging(true);
@@ -193,9 +82,6 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
 
   const gateways = integrationsQuery.data?.gateways ?? [];
   const services = integrationsQuery.data?.services ?? [];
-  const adsIntegrations = (integrationsQuery.data?.integrations ?? []).filter(
-    (r) => r.key === 'meta_ads' || r.key === 'google_ads',
-  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
@@ -203,12 +89,12 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
         variant="compact"
         eyebrow="Plataforma"
         title="Integraciones & Conectores"
-        subtitle="Pasarelas de pago, conectores de marketing y gestión de caché en el borde"
+        subtitle="Pasarelas de pago, conectores de servicio y distribución de caché en el borde"
         icon={<Plug size={20} />}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Columna Izquierda: Salud y Caché */}
+        {/* Columna Izquierda: Pasarelas de Pago y Caché */}
         <div className="space-y-6">
           {/* Salud de Pasarelas Real */}
           <section className="space-y-5 bg-card p-6 rounded-2xl border border-border shadow-sm">
@@ -295,7 +181,7 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               <div>
                 <p className="text-sm font-medium text-foreground">Purga de Caché Global (Tienda)</p>
                 <p className="text-xs text-muted-foreground mt-1 max-w-md">
-                  Invalida toda la caché estática en la red de borde. Utilizar si los cambios de catálogo, stock o píxeles tardan en reflejarse.
+                  Invalida toda la caché estática en la red de borde. Utilizar si los cambios de catálogo, stock o precios tardan en reflejarse.
                 </p>
               </div>
               <button
@@ -311,113 +197,39 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
           </section>
         </div>
 
-        {/* Columna Derecha: Marketing & Servicios */}
+        {/* Columna Derecha: Servicios Centrales & Puntero a Píxeles */}
         <div className="space-y-6">
-          {/* Píxeles & Medición */}
-          <section className="space-y-5 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          {/* Tarjeta de Redirección a Píxeles (Centralizado en Tienda Web) */}
+          <section className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 text-accent">
                 <Target size={18} />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                  Píxeles de Medición &amp; Adquisición
+                  Píxeles de Conversión &amp; Medición
                 </h3>
+              </div>
+              <Badge variant="default">Tienda Web</Badge>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              La configuración del Pixel de Meta Ads (junto a Conversions API / CAPI) y las etiquetas de conversión de Google Ads (gtag) se han centralizado de forma exclusiva en el flujo comercial de la tienda pública.
+            </p>
+
+            <div className="p-4 bg-surface-sunken/60 rounded-xl border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium text-foreground">Gestión de Audiencias y Campañas</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Edición de tokens, códigos de prueba e identificadores de pauta publicitaria.
+                </p>
               </div>
               <Link
                 href="/pixeles"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
               >
-                <span>Abrir en Tienda Web</span>
-                <ArrowUpRight size={13} />
+                <span>Ir a Píxeles</span>
+                <ArrowUpRight size={14} />
               </Link>
             </div>
-
-            <p className="text-xs text-muted-foreground">
-              Configuración de Pixel, Conversions API y etiquetas de conversión para la tienda pública.
-            </p>
-
-            {integrationsQuery.isLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-border bg-surface-sunken">
-                    <div className="space-y-1">
-                      <Skeleton variant="text" className="w-32 h-4" />
-                      <Skeleton variant="text" className="w-48 h-3" />
-                    </div>
-                    <Skeleton variant="rectangular" className="w-16 h-6 rounded-full" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {adsIntegrations.map((row) => {
-                  const isMeta = row.key === 'meta_ads';
-                  const isGoogle = row.key === 'google_ads';
-
-                  return (
-                    <div
-                      key={row.key}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-surface-sunken/60 rounded-xl border border-border/60"
-                    >
-                      <div className="flex items-start gap-3 min-w-0">
-                        <CheckCircle
-                          size={16}
-                          className={`mt-0.5 shrink-0 ${row.enabled ? 'text-primary' : 'text-muted-foreground'}`}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{row.name}</p>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                            <Badge variant={row.enabled ? 'success' : 'default'}>
-                              {row.enabled ? 'Activa' : 'Inactiva'}
-                            </Badge>
-                            <Badge variant={row.configured ? 'success' : 'danger'}>
-                              {row.configured ? 'Configurada' : 'Sin credenciales'}
-                            </Badge>
-                            {isMeta && (
-                              <Badge variant={row.mode === 'live' ? 'success' : 'default'}>
-                                CAPI {row.mode === 'live' ? 'live' : 'stub'}
-                              </Badge>
-                            )}
-                            {isGoogle && (
-                              <Badge variant={row.mode === 'live' ? 'success' : 'default'}>
-                                gtag {row.mode === 'live' ? 'live' : 'stub'}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenConfig(row)}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-colors border border-border bg-surface-sunken hover:bg-muted text-foreground cursor-pointer min-h-9"
-                        >
-                          <Settings size={13} />
-                          <span>Configurar</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleIntegration(row)}
-                          disabled={togglingKey === row.key}
-                          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border cursor-pointer min-h-9 ${
-                            row.enabled
-                              ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/20'
-                              : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20'
-                          }`}
-                        >
-                          {togglingKey === row.key ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : (
-                            <Power size={13} />
-                          )}
-                          <span>{row.enabled ? 'Desactivar' : 'Activar'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </section>
 
           {/* Servicios & Entidades del Ecosistema */}
@@ -468,165 +280,6 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
           </section>
         </div>
       </div>
-
-      {/* Modal Configuración Meta Ads */}
-      <ImmersiveModal
-        open={editingModal === 'meta_ads'}
-        onClose={() => setEditingModal(null)}
-        title="Configuración de Meta Ads (Pixel + CAPI)"
-      >
-        <div className="py-4 space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Configura el seguimiento de Meta Ads para la tienda. Los eventos se emitirán desde el navegador (Pixel) y desde el servidor (Conversions API) con deduplicación segura.
-          </p>
-
-          <label className="flex items-center gap-3 p-3 bg-surface-sunken/60 rounded-xl border border-border cursor-pointer">
-            <input
-              type="checkbox"
-              checked={metaEnabled}
-              onChange={(e) => setMetaEnabled(e.target.checked)}
-              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
-            />
-            <div>
-              <p className="text-sm font-medium text-foreground">Habilitar integración en la tienda</p>
-              <p className="text-xs text-muted-foreground">
-                Control maestro: si está inactivo, ningún pixel ni llamada de servidor será emitida.
-              </p>
-            </div>
-          </label>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Identificador del Pixel (Pixel ID)
-            </label>
-            <input
-              type="text"
-              value={metaPixelId}
-              onChange={(e) => setMetaPixelId(e.target.value)}
-              placeholder="ej. 1234567890123456"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Token de Conversions API (CAPI)
-            </label>
-            <input
-              type="password"
-              value={metaCapiToken}
-              onChange={(e) => setMetaCapiToken(e.target.value)}
-              placeholder="•••••••••••••••• (dejar en blanco para conservar actual)"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Código de evento de prueba (Test Event Code - opcional)
-            </label>
-            <input
-              type="text"
-              value={metaTestCode}
-              onChange={(e) => setMetaTestCode(e.target.value)}
-              placeholder="ej. TEST12345"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={() => setEditingModal(null)}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveConfig}
-              disabled={savingConfig}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              {savingConfig && <Loader2 size={13} className="animate-spin" />}
-              <span>{savingConfig ? 'Guardando…' : 'Guardar'}</span>
-            </button>
-          </div>
-        </div>
-      </ImmersiveModal>
-
-      {/* Modal Configuración Google Ads */}
-      <ImmersiveModal
-        open={editingModal === 'google_ads'}
-        onClose={() => setEditingModal(null)}
-        title="Configuración de Google Ads (gtag)"
-      >
-        <div className="py-4 space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Configura el identificador y etiqueta de conversión de Google Ads.
-          </p>
-
-          <label className="flex items-center gap-3 p-3 bg-surface-sunken/60 rounded-xl border border-border cursor-pointer">
-            <input
-              type="checkbox"
-              checked={googleEnabled}
-              onChange={(e) => setGoogleEnabled(e.target.checked)}
-              className="rounded border-border text-primary focus:ring-primary h-4 w-4"
-            />
-            <div>
-              <p className="text-sm font-medium text-foreground">Habilitar integración en la tienda</p>
-              <p className="text-xs text-muted-foreground">
-                Control maestro: si está inactivo, el tag no se cargará en la tienda.
-              </p>
-            </div>
-          </label>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Identificador Google Ads (AW-…)
-            </label>
-            <input
-              type="text"
-              value={googleAdsId}
-              onChange={(e) => setGoogleAdsId(e.target.value)}
-              placeholder="ej. AW-123456789"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Etiqueta de conversión de compra (Purchase Conversion Label)
-            </label>
-            <input
-              type="text"
-              value={googlePurchaseLabel}
-              onChange={(e) => setGooglePurchaseLabel(e.target.value)}
-              placeholder="ej. AbC-D_efGhi123456"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={() => setEditingModal(null)}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveConfig}
-              disabled={savingConfig}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              {savingConfig && <Loader2 size={13} className="animate-spin" />}
-              <span>{savingConfig ? 'Guardando…' : 'Guardar'}</span>
-            </button>
-          </div>
-        </div>
-      </ImmersiveModal>
     </div>
   );
 }

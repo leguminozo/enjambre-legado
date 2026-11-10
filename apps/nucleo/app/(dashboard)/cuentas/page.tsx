@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { LazyInvitacionesPanel } from '@/lib/navigation/lazy-views';
-
-export default function CuentasPage() {
-  return <LazyInvitacionesPanel defaultTab="cuentas" />;
+/** Compatibilidad: la gestión de cuentas y accesos vive en /invitaciones. */
+export default function CuentasRedirectPage() {
+  redirect('/invitaciones');
 }
