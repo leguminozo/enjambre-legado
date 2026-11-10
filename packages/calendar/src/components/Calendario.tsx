@@ -33,6 +33,8 @@ import type { CalendarioEvent, CalendarioEventType } from '../types';
 export interface CalendarioProps {
   events: CalendarioEvent[];
   currentDate?: Date;
+  /** Rol del usuario para adaptar filtros y leyendas al canon correspondiente */
+  userRole?: string;
   /** Fecha seleccionada controlada (opcional) */
   selectedDate?: Date | null;
   onMonthChange?: (date: Date) => void;
@@ -94,6 +96,31 @@ const eventTypeConfig: Record<
     dotClass: 'bg-rose-400',
     label: 'Logística',
   },
+  tratamiento: {
+    colorClass: 'bg-destructive/15 text-destructive border border-destructive/30',
+    dotClass: 'bg-destructive',
+    label: 'Tratamiento / Resguardo',
+  },
+  cosecha: {
+    colorClass: 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30',
+    dotClass: 'bg-amber-400',
+    label: 'Recolección',
+  },
+  transhumancia: {
+    colorClass: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30',
+    dotClass: 'bg-cyan-400',
+    label: 'Trashumancia',
+  },
+  reforestacion: {
+    colorClass: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30',
+    dotClass: 'bg-emerald-400',
+    label: 'Reforestación',
+  },
+  alerta: {
+    colorClass: 'bg-red-500/15 text-red-600 dark:text-red-300 border border-red-500/30',
+    dotClass: 'bg-red-400',
+    label: 'Alerta Fitosanitaria',
+  },
   otro: {
     colorClass: 'bg-muted text-muted-foreground border border-border',
     dotClass: 'bg-muted-foreground',
@@ -111,6 +138,7 @@ function toDate(d: Date | string): Date {
 export function Calendario({
   events,
   currentDate = new Date(),
+  userRole,
   selectedDate: selectedDateProp,
   onMonthChange,
   onSelectedDateChange,
@@ -507,20 +535,35 @@ export function Calendario({
         </div>
       )}
 
-      {/* ── Legend (compact) ── */}
+      {/* ── Legend (compact adaptado por rol) ── */}
       <footer className="flex shrink-0 flex-wrap items-center justify-center gap-3 border-t border-border bg-muted/20 px-3 py-2 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
         {(
-          [
-            'personal',
-            'reunion',
-            'feria',
-            'apicultura',
-            'marketing',
-            'historico',
-            'inspeccion',
-          ] as CalendarioEventType[]
+          (userRole === 'territorial' || userRole === 'apicultor'
+            ? [
+                'apicultura',
+                'inspeccion',
+                'cosecha',
+                'tratamiento',
+                'transhumancia',
+                'reunion',
+                'personal',
+                'otro',
+              ]
+            : [
+                'personal',
+                'reunion',
+                'feria',
+                'apicultura',
+                'marketing',
+                'logistica',
+                'cosecha',
+                'inspeccion',
+                'tratamiento',
+                'transhumancia',
+                'otro',
+              ]) as CalendarioEventType[]
         ).map((key) => {
-          const conf = eventTypeConfig[key];
+          const conf = eventTypeConfig[key] ?? { dotClass: 'bg-muted-foreground', label: key };
           return (
             <div key={key} className="flex items-center gap-1.5">
               <div className={`h-2 w-2 rounded-full ${conf.dotClass}`} />

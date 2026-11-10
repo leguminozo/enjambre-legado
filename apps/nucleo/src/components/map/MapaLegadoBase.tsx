@@ -11,8 +11,9 @@ import {
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Clock, ChevronLeft, ChevronRight, Moon, Sun, Plus } from 'lucide-react';
+import { MapPin, Clock, ChevronLeft, ChevronRight, Moon, Sun, Plus, Compass } from 'lucide-react';
 import { toast, friendlyError, formatCLP, ImmersiveModal } from '@enjambre/ui';
+import { useAuthStore } from '@enjambre/auth';
 import { resolveClienteCoords, resolveComunaCoords } from '@/lib/cliente-coords';
 
 fixLeafletDefaultIcons();
@@ -184,9 +185,34 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
 
 export type MapEnvironment = 'enjambre' | 'tienda' | 'campo' | 'territorio';
 
-interface MapaLegadoProps {
+export interface MapaLegadoProps {
   height?: string;
   filterRole?: string;
+  initialEnvironment?: MapEnvironment;
+}
+
+const CHILOE_COMUNAS_VIEW = [
+  { id: 'todo', label: 'Archipiélago', center: [-42.48, -73.76] as [number, number], zoom: 9 },
+  { id: 'ancud', label: 'Ancud', center: [-41.87, -73.83] as [number, number], zoom: 11 },
+  { id: 'quemchi', label: 'Quemchi', center: [-42.14, -73.48] as [number, number], zoom: 11 },
+  { id: 'dalcahue', label: 'Dalcahue', center: [-42.38, -73.65] as [number, number], zoom: 12 },
+  { id: 'curaco', label: 'Curaco de Vélez', center: [-42.44, -73.60] as [number, number], zoom: 12 },
+  { id: 'castro', label: 'Castro', center: [-42.48, -73.77] as [number, number], zoom: 12 },
+  { id: 'quinchao', label: 'Quinchao', center: [-42.47, -73.50] as [number, number], zoom: 11 },
+  { id: 'puqueldon', label: 'Puqueldón', center: [-42.59, -73.65] as [number, number], zoom: 12 },
+  { id: 'chonchi', label: 'Chonchi', center: [-42.62, -73.77] as [number, number], zoom: 11 },
+  { id: 'queilen', label: 'Queilén', center: [-42.89, -73.47] as [number, number], zoom: 11 },
+  { id: 'quellon', label: 'Quellón', center: [-43.12, -73.61] as [number, number], zoom: 11 },
+] as const;
+
+function MapViewController({ target }: { target: { center: [number, number]; zoom: number } | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target) {
+      map.flyTo(target.center, target.zoom, { duration: 1.0, easeLinearity: 0.25 });
+    }
+  }, [target, map]);
+  return null;
 }
 
 interface AlertaTerritorial {
@@ -314,10 +340,14 @@ const ICON_PREDIO = createLayerIcon('🌿', 'hsl(var(--success))');
 const ICON_CENSO = createLayerIcon('🐝', 'hsl(var(--primary))');
 const ICON_COSECHA = createLayerIcon('🍯', 'hsl(var(--warning, var(--accent)))');
 
-export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
+export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 'enjambre' }: MapaLegadoProps) {
   const apiFetch = useApiFetch();
+  const userRole = useAuthStore((s) => s.user?.role);
+  const isAdmin = userRole === 'admin';
   const [mapStyle, setMapStyle] = useState<'satellite' | 'dark'>('satellite');
-  const [activeEnv, setActiveEnv] = useState<MapEnvironment>('enjambre');
+  const [activeEnv, setActiveEnv] = useState<MapEnvironment>(initialEnvironment);
+  const [comunaSeleccionada, setComunaSeleccionada] = useState<string>('todo');
+  const [comunaTarget, setComunaTarget] = useState<{ center: [number, number]; zoom: number } | null>(null);
   const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -613,7 +643,7 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
           });
         });
 
-        // 8. Registro Territorial (Chiloé) — Catastro reservado para el fundador
+        // 8. Registro Territorial (Chiloé) — Catastro legal comunitario y reservado fundador
         const [alertasRes, trashumRes, prediosRes, censoRes] = await Promise.all([
           apiFetch('/api/registro-territorial/alertas'),
           apiFetch('/api/registro-territorial/apiarios-externos'),
@@ -623,11 +653,23 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
         const alertasJson = alertasRes.ok ? await alertasRes.json() : { data: [] };
         const trashumJson = trashumRes.ok ? await trashumRes.json() : { data: [] };
         const prediosJson = prediosRes.ok ? await prediosRes.json() : { data: [] };
-        const censoJson = censoRes.ok ? await censoRes.json() : { data: [] };
+        
+        let censoData: CensoApiario[] = [];
+        if (censoRes.ok) {
+          const censoJson = await censoRes.json();
+          censoData = censoJson.data ?? [];
+        } else {
+          // Si no es admin (ej. rol territorial / apicultor), cargamos los apiarios comunitarios permitidos por RLS
+          const regRes = await apiFetch('/api/registro-territorial/apiarios');
+          if (regRes.ok) {
+            const regJson = await regRes.json();
+            censoData = regJson.data ?? [];
+          }
+        }
         setAlertas(alertasJson.data ?? []);
         setTrashumantes(trashumJson.data ?? []);
         setPredios(prediosJson.data ?? []);
-        setCensoApiarios(censoJson.data ?? []);
+        setCensoApiarios(censoData);
 
         // Recolecciones con geolocalización
         const { data: cosechasGeo } = await supabase
@@ -1313,16 +1355,18 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
               <span className="hidden sm:inline">{mapStyle === 'satellite' ? 'Satélite' : 'Oscuro'}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setIsEditMode(!isEditMode)}
-              className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-                isEditMode ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-              }`}
-            >
-              <MapPin size={14} />
-              <span className="hidden sm:inline">{isEditMode ? 'Modo Edición ON' : 'Modo Edición'}</span>
-            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
+                  isEditMode ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
+                }`}
+              >
+                <MapPin size={14} />
+                <span className="hidden sm:inline">{isEditMode ? 'Modo Edición ON' : 'Modo Edición'}</span>
+              </button>
+            )}
 
             {isEditMode && (
               <button
@@ -1352,6 +1396,7 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
           {mapStyle === 'satellite' ? <EsriSatelliteTileLayers /> : <DarkCartoTileLayer />}
           <FitBounds markers={filteredMarkers} />
           <MapResizeWatcher />
+          <MapViewController target={comunaTarget} />
           {isEditMode && <MapClickHandler onMapClick={handleMapClick} />}
 
           {filteredMarkers.map((marker) => (
@@ -1482,6 +1527,18 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
             const origen = resolveComunaCoords(t.comuna_origen);
             return (
               <div key={`trashum-${t.id}`}>
+                {/* Halo de Trashumancia Temporal (~2.0 km) */}
+                <Circle
+                  center={[t.lat_aproximada, t.lng_aproximada]}
+                  radius={2000}
+                  pathOptions={{
+                    color: 'hsl(var(--accent))',
+                    fillColor: 'hsl(var(--accent))',
+                    fillOpacity: 0.12,
+                    weight: 1,
+                    dashArray: '4, 4',
+                  }}
+                />
                 {origen && (
                   <Polyline
                     positions={[[origen.lat, origen.lng], [t.lat_aproximada, t.lng_aproximada]]}
@@ -1539,160 +1596,213 @@ export function MapaLegado({ height = '620px', filterRole }: MapaLegadoProps) {
                 `Hola ${a.titular || 'estimado apicultor'}, te contacto desde la dirección de Obrera y Zángano / Registro Apícola de Chiloé. Quisiéramos consultar disponibilidad de miel de tu apiario ${a.nombre || ''} en ${a.comuna} para una eventual compra directa.`
               );
               const esVerificado = Boolean(a.censo_completo || a.reclamado);
+              const hasFounderData = Boolean(a.titular || a.telefono);
 
               return (
-                <Marker key={`censo-${a.id}`} position={[a.lat_aproximada as number, a.lng_aproximada as number]} icon={ICON_CENSO}>
-                  <Popup autoPan={true} autoPanPadding={[50, 50]}>
-                    <div className="p-1 min-w-[280px] max-w-[320px] space-y-2.5 text-xs">
-                      {/* Cabecera */}
-                      <div className="border-b border-border/60 pb-1.5">
-                        <div className="flex items-center justify-between gap-1 mb-0.5">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
-                            🐝 Censo Reservado · {a.comuna}
-                          </span>
-                          {esVerificado ? (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 font-medium">
-                              {a.censo_completo ? 'Censo Completo' : `Reclamado · ${a.nivel_acreditacion ?? 'base'}`}
+                <div key={`censo-${a.id}`}>
+                  {/* Halo de Pecoreo Orgánico (K-Anonymity ~2.0 km · Ley 21.489) */}
+                  <Circle
+                    center={[a.lat_aproximada as number, a.lng_aproximada as number]}
+                    radius={2000}
+                    pathOptions={{
+                      color: 'hsl(var(--primary))',
+                      fillColor: 'hsl(var(--primary))',
+                      fillOpacity: 0.12,
+                      weight: 1,
+                      dashArray: '3, 4',
+                    }}
+                  />
+                  <Marker position={[a.lat_aproximada as number, a.lng_aproximada as number]} icon={ICON_CENSO}>
+                    <Popup autoPan={true} autoPanPadding={[50, 50]}>
+                      <div className="p-1 min-w-[260px] max-w-[320px] space-y-2.5 text-xs">
+                        {/* Cabecera */}
+                        <div className="border-b border-border/60 pb-1.5">
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
+                              🐝 Asentamiento de la Red · {a.comuna}
                             </span>
-                          ) : (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-warning/15 text-warning border border-warning/30 font-medium">
-                              Catastro KMZ (Sin reclamar)
+                            {esVerificado ? (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 font-medium">
+                                {a.censo_completo ? 'Censo Completo' : `Reclamado · ${a.nivel_acreditacion ?? 'base'}`}
+                              </span>
+                            ) : (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-warning/15 text-warning border border-warning/30 font-medium">
+                                Catastro Comunal
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-bold text-sm text-foreground leading-tight">
+                            {a.nombre ?? 'Apiario comunal'}
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {a.zona ? `${a.zona} · ` : ''}{a.comuna}
+                          </p>
+                        </div>
+
+                        {/* Datos de Productor (si existen para fundador) o Identidad Protegida */}
+                        {hasFounderData ? (
+                          <div className="bg-surface-sunken/80 rounded-lg p-2 border border-border/50 space-y-1 text-[11px]">
+                            <p className="flex justify-between gap-2">
+                              <span className="text-muted-foreground shrink-0">Titular:</span>
+                              <strong className="text-foreground text-right truncate">{a.titular || 'No declarado'}</strong>
+                            </p>
+                            <p className="flex justify-between gap-2">
+                              <span className="text-muted-foreground shrink-0">RUT:</span>
+                              <span className="font-mono text-foreground">{a.rut || 'Pendiente censo'}</span>
+                            </p>
+                            <p className="flex justify-between gap-2">
+                              <span className="text-muted-foreground shrink-0">RUP SAG:</span>
+                              <span className="font-mono text-foreground font-semibold">{a.rup || 'Sin RUP / En trámite'}</span>
+                            </p>
+                            <p className="flex justify-between gap-2">
+                              <span className="text-muted-foreground shrink-0">Decl. Anual SAG:</span>
+                              <span className={a.declaracion_sag ? 'text-success font-medium' : 'text-muted-foreground'}>
+                                {a.declaracion_sag ? '✓ Declarada' : 'Pendiente'}
+                              </span>
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-surface-sunken/60 rounded-lg p-2 border border-border/40 text-[11px] space-y-1">
+                            <p className="text-muted-foreground flex items-center justify-between">
+                              <span>Radio de pecoreo:</span>
+                              <strong className="text-foreground font-mono">±2,0 km</strong>
+                            </p>
+                            <p className="text-muted-foreground flex items-center justify-between">
+                              <span>Marco legal:</span>
+                              <span className="text-foreground">Ley 21.489</span>
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Colmenas */}
+                        <div className="space-y-1 text-[11px] bg-surface-sunken/50 rounded-lg p-2 border border-border/40">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Colmenas:</span>
+                            <span className="font-bold text-foreground font-mono tabular-nums text-right">
+                              {a.n_colmenas}{' '}
+                              <span className="text-[10px] font-normal text-muted-foreground">
+                                {a.es_catastro_kmz ? '(est. KMZ)' : `(${a.categoria})`}
+                              </span>
+                              {a.n_colmenas_vivo != null && (
+                                <span className="text-[10px] text-primary ml-1">· {a.n_colmenas_vivo} vivas</span>
+                              )}
+                            </span>
+                          </div>
+                          {a.metodo_control_varroa && (
+                            <p className="text-muted-foreground text-[10px] leading-snug">
+                              <strong className="text-foreground">Control Varroa:</strong> {a.metodo_control_varroa}
+                            </p>
+                          )}
+                          {a.practicas_sanitarias && (
+                            <p className="text-muted-foreground text-[10px] leading-snug line-clamp-2">
+                              <strong className="text-foreground">Prácticas sanitarias:</strong> {a.practicas_sanitarias}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Consentimientos Informados */}
+                        <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                          <span
+                            className={`px-1.5 py-0.5 rounded border ${
+                              a.consentimiento_mapa
+                                ? 'bg-primary/10 text-primary border-primary/30'
+                                : 'bg-surface-sunken text-muted-foreground border-border'
+                            }`}
+                          >
+                            ✓ Halo 2 km activo
+                          </span>
+                          {hasFounderData && a.consentimiento_acopio && (
+                            <span className="px-1.5 py-0.5 rounded border bg-success/10 text-success border-success/30">
+                              ✓ Compra miel autorizada
                             </span>
                           )}
                         </div>
-                        <h4 className="font-bold text-sm text-foreground leading-tight">
-                          {a.nombre ?? 'Apiario comunal'}
-                        </h4>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          {a.zona ? `${a.zona} · ` : ''}{a.comuna}
-                        </p>
-                      </div>
 
-                      {/* 1 & 2. Identidad Legal y Registro SAG (RUP) */}
-                      <div className="bg-surface-sunken/80 rounded-lg p-2 border border-border/50 space-y-1 text-[11px]">
-                        <p className="flex justify-between gap-2">
-                          <span className="text-muted-foreground shrink-0">Titular:</span>
-                          <strong className="text-foreground text-right truncate">{a.titular || 'No declarado'}</strong>
-                        </p>
-                        <p className="flex justify-between gap-2">
-                          <span className="text-muted-foreground shrink-0">RUT:</span>
-                          <span className="font-mono text-foreground">{a.rut || 'Pendiente censo'}</span>
-                        </p>
-                        <p className="flex justify-between gap-2">
-                          <span className="text-muted-foreground shrink-0">RUP SAG:</span>
-                          <span className="font-mono text-foreground font-semibold">{a.rup || 'Sin RUP / En trámite'}</span>
-                        </p>
-                        <p className="flex justify-between gap-2">
-                          <span className="text-muted-foreground shrink-0">Decl. Anual SAG:</span>
-                          <span className={a.declaracion_sag ? 'text-success font-medium' : 'text-muted-foreground'}>
-                            {a.declaracion_sag ? '✓ Declarada' : 'Pendiente'}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* 3 & 4. Colmenas y Estado Sanitario (Ley 21.489) */}
-                      <div className="space-y-1 text-[11px] bg-surface-sunken/50 rounded-lg p-2 border border-border/40">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-muted-foreground">Colmenas:</span>
-                          <span className="font-bold text-foreground font-mono tabular-nums text-right">
-                            {a.n_colmenas}{' '}
-                            <span className="text-[10px] font-normal text-muted-foreground">
-                              {a.es_catastro_kmz ? '(est. KMZ)' : `(${a.categoria})`}
+                        {/* Contacto Directo para Abastecimiento / Compra de Miel (Solo si tiene datos de contacto) */}
+                        {hasFounderData && (
+                          <div className="pt-2 border-t border-border/60 space-y-1.5">
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">
+                              Abastecimiento & Compra Directa:
                             </span>
-                            {a.n_colmenas_vivo != null && (
-                              <span className="text-[10px] text-primary ml-1">· {a.n_colmenas_vivo} vivas</span>
-                            )}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground text-[10px] leading-snug">
-                          <strong className="text-foreground">Control Varroa:</strong>{' '}
-                          {a.metodo_control_varroa || 'No especificado aún'}
-                        </p>
-                        <p className="text-muted-foreground text-[10px] leading-snug line-clamp-2">
-                          <strong className="text-foreground">Prácticas sanitarias:</strong>{' '}
-                          {a.practicas_sanitarias || 'No especificadas aún'}
-                        </p>
-                      </div>
-
-                      {/* 5. Consentimientos Informados */}
-                      <div className="flex flex-wrap items-center gap-1 text-[10px]">
-                        <span
-                          className={`px-1.5 py-0.5 rounded border ${
-                            a.consentimiento_acopio
-                              ? 'bg-success/10 text-success border-success/30'
-                              : 'bg-surface-sunken text-muted-foreground border-border'
-                          }`}
-                        >
-                          {a.consentimiento_acopio ? '✓ Compra miel autorizada' : 'Compra miel: consultar'}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded border ${
-                            a.consentimiento_mapa
-                              ? 'bg-primary/10 text-primary border-primary/30'
-                              : 'bg-surface-sunken text-muted-foreground border-border'
-                          }`}
-                        >
-                          {a.consentimiento_mapa ? '✓ Halo 2 km activo' : 'Mapa comunitario: privado'}
-                        </span>
-                        {a.acepta_carta && (
-                          <span className="px-1.5 py-0.5 rounded border bg-surface-sunken text-muted-foreground border-border font-mono">
-                            Carta v{a.consentimientos_version || '0.4.0'}
-                          </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {a.telefono && (
+                                <>
+                                  <a
+                                    href={`tel:${telLimpio}`}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
+                                  >
+                                    📞 Llamar
+                                  </a>
+                                  <a
+                                    href={`https://wa.me/${telWa}?text=${waText}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-success/15 border border-success/30 text-[11px] font-medium text-success hover:bg-success/25 transition-colors"
+                                  >
+                                    💬 WhatsApp
+                                  </a>
+                                </>
+                              )}
+                              {a.email && (
+                                <a
+                                  href={`mailto:${a.email}?subject=${encodeURIComponent(`Obrera y Zángano - Consulta Miel Apiario ${a.nombre || ''}`)}`}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
+                                >
+                                  ✉️ Email
+                                </a>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setCensoSeleccionado(a)}
+                              className="w-full mt-1 py-1.5 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-semibold text-[11px] transition-colors text-center"
+                            >
+                              Abrir ficha censal completa →
+                            </button>
+                          </div>
+                        )}
+                        {!hasFounderData && (
+                          <div className="pt-1.5 border-t border-border/50 text-[10px] text-muted-foreground flex items-center gap-1">
+                            <span className="text-primary font-semibold">🔒</span> Coordenadas exactas protegidas por secreto territorial (Ley 21.489).
+                          </div>
                         )}
                       </div>
-
-                      {/* Contacto Directo para Abastecimiento / Compra de Miel */}
-                      <div className="pt-2 border-t border-border/60 space-y-1.5">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">
-                          Abastecimiento & Compra Directa:
-                        </span>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {a.telefono && (
-                            <>
-                              <a
-                                href={`tel:${telLimpio}`}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
-                              >
-                                📞 Llamar
-                              </a>
-                              <a
-                                href={`https://wa.me/${telWa}?text=${waText}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-success/15 border border-success/30 text-[11px] font-medium text-success hover:bg-success/25 transition-colors"
-                              >
-                                💬 WhatsApp
-                              </a>
-                            </>
-                          )}
-                          {a.email && (
-                            <a
-                              href={`mailto:${a.email}?subject=${encodeURIComponent(`Obrera y Zángano - Consulta Miel Apiario ${a.nombre || ''}`)}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-raised border border-border text-[11px] font-medium text-foreground hover:bg-surface-sunken transition-colors"
-                            >
-                              ✉️ Email
-                            </a>
-                          )}
-                          {!a.telefono && !a.email && (
-                            <span className="text-[10px] text-warning font-medium">
-                              Catastro KMZ · Pendiente reclamo del titular
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setCensoSeleccionado(a)}
-                          className="w-full mt-1 py-1.5 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-semibold text-[11px] transition-colors text-center"
-                        >
-                          Abrir ficha censal completa →
-                        </button>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
+                    </Popup>
+                  </Marker>
+                </div>
               );
             })}
         </MapContainer>
+
+        {/* Barra Flotante de Navegación por Sectores de Chiloé (Activa en modo Territorio) */}
+        {activeEnv === 'territorio' && (
+          <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto z-[1000] flex items-center gap-1.5 p-1.5 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl overflow-x-auto max-w-[calc(100%-1.5rem)] sm:max-w-2xl text-xs scrollbar-none">
+            <span className="text-muted-foreground font-medium flex items-center gap-1 px-1 shrink-0">
+              <Compass className="w-3.5 h-3.5 text-primary" />
+              Sectores:
+            </span>
+            {CHILOE_COMUNAS_VIEW.map((com) => {
+              const isSelected = comunaSeleccionada === com.id;
+              return (
+                <button
+                  key={com.id}
+                  type="button"
+                  onClick={() => {
+                    setComunaSeleccionada(com.id);
+                    setComunaTarget({ center: com.center, zoom: com.zoom });
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    isSelected
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                      : 'bg-surface-raised hover:bg-surface-sunken text-muted-foreground hover:text-foreground border border-border/60'
+                  }`}
+                >
+                  {com.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Ficha Lateral Censal Completa (Exclusiva Fundador / Admin) */}

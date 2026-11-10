@@ -104,11 +104,49 @@ function ColmenaHud({ state, selected, hovered, mode, hudY, onSelect }: ColmenaH
   // En modo 'focus' solo se muestra al hacer hover o seleccionar
   if (!isVisible) return null;
 
+  // En modo 'compact' sin hover ni selección: micro-etiqueta sutil que no satura la escena 3D
+  if (mode === 'compact' && !hovered && !selected) {
+    return (
+      <Html
+        position={[0, hudY, 0]}
+        center
+        distanceFactor={7.5}
+        className="pointer-events-auto select-none"
+      >
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
+          className="transition-all duration-200 cursor-pointer flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-card/90 hover:bg-card border border-border/80 hover:border-accent shadow-md backdrop-blur-sm group whitespace-nowrap"
+          title={`Colmena ${state.name} (${state.riskLabel}) - Clic para ver ficha`}
+        >
+          <span
+            className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+            style={{ background: state.color }}
+          />
+          <span className="font-display font-bold text-xs text-foreground tracking-tight">
+            {state.name}
+          </span>
+          <span
+            className="text-[9px] font-semibold uppercase tracking-wider px-1 py-0.5 rounded"
+            style={{
+              background: `${state.color}18`,
+              color: state.color,
+            }}
+          >
+            {state.riskLabel}
+          </span>
+        </div>
+      </Html>
+    );
+  }
+
   const trendSymbol =
     state.weightTrend === 'up' ? '↑' : state.weightTrend === 'down' ? '↓' : '→';
-  // Métricas completas solo al interactuar: hover o selección explícita.
-  // En 'compact' el HUD muestra solo identificación mínima para evitar solapamiento.
-  const showFullMetrics = hovered || selected;
+
+  // Métricas completas: visibles en modo 'detailed' ("Telemetría Completa") o bajo interacción
+  const showFullMetrics = mode === 'detailed' || hovered || selected;
 
   const alzaLabel =
     state.alzas === 0
@@ -538,9 +576,10 @@ export function GemeloApiario({
   const [ambientTempC, setAmbientTempC] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  // 'compact' por defecto: cada colmena muestra solo nombre + riesgo.
-  // Las métricas aparecen al hacer hover o seleccionar. Sin solapamiento.
-  const [hudMode, setHudMode] = useState<HudMode>('compact');
+  // 'focus' por defecto: sin textos flotantes que saturen la escena 3D al inicio.
+  // Permite apreciar la arquitectura 3D frontal de todas las colmenas con máxima claridad.
+  // Las fichas aparecen al hacer hover, seleccionar o al alternar a 'compact' o 'detailed'.
+  const [hudMode, setHudMode] = useState<HudMode>('focus');
   const controlsRef = useRef<React.ComponentRef<typeof OrbitControls> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(true);
@@ -592,7 +631,9 @@ export function GemeloApiario({
 
   const resetCamera = () => {
     if (controlsRef.current) {
-      controlsRef.current.reset();
+      controlsRef.current.target.set(0, 0.5, 0);
+      controlsRef.current.object.position.set(0, 3.8, 9.6);
+      controlsRef.current.update();
     }
   };
 
@@ -672,14 +713,15 @@ export function GemeloApiario({
             canvas.addEventListener('webglcontextlost', handleContextLost, false);
           }}
         >
-          <PerspectiveCamera makeDefault position={[5.5, 4.5, 6.5]} fov={45} />
+          <PerspectiveCamera makeDefault position={[0, 3.8, 9.6]} fov={44} />
           <OrbitControls
             ref={controlsRef}
+            target={[0, 0.5, 0]}
             enableDamping
             dampingFactor={0.06}
             maxPolarAngle={Math.PI / 2.15}
             minDistance={2.5}
-            maxDistance={22}
+            maxDistance={25}
           />
 
           {/* Iluminación de claro de bosque en Chiloé */}

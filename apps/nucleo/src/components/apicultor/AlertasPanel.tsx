@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Button, Skeleton, SkeletonCard, Spinner, toast } from '@enjambre/ui';
-import { RefreshCw, AlertTriangle, CheckCircle2, PlayCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, PlayCircle, Plus, XCircle } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 
@@ -21,9 +21,10 @@ interface AlertasPanelProps {
   actorId?: string | null;
   isLoading: boolean;
   onRefresh: () => void;
+  onCrearAlerta?: () => void;
 }
 
-export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: AlertasPanelProps) {
+export function AlertasPanel({ alertas, actorId, isLoading, onRefresh, onCrearAlerta }: AlertasPanelProps) {
   const apiFetch = useApiFetch();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [cambiandoEstado, setCambiandoEstado] = useState<string | null>(null);
@@ -131,23 +132,35 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
             Avisos de vecinos en un radio de 3 km alrededor de tus colmenas
           </CardDescription>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          className="border-border text-foreground hover:bg-surface-raised"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Actualizar
-        </Button>
+        {onCrearAlerta && (
+          <Button
+            size="sm"
+            onClick={onCrearAlerta}
+            className="bg-primary text-primary-foreground hover:opacity-90 font-medium shadow-sm transition"
+          >
+            <Plus className="h-4 w-4 mr-1.5" />
+            Emitir Aviso Fitosanitario
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {alertas.length === 0 ? (
-          <div className="py-8 text-center">
-            <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-60" />
+          <div className="py-8 text-center space-y-3">
+            <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-1 opacity-60" />
             <p className="text-sm text-muted-foreground">
               No hay avisos de aplicación registrados en tu zona actualmente.
             </p>
+            {onCrearAlerta && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onCrearAlerta}
+                className="border-border text-foreground hover:bg-surface-raised"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                Emitir Aviso Fitosanitario
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

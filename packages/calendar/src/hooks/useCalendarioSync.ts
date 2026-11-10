@@ -42,11 +42,11 @@ export function useCalendarioSync(
     setIsLoading(true);
     setError(null);
     try {
+      const isTerritorial = userRole === 'territorial';
       const isAdmin = userRole === 'admin' || userRole === 'gerente';
-      const isApicultor = userRole === 'apicultor' || isAdmin;
-      const isRep =
-        userRole === 'rep_ventas' || userRole === 'vendedor' || isAdmin;
-      const isMarketing = userRole === 'marketing' || isAdmin;
+      const isApicultor = isTerritorial || userRole === 'apicultor' || isAdmin;
+      const isRep = !isTerritorial && (isAdmin || userRole === 'rep_ventas' || userRole === 'vendedor');
+      const isMarketing = !isTerritorial && (isAdmin || userRole === 'marketing');
 
       const promises: PromiseLike<CalendarioEvent[]>[] = [];
       const vsIso = viewStart ? viewStart.toISOString() : undefined;
@@ -247,11 +247,14 @@ export function useCalendarioSync(
         promises.push(
           (async (): Promise<CalendarioEvent[]> => {
             const { data, error: err } = await cosQ;
-            if (err) throw err;
+            if (err) {
+              console.warn('[Calendario] cosechas:', err.message);
+              return [] as CalendarioEvent[];
+            }
             return (data || []).map((row) =>
               withTool({
                 id: `cosecha-${row.id}`,
-                type: 'historico',
+                type: 'cosecha',
                 title: `Recolección${row.kg != null ? ` ${row.kg} kg` : ''}`,
                 startDate: new Date(row.fecha),
                 allDay: true,
@@ -266,7 +269,10 @@ export function useCalendarioSync(
           })(),
           (async (): Promise<CalendarioEvent[]> => {
             const { data, error: err } = await insQ;
-            if (err) throw err;
+            if (err) {
+              console.warn('[Calendario] inspecciones:', err.message);
+              return [] as CalendarioEvent[];
+            }
             return (data || []).map((row) =>
               withTool({
                 id: `insp-${row.id}`,
@@ -277,6 +283,88 @@ export function useCalendarioSync(
                 editable: false,
                 source: {
                   table: 'inspecciones',
+                  originalId: row.id,
+                  rawData: row as Record<string, unknown>,
+                },
+              }),
+            );
+          })(),
+        );
+      }
+
+      if (isTerritorial) {
+        // Alertas fitosanitarias programadas en el territorio (avisos preventivos de vecinos/aplicadores)
+        let alertaQ = supabase
+          .from('alertas_fitosanitarias')
+          .select('id, producto, tipo_producto, comuna, zona, fecha_programada, periodo_carencia_horas, radio_km, observaciones, estado')
+          .neq('estado', 'cancelada');
+        if (vsIso && veIso) {
+          alertaQ = alertaQ.gte('fecha_programada', vsIso).lte('fecha_programada', veIso);
+        }
+        promises.push(
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await alertaQ;
+            if (err) {
+              console.warn('[Calendario] alertas_fitosanitarias:', err.message);
+              return [] as CalendarioEvent[];
+            }
+            return (data || []).map((row) => {
+              const start = new Date(row.fecha_programada);
+              const carenciaHoras = Number(row.periodo_carencia_horas) || 4;
+              const end = new Date(start.getTime() + carenciaHoras * 3600 * 1000);
+              return withTool({
+                id: `alerta-${row.id}`,
+                type: 'tratamiento',
+                title: `⚠️ Aviso Fitosanitario: ${row.producto} (${row.zona || row.comuna})`,
+                startDate: start,
+                endDate: end,
+                allDay: false,
+                notes: `Aviso preventivo (${row.tipo_producto || 'agroquímico'}). Radio de influencia: ${row.radio_km || 3} km. Carencia de resguardo: ${carenciaHoras}h.${row.observaciones ? ` Observaciones: ${row.observaciones}` : ''}`,
+                location: `${row.zona ? `${row.zona}, ` : ''}${row.comuna || 'Chiloé'}`,
+                color: '#FF453A',
+                editable: false,
+                toolHref: '/territorio/alertas',
+                toolLabel: 'Alertas Fitosanitarias',
+                source: {
+                  table: 'calendario_tasks',
+                  originalId: row.id,
+                  rawData: row as Record<string, unknown>,
+                },
+              });
+            });
+          })(),
+        );
+
+        // Movimientos e ingresos de trashumancia registrados en el territorio
+        let trashQ = supabase
+          .from('apiarios_externos')
+          .select('id, comuna_origen, comuna_destino, n_colmenas, fecha_ingreso, predio_nombre, rup_origen, bioseguridad_declarada, estado')
+          .neq('estado', 'cancelado');
+        if (vsDate && veDate) {
+          trashQ = trashQ.gte('fecha_ingreso', vsDate).lte('fecha_ingreso', veDate);
+        }
+        promises.push(
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await trashQ;
+            if (err) {
+              console.warn('[Calendario] apiarios_externos:', err.message);
+              return [] as CalendarioEvent[];
+            }
+            return (data || []).map((row) =>
+              withTool({
+                id: `trash-${row.id}`,
+                type: 'transhumancia',
+                title: `🚛 Ingreso Trashumante: ${row.comuna_origen || 'Origen'} → ${row.comuna_destino || 'Destino'} (${row.n_colmenas || 0} colm.)`,
+                startDate: new Date(row.fecha_ingreso),
+                allDay: true,
+                notes: `Declaración de ingreso territorial. RUP origen: ${row.rup_origen || 'En trámite'}. Bioseguridad declarada: ${row.bioseguridad_declarada ? 'Sí' : 'No'}.`,
+                location: `${row.predio_nombre ? `${row.predio_nombre}, ` : ''}${row.comuna_destino}`,
+                color: '#64D2FF',
+                editable: false,
+                toolHref: '/territorio/trashumancia',
+                toolLabel: 'Trashumancia y Predios',
+                source: {
+                  table: 'calendario_tasks',
                   originalId: row.id,
                   rawData: row as Record<string, unknown>,
                 },

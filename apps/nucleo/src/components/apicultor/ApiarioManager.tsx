@@ -9,7 +9,7 @@ import {
 import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado, InspeccionRow, VarroaRow } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
+import { toast, friendlyError, ImmersiveModal, ConfirmDialog } from '@enjambre/ui';
 import { CHILE_COMUNAS_POR_REGION } from '@enjambre/logistica';
 import { resolveComunaCoords } from '@/lib/cliente-coords';
 import { nombreCanonicoComuna } from '@/lib/chiloe-comunas';
@@ -164,6 +164,9 @@ export function ApiarioManager({
     const [showMoverModal, setShowMoverModal] = useState(false);
     const [targetApiarioId, setTargetApiarioId] = useState<string>('');
     const [trasladando, setTrasladando] = useState(false);
+    const [apiarioToDelete, setApiarioToDelete] = useState<ApiarioRow | null>(null);
+    const [colmenaToDelete, setColmenaToDelete] = useState<ColmenaWithRelations | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const toggleSelectColmena = (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -479,10 +482,9 @@ export function ApiarioManager({
         }
     };
 
-    const handleDeleteApiario = async (row: ApiarioRow, e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!confirm(`¿Eliminar el apiario "${row.name}"? Sus colmenas quedarán sin apiario asignado.`)) return;
+    const executeDeleteApiario = async (row: ApiarioRow) => {
         try {
+            setIsDeleting(true);
             const { error } = await supabase.from('apiarios').delete().eq('id', row.id);
             if (error) throw error;
             setApiarios((prev) => prev.filter((a) => a.id !== row.id));
@@ -495,9 +497,12 @@ export function ApiarioManager({
             );
             if (activeApiarioId === row.id) onLeaveApiario();
             toast('Apiario eliminado', { type: 'success' });
+            setApiarioToDelete(null);
         } catch (err) {
             console.error('Error eliminando apiario', err);
             toast(friendlyError(err, 'Error al eliminar el apiario'), { type: 'error' });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -668,28 +673,29 @@ export function ApiarioManager({
         }
     };
 
-    const handleDelete = async (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (confirm('¿Eliminar esta colmena y todo su historial científico?')) {
-            try {
-                if (!id.includes('mock') && id.length >= 20) {
-                    const { error } = await supabase.from('colmenas').delete().eq('id', id);
-                    if (error) throw error;
-                }
-                setLocalColmenas(prev => prev.filter(c => c.id !== id));
-                setSelectedColmenaIds(prev => {
-                    const next = new Set(prev);
-                    next.delete(id);
-                    return next;
-                });
-                void queryClient.invalidateQueries({ queryKey: ['cuaderno-colmenas-direct'] });
-                void queryClient.invalidateQueries({ queryKey: ['bitacora-hojas'] });
-                void queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
-                toast('Colmena eliminada', { type: 'success' });
-            } catch (err) {
-                console.error('Error eliminando colmena', err);
-                toast(friendlyError(err, 'No se pudo eliminar la colmena'), { type: 'error' });
+    const executeDeleteColmena = async (id: string) => {
+        try {
+            setIsDeleting(true);
+            if (!id.includes('mock') && id.length >= 20) {
+                const { error } = await supabase.from('colmenas').delete().eq('id', id);
+                if (error) throw error;
             }
+            setLocalColmenas(prev => prev.filter(c => c.id !== id));
+            setSelectedColmenaIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+            void queryClient.invalidateQueries({ queryKey: ['cuaderno-colmenas-direct'] });
+            void queryClient.invalidateQueries({ queryKey: ['bitacora-hojas'] });
+            void queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
+            toast('Colmena eliminada', { type: 'success' });
+            setColmenaToDelete(null);
+        } catch (err) {
+            console.error('Error eliminando colmena', err);
+            toast(friendlyError(err, 'No se pudo eliminar la colmena'), { type: 'error' });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -813,7 +819,7 @@ export function ApiarioManager({
                                                     aria-label={`Eliminar ${row.name}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        void handleDeleteApiario(row, e);
+                                                        setApiarioToDelete(row);
                                                     }}
                                                 >
                                                     <Trash2 size={12} className="sm:size-[13px]" />
@@ -935,6 +941,24 @@ export function ApiarioManager({
                         onClose={() => setPublicando(null)}
                     />
                 )}
+
+                <ConfirmDialog
+                    open={apiarioToDelete !== null}
+                    onOpenChange={(open) => {
+                        if (!open && !isDeleting) setApiarioToDelete(null);
+                    }}
+                    title={apiarioToDelete ? `¿Eliminar el apiario "${apiarioToDelete.name}"?` : '¿Eliminar apiario?'}
+                    description="Sus colmenas no se eliminarán: quedarán sin apiario asignado y podrás reubicarlas cuando lo necesites."
+                    confirmLabel="Eliminar apiario"
+                    cancelLabel="Cancelar"
+                    variant="destructive"
+                    loading={isDeleting}
+                    onConfirm={async () => {
+                        if (apiarioToDelete) {
+                            await executeDeleteApiario(apiarioToDelete);
+                        }
+                    }}
+                />
             </div>
         );
     }
@@ -1179,7 +1203,10 @@ export function ApiarioManager({
                                                 type="button"
                                                 className="p-1 sm:p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
                                                 aria-label={`Eliminar ${c.name}`}
-                                                onClick={(e) => handleDelete(c.id, e)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setColmenaToDelete(c);
+                                                }}
                                             >
                                                 <Trash2 size={12} className="sm:size-[13px]" />
                                             </button>
@@ -1563,6 +1590,24 @@ export function ApiarioManager({
                     onClose={() => setPublicando(null)}
                 />
             )}
+
+            <ConfirmDialog
+                open={colmenaToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open && !isDeleting) setColmenaToDelete(null);
+                }}
+                title={colmenaToDelete ? `¿Eliminar la colmena "${colmenaToDelete.name}"?` : '¿Eliminar colmena?'}
+                description="Se eliminará la colmena y todo su historial científico asociado. Esta acción no se puede deshacer."
+                confirmLabel="Eliminar colmena"
+                cancelLabel="Cancelar"
+                variant="destructive"
+                loading={isDeleting}
+                onConfirm={async () => {
+                    if (colmenaToDelete) {
+                        await executeDeleteColmena(colmenaToDelete.id);
+                    }
+                }}
+            />
         </div>
     );
 }

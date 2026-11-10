@@ -15,6 +15,7 @@ const MapaLegadoBase = dynamic(
 interface MapaLegadoProps {
   height?: string;
   filterRole?: string;
+  initialEnvironment?: 'enjambre' | 'tienda' | 'campo' | 'territorio';
 }
 
 export function MapaLegado(props: MapaLegadoProps) {

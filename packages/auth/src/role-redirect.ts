@@ -170,7 +170,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   // Patio & Territorio: colmenas + cuaderno + bitácora (admin ve todo vía RLS is_gerente)
   '/colmenas': ['admin', 'apicultor', 'territorial'],
   '/regeneracion': ['admin'],
-  '/mapa': ['admin'],
+  '/mapa': ['admin', 'territorial', 'apicultor'],
   '/catalogo': ['admin'],
   '/pedidos': ['admin', 'operador', 'colaborador'],
   '/operaciones': ['admin', 'operador', 'colaborador'],

@@ -36,8 +36,15 @@ const TYPE_FILTERS: CalendarioEventType[] = [
   'feria',
   'apicultura',
   'marketing',
+  'logistica',
   'historico',
   'inspeccion',
+  'tratamiento',
+  'cosecha',
+  'transhumancia',
+  'reforestacion',
+  'alerta',
+  'otro',
 ];
 
 function parseType(raw: string | null): CalendarioEventType | null {
@@ -240,12 +247,18 @@ export default function CalendarioPage() {
     );
   }
 
+  const isTerritorial = userRole === 'territorial' || userRole === 'apicultor';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <ViewShell
         variant="clean"
-        title="Calendario"
-        subtitle="Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias y campañas operativas del ecosistema."
+        title={isTerritorial ? 'Calendario de Campo y Territorio' : 'Calendario'}
+        subtitle={
+          isTerritorial
+            ? 'Ciclo de temporada, resguardos fitosanitarios, trashumancia y manejo de colmenas del territorio.'
+            : 'Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias y campañas operativas del ecosistema.'
+        }
         actions={
           <div className="flex items-center rounded-xl border border-border/60 overflow-hidden shrink-0">
             <button
@@ -287,6 +300,7 @@ export default function CalendarioPage() {
               events={events}
               currentDate={currentDate}
               selectedDate={selectedDate}
+              userRole={userRole}
               onMonthChange={setCurrentDate}
               onSelectedDateChange={(d) => {
                 setSelectedDate(d);
@@ -319,6 +333,7 @@ export default function CalendarioPage() {
       <EventEditorSheet
         open={editorOpen}
         mode={editorMode}
+        userRole={userRole}
         event={editingEvent}
         defaultStartsAt={defaultStartsAt}
         isSaving={isSaving}

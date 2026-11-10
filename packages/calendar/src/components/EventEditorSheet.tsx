@@ -4,6 +4,8 @@ import * as React from 'react';
 import { setHours, setMinutes } from 'date-fns';
 import {
   USER_CATEGORIES,
+  TERRITORIAL_USER_CATEGORIES,
+  MACRO_USER_CATEGORIES,
   type CalendarioEvent,
   type CalendarioUserCategory,
   type CreateCalendarioEventInput,
@@ -20,6 +22,7 @@ import { overlayBackdropClassName } from '@enjambre/ui';
 export interface EventEditorSheetProps {
   open: boolean;
   mode: 'create' | 'edit';
+  userRole?: string;
   defaultStartsAt?: Date;
   event?: CalendarioEvent | null;
   isSaving?: boolean;
@@ -31,22 +34,30 @@ export interface EventEditorSheetProps {
 }
 
 function asUserCategory(t: string | undefined): CalendarioUserCategory {
-  if (
-    t === 'personal' ||
-    t === 'reunion' ||
-    t === 'feria' ||
-    t === 'apicultura' ||
-    t === 'marketing' ||
-    t === 'logistica' ||
-    t === 'otro'
-  )
-    return t;
+  const valid: CalendarioUserCategory[] = [
+    'personal',
+    'reunion',
+    'feria',
+    'apicultura',
+    'marketing',
+    'logistica',
+    'inspeccion',
+    'tratamiento',
+    'cosecha',
+    'transhumancia',
+    'reforestacion',
+    'otro',
+  ];
+  if (t && valid.includes(t as CalendarioUserCategory)) {
+    return t as CalendarioUserCategory;
+  }
   return 'personal';
 }
 
 export function EventEditorSheet({
   open,
   mode,
+  userRole,
   defaultStartsAt,
   event,
   isSaving,
@@ -54,12 +65,18 @@ export function EventEditorSheet({
   onSave,
   onDelete,
 }: EventEditorSheetProps) {
+  const isTerritorialRole = userRole === 'territorial' || userRole === 'apicultor';
+  const availableCategories = isTerritorialRole
+    ? TERRITORIAL_USER_CATEGORIES
+    : MACRO_USER_CATEGORIES;
+
   const [title, setTitle] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [location, setLocation] = React.useState('');
   const [allDay, setAllDay] = React.useState(false);
-  const [category, setCategory] =
-    React.useState<CalendarioUserCategory>('personal');
+  const [category, setCategory] = React.useState<CalendarioUserCategory>(
+    isTerritorialRole ? 'apicultura' : 'personal',
+  );
   const [startLocal, setStartLocal] = React.useState('');
   const [endLocal, setEndLocal] = React.useState('');
   const [startDateOnly, setStartDateOnly] = React.useState('');
@@ -79,12 +96,18 @@ export function EventEditorSheet({
     setNotes(event?.notes ?? '');
     setLocation(event?.location ?? '');
     setAllDay(Boolean(event?.allDay));
-    setCategory(asUserCategory(event?.type));
+    setCategory(
+      event?.type
+        ? asUserCategory(event.type)
+        : isTerritorialRole
+          ? 'apicultura'
+          : 'personal',
+    );
     setStartLocal(toDateTimeLocalValue(s));
     setEndLocal(toDateTimeLocalValue(e));
     setStartDateOnly(toDateInputValue(s));
     setEndDateOnly(toDateInputValue(e));
-  }, [open, event, defaultStartsAt]);
+  }, [open, event, defaultStartsAt, isTerritorialRole]);
 
   // Lock body scroll while sheet open
   React.useEffect(() => {
@@ -137,7 +160,9 @@ export function EventEditorSheet({
     }
 
     const color =
-      USER_CATEGORIES.find((c) => c.value === category)?.color ?? '#5AC8FA';
+      availableCategories.find((c) => c.value === category)?.color ??
+      USER_CATEGORIES.find((c) => c.value === category)?.color ??
+      '#5AC8FA';
 
     void onSave({
       id:
@@ -278,14 +303,15 @@ export function EventEditorSheet({
 
           <div className="border-b border-border px-4 py-3">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Categoría
+              Categoría {isTerritorialRole ? 'Territorial' : ''}
             </p>
             <div className="flex flex-wrap gap-2">
-              {USER_CATEGORIES.map((c) => (
+              {availableCategories.map((c) => (
                 <button
                   key={c.value}
                   type="button"
                   onClick={() => setCategory(c.value)}
+                  title={c.description}
                   className={[
                     'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition',
                     category === c.value

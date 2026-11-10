@@ -30,21 +30,7 @@ import {
   resolveTerritorialMenuFamily,
 } from '@/lib/territorial-rol';
 import { useAuthStore } from '@enjambre/auth';
-import dynamic from 'next/dynamic';
-
-const MapaTerritorial = dynamic(
-  () => import('@/components/apicultor/MapaTerritorial').then((mod) => mod.MapaTerritorial),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[580px] h-[calc(var(--vh-full)-240px)] flex flex-col items-center justify-center bg-card rounded-2xl border border-border p-6 gap-3 animate-in" aria-busy="true">
-        <Map className="w-10 h-10 text-muted-foreground animate-pulse" />
-        <Skeleton variant="text" className="w-48 h-4" />
-        <Skeleton variant="text" className="w-64 h-3 opacity-60" />
-      </div>
-    ),
-  }
-);
+import { MapaLegado } from '@/components/map/MapaLegado';
 
 type Tab = 'registro' | 'mapa' | 'alertas' | 'trashumancia';
 
@@ -556,14 +542,12 @@ export function TerritorioHomeView() {
         </div>
       )}
 
-      {/* Mapa Comunitario */}
+      {/* Mapa Centralizado del Ecosistema */}
       {tab === 'mapa' && (
         <div className="space-y-3">
-          <MapaTerritorial
-            actores={actores}
-            alertas={alertas}
-            apiariosExternos={apiariosExternos}
-            apiariosRegistro={apiariosRegistroData?.data ?? []}
+          <MapaLegado
+            height="calc(var(--vh-full) - 220px)"
+            initialEnvironment="territorio"
           />
         </div>
       )}
@@ -578,6 +562,7 @@ export function TerritorioHomeView() {
             onRefresh={() => {
               refetchAlertas().catch(() => toast.error('Error actualizando alertas'));
             }}
+            onCrearAlerta={() => setShowAlertaForm(true)}
           />
         </div>
       )}
@@ -601,6 +586,7 @@ export function TerritorioHomeView() {
 
       {showAlertaForm && (
         <AlertaFitosanitariaForm
+          actorId={miActor?.id ?? null}
           onClose={() => setShowAlertaForm(false)}
           onSuccess={() => {
             setShowAlertaForm(false);

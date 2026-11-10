@@ -1,9 +1,9 @@
-import { LazyEspeciesNativasView } from '@/lib/navigation/lazy-views';
+import { LazyFenologiaView } from '@/lib/navigation/lazy-views';
 
 export const metadata = {
-  title: 'Especies Nativas — Bosque',
+  title: 'Catálogo Botánico Melífero — Bosque',
 };
 
 export default function EspeciesNativasPage() {
-  return <LazyEspeciesNativasView />;
+  return <LazyFenologiaView />;
 }
