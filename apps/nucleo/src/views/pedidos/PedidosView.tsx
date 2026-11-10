@@ -25,6 +25,12 @@ import {
   SlidersHorizontal,
   Compass,
   X,
+  Eye,
+  Copy,
+  Check,
+  MessageCircle,
+  User,
+  CreditCard,
 } from 'lucide-react';
 import {
   formatCLP,
@@ -81,6 +87,9 @@ interface PedidoData {
     comuna: string;
     ciudad: string;
     region: string;
+    depto?: string | null;
+    rut?: string | null;
+    indicaciones?: string | null;
   };
   items: PedidoItem[];
   retornoFrascos: {
@@ -123,9 +132,26 @@ interface PorConciliarSession {
     comuna: string;
     ciudad: string;
     region: string;
+    depto?: string | null;
+    rut?: string | null;
+    indicaciones?: string | null;
   };
   items: PedidoItem[];
   atribucion?: AtribucionData;
+}
+
+/** Sanitiza el identificador de autorización para prevenir fugas de session UUIDs (#sess-...) */
+function getCleanComprobante(authCode: string | null | undefined): string | null {
+  if (!authCode) return null;
+  const trimmed = authCode.trim();
+  if (
+    trimmed.startsWith('sess-') ||
+    trimmed.startsWith('auth-') ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(trimmed)
+  ) {
+    return null;
+  }
+  return trimmed;
 }
 
 interface PedidosApiResponse {
@@ -156,7 +182,8 @@ export function PedidosView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [courierFilter, setCourierFilter] = useState<string>('all');
 
-  // Modales
+  // Modales y vista de detalle
+  const [detallePedido, setDetallePedido] = useState<PedidoData | null>(null);
   const [comandaPedido, setComandaPedido] = useState<PedidoData | null>(null);
   const [despachoModal, setDespachoModal] = useState<{
     pedido: PedidoData;
@@ -167,6 +194,16 @@ export function PedidosView() {
   } | null>(null);
   const [conciliarModal, setConciliarModal] = useState<PorConciliarSession | null>(null);
   const [flowOrderInput, setFlowOrderInput] = useState('');
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, idKey?: string) => {
+    navigator.clipboard.writeText(text);
+    if (idKey) {
+      setCopiedOrderId(idKey);
+      setTimeout(() => setCopiedOrderId(null), 2000);
+    }
+    toast('Código copiado al portapapeles', { type: 'success' });
+  };
 
   // 1. Cargar pedidos y sesiones
   const { data, isLoading, isFetching, refetch } = useQuery<PedidosApiResponse>({
@@ -813,19 +850,44 @@ export function PedidosView() {
                     {/* Info Central: Orden, Cliente, Artículos */}
                     <div className="space-y-2.5 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-semibold text-foreground">
-                          {pedido.buyOrder}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-semibold text-foreground">
+                            {pedido.buyOrder}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(pedido.buyOrder, pedido.id)}
+                            className="p-1 rounded hover:bg-surface-raised text-muted-foreground hover:text-foreground transition-colors"
+                            title="Copiar código de orden"
+                          >
+                            {copiedOrderId === pedido.id ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                         {renderStatusBadge(pedido.logistica.status)}
                         {renderAtribucionBadge(pedido.atribucion)}
                         <span className="text-[11px] text-muted-foreground">
                           {formatDate(pedido.createdAt)}
                         </span>
-                        {pedido.tributario && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            Comprobante Flow #{pedido.authCode || pedido.buyOrder.slice(-6)}
-                          </span>
-                        )}
+                        {(() => {
+                          const cleanCode = getCleanComprobante(pedido.authCode);
+                          return (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              title="Comprobante electrónico válido por ley ante el SII (Res. Ex. SII Nº 176/2020)"
+                            >
+                              <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
+                              {cleanCode ? (
+                                <span>Flow #{cleanCode}</span>
+                              ) : (
+                                <span>Res. SII Nº 176/2020</span>
+                              )}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       {/* Cliente y Destino */}
@@ -909,6 +971,18 @@ export function PedidosView() {
 
                       {/* Botones de acción */}
                       <div className="flex items-center gap-2">
+                        {/* Ver Detalle Completo */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDetallePedido(pedido)}
+                          className="text-xs gap-1.5 border-primary/30 text-foreground bg-card hover:bg-primary/10 hover:border-primary/60 transition-all font-medium"
+                          title="Ver todos los datos del cliente, productos y liquidación tributaria"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-primary" />
+                          <span>Ver Detalle</span>
+                        </Button>
+
                         {/* Ficha / Comanda Taller */}
                         <Button
                           variant="outline"
@@ -960,6 +1034,434 @@ export function PedidosView() {
           </div>
         )}
       </div>
+
+      {/* MODAL 0: DETALLE INTEGRAL DEL PEDIDO */}
+      {detallePedido && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-3xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto">
+            {/* Header del Modal */}
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0 bg-surface-raised/40">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-serif font-medium text-foreground tracking-tight">
+                      Detalle Integral del Pedido
+                    </h2>
+                    {renderStatusBadge(detallePedido.logistica.status)}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono mt-0.5">
+                    <span>{detallePedido.buyOrder}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(detallePedido.buyOrder)}
+                      className="hover:text-primary transition-colors"
+                      title="Copiar código de orden"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                    <span>·</span>
+                    <span>{formatDate(detallePedido.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setDetallePedido(null)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Contenido Scrollable */}
+            <div className="p-6 space-y-6 overflow-y-auto">
+              {/* SECCIÓN 1: DATOS COMPLETOS DEL CLIENTE Y ENTREGA */}
+              <div className="rounded-xl border border-border bg-surface-raised/30 p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <User className="w-4 h-4 text-primary" />
+                    <span>Información del Cliente y Destinatario</span>
+                  </div>
+                  {/* Botón WhatsApp Directo */}
+                  {detallePedido.cliente.telefono && (() => {
+                    const digits = detallePedido.cliente.telefono.replace(/[^0-9]/g, '');
+                    const waNum = digits.startsWith('56') ? digits : `56${digits}`;
+                    const waLink = `https://wa.me/${waNum}?text=${encodeURIComponent(
+                      `Hola ${detallePedido.cliente.nombre}, te contactamos desde Enjambre Legado respecto a tu orden de tienda ${detallePedido.buyOrder}.`
+                    )}`;
+                    return (
+                      <a
+                        href={waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Contactar por WhatsApp</span>
+                      </a>
+                    );
+                  })()}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  {/* Columna Contacto */}
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Nombre Completo:</span>
+                      <span className="text-sm font-medium text-foreground">{detallePedido.cliente.nombre}</span>
+                    </div>
+                    {detallePedido.cliente.rut && (
+                      <div>
+                        <span className="text-[11px] text-muted-foreground block">RUT / Identificación:</span>
+                        <span className="font-mono text-foreground">{detallePedido.cliente.rut}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Correo Electrónico:</span>
+                      <a
+                        href={`mailto:${detallePedido.buyerEmail}`}
+                        className="font-mono text-primary hover:underline flex items-center gap-1 mt-0.5"
+                      >
+                        <Mail className="w-3 h-3" />
+                        <span>{detallePedido.buyerEmail || 'Sin correo registrado'}</span>
+                      </a>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Teléfono de Contacto:</span>
+                      {detallePedido.cliente.telefono ? (
+                        <a
+                          href={`tel:${detallePedido.cliente.telefono}`}
+                          className="font-mono text-foreground hover:text-primary flex items-center gap-1 mt-0.5"
+                        >
+                          <Phone className="w-3 h-3" />
+                          <span>{detallePedido.cliente.telefono}</span>
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">No registrado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Columna Dirección y Despacho */}
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Dirección de Despacho:</span>
+                      <div className="flex items-start gap-1.5 text-foreground mt-0.5">
+                        <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-medium">{detallePedido.cliente.direccion || 'Dirección no especificada'}</div>
+                          {detallePedido.cliente.depto && (
+                            <div className="text-muted-foreground">Dpto / Oficina: {detallePedido.cliente.depto}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Comuna y Región:</span>
+                      <span className="font-medium text-foreground">
+                        {detallePedido.cliente.comuna ? `${detallePedido.cliente.comuna}, ` : ''}
+                        {detallePedido.cliente.region || 'Chile'}
+                      </span>
+                    </div>
+                    {detallePedido.cliente.indicaciones && (
+                      <div className="p-2.5 rounded-lg bg-surface-raised border border-border mt-1">
+                        <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
+                          Instrucciones de Entrega:
+                        </span>
+                        <p className="text-xs text-foreground mt-0.5 italic">
+                          &ldquo;{detallePedido.cliente.indicaciones}&rdquo;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECCIÓN 2: PRODUCTOS Y ARTÍCULOS ESPECÍFICOS */}
+              <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <Package className="w-4 h-4 text-primary" />
+                    <span>Artículos Adquiridos ({detallePedido.items.reduce((acc, it) => acc + it.quantity, 0)} unidades)</span>
+                  </div>
+                  <span className="text-xs font-serif font-medium text-primary">
+                    Enjambre Legado · Edición Botánica
+                  </span>
+                </div>
+
+                <div className="divide-y divide-border border border-border rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-12 bg-surface-raised px-4 py-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    <div className="col-span-6">Producto</div>
+                    <div className="col-span-2 text-center">Cantidad</div>
+                    <div className="col-span-2 text-right">Precio Unitario</div>
+                    <div className="col-span-2 text-right">Subtotal</div>
+                  </div>
+                  {detallePedido.items.map((it, idx) => {
+                    const unitPrice = it.unitPrice ?? 0;
+                    const lineTotal = unitPrice * it.quantity;
+                    return (
+                      <div key={idx} className="grid grid-cols-12 items-center px-4 py-3 text-xs">
+                        <div className="col-span-6 pr-2">
+                          <span className="font-medium text-foreground block">{it.name}</span>
+                          {it.slug && (
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              {it.slug}
+                            </span>
+                          )}
+                        </div>
+                        <div className="col-span-2 text-center">
+                          <span className="inline-block px-2 py-0.5 rounded bg-surface-raised font-mono font-medium text-foreground">
+                            {it.quantity} un.
+                          </span>
+                        </div>
+                        <div className="col-span-2 text-right font-mono text-muted-foreground">
+                          {unitPrice > 0 ? formatCLP(unitPrice) : '—'}
+                        </div>
+                        <div className="col-span-2 text-right font-mono font-medium text-foreground">
+                          {lineTotal > 0 ? formatCLP(lineTotal) : '—'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Resumen Financiero Total */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2 border-t border-border">
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    <div>Método de Pago: <span className="font-medium text-foreground uppercase">{detallePedido.metodoPago || 'FLOW (WEBPAY)'}</span></div>
+                    <div>Despacho: <span className="font-medium text-foreground">{detallePedido.logistica.via}</span></div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-muted-foreground block">Total Liquidado:</span>
+                    <span className="text-2xl font-serif font-bold text-foreground tracking-tight">
+                      {formatCLP(detallePedido.total)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECCIÓN 3: RETORNO CIRCULAR DE FRASCOS (VIDRIO) */}
+              {detallePedido.retornoFrascos.declarados > 0 && (
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0">
+                      <Recycle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+                        Retorno Circular de Vidrio ({detallePedido.retornoFrascos.declarados} frascos declarados)
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        El cliente entregará envases limpios para higienización en taller y ciclo circular.
+                      </p>
+                      <div className="text-xs mt-1.5 flex items-center gap-2">
+                        <span className="text-muted-foreground">Estado actual:</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-300 font-semibold uppercase">
+                          {detallePedido.retornoFrascos.estado.replace('_', ' ')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {detallePedido.retornoFrascos.estado !== 'recibido_conforme' && (
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          retornoFrascosMutation.mutate({
+                            buyOrder: detallePedido.buyOrder,
+                            status: 'recibido_conforme',
+                          })
+                        }
+                        disabled={retornoFrascosMutation.isPending}
+                        className="text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Recibido Conforme</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* SECCIÓN 4: LOGÍSTICA Y COURIER */}
+              <div className="rounded-xl border border-border bg-surface-raised/30 p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                    <Truck className="w-4 h-4 text-primary" />
+                    <span>Logística y Transporte</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const p = detallePedido;
+                      setDetallePedido(null);
+                      setDespachoModal({
+                        pedido: p,
+                        status: (p.logistica.status as any) || 'pendiente',
+                        courierCode: p.logistica.courierCode || DEFAULT_COURIER,
+                        trackingCode: p.logistica.trackingCode || '',
+                        notificarCliente: false,
+                      });
+                    }}
+                    className="text-xs gap-1.5 border-border hover:border-primary"
+                  >
+                    <Truck className="w-3.5 h-3.5 text-primary" />
+                    <span>Actualizar Despacho</span>
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block">Operador Logístico:</span>
+                    <span className="font-medium text-foreground">{detallePedido.logistica.via}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block">Código de Seguimiento:</span>
+                    {detallePedido.logistica.trackingCode ? (
+                      <div className="flex items-center gap-1.5 font-mono text-primary font-medium">
+                        <span>{detallePedido.logistica.trackingCode}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(detallePedido.logistica.trackingCode!)}
+                          className="hover:text-foreground"
+                          title="Copiar tracking"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">Aún no generado</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block">Seguimiento en Vivo:</span>
+                    {detallePedido.logistica.courierTrackingUrl ? (
+                      <a
+                        href={detallePedido.logistica.courierTrackingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline font-medium"
+                      >
+                        <span>Portal Oficial del Courier</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground italic">Disponible al ingresar tracking</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECCIÓN 5: ATRIBUCIÓN DE MARKETING & CANAL */}
+              {detallePedido.atribucion && (
+                <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                      <Compass className="w-4 h-4 text-primary" />
+                      <span>Origen de Adquisición y Trazabilidad Comercial</span>
+                    </div>
+                    {renderAtribucionBadge(detallePedido.atribucion)}
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Canal Principal:</span>
+                      <span className="font-medium text-foreground">{detallePedido.atribucion.canal}</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Medio / Formato:</span>
+                      <span className="font-mono text-foreground">{detallePedido.atribucion.medium || 'Directo / Orgánico'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Campaña:</span>
+                      <span className="font-medium text-foreground">{detallePedido.atribucion.campaign || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Código Creador:</span>
+                      <span className="font-mono text-foreground">
+                        {detallePedido.atribucion.codigoCreador ? `@${detallePedido.atribucion.codigoCreador}` : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECCIÓN 6: RESPALDO TRIBUTARIO SII */}
+              <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-xs text-muted-foreground space-y-2">
+                <div className="flex items-center gap-2 font-medium text-emerald-400">
+                  <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+                  <span>Validez Tributaria Oficial (Res. Ex. SII Nº 176/2020)</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-emerald-200/80">
+                  Esta venta fue pagada y autorizada a través de la pasarela Flow. De acuerdo a la normativa legal del Servicio de Impuestos Internos (Res. Ex. SII Nº 176/2020), el comprobante de pago emitido por la entidad recaudadora reemplaza legalmente a la boleta de ventas afectas a IVA, eximiendo la duplicación de documentos tributarios.
+                </p>
+                {(() => {
+                  const cleanCode = getCleanComprobante(detallePedido.authCode);
+                  if (cleanCode) {
+                    return (
+                      <div className="text-[11px] font-mono text-emerald-300">
+                        Nº de Comprobante / Transacción: <span className="font-bold">#{cleanCode}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+
+            {/* Footer del Modal con Acciones Rápidas */}
+            <div className="px-6 py-4 border-t border-border bg-card flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDetallePedido(null)}
+                className="text-xs"
+              >
+                Cerrar
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const p = detallePedido;
+                    setDetallePedido(null);
+                    setComandaPedido(p);
+                  }}
+                  className="text-xs gap-1.5"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Imprimir Comanda Taller</span>
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const p = detallePedido;
+                    setDetallePedido(null);
+                    setDespachoModal({
+                      pedido: p,
+                      status: (p.logistica.status as any) || 'pendiente',
+                      courierCode: p.logistica.courierCode || DEFAULT_COURIER,
+                      trackingCode: p.logistica.trackingCode || '',
+                      notificarCliente: false,
+                    });
+                  }}
+                  className="text-xs gap-1.5 bg-primary text-primary-foreground"
+                >
+                  <Truck className="w-3.5 h-3.5" />
+                  <span>Gestionar Despacho</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL 1: COMANDA DE EMPAQUE (TALLER PRINTABLE) */}
       {comandaPedido && (
@@ -1279,7 +1781,7 @@ export function PedidosView() {
                   <span>Sin duplicidad tributaria (Res. Ex. SII Nº 176/2020)</span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-emerald-200/90">
-                  <strong>NO se emitirá una nueva boleta ante el SII.</strong> El comprobante electrónico emitido por Flow (Nº 187796493) actúa por ley como la boleta de ventas válida. Al conciliar, el sistema registrará la venta en ingresos, descontará el stock y creará la comanda de taller para empaque y despacho.
+                  <strong>NO se emitirá una nueva boleta ante el SII.</strong> El comprobante electrónico emitido por Flow {flowOrderInput.trim() ? `(Nº ${flowOrderInput.trim()}) ` : ''}actúa por ley como la boleta de ventas válida. Al conciliar, el sistema registrará la venta en ingresos, descontará el stock y creará la comanda de taller para empaque y despacho.
                 </p>
               </div>
             </div>

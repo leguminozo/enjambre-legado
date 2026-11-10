@@ -700,6 +700,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/portal-imprenta',
   '/produccion/infusiones',
   '/alambique',
+  '/pedidos',
   '/despacho',
   '/despacho/envios',
   '/despacho/centros',
