@@ -347,6 +347,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Sommelier del bosque',
         mission: 'Notas de cata, percepciones y huella sensorial de los clientes',
       },
+      {
+        key: 'pixeles',
+        label: 'Píxeles & Medición',
+        icon: 'target',
+        href: '/pixeles',
+        greeting: 'Estratega de adquisición',
+        mission: 'Píxeles de Meta Ads, eventos de conversión Google Ads y analítica de tienda',
+      },
     ],
   },
   {
@@ -750,6 +758,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/planes-suscripcion',
   '/analisis',
   '/descuentos',
+  '/pixeles',
   '/club-legado',
   '/integraciones',
   '/arco',

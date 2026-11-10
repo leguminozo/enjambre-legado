@@ -403,6 +403,12 @@ export const LazyIntegracionesView = named(
   'Integraciones',
   () => createElement(ModuloGenericoSkeleton),
 );
+export const LazyPixelesView = named(
+  () => import('@/views/pixeles/PixelesView'),
+  'PixelesView',
+  'Píxeles & Medición',
+  () => createElement(ModuloGenericoSkeleton),
+);
 
 export const LazyHubPhygitalView = named(
   () => import('@/views/phygital/HubPhygitalView'),

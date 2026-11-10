@@ -1,22 +1,26 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Plug,
   Radio,
   Zap,
   CheckCircle,
+  AlertTriangle,
   Loader2,
   RefreshCw,
   Power,
   Settings,
+  ArrowUpRight,
+  Target,
 } from 'lucide-react';
 import { toast, Badge, Skeleton, ImmersiveModal } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
 
-interface IntegrationRow {
+export interface IntegrationRow {
   key: string;
   name: string;
   enabled: boolean;
@@ -30,6 +34,38 @@ interface IntegrationRow {
   hasPurchaseLabel?: boolean;
   purchaseLabel?: string;
   mode?: 'live' | 'stub';
+}
+
+export interface GatewayStatus {
+  key: string;
+  name: string;
+  subtitle: string;
+  status: 'operational' | 'inactive' | 'missing_credentials';
+  statusLabel: string;
+  environment: string;
+  active: boolean;
+  href: string;
+  details?: string;
+  lastSync?: string | null;
+}
+
+export interface ServiceStatus {
+  key: string;
+  name: string;
+  subtitle: string;
+  configured: boolean;
+  statusLabel: string;
+  href: string;
+}
+
+export interface IntegrationsApiResponse {
+  gateways?: GatewayStatus[];
+  cache?: {
+    tiendaConfigured: boolean;
+    secretConfigured: boolean;
+  };
+  services?: ServiceStatus[];
+  integrations?: IntegrationRow[];
 }
 
 export type IntegracionesViewProps = Record<string, never>;
@@ -56,11 +92,10 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
 
   const integrationsQuery = useQuery({
     queryKey: ['system', 'integrations'],
-    queryFn: async (): Promise<IntegrationRow[]> => {
+    queryFn: async (): Promise<IntegrationsApiResponse> => {
       const res = await apiFetch('/api/admin-system/integrations');
       if (!res.ok) throw new Error('Falló la carga de integraciones');
-      const data = (await res.json()) as { integrations: IntegrationRow[] };
-      return data.integrations ?? [];
+      return (await res.json()) as IntegrationsApiResponse;
     },
   });
 
@@ -156,6 +191,12 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
     }
   };
 
+  const gateways = integrationsQuery.data?.gateways ?? [];
+  const services = integrationsQuery.data?.services ?? [];
+  const adsIntegrations = (integrationsQuery.data?.integrations ?? []).filter(
+    (r) => r.key === 'meta_ads' || r.key === 'google_ads',
+  );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <ViewShell
@@ -169,52 +210,76 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Columna Izquierda: Salud y Caché */}
         <div className="space-y-6">
-          {/* Salud de Pasarelas */}
+          {/* Salud de Pasarelas Real */}
           <section className="space-y-5 bg-card p-6 rounded-2xl border border-border shadow-sm">
-            <div className="flex items-center gap-2.5 text-accent">
-              <Radio size={18} />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                Salud de Pasarelas & Pagos
-              </h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-accent">
+                <Radio size={18} />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Salud de Pasarelas &amp; Pagos
+                </h3>
+              </div>
+              {integrationsQuery.isFetching && (
+                <Loader2 size={14} className="animate-spin text-muted-foreground" />
+              )}
             </div>
+
             <p className="text-xs text-muted-foreground">
-              Estado en tiempo real de los canales de pago y conciliación bancaria activos.
+              Diagnóstico en tiempo real basado en credenciales activas en el entorno y configuraciones de terminales.
             </p>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-surface-sunken/60 rounded-xl border border-border/60">
-                <div className="flex items-center gap-3">
-                  <CheckCircle size={16} className="text-primary shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Transbank Webpay</p>
-                    <p className="text-xs text-muted-foreground">Checkout Tienda Online</p>
+            {integrationsQuery.isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="p-4 rounded-xl border border-border bg-surface-sunken space-y-2">
+                    <Skeleton variant="text" className="w-32 h-4" />
+                    <Skeleton variant="text" className="w-48 h-3" />
                   </div>
-                </div>
-                <Badge variant="success">Operativo</Badge>
+                ))}
               </div>
+            ) : (
+              <div className="space-y-3">
+                {gateways.map((gw) => {
+                  const isOk = gw.status === 'operational';
+                  const badgeVariant = isOk ? 'success' : gw.status === 'inactive' ? 'default' : 'danger';
 
-              <div className="flex items-center justify-between p-4 bg-surface-sunken/60 rounded-xl border border-border/60">
-                <div className="flex items-center gap-3">
-                  <CheckCircle size={16} className="text-primary shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">SumUp</p>
-                    <p className="text-xs text-muted-foreground">Punto de Venta POS Feria</p>
-                  </div>
-                </div>
-                <Badge variant="success">Conectado</Badge>
-              </div>
+                  return (
+                    <div
+                      key={gw.key}
+                      className="p-4 bg-surface-sunken/60 rounded-xl border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        {isOk ? (
+                          <CheckCircle size={16} className="text-primary shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertTriangle size={16} className="text-destructive shrink-0 mt-0.5" />
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-foreground truncate">{gw.name}</p>
+                            <Badge variant={badgeVariant}>{gw.statusLabel}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">{gw.subtitle}</p>
+                          {gw.details && (
+                            <p className="text-[11px] text-muted-foreground/80 mt-1">
+                              {gw.details}
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
-              <div className="flex items-center justify-between p-4 bg-surface-sunken/60 rounded-xl border border-border/60">
-                <div className="flex items-center gap-3">
-                  <CheckCircle size={16} className="text-primary shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Banco de Chile</p>
-                    <p className="text-xs text-muted-foreground">API Conciliación Bancaria</p>
-                  </div>
-                </div>
-                <Badge variant="success">Autenticado</Badge>
+                      <Link
+                        href={gw.href}
+                        className="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1.5 rounded-lg text-xs font-semibold text-primary hover:bg-primary/10 transition-colors border border-primary/20 shrink-0"
+                      >
+                        <span>Ver en módulo</span>
+                        <ArrowUpRight size={13} />
+                      </Link>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </section>
 
           {/* Caché & Edge */}
@@ -230,14 +295,14 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               <div>
                 <p className="text-sm font-medium text-foreground">Purga de Caché Global (Tienda)</p>
                 <p className="text-xs text-muted-foreground mt-1 max-w-md">
-                  Invalida toda la caché estática en la red de borde. Utilizar si los cambios de catálogo o stock tardan en reflejarse.
+                  Invalida toda la caché estática en la red de borde. Utilizar si los cambios de catálogo, stock o píxeles tardan en reflejarse.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handlePurgeCache}
                 disabled={purging}
-                className="shrink-0 inline-flex items-center gap-2 bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide uppercase transition-colors border border-destructive/20 cursor-pointer disabled:opacity-50"
+                className="shrink-0 inline-flex items-center gap-2 bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide uppercase transition-colors border border-destructive/20 cursor-pointer disabled:opacity-50 min-h-10"
               >
                 {purging ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
                 <span>{purging ? 'Purgando…' : 'Purgar Caché'}</span>
@@ -246,28 +311,33 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
           </section>
         </div>
 
-        {/* Columna Derecha: Conectores & APIs */}
-        <div>
+        {/* Columna Derecha: Marketing & Servicios */}
+        <div className="space-y-6">
+          {/* Píxeles & Medición */}
           <section className="space-y-5 bg-card p-6 rounded-2xl border border-border shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 text-accent">
-                <Plug size={18} />
+                <Target size={18} />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                  Conectores de Servicio &amp; Publicidad
+                  Píxeles de Medición &amp; Adquisición
                 </h3>
               </div>
-              {integrationsQuery.isFetching && (
-                <Loader2 size={14} className="animate-spin text-muted-foreground" />
-              )}
+              <Link
+                href="/pixeles"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              >
+                <span>Abrir en Tienda Web</span>
+                <ArrowUpRight size={13} />
+              </Link>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              APIs externas para analítica, conversiones de marketing, facturación y entidades regulatorias.
+              Configuración de Pixel, Conversions API y etiquetas de conversión para la tienda pública.
             </p>
 
             {integrationsQuery.isLoading ? (
               <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 2 }).map((_, i) => (
                   <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-border bg-surface-sunken">
                     <div className="space-y-1">
                       <Skeleton variant="text" className="w-32 h-4" />
@@ -277,16 +347,12 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
                   </div>
                 ))}
               </div>
-            ) : integrationsQuery.isError ? (
-              <div className="text-xs text-destructive p-4 bg-destructive/10 rounded-xl border border-destructive/20">
-                Error al cargar el estado de las integraciones.
-              </div>
             ) : (
               <div className="space-y-3">
-                {integrationsQuery.data?.map((row) => {
+                {adsIntegrations.map((row) => {
                   const isMeta = row.key === 'meta_ads';
                   const isGoogle = row.key === 'google_ads';
-                  const isAds = isMeta || isGoogle;
+
                   return (
                     <div
                       key={row.key}
@@ -317,67 +383,88 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
                               </Badge>
                             )}
                           </div>
-                          {isMeta && !row.hasPixelId && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Falta configurar el identificador del Pixel de Meta para registrar conversiones.
-                            </p>
-                          )}
-                          {isMeta && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              La API de conversiones del servidor requiere un token de acceso configurado.
-                            </p>
-                          )}
-                          {isGoogle && !row.hasAdsId && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Falta configurar el identificador de Google Ads (AW-…) para la medición.
-                            </p>
-                          )}
-                          {isGoogle && row.hasAdsId && !row.hasPurchaseLabel && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              El tag registra eventos base; falta la etiqueta de conversión para registrar compras.
-                            </p>
-                          )}
-                          {isGoogle && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              Identificador de conversión configurado para seguimiento en la tienda pública.
-                            </p>
-                          )}
                         </div>
                       </div>
-                      {isAds && (
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenConfig(row)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-colors border border-border bg-surface-sunken hover:bg-muted text-foreground cursor-pointer min-h-9"
-                          >
-                            <Settings size={13} />
-                            <span>Configurar</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleIntegration(row)}
-                            disabled={togglingKey === row.key}
-                            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border cursor-pointer min-h-9 ${
-                              row.enabled
-                                ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/20'
-                                : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20'
-                            }`}
-                          >
-                            {togglingKey === row.key ? (
-                              <Loader2 size={13} className="animate-spin" />
-                            ) : (
-                              <Power size={13} />
-                            )}
-                            <span>{row.enabled ? 'Desactivar' : 'Activar'}</span>
-                          </button>
-                        </div>
-                      )}
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenConfig(row)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-colors border border-border bg-surface-sunken hover:bg-muted text-foreground cursor-pointer min-h-9"
+                        >
+                          <Settings size={13} />
+                          <span>Configurar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleIntegration(row)}
+                          disabled={togglingKey === row.key}
+                          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border cursor-pointer min-h-9 ${
+                            row.enabled
+                              ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/20'
+                              : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20'
+                          }`}
+                        >
+                          {togglingKey === row.key ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Power size={13} />
+                          )}
+                          <span>{row.enabled ? 'Desactivar' : 'Activar'}</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
+          </section>
+
+          {/* Servicios & Entidades del Ecosistema */}
+          <section className="space-y-5 bg-card p-6 rounded-2xl border border-border shadow-sm">
+            <div className="flex items-center gap-2.5 text-accent">
+              <Plug size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Servicios del Ecosistema
+              </h3>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Entidades tributarias y servicios centrales con interfaz de configuración especializada.
+            </p>
+
+            <div className="space-y-3">
+              {services.map((srv) => (
+                <div
+                  key={srv.key}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-surface-sunken/60 rounded-xl border border-border/60"
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <CheckCircle
+                      size={16}
+                      className={`mt-0.5 shrink-0 ${srv.configured ? 'text-primary' : 'text-muted-foreground'}`}
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground truncate">{srv.name}</p>
+                        <Badge variant={srv.configured ? 'success' : 'default'}>
+                          {srv.statusLabel}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">{srv.subtitle}</p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={srv.href}
+                    className="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1.5 rounded-lg text-xs font-semibold text-primary hover:bg-primary/10 transition-colors border border-primary/20 shrink-0"
+                  >
+                    <span>Gestionar</span>
+                    <ArrowUpRight size={13} />
+                  </Link>
+                </div>
+              ))}
+            </div>
           </section>
         </div>
       </div>
@@ -390,7 +477,7 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
       >
         <div className="py-4 space-y-4">
           <p className="text-xs text-muted-foreground">
-            Configura el seguimiento de Meta Ads para la tienda. Los eventos se emitirán desde el navegador (Pixel) y desde el servidor (Conversions API) con deduplicación y hashing seguro SHA-256.
+            Configura el seguimiento de Meta Ads para la tienda. Los eventos se emitirán desde el navegador (Pixel) y desde el servidor (Conversions API) con deduplicación segura.
           </p>
 
           <label className="flex items-center gap-3 p-3 bg-surface-sunken/60 rounded-xl border border-border cursor-pointer">
@@ -403,7 +490,7 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
             <div>
               <p className="text-sm font-medium text-foreground">Habilitar integración en la tienda</p>
               <p className="text-xs text-muted-foreground">
-                Control maestro: si está inactivo, ningún pixel ni llamada CAPI será emitida hacia Meta.
+                Control maestro: si está inactivo, ningún pixel ni llamada de servidor será emitida.
               </p>
             </div>
           </label>
@@ -419,9 +506,6 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               placeholder="ej. 1234567890123456"
               className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Encuéntralo en Meta Business Suite → Administrador de Eventos → Orígenes de datos.
-            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -432,12 +516,9 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               type="password"
               value={metaCapiToken}
               onChange={(e) => setMetaCapiToken(e.target.value)}
-              placeholder={integrationsQuery.data?.find((r) => r.key === 'meta_ads')?.hasCapiToken ? '•••••••••••••••• (dejar en blanco para conservar actual)' : 'EAAXXXXXXXX...'}
+              placeholder="•••••••••••••••• (dejar en blanco para conservar actual)"
               className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Token del sistema generado en Administrador de Eventos → Configuración → API de conversiones.
-            </p>
           </div>
 
           <div className="space-y-1.5">
@@ -449,19 +530,15 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               value={metaTestCode}
               onChange={(e) => setMetaTestCode(e.target.value)}
               placeholder="ej. TEST12345"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Permite validar los eventos en tiempo real en la pestaña &quot;Probar eventos&quot; de Meta.
-            </p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-border">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => setEditingModal(null)}
-              disabled={savingConfig}
-              className="px-4 py-2 text-xs font-medium border border-border rounded-xl text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               Cancelar
             </button>
@@ -469,10 +546,10 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               type="button"
               onClick={handleSaveConfig}
               disabled={savingConfig}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {savingConfig && <Loader2 size={13} className="animate-spin" />}
-              <span>{savingConfig ? 'Guardando…' : 'Guardar y Sincronizar'}</span>
+              <span>{savingConfig ? 'Guardando…' : 'Guardar'}</span>
             </button>
           </div>
         </div>
@@ -482,11 +559,11 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
       <ImmersiveModal
         open={editingModal === 'google_ads'}
         onClose={() => setEditingModal(null)}
-        title="Configuración de Google Ads (gtag + Conversión)"
+        title="Configuración de Google Ads (gtag)"
       >
         <div className="py-4 space-y-4">
           <p className="text-xs text-muted-foreground">
-            Configura el seguimiento de Google Ads para la tienda. Registra el tráfico y las conversiones de compra en pesos chilenos directamente en Google Ads.
+            Configura el identificador y etiqueta de conversión de Google Ads.
           </p>
 
           <label className="flex items-center gap-3 p-3 bg-surface-sunken/60 rounded-xl border border-border cursor-pointer">
@@ -499,49 +576,42 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
             <div>
               <p className="text-sm font-medium text-foreground">Habilitar integración en la tienda</p>
               <p className="text-xs text-muted-foreground">
-                Control maestro: si está inactivo, no se inyectará gtag ni se enviarán conversiones a Google Ads.
+                Control maestro: si está inactivo, el tag no se cargará en la tienda.
               </p>
             </div>
           </label>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">
-              Identificador de Google Ads (Conversion ID)
+              Identificador Google Ads (AW-…)
             </label>
             <input
               type="text"
               value={googleAdsId}
               onChange={(e) => setGoogleAdsId(e.target.value)}
-              placeholder="ej. AW-1234567890 o 1234567890"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              placeholder="ej. AW-123456789"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Tag global de Google Ads (prefijo AW- automático). Se encuentra en Herramientas → Conversiones.
-            </p>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">
-              Etiqueta de conversión de compra (Purchase Label)
+              Etiqueta de conversión de compra (Purchase Conversion Label)
             </label>
             <input
               type="text"
               value={googlePurchaseLabel}
               onChange={(e) => setGooglePurchaseLabel(e.target.value)}
-              placeholder="ej. AbCDefGhiJK-lmN"
-              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              placeholder="ej. AbC-D_efGhi123456"
+              className="w-full px-3.5 py-2 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Identificador alfanumérico de la acción de conversión creada para compras en la tienda online.
-            </p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-border">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => setEditingModal(null)}
-              disabled={savingConfig}
-              className="px-4 py-2 text-xs font-medium border border-border rounded-xl text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               Cancelar
             </button>
@@ -549,10 +619,10 @@ export function IntegracionesView(_props: IntegracionesViewProps = {}) {
               type="button"
               onClick={handleSaveConfig}
               disabled={savingConfig}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {savingConfig && <Loader2 size={13} className="animate-spin" />}
-              <span>{savingConfig ? 'Guardando…' : 'Guardar y Sincronizar'}</span>
+              <span>{savingConfig ? 'Guardando…' : 'Guardar'}</span>
             </button>
           </div>
         </div>

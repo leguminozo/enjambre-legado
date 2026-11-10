@@ -4,6 +4,7 @@ import type { Json } from "@enjambre/database";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { revalidateTiendaLayout, revalidateTiendaCms } from "@/lib/revalidate-tienda";
+import { buildPagosGoLiveChecklist } from "@/api/lib/payments/go-live-checklist";
 
 export const adminSystemRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -96,20 +97,116 @@ async function fetchTiendaIntegrationsStatus(): Promise<TiendaIntegrationsStatus
 
 adminSystemRoutes.get("/integrations", async (c) => {
   const supabase = c.var.supabase;
+  const empresaId = c.var.empresaId;
 
-  const { data: rows, error } = await supabase
-    .from("integrations")
-    .select("key, name, enabled, config")
-    .order("key");
+  const [integrationsResult, sumupResult, bancoResult, certResult, cafResult] = await Promise.allSettled([
+    supabase.from("integrations").select("key, name, enabled, config").order("key"),
+    supabase.from("sumup_config").select("enabled, environment, last_sync, merchant_code").eq("empresa_id", empresaId).maybeSingle(),
+    supabase.from("banco_chile_config").select("enabled, environment, last_sync, client_id").eq("empresa_id", empresaId).maybeSingle(),
+    supabase.from("sii_certificados").select("id, activo").eq("empresa_id", empresaId).eq("activo", true).maybeSingle(),
+    supabase.from("sii_caf").select("id", { count: "exact", head: true }).eq("empresa_id", empresaId),
+  ]);
 
-  if (error) {
-    console.error("[admin-system] integrations query failed", error);
-    return c.json({ error: "Failed to load integrations" }, 500);
-  }
+  const rows = integrationsResult.status === "fulfilled" && !integrationsResult.value.error ? integrationsResult.value.data ?? [] : [];
+  const sumupConfig = sumupResult.status === "fulfilled" && !sumupResult.value.error ? sumupResult.value.data : null;
+  const bancoConfig = bancoResult.status === "fulfilled" && !bancoResult.value.error ? bancoResult.value.data : null;
+  const certRow = certResult.status === "fulfilled" && !certResult.value.error ? certResult.value.data : null;
+  const cafCount = cafResult.status === "fulfilled" && !cafResult.value.error ? cafResult.value.count : null;
+
+  // 1. Diagnóstico de salud real de pasarelas de pago y finanzas
+  const checklist = buildPagosGoLiveChecklist();
+  const webpayOperativo = checklist.listoPasarela;
+  const sumupOperativo = Boolean(sumupConfig?.enabled && sumupConfig?.merchant_code);
+  const bancoOperativo = Boolean(bancoConfig?.enabled && bancoConfig?.client_id);
+
+  const gateways = [
+    {
+      key: "webpay",
+      name: checklist.provider === "transbank" ? "Transbank Webpay" : "Flow Pagos Web",
+      subtitle: "Checkout Tienda Online",
+      status: webpayOperativo ? ("operational" as const) : ("missing_credentials" as const),
+      statusLabel: webpayOperativo ? "Operativo" : "Sin credenciales",
+      environment: checklist.isProduction ? "Producción" : "Integración / Pruebas",
+      active: webpayOperativo,
+      href: "/pagos",
+      details: webpayOperativo
+        ? "Credenciales activas en plataforma"
+        : `Falta configurar credenciales de ${checklist.provider === "transbank" ? "Transbank" : "Flow"}`,
+    },
+    {
+      key: "sumup",
+      name: "SumUp POS",
+      subtitle: "Punto de Venta POS Feria",
+      status: sumupOperativo
+        ? ("operational" as const)
+        : sumupConfig
+          ? ("inactive" as const)
+          : ("missing_credentials" as const),
+      statusLabel: sumupOperativo ? "Conectado" : sumupConfig ? "Inactivo" : "Sin credenciales",
+      environment: sumupConfig?.environment ?? "sandbox",
+      active: sumupOperativo,
+      lastSync: sumupConfig?.last_sync ?? null,
+      href: "/pagos",
+      details: sumupOperativo
+        ? "Terminales vinculados y listos para cobro"
+        : sumupConfig
+          ? "Configuración guardada pero terminal inactivo"
+          : "Falta vincular credenciales en Terminales POS",
+    },
+    {
+      key: "banco_chile",
+      name: "Banco de Chile",
+      subtitle: "API Conciliación Bancaria",
+      status: bancoOperativo
+        ? ("operational" as const)
+        : bancoConfig
+          ? ("inactive" as const)
+          : ("missing_credentials" as const),
+      statusLabel: bancoOperativo ? "Autenticado" : bancoConfig ? "Inactivo" : "Sin credenciales",
+      environment: bancoConfig?.environment ?? "sandbox",
+      active: bancoOperativo,
+      lastSync: bancoConfig?.last_sync ?? null,
+      href: "/banco",
+      details: bancoOperativo
+        ? "Conexión bancaria activa para conciliación de cuentas"
+        : bancoConfig
+          ? "Configuración guardada pero sincronización inactiva"
+          : "Falta configurar credenciales bancarias",
+    },
+  ];
+
+  // 2. Diagnóstico de servicios del ecosistema (SII y Correos)
+  const siiOperativo = Boolean(certRow || (typeof cafCount === "number" && cafCount > 0));
+  const notifOperativo = Boolean(process.env.RESEND_API_KEY?.trim());
+
+  const services = [
+    {
+      key: "sii",
+      name: "Servicio de Impuestos Internos (SII)",
+      subtitle: "Emisión de DTE, RCV y folios CAF",
+      configured: siiOperativo,
+      statusLabel: siiOperativo ? "Operativo" : "Requiere certificados / CAF",
+      href: "/sii",
+    },
+    {
+      key: "notificaciones",
+      name: "Mensajería & Correos",
+      subtitle: "Notificaciones transaccionales a clientes y equipo",
+      configured: notifOperativo,
+      statusLabel: notifOperativo ? "Operativo" : "Sin proveedor de correo",
+      href: "/configuracion/correos",
+    },
+  ];
 
   const tiendaStatus = await fetchTiendaIntegrationsStatus();
 
   return c.json({
+    gateways,
+    cache: {
+      tiendaConfigured: Boolean(tiendaBaseUrl()),
+      secretConfigured: Boolean(tiendaInternalSecret()),
+    },
+    services,
     integrations: (rows ?? []).map((row) => {
       const isMeta = row.key === "meta_ads";
       const isGoogle = row.key === "google_ads";
@@ -130,7 +227,13 @@ adminSystemRoutes.get("/integrations", async (c) => {
         ? Boolean(hasPixelId && hasCapiToken)
         : isGoogle
           ? Boolean(hasAdsId)
-          : Boolean(tiendaStatus?.presence?.[row.key]);
+          : row.key === "sii"
+            ? siiOperativo
+            : row.key === "notificaciones"
+              ? notifOperativo
+              : row.key === "banco_chile" || row.key === "bancos"
+                ? bancoOperativo
+                : Boolean(tiendaStatus?.presence?.[row.key]);
 
       const mode = isMeta
         ? (row.enabled && hasPixelId && hasCapiToken ? "live" : "stub")

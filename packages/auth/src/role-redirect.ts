@@ -196,6 +196,8 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/arco': ['admin'],
   '/reembolsos': ['admin'],
   '/salud': ['admin'],
+  '/integraciones': ['admin'],
+  '/pixeles': ['admin'],
 }
 
 function normalizeRole(role: string): string {
