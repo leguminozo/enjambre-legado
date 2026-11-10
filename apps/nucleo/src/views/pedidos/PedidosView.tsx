@@ -459,9 +459,6 @@ export function PedidosView() {
               <span className="px-2 py-0.5 text-[10px] font-mono tracking-wider uppercase rounded bg-primary/10 text-primary border border-primary/20">
                 Tienda Web · Despacho
               </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Res. Ex. SII Nº 176/2020
-              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-medium tracking-tight mt-1">
               Pedidos y Central de Despacho
@@ -877,14 +874,10 @@ export function PedidosView() {
                           return (
                             <span
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                              title="Comprobante electrónico válido por ley ante el SII (Res. Ex. SII Nº 176/2020)"
+                              title="Pago validado y comprobante electrónico emitido por pasarela"
                             >
                               <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
-                              {cleanCode ? (
-                                <span>Flow #{cleanCode}</span>
-                              ) : (
-                                <span>Res. SII Nº 176/2020</span>
-                              )}
+                              <span>{cleanCode ? `Flow #${cleanCode}` : 'Pago Confirmado'}</span>
                             </span>
                           );
                         })()}
