@@ -52,6 +52,8 @@ export interface CalendarioProps {
   onTypeFilterChange?: (type: CalendarioEventType | null) => void;
   /** Ocultar la simbología integrada si se renderiza en una columna externa */
   hideLegend?: boolean;
+  /** Desactivar el panel de día incrustado abajo de la cuadrícula mensual (para ubicarlo en panel lateral/drawer) */
+  disableInlineDayPanel?: boolean;
   /** Contenido extra bajo el mes (p.ej. DayTimeline) */
   dayPanel?: React.ReactNode;
 }
@@ -154,6 +156,7 @@ export function Calendario({
   activeTypeFilter,
   onTypeFilterChange,
   hideLegend = false,
+  disableInlineDayPanel = false,
   dayPanel,
 }: CalendarioProps) {
   const [internalSelected, setInternalSelected] = React.useState<Date | null>(null);
@@ -479,7 +482,7 @@ export function Calendario({
       </div>
 
       {/* ── Day module expand (timeline interactivo via dayPanel) ── */}
-      {dayPanelOpen && (
+      {!disableInlineDayPanel && dayPanelOpen && (
         <div className="border-t border-border bg-card/40 p-3 sm:p-4">
           {dayPanel ?? (
             <div className="space-y-3">
