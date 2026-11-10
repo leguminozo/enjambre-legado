@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, Marker, Popup, Circle, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Circle, Polyline, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
@@ -11,7 +11,7 @@ import {
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Clock, ChevronLeft, ChevronRight, Moon, Sun, Plus, Compass } from 'lucide-react';
+import { MapPin, Clock, ChevronLeft, ChevronRight, Moon, Sun, Plus, Compass, Layers, ChevronDown, Check } from 'lucide-react';
 import { toast, friendlyError, formatCLP, ImmersiveModal } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { resolveClienteCoords, resolveComunaCoords } from '@/lib/cliente-coords';
@@ -159,17 +159,26 @@ function getMarkerTypeLabel(type: string): string {
   }
 }
 
-function FitBounds({ markers }: { markers: MapMarker[] }) {
+function FitBounds({ markers, censoApiarios }: { markers: MapMarker[]; censoApiarios?: CensoApiario[] }) {
   const map = useMap();
   const fitted = useRef(false);
 
   useEffect(() => {
-    if (!fitted.current && markers.length > 0) {
-      const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+    if (fitted.current) return;
+    const pts: [number, number][] = [];
+    markers.forEach((m) => pts.push([m.lat, m.lng]));
+    (censoApiarios ?? []).forEach((c) => {
+      if (c.lat_aproximada != null && c.lng_aproximada != null) {
+        pts.push([c.lat_aproximada, c.lng_aproximada]);
+      }
+    });
+
+    if (pts.length > 0) {
+      const bounds = L.latLngBounds(pts);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
       fitted.current = true;
     }
-  }, [markers, map]);
+  }, [markers, censoApiarios, map]);
 
   return null;
 }
@@ -268,6 +277,7 @@ interface CensoApiario {
   observaciones?: string | null;
   lat_aproximada?: number | null;
   lng_aproximada?: number | null;
+  es_propio?: boolean;
   // Campos reservados exclusivamente para el fundador (prospección y compra directa de miel)
   actor_id?: string | null;
   titular?: string | null;
@@ -334,11 +344,31 @@ function createLayerIcon(emoji: string, color: string): L.DivIcon {
   });
 }
 
+function createMiApiarioIcon(size = 38): L.DivIcon {
+  const half = Math.round(size / 2);
+  const html = `
+    <div style="position:relative;width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <div style="position:absolute;inset:-4px;border-radius:50%;background:hsl(var(--primary) / 0.35);animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+      <div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg, hsl(44 95% 48%), hsl(35 90% 36%));border:2.5px solid #ffffff;box-shadow:0 4px 14px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;font-size:18px;">
+        ⭐
+      </div>
+    </div>
+  `;
+  return L.divIcon({
+    className: 'enj-mi-apiario-icon',
+    html,
+    iconSize: [size, size],
+    iconAnchor: [half, half],
+    popupAnchor: [0, -half],
+  });
+}
+
 const ICON_ALERTA = createLayerIcon('⚠️', 'hsl(var(--destructive))');
 const ICON_TRASHUMANTE = createLayerIcon('🚚', 'hsl(var(--accent))');
 const ICON_PREDIO = createLayerIcon('🌿', 'hsl(var(--success))');
 const ICON_CENSO = createLayerIcon('🐝', 'hsl(var(--primary))');
 const ICON_COSECHA = createLayerIcon('🍯', 'hsl(var(--warning, var(--accent)))');
+const ICON_MI_APIARIO = createMiApiarioIcon(38);
 
 export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 'enjambre' }: MapaLegadoProps) {
   const apiFetch = useApiFetch();
@@ -352,6 +382,8 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
   const [isEditMode, setIsEditMode] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newMarkerCoords, setNewMarkerCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [showSectoresMenu, setShowSectoresMenu] = useState(false);
+  const [showCapasMenu, setShowCapasMenu] = useState(false);
 
   // Formulario enriquecido para creación de cualquier tipo de pin / evento
   const [newMarkerForm, setNewMarkerForm] = useState<{
@@ -645,12 +677,12 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
           });
         });
 
-        // 8. Registro Territorial (Chiloé) — Catastro legal comunitario y reservado fundador
+        // 8. Registro Territorial (Chiloé) — Catastro legal comunitario y asentamientos de la red
         const [alertasRes, trashumRes, prediosRes, censoRes] = await Promise.all([
           apiFetch('/api/registro-territorial/alertas'),
           apiFetch('/api/registro-territorial/apiarios-externos'),
           apiFetch('/api/registro-territorial/predios'),
-          isAdmin
+          isAdmin && activeEnv !== 'territorio'
             ? apiFetch('/api/mapa/censo-detallado')
             : apiFetch('/api/registro-territorial/apiarios'),
         ]);
@@ -1078,228 +1110,287 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
         className="map-container relative rounded-2xl md:rounded-3xl overflow-hidden border border-border/70 shadow-2xl ring-1 ring-border/30 bg-surface-sunken"
         style={{ height, minHeight: '620px' }}
       >
-        {/* Selector de Entornos (Segmentación Orgánica) */}
-        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-[1000] flex flex-wrap items-center gap-1 p-1 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl text-foreground max-w-[calc(100%-1.5rem)]">
-          <button
-            type="button"
-            onClick={() => setActiveEnv('enjambre')}
-            className={`px-3 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
-              activeEnv === 'enjambre'
-                ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
-            }`}
-          >
-            <span>🏛️</span>
-            <span className="font-serif tracking-wide">Modo Enjambre Legado</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-sunken/60 text-foreground font-mono">Consolidado</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveEnv('tienda')}
-            className={`px-2.5 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
-              activeEnv === 'tienda'
-                ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
-            }`}
-          >
-            <span>🛒</span>
-            <span>Tienda</span>
-            <span className="hidden sm:inline text-[10px] opacity-75">obrerayzangano.cl</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveEnv('campo')}
-            className={`px-2.5 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
-              activeEnv === 'campo'
-                ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
-            }`}
-          >
-            <span>⛺</span>
-            <span>Campo</span>
-            <span className="hidden sm:inline text-[10px] opacity-75">POS & Ferias</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveEnv('territorio')}
-            className={`px-2.5 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
-              activeEnv === 'territorio'
-                ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
-                : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
-            }`}
-          >
-            <span>🌲</span>
-            <span>Registro Territorial</span>
-            <span className="hidden sm:inline text-[10px] opacity-75">Chiloé</span>
-          </button>
-        </div>
+        {/* Encabezado / Identidad del Mapa (Sin filtración técnica de dinamica interna) */}
+        {initialEnvironment === 'territorio' ? (
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-[1000] flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-background/95 backdrop-blur-md border border-border/80 shadow-xl text-foreground">
+            <span className="text-base">🌲</span>
+            <div>
+              <div className="font-serif tracking-wide text-xs sm:text-sm font-bold text-foreground leading-tight">
+                Red Territorial Apícola
+              </div>
+              <div className="text-[10px] text-muted-foreground font-sans">
+                Chiloé · ±2,0 km GPS Protegido
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-[1000] flex flex-wrap items-center gap-1 p-1 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl text-foreground max-w-[calc(100%-1.5rem)]">
+            <button
+              type="button"
+              onClick={() => setActiveEnv('enjambre')}
+              className={`px-3 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
+                activeEnv === 'enjambre'
+                  ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
+              }`}
+            >
+              <span>🏛️</span>
+              <span className="font-serif tracking-wide">Visión Consolidada</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveEnv('tienda')}
+              className={`px-2.5 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
+                activeEnv === 'tienda'
+                  ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
+              }`}
+            >
+              <span>🛒</span>
+              <span>Tienda</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveEnv('campo')}
+              className={`px-2.5 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
+                activeEnv === 'campo'
+                  ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
+              }`}
+            >
+              <span>⛺</span>
+              <span>Campo</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveEnv('territorio')}
+              className={`px-2.5 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
+                activeEnv === 'territorio'
+                  ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised font-medium'
+              }`}
+            >
+              <span>🌲</span>
+              <span>Territorio</span>
+            </button>
+          </div>
+        )}
 
-        {/* Floating Controls (Top Right) */}
+        {/* Floating Controls (Top Right) — Centralizados en Dropdowns Compactos */}
         <div className="absolute top-16 sm:top-4 right-3 sm:right-4 z-[1000] flex flex-wrap items-center justify-end gap-2 max-w-[calc(100%-1.5rem)]">
-          {/* Toggles Contextuales según el Entorno */}
-          <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl text-foreground">
-            {/* Tienda (obrerayzangano.cl) */}
-            {(activeEnv === 'enjambre' || activeEnv === 'tienda') && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowCafeterias(!showCafeterias)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showCafeterias ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Cafeterías con miel a la venta"
-                >
-                  ☕ Cafeterías
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowTiendasGourmet(!showTiendasGourmet)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showTiendasGourmet ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Tiendas gourmet y emporios"
-                >
-                  🛍️ Tiendas Gourmet
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowHoteles(!showHoteles)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showHoteles ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Hoteles y hospedajes boutique"
-                >
-                  🏨 Hoteles
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowClientesB2B(!showClientesB2B)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showClientesB2B ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Clientes mayoristas y B2B"
-                >
-                  💼 Clientes B2B
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowTransito(!showTransito)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showTransito ? 'bg-info text-info-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Envíos de la tienda online en tránsito"
-                >
-                  📦 En Tránsito
-                </button>
-              </>
-            )}
+          {/* 1. Selector Vertical de Sectores de Chiloé (Centralizado en Dropdown sin scroll horizontal) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setShowSectoresMenu((v) => !v);
+                setShowCapasMenu(false);
+              }}
+              className={`px-3 py-1.5 text-xs rounded-xl font-medium transition-all flex items-center gap-1.5 border shadow-xl backdrop-blur-md ${
+                showSectoresMenu
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background/90 text-foreground border-border/80 hover:bg-surface-raised'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="font-medium max-w-[130px] truncate">
+                {CHILOE_COMUNAS_VIEW.find((c) => c.id === comunaSeleccionada)?.label || 'Sectores'}
+              </span>
+              <ChevronDown className="w-3 h-3 opacity-60" />
+            </button>
 
-            {/* Campo (POS & Ferias) */}
-            {(activeEnv === 'enjambre' || activeEnv === 'campo') && (
+            {showSectoresMenu && (
               <>
-                <button
-                  type="button"
-                  onClick={() => setShowFerias(!showFerias)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showFerias ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Ferias y eventos de venta en terreno"
-                >
-                  🎪 Ferias
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowRevendedores(!showRevendedores)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showRevendedores ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                  title="Revendedores en terreno"
-                >
-                  🤝 Revendedores
-                </button>
-              </>
-            )}
-
-            {/* Territorio (Chiloé & Apiarios Propios) */}
-            {(activeEnv === 'enjambre' || activeEnv === 'territorio') && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowApiarios(!showApiarios)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showApiarios ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🐝 Apiarios
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAltaProduccion(!showAltaProduccion)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showAltaProduccion ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🌟 Alta Producción
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowTrees(!showTrees)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showTrees ? 'bg-success text-success-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🌳 Árboles
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAlertas(!showAlertas)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showAlertas ? 'bg-destructive text-destructive-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  ⚠️ Alertas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowTrashumantes(!showTrashumantes)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showTrashumantes ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🚚 Trashumantes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPredios(!showPredios)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showPredios ? 'bg-success text-success-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🌿 Predios
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCensoApiarios(!showCensoApiarios)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showCensoApiarios ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🐝 Censo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCosechas(!showCosechas)}
-                  className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
-                    showCosechas ? 'bg-warning text-warning-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
-                  }`}
-                >
-                  🍯 Recolecciones
-                </button>
+                <div
+                  className="fixed inset-0 z-[1090]"
+                  onClick={() => setShowSectoresMenu(false)}
+                />
+                <div className="absolute right-0 top-full mt-1.5 z-[1100] w-64 bg-background/95 backdrop-blur-md border border-border/80 shadow-2xl rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-2.5 py-1.5 border-b border-border/50 text-[11px] font-semibold text-muted-foreground flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Compass className="w-3.5 h-3.5 text-primary" />
+                      Sectores de Chiloé
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">10 comunas</span>
+                  </div>
+                  <div className="py-1 flex flex-col gap-0.5 max-h-[380px] overflow-y-auto">
+                    {CHILOE_COMUNAS_VIEW.map((com) => {
+                      const isSelected = comunaSeleccionada === com.id;
+                      return (
+                        <button
+                          key={com.id}
+                          type="button"
+                          onClick={() => {
+                            setComunaSeleccionada(com.id);
+                            setComunaTarget({ center: com.center, zoom: com.zoom });
+                            setShowSectoresMenu(false);
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl text-xs font-medium text-left flex items-center justify-between transition-colors ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                              : 'text-foreground hover:bg-surface-raised'
+                          }`}
+                        >
+                          <span>{com.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </>
             )}
           </div>
 
-          {/* Selector de Mes Estacional */}
+          {/* 2. Capas del Territorio (Centralizadas en Dropdown Popover) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setShowCapasMenu((v) => !v);
+                setShowSectoresMenu(false);
+              }}
+              className={`px-3 py-1.5 text-xs rounded-xl font-medium transition-all flex items-center gap-1.5 border shadow-xl backdrop-blur-md ${
+                showCapasMenu
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background/90 text-foreground border-border/80 hover:bg-surface-raised'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>
+                Capas ({[showCensoApiarios, showAltaProduccion, showAlertas, showTrashumantes, showPredios, showCosechas, (isAdmin && showTrees)].filter(Boolean).length})
+              </span>
+              <ChevronDown className="w-3 h-3 opacity-60" />
+            </button>
+
+            {showCapasMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-[1090]"
+                  onClick={() => setShowCapasMenu(false)}
+                />
+                <div className="absolute right-0 top-full mt-1.5 z-[1100] w-72 bg-background/95 backdrop-blur-md border border-border/80 shadow-2xl rounded-2xl p-3 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="border-b border-border/50 pb-2 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-primary" />
+                      Capas del Territorio
+                    </span>
+                    <span className="text-[10px] font-mono text-primary font-bold px-1.5 py-0.5 rounded bg-primary/10">
+                      {[showCensoApiarios, showAltaProduccion, showAlertas, showTrashumantes, showPredios, showCosechas, (isAdmin && showTrees)].filter(Boolean).length} activas
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !showCensoApiarios;
+                        setShowCensoApiarios(next);
+                        setShowApiarios(next);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2 text-foreground font-medium">
+                        <span>🐝</span>
+                        <span>Asentamientos de la Red</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showCensoApiarios ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                        {showCensoApiarios ? 'Visible' : 'Oculto'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAltaProduccion((v) => !v)}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2 text-foreground font-medium">
+                        <span>🌟</span>
+                        <span>Alta Producción (+2 alzas)</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showAltaProduccion ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                        {showAltaProduccion ? 'Visible' : 'Oculto'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAlertas((v) => !v)}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2 text-foreground font-medium">
+                        <span>⚠️</span>
+                        <span>Alertas Fitosanitarias</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showAlertas ? 'bg-destructive/20 text-destructive border border-destructive/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                        {showAlertas ? 'Visible' : 'Oculto'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowTrashumantes((v) => !v)}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2 text-foreground font-medium">
+                        <span>🚚</span>
+                        <span>Trashumantes</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showTrashumantes ? 'bg-accent/20 text-accent-foreground border border-accent/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                        {showTrashumantes ? 'Visible' : 'Oculto'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPredios((v) => !v)}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2 text-foreground font-medium">
+                        <span>🌿</span>
+                        <span>Predios Facilitadores</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showPredios ? 'bg-success/20 text-success border border-success/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                        {showPredios ? 'Visible' : 'Oculto'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowCosechas((v) => !v)}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2 text-foreground font-medium">
+                        <span>🍯</span>
+                        <span>Recolecciones Registradas</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showCosechas ? 'bg-warning/20 text-warning border border-warning/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                        {showCosechas ? 'Visible' : 'Oculto'}
+                      </span>
+                    </button>
+
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => setShowTrees((v) => !v)}
+                        className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-surface-raised transition-colors text-left"
+                      >
+                        <span className="flex items-center gap-2 text-foreground font-medium">
+                          <span>🌳</span>
+                          <span>Árboles Nativos</span>
+                        </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${showTrees ? 'bg-success/20 text-success border border-success/40' : 'bg-surface-sunken text-muted-foreground'}`}>
+                          {showTrees ? 'Visible' : 'Oculto'}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* 3. Selector de Mes Estacional */}
           <div className="flex items-center gap-1 p-1 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl text-foreground">
             <button
               type="button"
@@ -1340,7 +1431,7 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
             </button>
           </div>
 
-          {/* Estilo Satélite / Oscuro & Modo Edición */}
+          {/* 4. Estilo Satélite / Oscuro & Modo Edición */}
           <div className="flex items-center gap-1 p-1 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl text-foreground">
             <button
               type="button"
@@ -1387,11 +1478,12 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
           center={center}
           zoom={10}
           style={{ height: '100%', width: '100%' }}
-          zoomControl={true}
+          zoomControl={false}
           attributionControl={false}
         >
+          <ZoomControl position="bottomright" />
           {mapStyle === 'satellite' ? <EsriSatelliteTileLayers /> : <DarkCartoTileLayer />}
-          <FitBounds markers={filteredMarkers} />
+          <FitBounds markers={filteredMarkers} censoApiarios={censoApiarios} />
           <MapResizeWatcher />
           <MapViewController target={comunaTarget} />
           {isEditMode && <MapClickHandler onMapClick={handleMapClick} />}
@@ -1594,6 +1686,7 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
               );
               const esVerificado = Boolean(a.censo_completo || a.reclamado);
               const hasFounderData = Boolean(a.titular || a.telefono);
+              const esPropio = Boolean(a.es_propio);
 
               return (
                 <div key={`censo-${a.id}`}>
@@ -1602,23 +1695,30 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
                     center={[a.lat_aproximada as number, a.lng_aproximada as number]}
                     radius={2000}
                     pathOptions={{
-                      color: 'hsl(var(--primary))',
-                      fillColor: 'hsl(var(--primary))',
-                      fillOpacity: 0.12,
-                      weight: 1,
-                      dashArray: '3, 4',
+                      color: esPropio ? 'hsl(var(--primary))' : 'hsl(var(--primary))',
+                      fillColor: esPropio ? 'hsl(var(--primary))' : 'hsl(var(--primary))',
+                      fillOpacity: esPropio ? 0.28 : 0.12,
+                      weight: esPropio ? 2.5 : 1,
+                      dashArray: esPropio ? undefined : '3, 4',
                     }}
                   />
-                  <Marker position={[a.lat_aproximada as number, a.lng_aproximada as number]} icon={ICON_CENSO}>
+                  <Marker
+                    position={[a.lat_aproximada as number, a.lng_aproximada as number]}
+                    icon={esPropio ? ICON_MI_APIARIO : ICON_CENSO}
+                  >
                     <Popup autoPan={true} autoPanPadding={[50, 50]}>
                       <div className="p-1 min-w-[260px] max-w-[320px] space-y-2.5 text-xs">
                         {/* Cabecera */}
-                        <div className="border-b border-border/60 pb-1.5">
+                        <div className={`border-b pb-1.5 ${esPropio ? 'border-primary/40 bg-primary/10 -mx-1 -mt-1 p-2 rounded-t-lg' : 'border-border/60'}`}>
                           <div className="flex items-center justify-between gap-1 mb-0.5">
                             <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
-                              🐝 Asentamiento de la Red · {a.comuna}
+                              {esPropio ? '⭐ Tu Apiario Registrado' : `🐝 Asentamiento de la Red · ${a.comuna}`}
                             </span>
-                            {esVerificado ? (
+                            {esPropio ? (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary text-primary-foreground font-bold shadow-sm">
+                                Tu Asentamiento
+                              </span>
+                            ) : esVerificado ? (
                               <span className="text-[9px] px-1.5 py-0.5 rounded bg-success/15 text-success border border-success/30 font-medium">
                                 {a.censo_completo ? 'Censo Completo' : `Reclamado · ${a.nivel_acreditacion ?? 'base'}`}
                               </span>
@@ -1629,15 +1729,30 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
                             )}
                           </div>
                           <h4 className="font-bold text-sm text-foreground leading-tight">
-                            {a.nombre ?? 'Apiario comunal'}
+                            {a.nombre ?? (esPropio ? 'Mi Apiario' : 'Apiario comunal')}
                           </h4>
                           <p className="text-[11px] text-muted-foreground mt-0.5">
                             {a.zona ? `${a.zona} · ` : ''}{a.comuna}
                           </p>
                         </div>
 
-                        {/* Datos de Productor (si existen para fundador) o Identidad Protegida */}
-                        {hasFounderData ? (
+                        {/* Datos de Productor o Identidad Propia / Protegida */}
+                        {esPropio ? (
+                          <div className="bg-surface-sunken/90 rounded-lg p-2.5 border border-primary/30 space-y-1.5 text-[11px]">
+                            <p className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Colmenas declaradas:</span>
+                              <strong className="font-mono text-foreground font-semibold">{a.n_colmenas > 0 ? a.n_colmenas : 'Declarado en censo'}</strong>
+                            </p>
+                            <p className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Estado territorial:</span>
+                              <span className="text-success font-medium">✓ Activo y Protegido</span>
+                            </p>
+                            <p className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Radio de resguardo:</span>
+                              <span className="font-mono text-foreground font-semibold">2,0 km (Ley 21.489)</span>
+                            </p>
+                          </div>
+                        ) : hasFounderData ? (
                           <div className="bg-surface-sunken/80 rounded-lg p-2 border border-border/50 space-y-1 text-[11px]">
                             <p className="flex justify-between gap-2">
                               <span className="text-muted-foreground shrink-0">Titular:</span>
@@ -1701,7 +1816,7 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
                         <div className="flex flex-wrap items-center gap-1 text-[10px]">
                           <span
                             className={`px-1.5 py-0.5 rounded border ${
-                              a.consentimiento_mapa
+                              a.consentimiento_mapa || esPropio
                                 ? 'bg-primary/10 text-primary border-primary/30'
                                 : 'bg-surface-sunken text-muted-foreground border-border'
                             }`}
@@ -1758,7 +1873,7 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
                             </button>
                           </div>
                         )}
-                        {!hasFounderData && (
+                        {!hasFounderData && !esPropio && (
                           <div className="pt-1.5 border-t border-border/50 text-[10px] text-muted-foreground flex items-center gap-1">
                             <span className="text-primary font-semibold">🔒</span> Coordenadas exactas protegidas por secreto territorial (Ley 21.489).
                           </div>
@@ -1770,36 +1885,6 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
               );
             })}
         </MapContainer>
-
-        {/* Barra Flotante de Navegación por Sectores de Chiloé (Activa en modo Territorio) */}
-        {activeEnv === 'territorio' && (
-          <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto z-[1000] flex items-center gap-1.5 p-1.5 rounded-xl bg-background/90 backdrop-blur-md border border-border/80 shadow-xl overflow-x-auto max-w-[calc(100%-1.5rem)] sm:max-w-2xl text-xs scrollbar-none">
-            <span className="text-muted-foreground font-medium flex items-center gap-1 px-1 shrink-0">
-              <Compass className="w-3.5 h-3.5 text-primary" />
-              Sectores:
-            </span>
-            {CHILOE_COMUNAS_VIEW.map((com) => {
-              const isSelected = comunaSeleccionada === com.id;
-              return (
-                <button
-                  key={com.id}
-                  type="button"
-                  onClick={() => {
-                    setComunaSeleccionada(com.id);
-                    setComunaTarget({ center: com.center, zoom: com.zoom });
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                    isSelected
-                      ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                      : 'bg-surface-raised hover:bg-surface-sunken text-muted-foreground hover:text-foreground border border-border/60'
-                  }`}
-                >
-                  {com.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* Ficha Lateral Censal Completa (Exclusiva Fundador / Admin) */}
