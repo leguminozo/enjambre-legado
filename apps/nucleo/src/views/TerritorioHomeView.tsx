@@ -14,7 +14,6 @@ import { useTerritorialActor } from '@/hooks/use-territorial-actor';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { Badge, Button, Spinner, toast, Skeleton } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
@@ -277,23 +276,6 @@ export function TerritorioHomeView() {
             </div>
           ) : undefined
         }
-      />
-
-      {/* Selector de pestañas canónico y accesible */}
-      <ResponsiveTabBar
-        variant="pill"
-        layoutId="territorio-home-tabs"
-        tabs={[
-          { id: 'registro', label: 'Mi Registro' },
-          { id: 'mapa', label: 'Mapa de la Red' },
-          { id: 'alertas', label: 'Alertas', badge: alertasEnMiComuna.length > 0 ? alertasEnMiComuna.length : undefined },
-          { id: 'trashumancia', label: 'Trashumancia y Predios' },
-        ]}
-        activeId={tab}
-        onChange={(id) => {
-          if (id === 'registro') router.push('/territorio');
-          else router.push(`/territorio/${id}`);
-        }}
       />
 
       {/* Alerta temprana fitosanitaria en la comuna del apicultor */}
