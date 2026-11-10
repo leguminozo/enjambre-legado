@@ -5,10 +5,7 @@ import {
   Sliders,
   ScanLine,
   Droplets,
-  Calendar,
-  Check,
-  Eye,
-  EyeOff,
+  Flower2,
 } from 'lucide-react';
 import {
   getReferenciaBotanica,
@@ -61,7 +58,7 @@ export interface EspecieCardProps {
   pronostico?: PronosticoData;
   onObservar: (especieId: string) => void;
   onCalibrar: (especie: EspecieData) => void;
-  onToggleMonitoreo: (especie: EspecieData, e: React.MouseEvent) => void;
+  onToggleMonitoreo?: (especie: EspecieData, e: React.MouseEvent) => void;
 }
 
 export function EspecieCard({
@@ -69,8 +66,8 @@ export function EspecieCard({
   pronostico,
   onObservar,
   onCalibrar,
-  onToggleMonitoreo,
 }: EspecieCardProps) {
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const ref = getReferenciaBotanica(especie.nombre_cientifico, especie.nombre_comun);
@@ -79,20 +76,16 @@ export function EspecieCard({
   const rawFoto = especie.foto_url || pronostico?.fotoUrl || ref?.fotoUrl || null;
   const fotoSrc = !imgError ? rawFoto : null;
 
-  const perfilMelifero = especie.perfil_melifero || ref?.perfilMelifero || null;
   const ventanaTexto = formatVentanaFloracion(
     especie.ventana_ini ?? especie.mes_inicio_floracion,
     especie.ventana_fin ?? especie.mes_fin_floracion
   );
 
-  const esNativa =
-    especie.origen === 'nativa' ||
-    especie.origen === 'endemica' ||
-    !especie.origen;
-
   const gddActual = pronostico?.gddActual ?? 0;
   const gddUmbral = especie.gdd_umbral ?? pronostico?.gddUmbral ?? null;
-  const progreso = pronostico?.progreso ?? (gddUmbral && gddActual ? Math.min(100, Math.round((gddActual / gddUmbral) * 100)) : null);
+  const progreso =
+    pronostico?.progreso ??
+    (gddUmbral && gddActual ? Math.min(100, Math.round((gddActual / gddUmbral) * 100)) : null);
   const deltaGDD = gddUmbral ? Math.max(0, Math.round(gddUmbral - gddActual)) : null;
 
   // Relevancia apícola formateada con alta precisión
@@ -103,94 +96,69 @@ export function EspecieCard({
       ? 'Néctar Abundante'
       : relevancia === 'polen'
       ? 'Aporte Polínico'
-      : relevancia === 'propoleo'
-      ? 'Resinas y Propóleo'
       : 'Néctar y Polen');
 
   return (
-    <div className="card overflow-hidden border border-border bg-surface-raised rounded-2xl flex flex-col justify-between hover:border-border/80 transition-all duration-300 group shadow-sm">
+    <div className="card overflow-hidden border border-border bg-card rounded-2xl flex flex-col justify-between hover:border-border/80 transition-all duration-300 group shadow-sm">
       <div>
         {/* ── Banner Fotográfico Hero ── */}
-        <div className="relative h-44 w-full bg-surface-sunken overflow-hidden">
+        <div className="relative h-40 w-full bg-surface-sunken overflow-hidden">
           {fotoSrc ? (
             <img
               src={fotoSrc}
-              alt={`${especie.nombre_comun} (${especie.nombre_cientifico})`}
+              alt={especie.nombre_comun}
+              onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
-              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+              className={`w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-700 ease-out ${
+                imgLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
             />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-surface-sunken via-surface-raised to-background text-muted-foreground p-4 text-center">
-              <span className="text-3xl mb-1">{pronostico?.enFloracion ? '🌸' : '🌿'}</span>
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground/80">
-                Flora Nativa de Chiloé
+          ) : null}
+
+          {/* Fallback botánico premium si no hay foto o mientras carga */}
+          {(!fotoSrc || !imgLoaded) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-surface-sunken via-surface-raised to-background p-4 text-center">
+              <span className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1">
+                <Flower2 size={20} />
+              </span>
+              <span className="text-[11px] font-mono tracking-widest text-muted-foreground uppercase">
+                Bosque Nativo de Chiloé
               </span>
             </div>
           )}
 
-          {/* Gradiente oscuro inferior para legibilidad del título */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
+          {/* Gradiente cinematográfico inferior para lectura perfecta del texto */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
 
-          {/* Badges superiores flotantes */}
-          <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2 pointer-events-auto">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase backdrop-blur-md shadow-sm ${
-                  esNativa
-                    ? 'bg-primary/90 text-primary-foreground border border-primary/30'
-                    : 'bg-warning/90 text-warning-foreground border border-warning/30'
-                }`}
-              >
-                {ref?.origenLabel ?? (especie.origen === 'endemica' ? 'Endémica' : 'Nativa')}
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-black/60 text-white/90 border border-white/15 backdrop-blur-md">
-                {ref?.habitoLabel ?? especie.habito ?? 'Árbol'}
-              </span>
-            </div>
-
-            {/* Estado Fenológico */}
+          {/* ÚNICA etiqueta flotante de estado superior derecha */}
+          <div className="absolute top-3 right-3 pointer-events-auto">
             {pronostico?.enFloracion ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-success text-success-foreground shadow-md backdrop-blur-md border border-white/20 whitespace-nowrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-success/90 text-success-foreground shadow-lg backdrop-blur-md">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 Floración Activa
               </span>
             ) : pronostico?.enVentana ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-warning text-warning-foreground shadow-md backdrop-blur-md whitespace-nowrap">
-                Ventana Estacional
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-warning/90 text-warning-foreground shadow-lg backdrop-blur-md">
+                En Temporada
               </span>
             ) : (
-              <button
-                type="button"
-                onClick={(e) => onToggleMonitoreo(especie, e)}
-                title={especie.monitoreo_activo ? 'Monitoreo activo en oráculo' : 'Especie archivada'}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-black/60 text-white/80 border border-white/15 hover:bg-black/80 transition-colors backdrop-blur-md"
-              >
-                {especie.monitoreo_activo ? (
-                  <>
-                    <Eye size={11} className="text-primary" />
-                    <span>Oráculo</span>
-                  </>
-                ) : (
-                  <>
-                    <EyeOff size={11} className="text-muted-foreground" />
-                    <span>Archivada</span>
-                  </>
-                )}
-              </button>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase bg-black/60 text-white/75 border border-white/10 backdrop-blur-md">
+                Monitoreo GDD
+              </span>
             )}
           </div>
 
-          {/* Nombre y Taxonomía sobre la imagen */}
-          <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
-            <h3 className="text-xl font-display font-semibold tracking-wide leading-tight drop-shadow-md">
+          {/* Identidad botánica sobre la imagen (Limpia y Jerárquica) */}
+          <div className="absolute bottom-3 left-3.5 right-3.5 text-white pointer-events-none">
+            <h3 className="text-xl font-display font-medium tracking-wide leading-tight text-white drop-shadow-md">
               {especie.nombre_comun}
             </h3>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs italic text-white/90 font-mono drop-shadow">
+            <div className="flex items-center gap-2 mt-0.5 text-xs">
+              <span className="italic font-mono text-white/90 drop-shadow">
                 {especie.nombre_cientifico}
               </span>
               {especie.familia && (
-                <span className="text-[10px] uppercase font-mono tracking-widest text-white/60 drop-shadow">
+                <span className="text-white/60 text-[11px] font-sans drop-shadow">
                   · {especie.familia}
                 </span>
               )}
@@ -198,124 +166,105 @@ export function EspecieCard({
           </div>
         </div>
 
-        {/* ── Cuerpo de la Tarjeta ── */}
+        {/* ── Cuerpo: Jerarquía Limpia y Espaciada ── */}
         <div className="p-4 space-y-3.5">
-          {/* Perfil Melífero y Sensorial */}
-          <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/60 space-y-1">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-semibold text-accent inline-flex items-center gap-1">
-                <Droplets size={12} />
-                {relevanciaTexto}
+          {/* Fila 1: Atributos melíferos clave (Píldoras limpias) */}
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-surface-sunken border border-border text-foreground font-medium text-[11px]">
+              <Droplets size={12} className="text-primary shrink-0" />
+              <span>{relevanciaTexto}</span>
+            </span>
+
+            {ref?.mielColor && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-surface-sunken border border-border text-muted-foreground text-[11px]">
+                Miel: <strong className="text-foreground ml-1 font-normal">{ref.mielColor}</strong>
               </span>
-              {ref?.mielColor && (
-                <span className="text-[10px] font-mono text-muted-foreground">
-                  Miel: {ref.mielColor}
-                </span>
-              )}
-            </div>
-            {perfilMelifero && (
-              <p className="text-[11px] text-muted-foreground leading-relaxed italic">
-                "{perfilMelifero}"
-              </p>
             )}
-          </div>
 
-          {/* Ventana de Floración Calendario */}
-          <div className="flex items-center justify-between text-xs border-b border-border/40 pb-2.5">
-            <span className="text-muted-foreground inline-flex items-center gap-1.5">
-              <Calendar size={13} className="text-muted-foreground/80" />
-              Ventana de floración
-            </span>
-            <span className="font-medium text-foreground">
-              {ventanaTexto}
+            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-muted-foreground text-[11px]">
+              {ref?.habitoLabel ?? especie.habito ?? 'Árbol'}
             </span>
           </div>
 
-          {/* Dinámica Térmica GDD */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Dinámica Térmica (GDD)</span>
-              <span className="font-mono text-xs font-semibold text-foreground">
-                {gddActual}°d {gddUmbral ? `/ ${gddUmbral}°d` : ''}{' '}
-                {progreso !== null && <span className="text-muted-foreground font-normal">({progreso}%)</span>}
+          {/* Fila 2: Ciclo Fenológico y Acumulación Térmica */}
+          <div className="p-3 rounded-xl bg-surface-sunken/60 border border-border/50 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                Ventana habitual: <strong className="text-foreground font-medium">{ventanaTexto}</strong>
+              </span>
+              <span className="font-mono text-[11px]">
+                Umbral {gddUmbral ? `${gddUmbral}°d` : '—'}
               </span>
             </div>
 
             {/* Barra de Progreso Térmico */}
-            <div className="w-full bg-surface-sunken h-2 rounded-full overflow-hidden border border-border/40">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${
-                  pronostico?.enFloracion
-                    ? 'bg-success'
-                    : (progreso ?? 0) >= 75
-                    ? 'bg-warning'
-                    : 'bg-primary'
-                }`}
-                style={{ width: `${Math.min(100, progreso ?? 0)}%` }}
-              />
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px] font-mono">
+                <span className="text-muted-foreground">Calor acumulado</span>
+                <span className="text-foreground font-medium">
+                  {gddActual}°d {gddUmbral ? `(${progreso ?? 0}%)` : ''}
+                </span>
+              </div>
+              <div className="w-full bg-background h-1.5 rounded-full overflow-hidden border border-border/40">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    pronostico?.enFloracion
+                      ? 'bg-success'
+                      : (progreso ?? 0) >= 75
+                      ? 'bg-warning'
+                      : 'bg-primary'
+                  }`}
+                  style={{ width: `${Math.min(100, progreso ?? 0)}%` }}
+                />
+              </div>
             </div>
 
-            {/* Estado explicativo del progreso */}
-            <p className="text-[11px] text-muted-foreground leading-snug pt-0.5">
+            {/* Estado conciso sin redundancias */}
+            <div className="text-[11px] leading-snug pt-0.5">
               {pronostico?.enFloracion ? (
                 <span className="text-success font-medium">
-                  ✓ Umbral superado ({gddUmbral}°d) · Plena secreción de néctar y pecoreo en bosque.
+                  ✓ En pleno pecoreo y flujo de néctar
                 </span>
               ) : pronostico?.diasEstimados != null ? (
-                <span>
-                  Floración estimada en <strong className="text-foreground">~{pronostico.diasEstimados} días</strong> ({deltaGDD ? `-${deltaGDD}°d restantes` : ''}).
+                <span className="text-foreground">
+                  Apertura estimada en <strong>~{pronostico.diasEstimados} días</strong>
+                  {deltaGDD ? ` (faltan ${deltaGDD}°d)` : ''}
                 </span>
               ) : deltaGDD != null ? (
-                <span>
-                  Faltan <strong className="text-foreground">{deltaGDD}°d</strong> de calor acumulado para apertura floral.
+                <span className="text-muted-foreground">
+                  Faltan <strong>{deltaGDD}°d</strong> para alcanzar umbral floral
                 </span>
               ) : (
-                <span>Umbral térmico pendiente de calibración en terreno.</span>
+                <span className="text-muted-foreground italic">
+                  Umbral pendiente de calibración en terreno
+                </span>
               )}
-            </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Pie de la Tarjeta con Acciones ── */}
-      <div className="p-4 pt-2 border-t border-border/50 flex items-center justify-between gap-2 bg-surface-raised/40">
-        <div>
-          <span className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground block">
-            Umbral Térmico
-          </span>
-          <span className="font-mono text-xs font-semibold text-foreground">
-            {especie.gdd_umbral != null ? `${especie.gdd_umbral}°d` : 'Por calibrar'}
-            {especie.gdd_stddev != null && (
-              <span className="text-[10px] text-muted-foreground font-normal ml-0.5">
-                ±{especie.gdd_stddev}
-              </span>
-            )}
-          </span>
-        </div>
+      {/* ── Pie de Tarjeta: Botones en grilla 50/50 NUNCA apretados ── */}
+      <div className="p-3.5 pt-2 border-t border-border/40 grid grid-cols-2 gap-2 bg-surface-raised/30">
+        <button
+          type="button"
+          onClick={() => onObservar(especie.id)}
+          className="btn btn-outline text-xs h-9 px-2 inline-flex items-center justify-center gap-1.5 w-full hover:border-primary/50 hover:bg-primary/5 text-foreground font-medium transition-colors"
+          title="Registrar observación de floración en terreno"
+        >
+          <ScanLine size={13} className="text-primary shrink-0" />
+          <span className="truncate">Observar</span>
+        </button>
 
-        <div className="flex items-center gap-1.5">
-          {/* Botón Registrar Observación de Campo */}
-          <button
-            type="button"
-            onClick={() => onObservar(especie.id)}
-            className="btn btn-outline text-xs min-h-8 px-2.5 inline-flex items-center gap-1 hover:text-accent hover:border-accent/40"
-            title="Registrar observación de floración en terreno para esta especie"
-          >
-            <ScanLine size={12} className="text-accent" />
-            <span>+ Observar</span>
-          </button>
-
-          {/* Botón Calibrar Modelo */}
-          <button
-            type="button"
-            onClick={() => onCalibrar(especie)}
-            className="btn btn-outline text-xs min-h-8 px-2.5 inline-flex items-center gap-1"
-            title="Calibrar umbral térmico con evidencia de campo"
-          >
-            <Sliders size={12} className="text-primary" />
-            <span>Calibrar</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onCalibrar(especie)}
+          className="btn btn-outline text-xs h-9 px-2 inline-flex items-center justify-center gap-1.5 w-full hover:border-border text-muted-foreground hover:text-foreground transition-colors font-medium"
+          title="Calibrar umbral GDD con datos de campo"
+        >
+          <Sliders size={13} className="shrink-0" />
+          <span className="truncate">Calibrar</span>
+        </button>
       </div>
     </div>
   );

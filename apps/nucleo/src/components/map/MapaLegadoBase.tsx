@@ -465,23 +465,25 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
           }
         });
 
-        // 2. Bosque nativo / regeneración
-        const arbolesRes = await apiFetch('/api/produccion/arboles/map');
-        const arbolesJson = arbolesRes.ok ? await arbolesRes.json() : { data: [] };
-        const arboles = arbolesJson.data ?? [];
-        arboles.forEach((t: Record<string, unknown>) => {
-          if (t.lat != null && t.lng != null) {
-            markers.push({
-              id: `tree-${String(t.id)}`,
-              lat: Number(t.lat),
-              lng: Number(t.lng),
-              type: 'tree',
-              domain: 'territorio',
-              name: String(t.especie ?? 'Árbol nativo'),
-              details: 'Bosque nativo regenerado',
-            });
-          }
-        });
+        // 2. Bosque nativo / regeneración (exclusivo admin / producción de la empresa)
+        if (isAdmin) {
+          const arbolesRes = await apiFetch('/api/produccion/arboles/map');
+          const arbolesJson = arbolesRes.ok ? await arbolesRes.json() : { data: [] };
+          const arboles = arbolesJson.data ?? [];
+          arboles.forEach((t: Record<string, unknown>) => {
+            if (t.lat != null && t.lng != null) {
+              markers.push({
+                id: `tree-${String(t.id)}`,
+                lat: Number(t.lat),
+                lng: Number(t.lng),
+                type: 'tree',
+                domain: 'territorio',
+                name: String(t.especie ?? 'Árbol nativo'),
+                details: 'Bosque nativo regenerado',
+              });
+            }
+          });
+        }
 
         // 3. Tienda (obrerayzangano.cl): Puntos de Venta B2B (Cafeterías, Tiendas Gourmet, Hoteles)
         const { data: puntosVenta } = await supabase
@@ -648,7 +650,9 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
           apiFetch('/api/registro-territorial/alertas'),
           apiFetch('/api/registro-territorial/apiarios-externos'),
           apiFetch('/api/registro-territorial/predios'),
-          apiFetch('/api/mapa/censo-detallado'),
+          isAdmin
+            ? apiFetch('/api/mapa/censo-detallado')
+            : apiFetch('/api/registro-territorial/apiarios'),
         ]);
         const alertasJson = alertasRes.ok ? await alertasRes.json() : { data: [] };
         const trashumJson = trashumRes.ok ? await trashumRes.json() : { data: [] };
@@ -658,13 +662,6 @@ export function MapaLegado({ height = '620px', filterRole, initialEnvironment = 
         if (censoRes.ok) {
           const censoJson = await censoRes.json();
           censoData = censoJson.data ?? [];
-        } else {
-          // Si no es admin (ej. rol territorial / apicultor), cargamos los apiarios comunitarios permitidos por RLS
-          const regRes = await apiFetch('/api/registro-territorial/apiarios');
-          if (regRes.ok) {
-            const regJson = await regRes.json();
-            censoData = regJson.data ?? [];
-          }
         }
         setAlertas(alertasJson.data ?? []);
         setTrashumantes(trashumJson.data ?? []);

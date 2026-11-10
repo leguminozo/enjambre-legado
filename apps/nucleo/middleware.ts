@@ -19,7 +19,22 @@ const e2ePublicRoutes = e2eAuthSkipAllowed
   : [];
 
 const authMiddleware = createAuthMiddleware({
-  publicRoutes: ["/", "/login", "/reset-password", "/auth/callback", "/carta", "/privacidad", "/terminos", "/mapa-chiloe", "/planes-territoriales", "/municipalidades", "/comuna", "/sw.js", ...e2ePublicRoutes],
+  publicRoutes: [
+    "/",
+    "/login",
+    "/reset-password",
+    "/auth/callback",
+    "/carta",
+    "/privacidad",
+    "/terminos",
+    "/mapa-chiloe",
+    "/planes-territoriales",
+    "/municipalidades",
+    "/comuna",
+    "/sw.js",
+    "/maplibre-gl-worker.mjs",
+    ...e2ePublicRoutes,
+  ],
   // Trazabilidad escaneable sin sesión: destilaciones + pasaporte de frasco/lote +
   // landing del punto de venta (QR del pendón) + portal del dueño (auth dentro de la página).
   publicPathPrefixes: ["/alambique/", "/lote/", "/punto-de-venta/", "/municipalidades/", "/comuna/"],
@@ -71,6 +86,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|_next/data|favicon\\.ico|manifest\\.webmanifest|manifest\\.json|assets|icons|sw\\.js).*)",
+    "/((?!_next/static|_next/image|_next/data|favicon\\.ico|manifest\\.webmanifest|manifest\\.json|assets|icons|sw\\.js|maplibre-gl-worker\\.mjs).*)",
   ],
 };

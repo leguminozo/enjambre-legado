@@ -454,10 +454,10 @@ export function FenologiaView() {
           </div>
           {proximaFloracion && proximaFloracion.progreso !== null ? (
             <div className="mt-1.5 space-y-1">
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+              <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-muted-foreground font-mono">
                 <span>{Math.round(proximaFloracion.progreso)}% acumulado</span>
                 <span>
-                  -{Math.max(0, Math.round((proximaFloracion.gddUmbral ?? 0) - proximaFloracion.gddActual))}°d
+                  faltan {Math.max(0, Math.round((proximaFloracion.gddUmbral ?? 0) - proximaFloracion.gddActual))}°d
                 </span>
               </div>
               <div className="w-full bg-surface-sunken h-1.5 rounded-full overflow-hidden">
@@ -628,7 +628,7 @@ export function FenologiaView() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5">
           {filteredEspecies.map((esp) => {
             const pron = pronosticoById.get(esp.id);
             return (

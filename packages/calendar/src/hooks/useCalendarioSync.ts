@@ -338,7 +338,7 @@ export function useCalendarioSync(
         // Movimientos e ingresos de trashumancia registrados en el territorio
         let trashQ = supabase
           .from('apiarios_externos')
-          .select('id, comuna_origen, comuna_destino, n_colmenas, fecha_ingreso, predio_nombre, rup_origen, bioseguridad_declarada, estado')
+          .select('id, comuna_origen, comuna_destino, n_colmenas, fecha_ingreso, nombre, zona_destino, bioseguridad_declarada, estado')
           .neq('estado', 'cancelado');
         if (vsDate && veDate) {
           trashQ = trashQ.gte('fecha_ingreso', vsDate).lte('fecha_ingreso', veDate);
@@ -357,8 +357,8 @@ export function useCalendarioSync(
                 title: `🚛 Ingreso Trashumante: ${row.comuna_origen || 'Origen'} → ${row.comuna_destino || 'Destino'} (${row.n_colmenas || 0} colm.)`,
                 startDate: new Date(row.fecha_ingreso),
                 allDay: true,
-                notes: `Declaración de ingreso territorial. RUP origen: ${row.rup_origen || 'En trámite'}. Bioseguridad declarada: ${row.bioseguridad_declarada ? 'Sí' : 'No'}.`,
-                location: `${row.predio_nombre ? `${row.predio_nombre}, ` : ''}${row.comuna_destino}`,
+                notes: `Declaración de ingreso territorial. Bioseguridad declarada: ${row.bioseguridad_declarada ? 'Sí' : 'No'}.`,
+                location: `${row.nombre ? `${row.nombre}, ` : ''}${row.zona_destino ? `${row.zona_destino}, ` : ''}${row.comuna_destino}`,
                 color: '#64D2FF',
                 editable: false,
                 toolHref: '/territorio/trashumancia',
