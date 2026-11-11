@@ -6,7 +6,7 @@ import {
   X,
   Share2,
   Clock,
-  Sparkles,
+  RefreshCw,
   Send,
   Layers,
   CheckCircle2,
@@ -178,7 +178,7 @@ export function ScheduleMarketingPostModal({
                 onClick={() => setCaption(generateCarouselCaption(slides))}
                 className="text-[10px] text-primary hover:underline flex items-center gap-1"
               >
-                <Sparkles size={11} />
+                <RefreshCw size={11} />
                 <span>Regenerar desde Láminas</span>
               </button>
             </div>

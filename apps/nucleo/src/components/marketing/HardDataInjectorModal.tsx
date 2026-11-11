@@ -14,7 +14,6 @@ import {
   Coffee,
   Sliders,
   ExternalLink,
-  Sparkles,
   Trees,
 } from 'lucide-react';
 import { toast } from '@enjambre/ui';

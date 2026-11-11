@@ -8,7 +8,6 @@ import {
     ShieldCheck,
     ExternalLink,
     Mic,
-    Sparkles,
     LayoutDashboard,
     BookOpen,
     HeartPulse,

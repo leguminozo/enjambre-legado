@@ -8,7 +8,6 @@ import {
   Volume2,
   RefreshCw,
   Radio,
-  Sparkles,
   Loader2,
   Square,
   Cpu,
@@ -542,7 +541,7 @@ export function BitacoraVozModal({
                   </span>
                 ) : aiEnhanced ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
-                    <Sparkles className="w-3 h-3" /> Parámetros refinados con precisión
+                    <Check className="w-3 h-3" /> Parámetros refinados con precisión
                   </span>
                 ) : (
                   <span className="text-[10px] text-muted-foreground font-mono">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Check, Plus, Trash2, AlertCircle, Sparkles, Building2, Package } from 'lucide-react';
+import { X, Check, Plus, Trash2, AlertCircle, Scale, Building2, Package } from 'lucide-react';
 import { Button, toast, Skeleton, SkeletonTable, formatCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
@@ -688,7 +688,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
         <div className="flex items-center justify-between text-xs">
           <span className="font-semibold text-foreground flex items-center gap-1.5">
-            <Sparkles size={14} className="text-primary" />
+            <Scale size={14} className="text-primary" />
             Cálculo preliminar de rentabilidad
           </span>
           <span className="font-mono text-muted-foreground">

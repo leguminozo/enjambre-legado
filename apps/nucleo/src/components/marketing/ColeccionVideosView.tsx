@@ -10,7 +10,6 @@ import {
   Trash2,
   Copy,
   Layers,
-  Sparkles,
   ArrowRight,
 } from 'lucide-react';
 import {

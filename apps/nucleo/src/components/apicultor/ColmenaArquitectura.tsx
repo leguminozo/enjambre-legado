@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Crown, Sparkles, Layers, X } from 'lucide-react';
+import { Crown, Mic, Layers, X } from 'lucide-react';
 import type { ColmenaWithRelations, VarroaRow, InspeccionRow } from '@/lib/apicultor-types';
 import type { InspeccionCuadrosEnHistorial, InspeccionCuadroRow, TipoCuadro, CuerpoCuadro } from '@/lib/bitacora-types';
 import { cn } from '@/lib/cn';
@@ -508,7 +508,7 @@ export function ColmenaArquitectura({
                                 className="btn btn-gold btn-sm text-xs py-1.5 px-3 flex items-center gap-1.5 shadow-sm"
                                 title="Dictar inspección para este marco con IA"
                             >
-                                <Sparkles size={13} />
+                                <Mic size={13} />
                                 <span>Dictar marco</span>
                             </button>
                         )}

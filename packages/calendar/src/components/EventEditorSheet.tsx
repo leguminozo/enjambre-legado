@@ -11,7 +11,6 @@ import {
   Trash2,
   Check,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react';
 import {
   USER_CATEGORIES,
@@ -488,7 +487,7 @@ export function EventEditorSheet({
               disabled={isSaving || !title.trim()}
               className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-accent-foreground shadow-md transition hover:brightness-110 disabled:opacity-40"
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Check className="h-3.5 w-3.5" />
               <span>{isSaving ? 'Guardando…' : mode === 'create' ? 'Programar Actividad' : 'Guardar Cambios'}</span>
             </button>
           </div>

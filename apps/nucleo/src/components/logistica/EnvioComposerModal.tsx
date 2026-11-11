@@ -16,7 +16,6 @@ import {
   Phone,
   Mail,
   Home,
-  Sparkles,
   RotateCcw,
   RefreshCw,
 } from 'lucide-react';
@@ -917,7 +916,7 @@ export function EnvioComposerModal({
                   onClick={handleGenerateInternalCode}
                   className="text-[10px] text-accent hover:underline inline-flex items-center gap-1"
                 >
-                  <Sparkles size={10} /> Código interno
+                  <RefreshCw size={10} /> Código interno
                 </button>
               </div>
               <input

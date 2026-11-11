@@ -12,7 +12,6 @@ import {
   Layers,
   Store,
   UtensilsCrossed,
-  Sparkles,
 } from 'lucide-react';
 import type { SegmentKit, B2BCodeModule } from '@/lib/b2b/segment-content';
 import type { B2BToolItem, B2BCommercialStrategy } from '@enjambre/shop-chrome';

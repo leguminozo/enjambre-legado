@@ -5,7 +5,6 @@ import {
   X,
   BookmarkPlus,
   Layers,
-  Sparkles,
   Coffee,
   Building2,
   Trees,

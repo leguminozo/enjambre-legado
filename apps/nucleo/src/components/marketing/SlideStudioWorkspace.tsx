@@ -17,7 +17,6 @@ import {
   Wrench,
   ChevronUp,
   ChevronDown,
-  Sparkles,
   Palette,
   AlignLeft,
   AlignCenter,
@@ -533,7 +532,7 @@ export function SlideStudioWorkspace({
                   className="btn btn-outline btn-xs h-8 px-2.5 sm:px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shadow-sm"
                   title="Herramientas operativas, datos, presentación y calendario"
                 >
-                  <Sparkles size={13} className="text-primary" />
+                  <Wrench size={13} className="text-primary" />
                   <span className="hidden sm:inline">Herramientas</span>
                   <ChevronDown size={11} className="opacity-60" />
                 </button>
@@ -680,7 +679,7 @@ export function SlideStudioWorkspace({
                 }}
               >
                 <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                  <Sparkles size={13} />
+                  <Wrench size={13} />
                   Motor Avanzado de Salida (Receta / Semilla)...
                 </span>
               </DropdownMenuItem>
@@ -1827,7 +1826,7 @@ export function SlideStudioWorkspace({
                           className="btn btn-outline btn-xs h-9 sm:h-7 text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
                           title="Crear una nueva lámina dedicada con este fragmento canónico"
                         >
-                          <Sparkles size={13} />
+                          <Layers size={13} />
                           <span>+ Crear Lámina</span>
                         </button>
                       </div>

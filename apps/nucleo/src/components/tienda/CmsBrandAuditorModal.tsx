@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { ShieldCheck, AlertTriangle, ArrowRight, ExternalLink, Sparkles } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, ArrowRight, ExternalLink } from 'lucide-react';
 import { ImmersiveModal } from '@enjambre/ui';
 import type { CMSContentItem } from '@/hooks/use-cms-content';
 

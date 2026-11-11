@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, ExternalLink, CornerDownLeft, Sparkles, AlertCircle } from 'lucide-react';
+import { Search, ExternalLink, CornerDownLeft, AlertCircle } from 'lucide-react';
 import { ImmersiveModal } from '@enjambre/ui';
 import {
   PAGE_WORKSPACE_DEFS,

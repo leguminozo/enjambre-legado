@@ -38,7 +38,6 @@ import {
   X,
   Calendar as CalendarIcon,
   MapPin,
-  Sparkles,
   ChevronRight,
 } from 'lucide-react';
 

@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Clock,
-  Sparkles,
   ArrowRight,
   Copy,
   Trash2,

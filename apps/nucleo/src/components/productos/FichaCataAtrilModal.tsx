@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { X, Printer, Compass, Utensils, Clock, QrCode, Sparkles } from 'lucide-react';
+import { X, Printer, Compass, Utensils, Clock, QrCode } from 'lucide-react';
 import { Button, QRCode } from '@enjambre/ui';
 import type { Product, PerfilSensorial, ProductoVariante } from '@/lib/product-types';
 import { FORTIFICANTES_LABELS, type FortificanteCanonico } from '@enjambre/resenas';

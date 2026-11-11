@@ -26,7 +26,6 @@ import {
   RotateCcw,
   Compass,
   Store,
-  Sparkles,
   Globe,
   Shield,
   Lock,
@@ -2227,7 +2226,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-              <Sparkles size={14} className="text-accent" />
+              <RotateCcw size={14} className="text-accent" />
               Ajustador y Simulador de Favicon (Google y Pestañas)
             </p>
             <p className="text-[11px] text-muted-foreground">
@@ -2323,7 +2322,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             onClick={handleGenerateFaviconFromLogo}
             className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 min-h-[36px] shadow-xs shrink-0"
           >
-            {generatingFavicon ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            {generatingFavicon ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
             <span>Alinear Favicon desde Logo de Cabecera</span>
           </button>
         </div>

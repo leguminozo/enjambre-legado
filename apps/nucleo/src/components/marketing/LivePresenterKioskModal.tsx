@@ -12,7 +12,6 @@ import {
   Settings2,
   Radio,
   Clock,
-  Sparkles,
   ExternalLink,
 } from 'lucide-react';
 import { type SlideData, type SlideAspectRatio } from './slide-studio-core';

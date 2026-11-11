@@ -8,7 +8,7 @@ import {
   Warehouse, NotebookPen, Route, Sprout, Droplets, Package, Users, Wine, ClipboardList,
   AlertTriangle, Mail, Tags,
   Receipt, Landmark, Brain, Flower2, Repeat, Percent, Leaf,
-  Plug, ShieldAlert, Sparkles,
+  Plug, ShieldAlert,
   Boxes, MapPinned, Globe, Layers, Award, QrCode, Image, Film,
   Palette, PenTool, Target, RotateCcw, ShieldCheck,
 } from 'lucide-react';
@@ -28,7 +28,7 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   megaphone: Megaphone,
   compass: Compass,
   crown: Crown,
-  sparkles: Sparkles,
+  sparkles: Award,
   calculator: Calculator,
   'file-text': FileText,
   'building-2': Building2,

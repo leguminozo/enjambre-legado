@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sliders } from 'lucide-react';
 import type { HiveState } from '@/lib/hive-state';
 import { RISK_LABELS } from '@/lib/hive-state';
 import {
@@ -64,7 +64,7 @@ export function HiveWhatIfPanel({ state, defaultExpanded = false }: HiveWhatIfPa
               gap: 6,
             }}
           >
-            <Sparkles size={12} style={{ color: 'hsl(var(--primary))' }} />
+            <Sliders size={12} style={{ color: 'hsl(var(--primary))' }} />
             <span>Simulador de Escenarios (What-If)</span>
           </div>
           <p

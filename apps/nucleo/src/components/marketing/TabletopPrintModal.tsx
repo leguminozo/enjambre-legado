@@ -7,7 +7,6 @@ import {
   QrCode,
   Coffee,
   CheckCircle2,
-  Sparkles,
   Sliders,
   Award,
   Building2,
@@ -172,7 +171,7 @@ export function TabletopPrintModal({
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Sparkles size={12} />
+                  <Store size={12} />
                   <span>Feria / Stand</span>
                 </button>
               </div>
@@ -350,7 +349,7 @@ export function TabletopPrintModal({
                     />
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <Sparkles size={11} className="text-primary shrink-0" />
+                        <Award size={11} className="text-primary shrink-0" />
                         <span className="font-mono text-[9px] uppercase tracking-wider text-primary font-bold block truncate">
                           {partnerCode ? `RITUAL EN ${partnerName.toUpperCase() || 'MESA'}` : qrBlock.title || 'CATA GUIADA EN MESA'}
                         </span>
@@ -438,7 +437,7 @@ export function TabletopPrintModal({
                     />
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <Sparkles size={11} className="text-primary shrink-0" />
+                        <Award size={11} className="text-primary shrink-0" />
                         <span className="font-mono text-[9px] uppercase tracking-wider text-primary font-bold block truncate">
                           HISTORIA DEL LOTE & BIENVENIDA
                         </span>
@@ -616,7 +615,7 @@ export function TabletopPrintModal({
                     />
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <Sparkles size={11} className="text-primary shrink-0" />
+                        <Award size={11} className="text-primary shrink-0" />
                         <span className="font-mono text-[9px] uppercase tracking-wider text-primary font-bold block truncate">
                           {partnerCode ? `CATA EN ${partnerName.toUpperCase()}` : 'REGISTRO DE CATA & WALLET'}
                         </span>

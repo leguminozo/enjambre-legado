@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle, Compass, Sparkles, X } from 'lucide-react';
+import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle, Compass, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, Skeleton, SkeletonKpi, SkeletonTable, ImmersiveModal, cn } from '@enjambre/ui';
 import type { ProductFormat, ProductCategory, ProductSensoryFamily } from '@/lib/product-types';
@@ -509,7 +509,7 @@ export function TaxonomiasPanel() {
                 <div className="p-3.5 bg-foreground/[0.03] rounded-xl border border-border/70 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      <Sparkles size={13} className="text-primary" />
+                      <Compass size={13} className="text-primary" />
                       Plantillas canónicas de Constelación Sensorial
                     </span>
                     <span className="text-[10px] text-muted-foreground">Pre-carga 8 ejes y 3 dimensiones</span>

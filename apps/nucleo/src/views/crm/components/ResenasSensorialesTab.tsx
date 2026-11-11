@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, SkeletonTable } from '@enjambre/ui';
-import { Star, Check, X, EyeOff, Sparkles, Tag } from 'lucide-react';
+import { Star, Check, X, EyeOff, Tag } from 'lucide-react';
 import { FORTIFICANTES_LABELS, type FortificanteCanonico } from '@enjambre/resenas';
 
 type ResenaRow = {
@@ -153,7 +153,7 @@ export function ResenasSensorialesTab() {
                     </p>
                     {res.producto_variantes?.nombre_variante && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                        <Sparkles size={11} /> {res.producto_variantes.nombre_variante}
+                        <Tag size={11} /> {res.producto_variantes.nombre_variante}
                       </span>
                     )}
                     {res.tipo_sensorial && res.tipo_sensorial !== 'miel' && (

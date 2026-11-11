@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3, QrCode, Link2, Search, Check, ShieldCheck } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, RotateCcw, Package, Edit3, QrCode, Link2, Search, Check, ShieldCheck } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
@@ -1685,7 +1685,7 @@ export function ProductForm({
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-raised border border-border text-xs font-semibold text-foreground/90 hover:text-foreground hover:border-primary/50 transition-colors"
                         title="Restablecer ejes y calibración recomendada según la familia"
                       >
-                        <Sparkles size={13} className="text-primary" />
+                        <RotateCcw size={13} className="text-primary" />
                         <span>Restablecer canónicos</span>
                       </button>
                       {activeSensoryAxes.length < 10 && (
@@ -2244,7 +2244,7 @@ export function ProductForm({
               className="w-full flex items-center justify-between p-4 text-sm font-medium text-foreground hover:bg-foreground/[0.02] transition-colors"
             >
               <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-primary" />
+                <Layers size={16} className="text-primary" />
                 <span>Variantes & Fortificaciones de Producto</span>
                 {variantes.length > 0 && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
@@ -2325,7 +2325,7 @@ export function ProductForm({
                                 </>
                               ) : (
                                 <>
-                                  <Sparkles size={13} /> Nueva Variante Manual
+                                  <Plus size={13} /> Nueva Variante Manual
                                 </>
                               )}
                             </span>

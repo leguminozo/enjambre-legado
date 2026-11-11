@@ -1,6 +1,6 @@
 'use client';
 
-import { Link2, Pill, Plus, Sparkles, StickyNote } from 'lucide-react';
+import { Link2, Pill, Plus, Activity, StickyNote } from 'lucide-react';
 import { Button, DropdownMenu, DropdownMenuItem } from '@enjambre/ui';
 import type { LayoutRed } from './LienzoSemantico';
 import { cn } from '@/lib/cn';
@@ -65,7 +65,7 @@ export function DockEscena({
       )}
       {onAnalisis && (
         <Button variant="outline" size="sm" onClick={onAnalisis} className="h-8 rounded-xl text-[10px] uppercase tracking-widest font-bold px-2.5 sm:px-3">
-          <Sparkles className="size-3.5 mr-1" /> Análisis
+          <Activity className="size-3.5 mr-1" /> Análisis
         </Button>
       )}
       {onNuevaHoja && (

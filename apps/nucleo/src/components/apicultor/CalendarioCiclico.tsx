@@ -13,7 +13,6 @@ import {
   ShieldAlert,
   TreePine,
   Truck,
-  Sparkles,
   Check,
   Calendar,
   AlertCircle,
@@ -59,7 +58,7 @@ const CATEGORY_META: Record<
   },
   cera: {
     label: 'Cera y Material',
-    icon: Sparkles,
+    icon: Layers,
     dotColor: 'bg-amber-400',
   },
 };
