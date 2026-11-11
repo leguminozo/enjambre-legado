@@ -132,6 +132,8 @@ describe('RoleKey apicultor — patio (no elevación a admin)', () => {
     expect(isRouteAllowed('/fenologia', 'territorial')).toBe(true);
     expect(isRouteAllowed('/configuracion', 'apicultor')).toBe(true);
     expect(isRouteAllowed('/configuracion', 'territorial')).toBe(true);
+    expect(isRouteAllowed('/mapa', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/mapa', 'territorial')).toBe(true);
     expect(isRouteAllowed('/perfil', 'apicultor')).toBe(true);
     expect(isRouteAllowed('/perfil', 'territorial')).toBe(true);
   });
@@ -146,7 +148,6 @@ describe('RoleKey apicultor — patio (no elevación a admin)', () => {
       '/monitor-feria',
       '/invitaciones',
       '/produccion',
-      '/mapa',
       '/pipeline',
       '/operadores-feria',
     ] as const;

@@ -13,7 +13,7 @@ import {
   Loader2,
   ChevronDown,
   Check,
-  Sparkles,
+  MapPin,
   ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -659,7 +659,7 @@ function LoginContent() {
                           <div className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-primary shrink-0" />
                             <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                              Asentamiento comunitario vinculado
+                              Apiarios territoriales vinculados
                             </span>
                           </div>
                           <button
@@ -686,7 +686,7 @@ function LoginContent() {
                             <span>Acreditación de titularidad requerida (Ley 21.489)</span>
                           </div>
                           <p className="text-[11px] text-muted-foreground leading-snug">
-                            Para resguardar este asentamiento y evitar suplantaciones en la red territorial, ingresa tu RUT y teléfono de contacto directo.
+                            Para resguardar la titularidad de tus apiarios y evitar suplantaciones en la red territorial, ingresa tu RUT y teléfono de contacto directo.
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <div>
@@ -726,32 +726,36 @@ function LoginContent() {
                         </p>
                       </div>
                     ) : sugerencias.length > 0 ? (
-                      <div className="mt-2.5 rounded-xl border border-border bg-card/95 p-3 space-y-2.5 shadow-sm">
+                      <div className="mt-2.5 rounded-xl border border-primary/30 bg-card/95 p-3.5 space-y-2.5 shadow-sm">
                         <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
-                          <Sparkles className="h-3.5 w-3.5" />
-                          <span>Asentamiento detectado en el catastro</span>
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          <span>Presencia apícola identificada en Chiloé</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Detectamos registros comunitarios con nombres coincidentes. Puedes reclamar tu asentamiento con 1 clic para no tener que cargarlo de cero:
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Encontramos apiarios asociados a tu nombre en el registro territorial del archipiélago. Si eres tú, conéctalos para conservar tu antigüedad y colmenas sin tener que ingresarlas de nuevo:
                         </p>
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {sugerencias.map((sug) => (
                             <div
                               key={sug.id}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg border border-border/60 bg-background hover:border-primary/50 transition-colors"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-lg border border-border/70 bg-surface-sunken/40 hover:border-primary/50 transition-colors"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{sug.nombre_actor}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {sug.comuna} · {sug.n_apiarios} {sug.n_apiarios === 1 ? 'apiario' : 'apiarios'} · {sug.n_colmenas} colmenas
+                                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                  <span>{sug.comuna}</span>
+                                  <span>·</span>
+                                  <span>{sug.n_apiarios} {sug.n_apiarios === 1 ? 'apiario' : 'apiarios'}</span>
+                                  <span>·</span>
+                                  <span>{sug.n_colmenas} colmenas</span>
                                 </p>
                               </div>
                               <button
                                 type="button"
-                                className="shrink-0 text-xs px-2.5 py-1.5 rounded-md border border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 font-medium transition-colors cursor-pointer"
+                                className="shrink-0 text-xs px-3 py-1.5 rounded-lg border border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 font-medium transition-colors cursor-pointer"
                                 onClick={() => handleReclamar(sug)}
                               >
-                                Reclamar registro
+                                Vincular mis apiarios
                               </button>
                             </div>
                           ))}

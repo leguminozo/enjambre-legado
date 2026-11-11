@@ -19,9 +19,12 @@ export async function createServerClientFromCookies() {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options)
           )
-} catch (error) {
-    console.error('[auth-server] cookie set error:', error);
-    throw new Error(`Supabase server client cannot set cookies in Server Component: ${String(error)}`)
+        } catch (error) {
+          console.error('[auth-server] cookie set error:', error);
+          throw new Error(
+            `Supabase server client cannot set cookies in Server Component: ${String(error)}`,
+            { cause: error },
+          );
         }
       },
     },

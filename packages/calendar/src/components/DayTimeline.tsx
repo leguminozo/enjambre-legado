@@ -204,7 +204,7 @@ export function DayTimeline({
                 key={evt.id}
                 type="button"
                 onClick={() => onEventClick?.(evt)}
-                className="truncate rounded-md px-2 py-1 text-left text-xs font-medium text-white"
+                className="truncate rounded-md px-2 py-1 text-left text-xs font-medium text-primary-foreground"
                 style={{ backgroundColor: evt.color ?? '#8E8E93' }}
               >
                 {evt.title}

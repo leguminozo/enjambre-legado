@@ -194,7 +194,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       .flatMap((g) => g.items)
       .find((i) => i.key === 'territorio')!;
     expect(territorioItem.href).toBe('/territorio');
-    expect(territorioItem.label).toBe('Mi registro');
+    expect(territorioItem.label).toBe('Mi censo');
     expect(groups.find((g) => g.key === 'territorio')?.label).toBe('RED');
   });
 

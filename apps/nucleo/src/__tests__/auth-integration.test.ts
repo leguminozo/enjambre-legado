@@ -196,10 +196,13 @@ describe("Auth Integration Flow", () => {
       mockSessionUser = opts?.user ?? null;
       const url = new URL(pathname, "http://localhost:3000");
       (url as any).clone = () => new URL(url.toString());
+      const cookiesList = opts?.user
+        ? [{ name: "sb-test-auth-token", value: "mock-session-token" }]
+        : [];
       const req = {
         nextUrl: url,
         cookies: {
-          getAll: () => [],
+          getAll: () => cookiesList,
           set: vi.fn(),
         },
       };

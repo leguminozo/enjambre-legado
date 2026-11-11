@@ -162,7 +162,7 @@ const GUIONES_APERTURA = [
 type EscuelaTab = 'argumentarios' | 'objeciones' | 'guiones' | 'atril' | 'quiz';
 type EscuelaAccion = 'apertura_guia_cata' | 'consulta_objecion' | 'modo_atril' | 'quiz_completado';
 
-export interface EscuelaDeVentaPageProps {}
+export type EscuelaDeVentaPageProps = Record<string, never>;
 
 export default function EscuelaDeVentaPage(_props: EscuelaDeVentaPageProps = {}) {
   const user = useAuthStore((s) => s.user);

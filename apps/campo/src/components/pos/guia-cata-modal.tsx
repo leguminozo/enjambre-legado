@@ -81,7 +81,7 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
   }
 
   // 1. Dimensiones sensoriales en paladar
-  let dimensiones: Array<{ label: string; izq: string; der: string; pct: number }> = [];
+  let dimensiones: Array<{ label: string; izq: string; der: string; pct: number }>;
   if (Array.isArray(ps?.pares_semanticos) && ps.pares_semanticos.length >= 3) {
     dimensiones = ps.pares_semanticos.map((par, i) => {
       const pct = i === 0 ? ps.intensidad ?? 80 : i === 1 ? ps.dulzor_acidez ?? 65 : ps.textura ?? 85;

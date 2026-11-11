@@ -84,6 +84,15 @@ describe('GET /api/wallet/stamps', () => {
           }),
         };
       }
+      if (table === 'guardian_stamp_programs') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: async () => ({ data: [], error: null }),
+            }),
+          }),
+        };
+      }
       return { select: () => ({ eq: () => ({}) }) };
     });
 
@@ -145,6 +154,15 @@ describe('GET /api/wallet/apple/download', () => {
         return {
           select: () => ({
             eq: async () => ({ data: [], error: null }),
+          }),
+        };
+      }
+      if (table === 'guardian_stamp_programs') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: async () => ({ data: [], error: null }),
+            }),
           }),
         };
       }
@@ -239,6 +257,15 @@ describe('POST /api/wallet/qr/resolve', () => {
         return {
           select: () => ({
             eq: async () => ({ data: [], error: null }),
+          }),
+        };
+      }
+      if (table === 'guardian_stamp_programs') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: async () => ({ data: [], error: null }),
+            }),
           }),
         };
       }

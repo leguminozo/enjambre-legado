@@ -45,10 +45,12 @@ describe('cart-stock', () => {
   });
 
   it('decrementCartStock aborts venta when decrement fails and rolls back', async () => {
+    const p1 = '11111111-1111-4111-8111-111111111111';
+    const p2 = '22222222-2222-4222-8222-222222222222';
     const productsChain = makeProductsChain({
       data: [
-        { id: 'p1', nombre: 'Ulmo', stock: 5, visible: true },
-        { id: 'p2', nombre: 'Tiaca', stock: 5, visible: true },
+        { id: p1, nombre: 'Ulmo', stock: 5, visible: true },
+        { id: p2, nombre: 'Tiaca', stock: 5, visible: true },
       ],
       error: null,
     });
@@ -68,8 +70,8 @@ describe('cart-stock', () => {
     });
 
     const result = await decrementCartStock(admin, [
-      { productId: 'p1', quantity: 2, name: 'Ulmo' },
-      { productId: 'p2', quantity: 1, name: 'Tiaca' },
+      { productId: p1, quantity: 2, name: 'Ulmo' },
+      { productId: p2, quantity: 1, name: 'Tiaca' },
     ]);
 
     expect(result.ok).toBe(false);
@@ -77,6 +79,6 @@ describe('cart-stock', () => {
     expect(result.enrichedLines).toEqual([]);
     // Rollback atómico solo de la línea ya descontada (p_qty negativa).
     expect(admin.rpc).toHaveBeenCalledTimes(3);
-    expect(admin.rpc).toHaveBeenCalledWith('decrement_stock_force', { p_id: 'p1', p_qty: -2 });
+    expect(admin.rpc).toHaveBeenCalledWith('decrement_stock_force', { p_id: p1, p_qty: -2 });
   });
 });

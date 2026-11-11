@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button, toast, ImmersiveModal } from '@enjambre/ui';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, MapPin } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
@@ -259,7 +259,7 @@ export function InscripcionActorForm({
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary shrink-0" />
                       <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                        Asentamiento comunitario vinculado
+                        Apiarios territoriales vinculados
                       </span>
                     </div>
                     <button
@@ -285,24 +285,28 @@ export function InscripcionActorForm({
                   </p>
                 </div>
               ) : sugerencias.length > 0 ? (
-                <div className="rounded-lg border border-border bg-card/90 p-3 space-y-2.5 shadow-sm">
+                <div className="rounded-lg border border-primary/30 bg-card/90 p-3.5 space-y-2.5 shadow-sm">
                   <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Asentamiento detectado en el catastro</span>
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span>Presencia apícola identificada en Chiloé</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Detectamos registros con nombres coincidentes. Puedes vincular tu asentamiento con 1 clic para no tener que cargarlo de cero:
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Encontramos apiarios asociados a tu nombre en el registro territorial del archipiélago. Si eres tú, conéctalos para conservar tu antigüedad y colmenas sin tener que ingresarlas de nuevo:
                   </p>
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {sugerencias.map((sug) => (
                       <div
                         key={sug.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-md border border-border/60 bg-background hover:border-primary/50 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-md border border-border/60 bg-background hover:border-primary/50 transition-colors"
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{sug.nombre_actor}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {sug.comuna} · {sug.n_apiarios} {sug.n_apiarios === 1 ? 'apiario' : 'apiarios'} · {sug.n_colmenas} colmenas
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                            <span>{sug.comuna}</span>
+                            <span>·</span>
+                            <span>{sug.n_apiarios} {sug.n_apiarios === 1 ? 'apiario' : 'apiarios'}</span>
+                            <span>·</span>
+                            <span>{sug.n_colmenas} colmenas</span>
                           </p>
                         </div>
                         <Button
@@ -312,7 +316,7 @@ export function InscripcionActorForm({
                           className="shrink-0 text-xs h-7"
                           onClick={() => handleReclamar(sug)}
                         >
-                          Reclamar registro
+                          Vincular mis apiarios
                         </Button>
                       </div>
                     ))}

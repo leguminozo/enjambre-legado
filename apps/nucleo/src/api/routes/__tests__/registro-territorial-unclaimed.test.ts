@@ -83,6 +83,63 @@ describe('Public Unclaimed Actors Search API', () => {
     expect(json.data[0].n_colmenas).toBe(25);
   });
 
+  it('deduplicates unclaimed actors with identical names in different cases', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'actores_registro') {
+        return {
+          select: () => ({
+            is: () => ({
+              eq: () => ({
+                or: () => ({
+                  limit: async () => ({
+                    data: [
+                      {
+                        id: 'actor-upper',
+                        nombre_actor: 'JAIME IVAN ROGEL BARRIENTOS',
+                        comuna: 'Quemchi',
+                        region: 'Los Lagos',
+                        rol: 'api_residente',
+                        apiarios_registro: [
+                          { id: 'ap-1', nombre: 'LAS CHACRAS', comuna: 'Quemchi', zona: 'Quemchi', n_colmenas: 10 },
+                          { id: 'ap-2', nombre: 'CONCHEO', comuna: 'Quemchi', zona: 'Quemchi', n_colmenas: 10 },
+                          { id: 'ap-3', nombre: 'COCHELA', comuna: 'Quemchi', zona: 'Quemchi', n_colmenas: 10 },
+                        ],
+                      },
+                      {
+                        id: 'actor-title',
+                        nombre_actor: 'Jaime Ivan Rogel Barrientos',
+                        comuna: 'Quemchi',
+                        region: 'Los Lagos',
+                        rol: 'api_residente',
+                        apiarios_registro: [
+                          { id: 'ap-4', nombre: 'LAS CHACRAS', comuna: 'Quemchi', zona: 'Quemchi', n_colmenas: 10 },
+                          { id: 'ap-5', nombre: 'CONCHEO', comuna: 'Quemchi', zona: 'Quemchi', n_colmenas: 10 },
+                          { id: 'ap-6', nombre: 'COCHELA', comuna: 'Quemchi', zona: 'Quemchi', n_colmenas: 10 },
+                        ],
+                      },
+                    ],
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    const res = await app.request('/api/registro-territorial/actores/buscar-unclaimed?q=jaime');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    // Debe devolver exactamente 1 resultado (deduplicado)
+    expect(json.data).toHaveLength(1);
+    expect(json.data[0].nombre_actor).toBe('Jaime Ivan Rogel Barrientos');
+    expect(json.data[0].comuna).toBe('Quemchi');
+    expect(json.data[0].n_apiarios).toBe(3);
+    expect(json.data[0].n_colmenas).toBe(30);
+  });
+
   it('GET /api/registro-territorial/actores without Bearer returns 401 (zero-trust preserved)', async () => {
     const res = await app.request('/api/registro-territorial/actores');
     expect(res.status).toBe(401);

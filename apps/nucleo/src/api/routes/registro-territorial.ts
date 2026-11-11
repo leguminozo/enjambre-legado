@@ -309,8 +309,9 @@ registroTerritorialRoutes.get("/actores/me", async (c) => {
 });
 
 /** GET /api/registro-territorial/actores/buscar-unclaimed
- *  Busca asentamientos comunitarios pre-cargados que no han sido reclamados
- *  (user_id IS NULL) para sugerir adopción y reclamo con 1 clic al apicultor. */
+ *  Busca asentamientos y apiarios pre-cargados que no han sido reclamados
+ *  (user_id IS NULL) para sugerir vinculación al apicultor durante su registro.
+ *  Deduplica y normaliza mayúsculas sostenidas a formato legible y digno. */
 registroTerritorialRoutes.get("/actores/buscar-unclaimed", async (c) => {
   const q = c.req.query("q")?.trim();
   if (!q || q.length < 2) {
@@ -342,12 +343,28 @@ registroTerritorialRoutes.get("/actores/buscar-unclaimed", async (c) => {
     .is("user_id", null)
     .eq("estado", "activo")
     .or(searchFilter)
-    .limit(6);
+    .limit(16);
 
-  if (error) return c.json({ error: error.message }, 500);
+  if (error) {
+    console.error('[registro-territorial] buscar-unclaimed error:', error.message);
+    return c.json({ error: "No se pudieron obtener sugerencias del registro territorial" }, 500);
+  }
 
-  const mapped = (data ?? []).map((a) => {
-    const apiarios = (a.apiarios_registro as unknown as Array<{
+  type ActorSuggestion = {
+    id: string;
+    nombre_actor: string;
+    comuna: string;
+    region: string;
+    rol: string;
+    n_apiarios: number;
+    n_colmenas: number;
+    apiarios_nombres: string[];
+  };
+
+  const dedupeMap = new Map<string, ActorSuggestion>();
+
+  for (const a of data ?? []) {
+    const rawApiarios = (a.apiarios_registro as unknown as Array<{
       id: string;
       nombre: string | null;
       comuna: string;
@@ -355,22 +372,54 @@ registroTerritorialRoutes.get("/actores/buscar-unclaimed", async (c) => {
       n_colmenas: number;
     }>) ?? [];
 
-    const totalColmenas = apiarios.reduce((acc, curr) => acc + (curr.n_colmenas || 0), 0);
-    const nombresApiarios = apiarios
+    const totalColmenas = rawApiarios.reduce((acc, curr) => acc + (curr.n_colmenas || 0), 0);
+    const nombresApiarios = rawApiarios
       .map((ap) => ap.nombre)
       .filter((n): n is string => Boolean(n));
 
-    return {
+    // Formatear mayúsculas sostenidas a Nombre Propio elegante
+    let displayName = (a.nombre_actor || "").trim();
+    if (displayName && displayName === displayName.toUpperCase()) {
+      const connectors = new Set(["de", "del", "la", "las", "los", "y", "e"]);
+      displayName = displayName
+        .toLowerCase()
+        .split(/\s+/)
+        .map((w: string, idx: number) => {
+          if (idx > 0 && connectors.has(w)) return w;
+          return w.charAt(0).toUpperCase() + w.slice(1);
+        })
+        .join(" ");
+    }
+
+    const normKey = (a.nombre_actor || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase() + "::" + (a.comuna || "").trim().toLowerCase();
+
+    const candidate: ActorSuggestion = {
       id: a.id,
-      nombre_actor: a.nombre_actor,
+      nombre_actor: displayName,
       comuna: a.comuna,
       region: a.region,
       rol: a.rol,
-      n_apiarios: apiarios.length,
+      n_apiarios: rawApiarios.length,
       n_colmenas: totalColmenas,
       apiarios_nombres: nombresApiarios,
     };
-  });
+
+    if (!dedupeMap.has(normKey)) {
+      dedupeMap.set(normKey, candidate);
+    } else {
+      const existing = dedupeMap.get(normKey)!;
+      // Si el candidato actual tiene más colmenas o apiarios, preferirlo
+      if (candidate.n_colmenas > existing.n_colmenas || candidate.n_apiarios > existing.n_apiarios) {
+        dedupeMap.set(normKey, candidate);
+      }
+    }
+  }
+
+  const mapped = Array.from(dedupeMap.values()).slice(0, 6);
 
   return c.json({ data: mapped });
 });

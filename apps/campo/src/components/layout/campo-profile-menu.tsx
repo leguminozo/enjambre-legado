@@ -94,7 +94,9 @@ export function CampoProfileMenu({
       localStorage.removeItem('enjambre-campo-pos-cart');
       localStorage.removeItem('enjambre-campo-pos-discount');
       localStorage.removeItem('enjambre_campo_active_cash_session');
-    } catch {}
+    } catch {
+      // Ignore local storage cleanup errors during logout
+    }
     await signOut();
     window.location.href = '/login';
   };

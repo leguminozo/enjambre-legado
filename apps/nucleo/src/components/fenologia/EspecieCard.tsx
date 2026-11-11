@@ -128,13 +128,13 @@ export function EspecieCard({
           )}
 
           {/* Gradiente cinematográfico inferior para lectura perfecta del texto */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent pointer-events-none" />
 
           {/* ÚNICA etiqueta flotante de estado superior derecha */}
           <div className="absolute top-3 right-3 pointer-events-auto">
             {pronostico?.enFloracion ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-success/90 text-success-foreground shadow-lg backdrop-blur-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-success-foreground animate-pulse" />
                 Floración Activa
               </span>
             ) : pronostico?.enVentana ? (
@@ -142,23 +142,23 @@ export function EspecieCard({
                 En Temporada
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase bg-black/60 text-white/75 border border-white/10 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase bg-background/80 text-foreground/80 border border-border/40 backdrop-blur-md">
                 Monitoreo GDD
               </span>
             )}
           </div>
 
           {/* Identidad botánica sobre la imagen (Limpia y Jerárquica) */}
-          <div className="absolute bottom-3 left-3.5 right-3.5 text-white pointer-events-none">
-            <h3 className="text-xl font-display font-medium tracking-wide leading-tight text-white drop-shadow-md">
+          <div className="absolute bottom-3 left-3.5 right-3.5 text-foreground pointer-events-none">
+            <h3 className="text-xl font-display font-medium tracking-wide leading-tight text-foreground drop-shadow-md">
               {especie.nombre_comun}
             </h3>
             <div className="flex items-center gap-2 mt-0.5 text-xs">
-              <span className="italic font-mono text-white/90 drop-shadow">
+              <span className="italic font-mono text-foreground/90 drop-shadow">
                 {especie.nombre_cientifico}
               </span>
               {especie.familia && (
-                <span className="text-white/60 text-[11px] font-sans drop-shadow">
+                <span className="text-muted-foreground text-[11px] font-sans drop-shadow">
                   · {especie.familia}
                 </span>
               )}

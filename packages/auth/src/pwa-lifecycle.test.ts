@@ -35,11 +35,12 @@ describe('pwa-lifecycle', () => {
   })
 
   it('initPwaLifecycleSync attaches and cleans up event listeners', () => {
-    const docListeners: Record<string, Function> = {}
-    const winListeners: Record<string, Function> = {}
+    type ListenerFn = (...args: unknown[]) => void
+    const docListeners: Record<string, ListenerFn> = {}
+    const winListeners: Record<string, ListenerFn> = {}
 
     const mockDoc = {
-      addEventListener: vi.fn((event: string, fn: Function) => {
+      addEventListener: vi.fn((event: string, fn: ListenerFn) => {
         docListeners[event] = fn
       }),
       removeEventListener: vi.fn((event: string) => {
@@ -49,7 +50,7 @@ describe('pwa-lifecycle', () => {
     }
 
     const mockWin = {
-      addEventListener: vi.fn((event: string, fn: Function) => {
+      addEventListener: vi.fn((event: string, fn: ListenerFn) => {
         winListeners[event] = fn
       }),
       removeEventListener: vi.fn((event: string) => {

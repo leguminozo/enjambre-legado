@@ -43,7 +43,7 @@ export function FenologiaGuiaModal({ isOpen, onClose }: FenologiaGuiaModalProps)
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-background/80 backdrop-blur-md animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
