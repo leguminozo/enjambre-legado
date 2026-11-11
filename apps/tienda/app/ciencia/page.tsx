@@ -12,7 +12,7 @@ import {
   Radar,
   ArrowRight,
   Compass,
-  Sparkles,
+  Activity,
 } from 'lucide-react';
 import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -933,7 +933,7 @@ export default async function CienciaPage({
 
               <div className="rounded-2xl border border-border/40 bg-surface-raised p-5 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold font-mono">
-                  <Sparkles size={14} />
+                  <Activity size={14} />
                   <span>{bibliotecaP3Title}</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">

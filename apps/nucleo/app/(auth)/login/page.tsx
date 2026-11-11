@@ -632,7 +632,7 @@ function LoginContent() {
                       </label>
                       {buscando && (
                         <span className="text-[10px] text-muted-foreground animate-pulse">
-                          Buscando en catastro...
+                          Consultando registro territorial...
                         </span>
                       )}
                     </div>

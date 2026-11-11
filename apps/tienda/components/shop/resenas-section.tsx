@@ -14,7 +14,7 @@ import {
   Clock,
   Tag,
   Sliders,
-  Sparkles,
+  Compass,
   Check,
 } from 'lucide-react';
 import {
@@ -239,7 +239,7 @@ function ResenaCard({
       {isGuardian && resena.notas_personales ? (
         <div className="space-y-1.5">
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1.5">
-            <Sparkles size={12} className="text-primary" />
+            <PenLine size={12} className="text-primary" />
             <span>Firma Sensorial del Catador</span>
           </p>
           <p className="text-sm text-foreground/90 leading-relaxed italic bg-surface-sunken/40 rounded-xl p-3.5 border border-border/40">
@@ -575,7 +575,7 @@ export function ResenasSection({
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 sm:p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/15 pb-3">
             <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-              <Sparkles size={16} />
+              <Compass size={16} />
               <span>Consenso Organoléptico de la Comunidad</span>
             </div>
             <span className="text-[11px] text-primary/80 font-medium">

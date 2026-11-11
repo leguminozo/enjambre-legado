@@ -20,7 +20,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Sparkles,
   Lock,
   ExternalLink,
   Info,
@@ -333,7 +332,7 @@ export function BilleteraClient({
             {/* Cabecera de la tarjeta */}
             <div className="flex items-center justify-between gap-4 relative z-10">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-xs font-mono font-bold uppercase tracking-wider">
-                <Sparkles size={13} className="text-accent shrink-0" />
+                <Award size={13} className="text-accent shrink-0" />
                 <span id="puntos-heading">Balance Disponible</span>
               </div>
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-raised/90 border border-border/80 text-foreground text-xs font-mono font-semibold uppercase tracking-wider">

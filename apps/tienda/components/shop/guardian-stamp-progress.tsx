@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { formatStampMessage, type StampProgressView } from '@enjambre/wallet';
-import { Gift, Check, ArrowRight, Sparkles, ShoppingBag } from 'lucide-react';
+import { Gift, Check, ArrowRight, Award, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
 interface GuardianStampProgressProps {
@@ -23,7 +23,7 @@ export function GuardianStampProgress({
   if (programs.length === 0) {
     return (
       <div className="rounded-3xl border border-border/70 bg-card/60 p-8 text-center space-y-3">
-        <Sparkles className="w-8 h-8 text-accent mx-auto" />
+        <Award className="w-8 h-8 text-accent mx-auto" />
         <p className="font-display text-xl text-foreground font-light">Sin rutas de sellos activas</p>
         <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
           Cada compra de un producto o formato de miel nativa suma un sello en tu credencial.

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { ImmersiveModal, Button, Input, toast, friendlyError } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
-import { RotateCcw, Package, Award, CheckCircle2, User, Sparkles } from 'lucide-react';
+import { RotateCcw, Package, Award, CheckCircle2, User } from 'lucide-react';
 
 interface EnvaseItem {
   id: string;
@@ -215,7 +215,7 @@ export function RetornoEnvasesModal({ open, onClose, onSuccess }: RetornoEnvases
                 onClick={() => setCantidad(10)}
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:underline"
               >
-                <Sparkles size={12} />
+                <Award size={12} />
                 <span>Pack 10 Frascos (+Bono)</span>
               </button>
             </div>
@@ -287,7 +287,7 @@ export function RetornoEnvasesModal({ open, onClose, onSuccess }: RetornoEnvases
                 </div>
                 {lotesDe10 > 0 ? (
                   <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium pt-1 border-t border-border/40">
-                    <Sparkles size={13} className="shrink-0" />
+                    <Award size={13} className="shrink-0" />
                     <span>
                       ¡Incluye {lotesDe10 > 1 ? `${lotesDe10} Bonos` : 'Bono'} de Hito Guardián Austral (+${bonoClp.toLocaleString('es-CL')})!
                     </span>

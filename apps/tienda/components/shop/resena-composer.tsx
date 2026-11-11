@@ -20,7 +20,7 @@ import {
   Plus,
   UtensilsCrossed,
   Tag,
-  Sparkles,
+  PenLine,
   ChevronRight,
   ChevronLeft,
   UserCheck,
@@ -983,7 +983,7 @@ export function ResenaComposer({
                     <div className="p-5 sm:p-6 rounded-2xl bg-surface-sunken/40 border border-border/60 space-y-2.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs text-foreground font-semibold uppercase tracking-wider">
-                          <Sparkles size={14} className="text-primary" />
+                          <PenLine size={14} className="text-primary" />
                           <span>Firma Sensorial del Catador</span>
                         </div>
                         <span className="text-[11px] font-mono text-muted-foreground">

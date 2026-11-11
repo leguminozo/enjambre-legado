@@ -238,7 +238,7 @@ export function InscripcionActorForm({
                 </label>
                 {buscando && (
                   <span className="text-[11px] text-muted-foreground animate-pulse">
-                    Buscando en catastro...
+                    Consultando registro territorial...
                   </span>
                 )}
               </div>
