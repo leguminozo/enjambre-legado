@@ -361,12 +361,6 @@ export const LazyEditorTiendaView = named(
   'Editor Tienda',
   () => createElement(ModuloGenericoSkeleton),
 );
-export const LazyEspeciesNativasView = named(
-  () => import('@/views/fenologia/EspeciesNativasView'),
-  'EspeciesNativasView',
-  'Especies Nativas',
-  () => createElement(ColmenasDashboardSkeleton),
-);
 export const LazyResenasSensorialesView = named(
   () => import('@/views/crm/ResenasSensorialesView'),
   'ResenasSensorialesView',

@@ -145,14 +145,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Guardián del legado',
         mission: 'Reforestación, regeneración y CO₂ del territorio',
       },
-      {
-        key: 'especies-nativas',
-        label: 'Especies Nativas',
-        icon: 'flower-2',
-        href: '/fenologia/especies',
-        greeting: 'Botánico del bosque',
-        mission: 'Catastro de flora nativa melífera, umbrales térmicos y floración',
-      },
     ],
   },
   {

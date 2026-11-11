@@ -121,7 +121,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['calculos-ia']).toBe('Cálculos IA Fiscal');
     expect(byKey['resenas']).toBe('Reseñas Sensoriales');
     expect(byKey['planes-suscripcion']).toBe('Suscripciones Club');
-    expect(byKey['especies-nativas']).toBe('Especies Nativas');
+    expect(byKey['fenologia']).toBe('Oráculo Fenológico');
   });
 
   it('DESPACHO es categoría propia; Operadores Feria en FERIA Y REVENDEDORES; Alambique y Proveedores en PRODUCCIÓN', () => {
@@ -147,7 +147,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(groupOf('resenas')).toBe('tienda');
     expect(groupOf('planes-suscripcion')).toBe('club');
     expect(groupOf('club-legado')).toBe('club');
-    expect(groupOf('especies-nativas')).toBe('bosque');
+    expect(groupOf('fenologia')).toBe('bosque');
     expect(groupOf('integraciones')).toBe('plataforma');
     expect(groupOf('salud')).toBe('plataforma');
   });
@@ -455,7 +455,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(findActiveItem('/calculos-ia')?.key).toBe('calculos-ia');
     expect(findActiveItem('/crm/resenas')?.key).toBe('resenas');
     expect(findActiveItem('/planes-suscripcion')?.key).toBe('planes-suscripcion');
-    expect(findActiveItem('/fenologia/especies')?.key).toBe('especies-nativas');
+    expect(findActiveItem('/fenologia')?.key).toBe('fenologia');
     expect(findActiveItem('/territorio/')?.key).toBe('territorio');
     expect(findActiveItem('/territorio/trashumancia')?.key).toBe('trashumancia');
   });
@@ -471,12 +471,11 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(isNavItemActive('/calendario', 'ciclo-bosque')).toBe(true);
   });
 
-  it('BOSQUE ordena fenología, plantaciones y flora nativa (mundo vegetal unificado)', () => {
+  it('BOSQUE ordena fenología y plantaciones (mundo vegetal unificado)', () => {
     const bosque = SIDEBAR_GROUPS.find((g) => g.key === 'bosque');
     expect(bosque?.items.map((i) => i.key)).toEqual([
       'fenologia',
       'bosque',
-      'especies-nativas',
     ]);
   });
 
