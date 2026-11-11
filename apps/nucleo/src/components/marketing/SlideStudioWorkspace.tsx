@@ -61,6 +61,8 @@ import {
   type SlideAspectRatio,
   type SlideFontFamily,
   type SlideTheme,
+  resolveSlideTheme,
+  resolveAccentColor,
   PRESET_MANIFIESTO,
   PRESET_ULMO_ESTACIONAL,
   PRESET_KIT_CAFETERIA,
@@ -82,6 +84,7 @@ import { TabletopPrintModal } from './TabletopPrintModal';
 import { SlideStudioCommandPalette } from './SlideStudioCommandPalette';
 import { AudiovisualIdentityStudioModal } from './AudiovisualIdentityStudioModal';
 import { SlideExportPanel } from './SlideExportPanel';
+import { PhotoshopColorPickerModal } from './PhotoshopColorPickerModal';
 
 const MODULAR_BLOCK_TYPES = [
   {
@@ -226,7 +229,10 @@ export function SlideStudioWorkspace({
   const [isB2bPopoverOpen, setIsB2bPopoverOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [showSafeZones, setShowSafeZones] = useState(false);
-  const [isThemeMixerOpen, setIsThemeMixerOpen] = useState(false);
+  const [colorPickerState, setColorPickerState] = useState<{
+    isOpen: boolean;
+    mode: 'background' | 'accent';
+  }>({ isOpen: false, mode: 'background' });
   const [arsenalSearchQuery, setArsenalSearchQuery] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -285,6 +291,18 @@ export function SlideStudioWorkspace({
   const [collapsedBlocks, setCollapsedBlocks] = useState<Record<string, boolean>>({});
   const toggleBlockCollapse = (id: string) => {
     setCollapsedBlocks((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleOpenColorPicker = (mode: 'background' | 'accent') => {
+    setColorPickerState({ isOpen: true, mode });
+  };
+
+  const handleApplyColor = (colorValue: string, presetId?: string) => {
+    if (colorPickerState.mode === 'background') {
+      updateActiveSlide({ theme: (presetId || colorValue) as SlideTheme });
+    } else {
+      updateActiveSlide({ accentColor: presetId || colorValue });
+    }
   };
 
   // Atajos globales: ⌘K / Ctrl+K (Comandos) y ⌘S / Ctrl+S (Guardar)
@@ -1002,78 +1020,90 @@ export function SlideStudioWorkspace({
                     </button>
                   </div>
 
-                  {/* 1. Atmósfera de Fondo (Segmentado Apple-style + Mixeador) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-mono text-muted-foreground uppercase block">
-                        Atmósfera de Fondo
-                      </label>
-                      <span className="text-[10px] font-mono text-primary/80">
-                        {SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.label}
+                  {/* 1. Muestras de Color Pro (Fondo & Acento - Photoshop Style) */}
+                  <div className="p-3 sm:p-3.5 rounded-2xl border border-border bg-card/60 shadow-xs space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1.5 font-medium">
+                        <Sliders size={12} className="text-primary" />
+                        Cromática Editorial & Sustrato
+                      </span>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        {resolveSlideTheme(activeSlide.theme).isLight ? 'Modo Claro' : 'Modo Nocturno'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="flex items-center p-0.5 rounded-xl border border-border bg-surface-sunken">
-                        {Object.values(SLIDE_THEMES).map((th) => {
-                          const isSelected = (activeSlide.theme || 'obsidiana') === th.id;
-                          return (
-                            <button
-                              key={th.id}
-                              type="button"
-                              onClick={() => updateActiveSlide({ theme: th.id })}
-                              className={cn(
-                                'px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5 transition-all',
-                                isSelected
-                                  ? 'bg-card text-foreground font-semibold shadow-xs border border-border/80'
-                                  : 'text-muted-foreground hover:text-foreground',
-                              )}
-                              title={th.label}
-                            >
-                              <span
-                                className="h-2.5 w-2.5 rounded-full border border-white/20 shrink-0"
-                                style={{ backgroundColor: th.bgHex }}
-                              />
-                              <span>{th.label.split(' ')[0]}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
 
-                      {/* Botón Apple-type: Mixeador de Fondo */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Cuadro de Sustrato de Fondo */}
                       <button
                         type="button"
-                        onClick={() => setIsThemeMixerOpen((prev) => !prev)}
-                        className={cn(
-                          'px-2.5 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 transition-all',
-                          isThemeMixerOpen
-                            ? 'border-primary bg-primary/10 text-primary font-semibold'
-                            : 'border-border bg-card text-muted-foreground hover:text-foreground',
-                        )}
-                        title="Mixeador de fondo: afinar saturación y tono de sustrato"
+                        onClick={() => handleOpenColorPicker('background')}
+                        className="p-2.5 rounded-xl border border-border bg-card hover:bg-surface-raised hover:border-primary/50 flex items-center justify-between text-left transition-all group shadow-2xs"
+                        title="Hacer clic para abrir selector profundo tipo Photoshop del fondo"
                       >
-                        <Sliders size={12} className="text-primary" />
-                        <span>Mixeador</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className="h-8 w-8 rounded-lg border border-black/40 shadow-xs shrink-0 flex items-center justify-center relative overflow-hidden"
+                            style={{ backgroundColor: resolveSlideTheme(activeSlide.theme).bgHex }}
+                          >
+                            <span
+                              className="text-[9px] font-mono font-bold"
+                              style={{ color: resolveSlideTheme(activeSlide.theme).textPrimaryHex }}
+                            >
+                              BG
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex flex-col">
+                            <span className="text-[10px] font-mono uppercase text-muted-foreground leading-none mb-1">
+                              Fondo
+                            </span>
+                            <span className="text-xs font-mono font-semibold text-foreground truncate">
+                              {resolveSlideTheme(activeSlide.theme).label}
+                            </span>
+                            <span className="text-[10px] font-mono text-primary/80 uppercase">
+                              {resolveSlideTheme(activeSlide.theme).bgHex}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-surface-sunken border border-border/80 text-muted-foreground group-hover:text-foreground shrink-0">
+                          <span>Ajustar</span>
+                        </div>
+                      </button>
+
+                      {/* Cuadro de Color de Acento */}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenColorPicker('accent')}
+                        className="p-2.5 rounded-xl border border-border bg-card hover:bg-surface-raised hover:border-primary/50 flex items-center justify-between text-left transition-all group shadow-2xs"
+                        title="Hacer clic para abrir selector profundo tipo Photoshop del acento"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className="h-8 w-8 rounded-lg border border-black/40 shadow-xs shrink-0 flex items-center justify-center relative overflow-hidden"
+                            style={{ backgroundColor: resolveAccentColor(activeSlide.accentColor).hex }}
+                          >
+                            <span className="text-[9px] font-mono font-bold text-white shadow-xs">
+                              AC
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex flex-col">
+                            <span className="text-[10px] font-mono uppercase text-muted-foreground leading-none mb-1">
+                              Acento
+                            </span>
+                            <span className="text-xs font-mono font-semibold text-foreground truncate">
+                              {activeSlide.accentColor?.startsWith('#')
+                                ? 'Co-Branding Libre'
+                                : SLIDE_ACCENT_PALETTES[activeSlide.accentColor || 'oro']?.label || 'Oro Melífero'}
+                            </span>
+                            <span className="text-[10px] font-mono text-primary/80 uppercase">
+                              {resolveAccentColor(activeSlide.accentColor).hex}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-surface-sunken border border-border/80 text-muted-foreground group-hover:text-foreground shrink-0">
+                          <span>Ajustar</span>
+                        </div>
                       </button>
                     </div>
-
-                    {isThemeMixerOpen && (
-                      <div className="mt-2 p-3 rounded-xl border border-border bg-surface-sunken/60 space-y-2 animate-in fade-in">
-                        <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
-                          <span>Sustrato Orgánico Activo</span>
-                          <span className="text-primary font-medium">{SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.label}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                          <div className="flex items-center gap-2 p-1.5 rounded-lg border border-border bg-card">
-                            <span className="text-[10px] text-muted-foreground">HEX:</span>
-                            <span className="text-foreground font-semibold">{SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.bgHex}</span>
-                          </div>
-                          <div className="flex items-center gap-2 p-1.5 rounded-lg border border-border bg-card">
-                            <span className="text-[10px] text-muted-foreground">Modo:</span>
-                            <span className="text-foreground">{SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.isLight ? 'Ficha Clara' : 'Nocturno Carbón'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* 2. Voz Tipográfica (Dropdown con Orientación Editorial) */}
@@ -1161,81 +1191,7 @@ export function SlideStudioWorkspace({
                     </DropdownMenu>
                   </div>
 
-                  {/* 3. Color de Acento (Fila Compacta Apple-style) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-mono text-muted-foreground uppercase block">
-                        Color de Acento
-                      </label>
-                      {activeSlide.accentColor && (
-                        <span className="text-[10px] font-mono text-primary/80 uppercase">
-                          {activeSlide.accentColor.startsWith('#')
-                            ? `Co-Branding: ${activeSlide.accentColor}`
-                            : SLIDE_ACCENT_PALETTES[activeSlide.accentColor]?.label}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {/* Swatches Circulares de Paletas Curadas */}
-                      <div className="flex items-center gap-1.5 p-1 rounded-xl border border-border bg-surface-sunken">
-                        {Object.values(SLIDE_ACCENT_PALETTES).map((p) => {
-                          const isSelected = (activeSlide.accentColor || 'oro') === p.id;
-                          return (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => updateActiveSlide({ accentColor: p.id })}
-                              className={cn(
-                                'h-6 w-6 rounded-full border transition-all relative shrink-0 flex items-center justify-center',
-                                isSelected
-                                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-card scale-110 border-white/40'
-                                  : 'border-black/30 hover:scale-105 opacity-85 hover:opacity-100',
-                              )}
-                              style={{ backgroundColor: p.hex }}
-                              title={`${p.label} (${p.hex})`}
-                            >
-                              {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-white shadow-xs" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Selector Apple-type de Color Libre / Co-branding */}
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl border border-border bg-card">
-                        <div className="relative flex items-center">
-                          <input
-                            type="color"
-                            id="custom-color-picker"
-                            value={
-                              activeSlide.accentColor?.startsWith('#')
-                                ? activeSlide.accentColor
-                                : SLIDE_ACCENT_PALETTES[activeSlide.accentColor || 'oro']?.hex || '#D6AA5C'
-                            }
-                            onChange={(e) => updateActiveSlide({ accentColor: e.target.value })}
-                            className="h-5 w-5 rounded-full border border-border bg-card cursor-pointer p-0 shrink-0"
-                            title="Selector de color personalizado"
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="#HEX"
-                          value={activeSlide.accentColor?.startsWith('#') ? activeSlide.accentColor : ''}
-                          onChange={(e) => {
-                            const val = e.target.value.trim();
-                            if (val === '' || val.startsWith('#')) {
-                              updateActiveSlide({ accentColor: val || 'oro' });
-                            } else {
-                              updateActiveSlide({ accentColor: `#${val}` });
-                            }
-                          }}
-                          className="w-16 px-1.5 py-0.5 rounded bg-surface-sunken border border-border/70 text-[11px] font-mono text-foreground placeholder:text-muted-foreground uppercase"
-                          title="Ingresa código HEX para aliado B2B o co-branding"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 4. Escala, Peso/Cursiva del Título & Alineación Rectora */}
+                  {/* 3. Carácter Tipográfico & Jerarquía (Photoshop Character Style) */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
                     {/* Escala del Título */}
                     <div>
@@ -2154,6 +2110,19 @@ export function SlideStudioWorkspace({
           </div>
         </div>
       )}
+
+      {/* 13. Selector de Color Pro (Photoshop Style) */}
+      <PhotoshopColorPickerModal
+        isOpen={colorPickerState.isOpen}
+        onClose={() => setColorPickerState((prev) => ({ ...prev, isOpen: false }))}
+        mode={colorPickerState.mode}
+        currentColor={
+          colorPickerState.mode === 'background'
+            ? activeSlide?.theme || 'obsidiana'
+            : activeSlide?.accentColor || 'oro'
+        }
+        onApply={handleApplyColor}
+      />
     </div>
   );
 }

@@ -32,9 +32,15 @@ export interface ColeccionVideosViewProps {
 }
 
 const MOTOR_LABELS: Record<string, string> = {
+  obrera_zangano: 'Obrera y Zángano',
+  hueco_bosque: 'Hueco del Bosque & Luz de Copa',
+  radar_constelacion: 'Constelación Sensorial & Radar',
+  floracion_bosque: 'Floración & Fenología Austral',
+  cristalizacion_miel: 'Cristalización & Miel Cremosa',
+  alambique_hidromiel: 'Alambique & Fermentación',
   reologia_miel: 'Reología del Néctar',
-  enjambre_flujo: 'Enjambre & Pecoreo',
-  geometria_panal: 'Geometría de Cera',
+  enjambre_flujo: 'Enjambre & Pecoreo Austral',
+  geometria_panal: 'Geometría de Cera & Panal Vivo',
   lidar_fiordos: 'LiDAR de Fiordos',
   filigrana_origen: 'Filigrana de Origen',
 };

@@ -165,7 +165,7 @@ export function resolveTitleFontWeight(weight?: SlideTitleWeight): {
   }
 }
 
-export type SlideTheme = 'obsidiana' | 'marfil' | 'selva' | 'tierra';
+export type SlideTheme = 'obsidiana' | 'marfil' | 'selva' | 'tierra' | (string & {});
 
 export interface SlideThemeConfig {
   id: SlideTheme;
@@ -180,7 +180,128 @@ export interface SlideThemeConfig {
   isLight?: boolean;
 }
 
-export const SLIDE_THEMES: Record<SlideTheme, SlideThemeConfig> = {
+// ---------------------------------------------------------------------------
+// Color Math & Conversions (RGB, HSB/HSV, HEX, Luminancia)
+// ---------------------------------------------------------------------------
+
+export function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const clean = hex.replace('#', '').trim();
+  if (clean.length === 3) {
+    return {
+      r: parseInt(clean[0] + clean[0], 16) || 0,
+      g: parseInt(clean[1] + clean[1], 16) || 0,
+      b: parseInt(clean[2] + clean[2], 16) || 0,
+    };
+  }
+  if (clean.length === 6) {
+    return {
+      r: parseInt(clean.slice(0, 2), 16) || 0,
+      g: parseInt(clean.slice(2, 4), 16) || 0,
+      b: parseInt(clean.slice(4, 6), 16) || 0,
+    };
+  }
+  return { r: 10, g: 11, b: 10 };
+}
+
+export function rgbToHex(r: number, g: number, b: number): string {
+  const toHex = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+export function rgbToHsb(r: number, g: number, b: number): { h: number; s: number; b: number } {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  const brightness = max;
+  const saturation = max === 0 ? 0 : d / max;
+  let hue = 0;
+  if (d !== 0) {
+    if (max === rn) hue = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
+    else if (max === gn) hue = ((bn - rn) / d + 2) / 6;
+    else hue = ((rn - gn) / d + 4) / 6;
+  }
+  return {
+    h: Math.round(hue * 360),
+    s: Math.round(saturation * 100),
+    b: Math.round(brightness * 100),
+  };
+}
+
+export function hsbToRgb(h: number, s: number, b: number): { r: number; g: number; b: number } {
+  const hn = (h % 360) / 60;
+  const sn = Math.max(0, Math.min(100, s)) / 100;
+  const bn = Math.max(0, Math.min(100, b)) / 100;
+  const c = bn * sn;
+  const x = c * (1 - Math.abs((hn % 2) - 1));
+  const m = bn - c;
+  let r1 = 0;
+  let g1 = 0;
+  let b1 = 0;
+  if (hn >= 0 && hn < 1) {
+    r1 = c;
+    g1 = x;
+    b1 = 0;
+  } else if (hn >= 1 && hn < 2) {
+    r1 = x;
+    g1 = c;
+    b1 = 0;
+  } else if (hn >= 2 && hn < 3) {
+    r1 = 0;
+    g1 = c;
+    b1 = x;
+  } else if (hn >= 3 && hn < 4) {
+    r1 = 0;
+    g1 = x;
+    b1 = c;
+  } else if (hn >= 4 && hn < 5) {
+    r1 = x;
+    g1 = 0;
+    b1 = c;
+  } else {
+    r1 = c;
+    g1 = 0;
+    b1 = x;
+  }
+  return {
+    r: Math.round((r1 + m) * 255),
+    g: Math.round((g1 + m) * 255),
+    b: Math.round((b1 + m) * 255),
+  };
+}
+
+export function hexToHsb(hex: string): { h: number; s: number; b: number } {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHsb(r, g, b);
+}
+
+export function hsbToHex(h: number, s: number, b: number): string {
+  const { r, g, b: blue } = hsbToRgb(h, s, b);
+  return rgbToHex(r, g, blue);
+}
+
+export function getLuminance(r: number, g: number, b: number): number {
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
+
+export function adjustLightness(hex: string, deltaPercent: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  if (deltaPercent >= 0) {
+    const factor = deltaPercent / 100;
+    return rgbToHex(
+      r + (255 - r) * factor,
+      g + (255 - g) * factor,
+      b + (255 - b) * factor,
+    );
+  } else {
+    const factor = 1 + deltaPercent / 100;
+    return rgbToHex(r * factor, g * factor, b * factor);
+  }
+}
+
+export const SLIDE_THEMES: Record<string, SlideThemeConfig> = {
   obsidiana: {
     id: 'obsidiana',
     label: 'Obsidiana Carbón',
@@ -279,9 +400,32 @@ export const SLIDE_THEMES: Record<SlideTheme, SlideThemeConfig> = {
   },
 };
 
-export function resolveSlideTheme(theme?: SlideTheme): SlideThemeConfig {
-  if (!theme || !SLIDE_THEMES[theme]) return SLIDE_THEMES.obsidiana;
-  return SLIDE_THEMES[theme];
+export function resolveSlideTheme(theme?: SlideTheme | string): SlideThemeConfig {
+  if (!theme) return SLIDE_THEMES.obsidiana;
+  if (SLIDE_THEMES[theme as SlideTheme]) return SLIDE_THEMES[theme as SlideTheme];
+
+  // Soporte dinámico profundo para colores de fondo personalizados tipo Photoshop
+  if (theme.startsWith('#') || /^[0-9a-fA-F]{3,6}$/.test(theme)) {
+    const hex = theme.startsWith('#') ? theme : `#${theme}`;
+    const { r, g, b } = hexToRgb(hex);
+    const lum = getLuminance(r, g, b);
+    const isLight = lum > 0.52;
+
+    return {
+      id: hex as SlideTheme,
+      label: `Sustrato ${hex.toUpperCase()}`,
+      sublabel: isLight ? 'Ficha clara personalizada' : 'Nocturno personalizado',
+      bgHex: hex,
+      cardHex: isLight ? adjustLightness(hex, -5) : adjustLightness(hex, 9),
+      borderHex: isLight ? adjustLightness(hex, -16) : adjustLightness(hex, 18),
+      dividerHex: isLight ? adjustLightness(hex, -11) : adjustLightness(hex, 13),
+      textPrimaryHex: isLight ? '#161916' : '#F2EEE6',
+      textMutedHex: isLight ? '#666C66' : '#8E9690',
+      isLight,
+    };
+  }
+
+  return SLIDE_THEMES.obsidiana;
 }
 
 export interface SlidePalette {

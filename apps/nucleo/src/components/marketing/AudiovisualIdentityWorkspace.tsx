@@ -52,22 +52,58 @@ const MOTOR_CONFIGS: Array<{
   desc: string;
 }> = [
   {
+    id: 'obrera_zangano',
+    label: 'Obrera y Zángano',
+    tagline: 'Vuelo de Pecoreo & Polen Austral',
+    desc: 'Hero oficial de la marca: abejas obreras y zánganos reales con alas batientes, resplandor dorado y fragmentos macroscópicos de polen y ámbar.',
+  },
+  {
+    id: 'hueco_bosque',
+    label: 'Hueco del Bosque & Luz de Copa',
+    tagline: 'Dosel Ancestral & Rayo Volumétrico',
+    desc: 'Atmósfera cinematográfica del tronco milenario: anillos de corteza, haz de luz solar descendente y motas de polvo dorado suspendidas.',
+  },
+  {
+    id: 'radar_constelacion',
+    label: 'Constelación Sensorial & Radar',
+    tagline: 'Ejes Organolépticos & Telaraña Botánica',
+    desc: 'Polígono sensorial vivo inspirado en el ritual de cata: 8 notas botánicas en resonancia, ejes armónicos y estrellas nodriza.',
+  },
+  {
+    id: 'floracion_bosque',
+    label: 'Floración & Fenología Austral',
+    tagline: 'Pétalos de Ulmo & Rocío de Selva',
+    desc: 'Floración viva del dosel milenario de Chiloé: flores blancas y crema abriéndose lentamente con pétalos mecidos por el viento austral.',
+  },
+  {
+    id: 'cristalizacion_miel',
+    label: 'Cristalización & Miel Cremosa',
+    tagline: 'Crecimiento Dendrítico & Nieve Ámbar',
+    desc: 'Textura de miel cruda hilada en frío: agujas fractales de glucosa pura creciendo desde núcleos áureos y micro-cristales en suspensión.',
+  },
+  {
+    id: 'alambique_hidromiel',
+    label: 'Alambique & Fermentación',
+    tagline: 'Vapor Botánico & Microburbujas',
+    desc: 'Efervescencia silvestre de hidromiel de bosque: burbujas doradas en ascenso, vapores aromáticos de roble y calor cobrizo de fondo.',
+  },
+  {
     id: 'reologia_miel',
     label: 'Reología del Néctar',
     tagline: 'Fluidos Viscosos & Tensión Ámbar',
     desc: 'Simulación de miel virgen de Ulmo, catenarias elásticas y gotas densas no-newtonianas.',
   },
   {
-    id: 'enjambre_flujo',
-    label: 'Enjambre & Pecoreo',
-    tagline: 'Vectores de Vuelo & Orientación Solar',
-    desc: 'Campos de flujo balístico y partículas de polen suspendidas en el viento austral.',
+    id: 'geometria_panal',
+    label: 'Geometría de Cera & Panal Vivo',
+    tagline: 'Celdillas Hexagonales & Pulso Térmico',
+    desc: 'Arquitectura viva de alvéolos de cera virgen con miel translúcida y termorregulación de enjambre.',
   },
   {
-    id: 'geometria_panal',
-    label: 'Geometría de Cera',
-    tagline: 'Voronoi Vivo & Celdillas Térmicas',
-    desc: 'Arquitectura viva que respira y se equilibra como el panal en construcción.',
+    id: 'enjambre_flujo',
+    label: 'Enjambre & Pecoreo Austral',
+    tagline: 'Vectores de Vuelo & Orientación Solar',
+    desc: 'Campos de flujo balístico, estelas de vuelo áureas y corrientes de viento del archipiélago.',
   },
   {
     id: 'lidar_fiordos',
@@ -368,6 +404,106 @@ export function AudiovisualIdentityWorkspace({
     }
     return base;
   }, [params.palette, params.customColor]);
+
+  const layerConfigs = useMemo(() => {
+    if (params.motor === 'obrera_zangano') {
+      return [
+        { key: 'organisms' as const, label: 'Abejas Obreras & Zánganos', desc: 'Anatomía detallada, alas batientes y resplandor áureo' },
+        { key: 'particles' as const, label: 'Polen & Ámbar Flotante', desc: 'Ingredientes botánicos macroscópicos y motas de luz' },
+        { key: 'hulls' as const, label: 'Halo Atmosférico del Enjambre', desc: 'Resplandor volumétrico y calidez de fondo' },
+        { key: 'synapses' as const, label: 'Vectores de Comunicación', desc: 'Líneas sutiles de orientación solar y vuelo' },
+        { key: 'pulses' as const, label: 'Ondas Gravitacionales', desc: 'Respuesta expansiva a clics y toques' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Respiración y micro-deriva continua' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'hueco_bosque') {
+      return [
+        { key: 'hulls' as const, label: 'Tronco de Árbol & Anillos', desc: 'Corteza ancestral, veta de madera y cavidad' },
+        { key: 'synapses' as const, label: 'Rayo de Luz Volumétrico', desc: 'Luz de copa descendente del dosel del bosque' },
+        { key: 'particles' as const, label: 'Motas de Polen Iluminadas', desc: 'Polvo áureo suspendido brillando en el haz solar' },
+        { key: 'organisms' as const, label: 'Espejo de Néctar Reposado', desc: 'Reflejo líquido en el fondo de la cavidad' },
+        { key: 'pulses' as const, label: 'Pulsos de Brisa Austral', desc: 'Ondulaciones de luz y resonancia' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Zoom y vaivén orgánico del dosel' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'radar_constelacion') {
+      return [
+        { key: 'organisms' as const, label: 'Polígono Sensorial & Notas', desc: 'Vértices dinámicos de percepción de cata' },
+        { key: 'hulls' as const, label: 'Anillos & Octógonos de Radar', desc: 'Escala porcentual de calibración organoléptica' },
+        { key: 'synapses' as const, label: 'Ejes Armónicos & Telaraña', desc: 'Líneas de conexión entre las 8 notas sensoriales' },
+        { key: 'particles' as const, label: 'Estrellas Nodriza & Muestras', desc: 'Puntos de muestreo botánico en órbita' },
+        { key: 'pulses' as const, label: 'Pulsos de Calibración', desc: 'Ondas expansivas de degustación' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Respiración y micro-deriva continua' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'floracion_bosque') {
+      return [
+        { key: 'organisms' as const, label: 'Flores de Ulmo & Estambres', desc: 'Pétalos en floración viva y gotas de rocío' },
+        { key: 'particles' as const, label: 'Pétalos al Viento Austral', desc: 'Hojas y pétalos flotando en deriva continua' },
+        { key: 'hulls' as const, label: 'Dosel & Follaje de Fondo', desc: 'Sombras botánicas y atmósfera de copa' },
+        { key: 'synapses' as const, label: 'Pecíolos & Conexiones Florales', desc: 'Líneas vegetales de savia silvestre' },
+        { key: 'pulses' as const, label: 'Brisa del Bosque Austral', desc: 'Ráfagas de viento y resonancia' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Zoom y vaivén orgánico del dosel' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'cristalizacion_miel') {
+      return [
+        { key: 'organisms' as const, label: 'Núcleos de Cristalización', desc: 'Puntos de cristalización activa de glucosa' },
+        { key: 'hulls' as const, label: 'Manto de Miel Cremosa', desc: 'Fondo aterciopelado de textura hilada en frío' },
+        { key: 'synapses' as const, label: 'Dendritas & Agujas Fractales', desc: 'Ramificación hexagonal de cristal puro' },
+        { key: 'particles' as const, label: 'Micro-Cristales en Suspensión', desc: 'Nieve ámbar y destellos brillantes' },
+        { key: 'pulses' as const, label: 'Pulsos de Cristalización', desc: 'Ondas térmicas y alineación molecular' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Respiración y micro-zoom' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'alambique_hidromiel') {
+      return [
+        { key: 'organisms' as const, label: 'Microburbujas Efervescentes', desc: 'Burbujas doradas en ascenso continuo' },
+        { key: 'hulls' as const, label: 'Fondo de Cobre & Roble', desc: 'Calor volcánico y pátina de fermentación' },
+        { key: 'synapses' as const, label: 'Vapores & Espiral de Destilación', desc: 'Líneas de condensación botánica' },
+        { key: 'particles' as const, label: 'Chispas & Efluvios Aromáticos', desc: 'Micro-gotas suspendidas en el vapor' },
+        { key: 'pulses' as const, label: 'Pulsos de Calor & Presión', desc: 'Ondulaciones de fermentación viva' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Respiración y micro-deriva continua' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'reologia_miel') {
+      return [
+        { key: 'organisms' as const, label: 'Gotas de Miel No-Newtoniana', desc: 'Gotas densas con brillo especular y curvatura' },
+        { key: 'synapses' as const, label: 'Catenarias & Filamentos Elásticos', desc: 'Hilos continuos de miel cayendo en suspensión' },
+        { key: 'particles' as const, label: 'Micro-Burbujas & Polen', desc: 'Partículas suspendidas en el néctar denso' },
+        { key: 'hulls' as const, label: 'Manto Viscoso & Menisco', desc: 'Superficie de miel y tensión ámbar' },
+        { key: 'pulses' as const, label: 'Ondas de Impacto Viscoso', desc: 'Ripples elásticos concéntricos' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Respiración y micro-zoom' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    if (params.motor === 'geometria_panal') {
+      return [
+        { key: 'organisms' as const, label: 'Alvéolos de Miel Translúcida', desc: 'Celdillas hexagonales con pulso térmico' },
+        { key: 'hulls' as const, label: 'Estructura de Cera Virgen', desc: 'Paredes hexagonales del panal' },
+        { key: 'particles' as const, label: 'Polen & Efluvios Térmicos', desc: 'Micro-partículas del nido' },
+        { key: 'synapses' as const, label: 'Red de Termorregulación', desc: 'Resonancia colectiva del panal' },
+        { key: 'pulses' as const, label: 'Pulsos de Incubación', desc: 'Ondas térmicas concéntricas' },
+        { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Micro-zoom y deriva continua' },
+        { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+      ];
+    }
+    return [
+      { key: 'organisms' as const, label: 'Organismos Vivos & Gotas', desc: 'Cuerpos de densidad y núcleos luminosos' },
+      { key: 'hulls' as const, label: 'Hulls & Membranas Envolventes', desc: 'Campos de viscosidad difusa' },
+      { key: 'particles' as const, label: 'Partículas & Estelas de Vuelo', desc: 'Micro-rastros y polen en movimiento' },
+      { key: 'synapses' as const, label: 'Sinapsis & Catenarias de Red', desc: 'Filamentos elásticos interconectados' },
+      { key: 'pulses' as const, label: 'Pulsos Gravitacionales', desc: 'Ondas concéntricas de resonancia' },
+      { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Micro-zoom y deriva continua' },
+      { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
+    ];
+  }, [params.motor]);
 
   const handleGuardarProyecto = () => {
     const canvas = canvasRef.current;
@@ -816,15 +952,7 @@ export function AudiovisualIdentityWorkspace({
                   Capas Activas del Render
                 </label>
                 <div className="space-y-2">
-                  {[
-                    { key: 'organisms' as const, label: 'Organismos Vivos & Gotas', desc: 'Cuerpos de densidad y núcleos luminosos' },
-                    { key: 'hulls' as const, label: 'Hulls & Membranas Envolventes', desc: 'Campos de viscosidad difusa' },
-                    { key: 'particles' as const, label: 'Partículas & Estelas de Vuelo', desc: 'Micro-rastros y polen en movimiento' },
-                    { key: 'synapses' as const, label: 'Sinapsis & Catenarias de Red', desc: 'Filamentos elásticos interconectados' },
-                    { key: 'pulses' as const, label: 'Pulsos Gravitacionales', desc: 'Ondas concéntricas de resonancia' },
-                    { key: 'cameraMotion' as const, label: 'Cinemática de Cámara', desc: 'Micro-zoom y deriva continua' },
-                    { key: 'brandSeal' as const, label: 'Sello de Origen OYZ', desc: 'Micro-retícula y coordenadas oficiales' },
-                  ].map((layer) => {
+                  {layerConfigs.map((layer) => {
                     const isActive = params.layers[layer.key];
                     return (
                       <div
